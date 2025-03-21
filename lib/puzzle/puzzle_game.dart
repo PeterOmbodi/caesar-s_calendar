@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:caesar_puzzle/puzzle/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/puzzle/puzzle_grid.dart';
 import 'package:caesar_puzzle/puzzle/puzzle_piece.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class PuzzleGameState extends State<PuzzleGame> {
   List<PuzzlePiece> pieces = [];
   PuzzlePiece? selectedPiece;
   Offset? dragStartOffset;
+  Offset? pieceStartPosition;
   late PuzzleGrid grid;
   bool isDragging = false;
 
@@ -31,44 +33,69 @@ class PuzzleGameState extends State<PuzzleGame> {
   }
 
   void _initializePieces() {
-    final Path lShape = Path()
+    final List<Color> pieceColors = [
+      Colors.teal.withOpacity(0.8),
+      Colors.indigo.withOpacity(0.8),
+      Colors.brown.withOpacity(0.8),
+      Colors.blueGrey.withOpacity(0.8),
+      Colors.grey.withOpacity(0.8),
+      Colors.deepPurple.withOpacity(0.8),
+      Colors.blue.withOpacity(0.8),
+      Colors.cyan.withOpacity(0.8),
+    ];
+
+    final double cellSize = grid.cellSize;
+
+    // L shape 4-2
+    final Path cornerLShape = Path()
       ..moveTo(0, 0)
-      ..lineTo(50, 0)
-      ..lineTo(50, 50)
-      ..lineTo(100, 50)
-      ..lineTo(100, 100)
-      ..lineTo(0, 100)
+      ..lineTo(cellSize, 0)
+      ..lineTo(cellSize, cellSize)
+      ..lineTo(4 * cellSize, cellSize)
+      ..lineTo(4 * cellSize, 2 * cellSize)
+      ..lineTo(0, 2 * cellSize)
+      ..close();
+    // square 3x2
+    final Path squareShape = Path()
+      ..moveTo(0, 0)
+      ..lineTo(3 * cellSize, 0)
+      ..lineTo(3 * cellSize, 2 * cellSize)
+      ..lineTo(0, 2 * cellSize)
       ..close();
 
-    final Offset lCenter = const Offset(50, 50);
-
-    final Path tShape = Path()
-      ..moveTo(25, 0)
-      ..lineTo(75, 0)
-      ..lineTo(75, 50)
-      ..lineTo(100, 50)
-      ..lineTo(100, 100)
-      ..lineTo(0, 100)
-      ..lineTo(0, 50)
-      ..lineTo(25, 50)
+    // 7. Z shape 2-3-2
+    final Path zShape = Path()
+      ..moveTo(0, 0)
+      ..lineTo(cellSize, 0)
+      ..lineTo(cellSize, cellSize)
+      ..lineTo(3 * cellSize, cellSize)
+      ..lineTo(3 * cellSize, 3 * cellSize)
+      ..lineTo(2 * cellSize, 3 * cellSize)
+      ..lineTo(2 * cellSize, 2 * cellSize)
+      ..lineTo(0, 2 * cellSize)
       ..close();
-
-    final Offset tCenter = const Offset(50, 50);
 
     pieces = [
       PuzzlePiece(
-        path: lShape,
-        color: Colors.blue.withOpacity(0.7),
-        id: 'L-shape',
-        position: const Offset(50, 50),
-        centerPoint: lCenter,
+        path: cornerLShape,
+        color: pieceColors[0],
+        id: 'corner-l',
+        position: Offset(50, 50),
+        centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
-        path: tShape,
-        color: Colors.red.withOpacity(0.7),
-        id: 'T-shape',
-        position: const Offset(200, 50),
-        centerPoint: tCenter,
+        path: squareShape,
+        color: pieceColors[1],
+        id: 'square',
+        position: Offset(50, 200),
+        centerPoint: Offset(cellSize, cellSize),
+      ),
+      PuzzlePiece(
+        path: zShape,
+        color: pieceColors[6],
+        id: 'z-shape',
+        position: Offset(350, 200),
+        centerPoint: Offset(cellSize, cellSize),
       ),
     ];
   }
@@ -102,24 +129,51 @@ class PuzzleGameState extends State<PuzzleGame> {
       if (otherPiece.id != piece.id) {
         final otherPath = otherPiece.getTransformedPath();
 
-        // Use Path.combine to check for intersection
-        final combinedPath = Path.combine(PathOperation.intersect, testPath, otherPath);
+        try {
+          if (testPath.getBounds().overlaps(otherPath.getBounds())) {
+            final combinedPath = Path.combine(PathOperation.intersect, testPath, otherPath);
+            final bounds = combinedPath.getBounds();
 
-        // If combinedPath is not empty, there's a collision
-        if (!combinedPath.getBounds().isEmpty) {
+            if (!bounds.isEmpty && bounds.width > 1 && bounds.height > 1) {
+              debugPrint('Collision detected!');
+              return true;
+            }
+          }
+        } catch (e) {
+          debugPrint('Checking collision exception: $e');
           return true;
         }
       }
     }
+    if (!_isWithinGameBoard(testPiece)) {
+      return true;
+    }
 
     return false;
+  }
+
+  bool _isWithinGameBoard(PuzzlePiece piece) {
+    final path = piece.getTransformedPath();
+    final bounds = path.getBounds();
+
+    final boardRect = Rect.fromLTWH(
+      grid.origin.dx,
+      grid.origin.dy,
+      grid.cellSize * grid.columns,
+      grid.cellSize * grid.rows,
+    );
+
+    return boardRect.contains(bounds.topLeft) &&
+        boardRect.contains(bounds.topRight) &&
+        boardRect.contains(bounds.bottomLeft) &&
+        boardRect.contains(bounds.bottomRight);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Календарь Цезаря'),
+        title: const Text('Caesars calendar'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -162,6 +216,7 @@ class PuzzleGameState extends State<PuzzleGame> {
 
                   selectedPiece = pieces.last;
                   dragStartOffset = details.localPosition - selectedPiece!.position;
+                  pieceStartPosition = selectedPiece!.position;
                   isDragging = true;
                 });
               }
@@ -170,36 +225,42 @@ class PuzzleGameState extends State<PuzzleGame> {
               if (selectedPiece != null && dragStartOffset != null) {
                 setState(() {
                   final index = pieces.indexOf(selectedPiece!);
-
                   final newPosition = details.localPosition - dragStartOffset!;
                   pieces[index] = selectedPiece!.copyWith(
                     newPosition: newPosition,
                   );
-
                   selectedPiece = pieces[index];
                 });
               }
             },
             onPanEnd: (details) {
               if (selectedPiece != null) {
-                setState(() {
-                  final index = pieces.indexOf(selectedPiece!);
-                  final snappedPosition = grid.snapToGrid(selectedPiece!.position);
+                final index = pieces.indexOf(selectedPiece!);
+                final snappedPosition = grid.snapToGrid(selectedPiece!.position);
 
-                  // Check if new position would cause collision
-                  if (!_checkCollision(selectedPiece!, snappedPosition)) {
+                // Check if new position would cause collision
+                if (!_checkCollision(selectedPiece!, snappedPosition)) {
+                  setState(() {
                     pieces[index] = selectedPiece!.copyWith(
                       newPosition: snappedPosition,
                     );
-                  } else {
-                    // Return piece to original position on collision
-                    pieces[index] = selectedPiece!;
-                  }
-
-                  selectedPiece = null;
-                  dragStartOffset = null;
-                  isDragging = false;
-                });
+                    selectedPiece = null;
+                    dragStartOffset = null;
+                    pieceStartPosition = null;
+                    isDragging = false;
+                  });
+                } else {
+                  debugPrint('Collision detected, the piece will return to origin place');
+                  setState(() {
+                    pieces[index] = selectedPiece!.copyWith(
+                      newPosition: pieceStartPosition!,
+                    );
+                    selectedPiece = null;
+                    dragStartOffset = null;
+                    pieceStartPosition = null;
+                    isDragging = false;
+                  });
+                }
               }
             },
             onDoubleTapDown: (details) {
@@ -211,9 +272,14 @@ class PuzzleGameState extends State<PuzzleGame> {
                     newIsFlipped: !piece.isFlipped,
                   );
 
+                  debugPrint('Flipping piece ${piece.id}: ${piece.isFlipped} -> ${flippedPiece.isFlipped}');
+
                   // Check if flipping would cause a collision
                   if (!_checkCollision(flippedPiece, flippedPiece.position)) {
                     pieces[index] = flippedPiece;
+                    debugPrint('Flipped successfully');
+                  } else {
+                    debugPrint('Flipping would cause collision, aborting');
                   }
                 });
               }
@@ -247,87 +313,5 @@ class PuzzleGameState extends State<PuzzleGame> {
         ],
       ),
     );
-  }
-}
-
-class PuzzleBoardPainter extends CustomPainter {
-  final List<PuzzlePiece> pieces;
-  final PuzzleGrid grid;
-  final PuzzlePiece? selectedPiece;
-
-  PuzzleBoardPainter({
-    required this.pieces,
-    required this.grid,
-    this.selectedPiece,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    _drawGrid(canvas);
-
-    for (var piece in pieces) {
-      final paint = Paint()
-        ..color = piece == selectedPiece ? piece.color.withOpacity(0.9) : piece.color
-        ..style = PaintingStyle.fill;
-
-      final transformedPath = piece.getTransformedPath();
-      canvas.drawPath(transformedPath, paint);
-
-      final borderPaint = Paint()
-        ..color = piece == selectedPiece ? Colors.yellow : Colors.black
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = piece == selectedPiece ? 3.0 : 2.0;
-      canvas.drawPath(transformedPath, borderPaint);
-
-      if (piece == selectedPiece) {
-        final centerPaint = Paint()
-          ..color = Colors.red
-          ..style = PaintingStyle.fill;
-
-        canvas.drawCircle(piece.position + piece.centerPoint, 5.0, centerPaint);
-      }
-    }
-  }
-
-  void _drawGrid(Canvas canvas) {
-    final paint = Paint()
-      ..color = Colors.grey[300]!
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    // horizontal lines
-    for (int i = 0; i <= grid.rows; i++) {
-      final y = grid.origin.dy + i * grid.cellSize;
-      canvas.drawLine(
-        Offset(grid.origin.dx, y),
-        Offset(grid.origin.dx + grid.columns * grid.cellSize, y),
-        paint,
-      );
-    }
-
-    // vertical lines
-    for (int i = 0; i <= grid.columns; i++) {
-      final x = grid.origin.dx + i * grid.cellSize;
-      canvas.drawLine(
-        Offset(x, grid.origin.dy),
-        Offset(x, grid.origin.dy + grid.rows * grid.cellSize),
-        paint,
-      );
-    }
-
-    // game board borders
-    final borderPaint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    canvas.drawRect(
-        Rect.fromLTWH(grid.origin.dx, grid.origin.dy, grid.cellSize * grid.columns, grid.cellSize * grid.rows),
-        borderPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
   }
 }

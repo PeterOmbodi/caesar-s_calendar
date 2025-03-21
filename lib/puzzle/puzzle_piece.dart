@@ -14,9 +14,9 @@ class PuzzlePiece {
     required this.path,
     required this.color,
     required this.id,
-    required this.centerPoint,
     required this.position,
     this.rotation = 0.0,
+    required this.centerPoint,
     this.isFlipped = false,
   });
 
@@ -28,8 +28,13 @@ class PuzzlePiece {
     final matrix = Matrix4.identity()
       ..translate(position.dx, position.dy)
       ..translate(centerPoint.dx, centerPoint.dy)
-      ..rotateZ(rotation)
-      ..translate(-centerPoint.dx, -centerPoint.dy);
+      ..rotateZ(rotation);
+
+    if (isFlipped) {
+      matrix.scale(-1.0, 1.0);
+    }
+
+    matrix.translate(-centerPoint.dx, -centerPoint.dy);
 
     final invertedMatrix = Matrix4.inverted(matrix);
     final transformedPoint = Offset(
@@ -56,8 +61,13 @@ class PuzzlePiece {
     final matrix = Matrix4.identity()
       ..translate(position.dx, position.dy)
       ..translate(centerPoint.dx, centerPoint.dy)
-      ..rotateZ(rotation)
-      ..translate(-centerPoint.dx, -centerPoint.dy);
+      ..rotateZ(rotation);
+
+    if (isFlipped) {
+      matrix.scale(-1.0, 1.0);
+    }
+
+    matrix.translate(-centerPoint.dx, -centerPoint.dy);
 
     return path.transform(matrix.storage);
   }
