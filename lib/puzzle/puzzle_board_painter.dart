@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/puzzle/puzzle_board.dart';
 import 'package:caesar_puzzle/puzzle/puzzle_grid.dart';
 import 'package:caesar_puzzle/puzzle/puzzle_piece.dart';
 import 'package:flutter/material.dart';
@@ -5,17 +6,24 @@ import 'package:flutter/material.dart';
 class PuzzleBoardPainter extends CustomPainter {
   final List<PuzzlePiece> pieces;
   final PuzzleGrid grid;
+  final PuzzleBoard board;
   final PuzzlePiece? selectedPiece;
+  final bool showGridLines;
 
   PuzzleBoardPainter({
     required this.pieces,
     required this.grid,
+    required this.board,
     this.selectedPiece,
+    this.showGridLines = true,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    _drawGrid(canvas);
+    _drawBoard(canvas);
+    if (showGridLines) {
+      _drawGrid(canvas);
+    }
 
     for (var piece in pieces) {
       final paint = Paint()
@@ -73,9 +81,50 @@ class PuzzleBoardPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    canvas.drawRect(
-        Rect.fromLTWH(grid.origin.dx, grid.origin.dy, grid.cellSize * grid.columns, grid.cellSize * grid.rows),
-        borderPaint);
+    canvas.drawRect(grid.getBounds(), borderPaint);
+  }
+
+  void _drawBoard(Canvas canvas) {
+    // Draw board background
+    final bgPaint = Paint()
+      ..color = Colors.grey[100]!
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRect(board.getBounds(), bgPaint);
+
+    // Draw board border
+    final borderPaint = Paint()
+      ..color = Colors.grey[400]!
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    canvas.drawRect(board.getBounds(), borderPaint);
+
+    // Draw board label
+    const textStyle = TextStyle(
+      color: Colors.black54,
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+    );
+
+    final textSpan = TextSpan(
+      text: 'Shapes',
+      style: textStyle,
+    );
+
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    );
+
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(
+        board.origin.dx + 10,
+        board.origin.dy + 10,
+      ),
+    );
   }
 
   @override
