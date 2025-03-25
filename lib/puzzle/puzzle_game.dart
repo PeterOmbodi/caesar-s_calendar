@@ -72,12 +72,34 @@ class PuzzleGameState extends State<PuzzleGame> {
       ..lineTo(0, 2 * cellSize)
       ..close();
 
+    // C shape
+    final Path cShape = Path()
+      ..moveTo(0, 0)
+      ..lineTo(cellSize, 0)
+      ..lineTo(cellSize, cellSize)
+      ..lineTo(2 * cellSize, cellSize)
+      ..lineTo(2 * cellSize, 0)
+      ..lineTo(3 * cellSize, 0)
+      ..lineTo(3 * cellSize, 2 * cellSize)
+      ..lineTo(0, 2 * cellSize)
+      ..close();
+
     // square 3x2
     final Path squareShape = Path()
       ..moveTo(0, 0)
       ..lineTo(3 * cellSize, 0)
       ..lineTo(3 * cellSize, 2 * cellSize)
       ..lineTo(0, 2 * cellSize)
+      ..close();
+
+    // square 3x2 with gap
+    final Path gappedSquareShape = Path()
+      ..moveTo(0, 0)
+      ..lineTo(3 * cellSize, 0)
+      ..lineTo(3 * cellSize, 2 * cellSize)
+      ..lineTo( cellSize, 2 * cellSize)
+      ..lineTo( cellSize, cellSize)
+      ..lineTo(0, 1 * cellSize)
       ..close();
 
     // Z shape 2-3-2
@@ -96,12 +118,24 @@ class PuzzleGameState extends State<PuzzleGame> {
     final Path tShape = Path()
       ..moveTo(cellSize, 0)
       ..lineTo(2 * cellSize, 0)
-      ..lineTo(2 * cellSize, 2 * cellSize)
-      ..lineTo(3 * cellSize, 2 * cellSize)
-      ..lineTo(3 * cellSize, 3 * cellSize)
-      ..lineTo(0, 3 * cellSize)
+      ..lineTo(2 * cellSize, 1 * cellSize)
+      ..lineTo(4 * cellSize, 1 * cellSize)
+      ..lineTo(4 * cellSize, 2 * cellSize)
       ..lineTo(0, 2 * cellSize)
-      ..lineTo(cellSize, 2 * cellSize)
+      ..lineTo(0, 1 * cellSize)
+      ..lineTo(cellSize, 1 * cellSize)
+      ..close();
+
+    // Lighting
+    final Path lightingShape = Path()
+      ..moveTo(0, 0)
+      ..lineTo(cellSize, 0)
+      ..lineTo(cellSize, 1 * cellSize)
+      ..lineTo(2 * cellSize, 1 * cellSize)
+      ..lineTo(2 * cellSize, 4 * cellSize)
+      ..lineTo(1 * cellSize, 4 * cellSize)
+      ..lineTo(1 * cellSize, 2 * cellSize)
+      ..lineTo(0 * cellSize, 2 * cellSize)
       ..close();
 
     boardPieces = [
@@ -130,7 +164,28 @@ class PuzzleGameState extends State<PuzzleGame> {
         path: tShape,
         color: pieceColors[3],
         id: 't-shape',
-        position: Offset(board.origin.dx + 150, board.origin.dy + 30),
+        position: Offset(board.origin.dx + 180, board.origin.dy + 230),
+        centerPoint: Offset(cellSize, cellSize),
+      ),
+      PuzzlePiece(
+        path: cShape,
+        color: pieceColors[4],
+        id: 'c-shape',
+        position: Offset(board.origin.dx + 180, board.origin.dy + 130),
+        centerPoint: Offset(cellSize, cellSize),
+      ),
+      PuzzlePiece(
+        path: gappedSquareShape,
+        color: pieceColors[5],
+        id: 'gapped-square',
+        position: Offset(board.origin.dx + 180, board.origin.dy + 20),
+        centerPoint: Offset(cellSize, cellSize),
+      ),
+      PuzzlePiece(
+        path: lightingShape,
+        color: pieceColors[6],
+        id: 'lighting',
+        position: Offset(board.origin.dx + 330, board.origin.dy + 20),
         centerPoint: Offset(cellSize, cellSize),
       ),
     ];
