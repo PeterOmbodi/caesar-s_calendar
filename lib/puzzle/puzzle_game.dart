@@ -154,7 +154,7 @@ class PuzzleGameState extends State<PuzzleGame> {
 
   void _rotatePiece(PuzzlePiece piece) {
     setState(() {
-      final index = pieces.indexOf(piece);
+      final index = pieces.indexWhere((item) => item.id == piece.id);
       if (index != -1) {
         final newRotation = (piece.rotation + math.pi / 2) % (math.pi * 2);
         pieces[index] = piece.copyWith(newRotation: newRotation);
@@ -166,13 +166,15 @@ class PuzzleGameState extends State<PuzzleGame> {
   }
 
   void _updatePieceInLists(PuzzlePiece oldPiece, PuzzlePiece newPiece) {
-    debugPrint('_updatePieceInLists, oldPiece: ${oldPiece.position}, newPiece: ${newPiece.position}, gridPieces: ${gridPieces.length}');
-    final boardIndex = boardPieces.indexOf(oldPiece);
+    debugPrint(
+        '_updatePieceInLists, oldPiece: ${oldPiece.position}, newPiece: ${newPiece.position}, gridPieces: ${gridPieces.length}');
+    final boardIndex = boardPieces.indexWhere((item) => item.id == oldPiece.id);
     if (boardIndex != -1) {
       boardPieces[boardIndex] = newPiece;
     }
 
-    final gridIndex = gridPieces.indexOf(oldPiece);
+    final gridIndex = gridPieces.indexWhere((item) => item.id == oldPiece.id);
+    ;
     if (gridIndex != -1) {
       gridPieces[gridIndex] = newPiece;
     }
@@ -210,7 +212,8 @@ class PuzzleGameState extends State<PuzzleGame> {
 
         // If the intersection area is significant, it's a collision
         if (!intersectionBounds.isEmpty && intersectionBounds.width > 2 && intersectionBounds.height > 2) {
-          debugPrint('Collision detected between ${piece.id} and ${otherPiece.id}, intersectionBounds: ${intersectionBounds.size}');
+          debugPrint(
+              'Collision detected between ${piece.id} and ${otherPiece.id}, intersectionBounds: ${intersectionBounds.size}');
           debugPrint('Collision detected, otherPath: ${otherPath.getBounds()}, testPath: ${testPath.getBounds()}');
 
           return true;
@@ -335,19 +338,21 @@ class PuzzleGameState extends State<PuzzleGame> {
             onPanUpdate: (details) {
               if (selectedPiece != null && dragStartOffset != null) {
                 setState(() {
-                  final index = pieces.indexOf(selectedPiece!);
+                  final index = pieces.indexWhere((item) => item.id == selectedPiece!.id);
                   final newPosition = details.localPosition - dragStartOffset!;
                   pieces[index] = selectedPiece!.copyWith(
                     newPosition: newPosition,
                   );
                   selectedPiece = pieces[index];
 
-                  if (boardPieces.contains(selectedPiece!)) {
-                    final boardIndex = boardPieces.indexOf(selectedPiece!);
+                  final boardIndex = boardPieces.indexWhere((item) => item.id == selectedPiece!.id);
+                  if (boardIndex >= 0) {
                     boardPieces[boardIndex] = selectedPiece!;
-                  } else if (gridPieces.contains(selectedPiece!)) {
-                    final gridIndex = gridPieces.indexOf(selectedPiece!);
-                    gridPieces[gridIndex] = selectedPiece!;
+                  } else {
+                    final gridIndex = gridPieces.indexWhere((item) => item.id == selectedPiece!.id);
+                    if (gridIndex >= 0) {
+                      gridPieces[gridIndex] = selectedPiece!;
+                    }
                   }
                   String? currentZone = _getZoneAtPosition(newPosition);
                   if (currentZone == 'grid') {
@@ -368,8 +373,7 @@ class PuzzleGameState extends State<PuzzleGame> {
               if (selectedPiece != null) {
                 showPreview = false;
                 previewPosition = null;
-                final index = pieces.indexOf(selectedPiece!);
-
+                final index = pieces.indexWhere((item) => item.id == selectedPiece!.id);
                 final newZone = _getZoneAtPosition(selectedPiece!.position);
                 Offset snappedPosition;
                 bool collisionDetected = false;
@@ -405,6 +409,7 @@ class PuzzleGameState extends State<PuzzleGame> {
                   collisionDetected = true;
                   debugPrint('not over either zone, return to starting position');
                 }
+                // debugPrint('snappedPosition, x: ${snappedPosition.dx}, y: ${snappedPosition.dy}');
                 debugPrint('snappedPosition, snappedPosition: ${snappedPosition}');
                 if (!collisionDetected) {
                   setState(() {
@@ -447,7 +452,7 @@ class PuzzleGameState extends State<PuzzleGame> {
               final piece = _findPieceAtPosition(details.localPosition);
               if (piece != null) {
                 setState(() {
-                  final index = pieces.indexOf(piece);
+                  final index = pieces.indexWhere((item) => item.id == piece.id);
                   final flippedPiece = piece.copyWith(
                     newIsFlipped: !piece.isFlipped,
                   );
@@ -503,7 +508,7 @@ class PuzzleGameState extends State<PuzzleGame> {
                   onPressed: () {
                     if (selectedPiece != null) {
                       setState(() {
-                        final index = pieces.indexOf(selectedPiece!);
+                        final index = pieces.indexWhere((item) => item.id == selectedPiece!.id);
                         final flippedPiece = selectedPiece!.copyWith(
                           newIsFlipped: !selectedPiece!.isFlipped,
                         );
