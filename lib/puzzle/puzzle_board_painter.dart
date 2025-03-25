@@ -9,6 +9,9 @@ class PuzzleBoardPainter extends CustomPainter {
   final PuzzleBoard board;
   final PuzzlePiece? selectedPiece;
   final bool showGridLines;
+  final Offset? previewPosition;
+  final bool showPreview;
+  final bool previewCollision;
 
   PuzzleBoardPainter({
     required this.pieces,
@@ -16,6 +19,9 @@ class PuzzleBoardPainter extends CustomPainter {
     required this.board,
     this.selectedPiece,
     this.showGridLines = true,
+    this.previewPosition,
+    this.showPreview = false,
+    this.previewCollision = false,
   });
 
   @override
@@ -23,6 +29,10 @@ class PuzzleBoardPainter extends CustomPainter {
     _drawBoard(canvas);
     if (showGridLines) {
       _drawGrid(canvas);
+    }
+
+    if (showPreview && selectedPiece != null && previewPosition != null) {
+      _drawPreviewOutline(canvas);
     }
 
     for (var piece in pieces) {
@@ -125,6 +135,30 @@ class PuzzleBoardPainter extends CustomPainter {
         board.origin.dy + 10,
       ),
     );
+  }
+
+  void _drawPreviewOutline(Canvas canvas) {
+    if (selectedPiece == null || previewPosition == null) return;
+
+    final previewPiece = selectedPiece!.copyWith(newPosition: previewPosition!);
+    final previewPath = previewPiece.getTransformedPath();
+
+    final Color outlineColor = previewCollision ? Colors.red : Colors.green;
+    final Color fillColor = previewCollision ?
+    Colors.red.withOpacity(0.2) : Colors.green.withOpacity(0.2);
+
+    final dashPaint = Paint()
+      ..color = outlineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    canvas.drawPath(previewPath, dashPaint);
+
+    final fillPaint = Paint()
+      ..color = fillColor
+      ..style = PaintingStyle.fill;
+
+    canvas.drawPath(previewPath, fillPaint);
   }
 
   @override

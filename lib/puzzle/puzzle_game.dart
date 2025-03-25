@@ -24,6 +24,9 @@ class PuzzleGameState extends State<PuzzleGame> {
   late PuzzleBoard board;
   bool isDragging = false;
   String? dropZone;
+  Offset? previewPosition;
+  bool showPreview = false;
+  bool previewCollision = false;
 
   @override
   void initState() {
@@ -39,7 +42,7 @@ class PuzzleGameState extends State<PuzzleGame> {
       cellSize: 50,
       rows: 8,
       columns: 8,
-      origin: const Offset(450, 50),
+      origin: const Offset(50, 450),
     );
 
     _initializePieces();
@@ -163,6 +166,7 @@ class PuzzleGameState extends State<PuzzleGame> {
   }
 
   void _updatePieceInLists(PuzzlePiece oldPiece, PuzzlePiece newPiece) {
+    debugPrint('_updatePieceInLists, oldPiece: ${oldPiece.position}, newPiece: ${newPiece.position}, gridPieces: ${gridPieces.length}');
     final boardIndex = boardPieces.indexOf(oldPiece);
     if (boardIndex != -1) {
       boardPieces[boardIndex] = newPiece;
@@ -206,7 +210,9 @@ class PuzzleGameState extends State<PuzzleGame> {
 
         // If the intersection area is significant, it's a collision
         if (!intersectionBounds.isEmpty && intersectionBounds.width > 2 && intersectionBounds.height > 2) {
-          debugPrint('Collision detected between ${piece.id} and ${otherPiece.id}');
+          debugPrint('Collision detected between ${piece.id} and ${otherPiece.id}, intersectionBounds: ${intersectionBounds.size}');
+          debugPrint('Collision detected, otherPath: ${otherPath.getBounds()}, testPath: ${testPath.getBounds()}');
+
           return true;
         }
       } catch (e) {
@@ -343,11 +349,25 @@ class PuzzleGameState extends State<PuzzleGame> {
                     final gridIndex = gridPieces.indexOf(selectedPiece!);
                     gridPieces[gridIndex] = selectedPiece!;
                   }
+                  String? currentZone = _getZoneAtPosition(newPosition);
+                  if (currentZone == 'grid') {
+                    previewPosition = grid.snapToGrid(newPosition);
+                    showPreview = true;
+
+                    // Check for collision with the preview position
+                    bool hasCollision = _checkCollision(selectedPiece!, previewPosition!, zone: 'grid');
+                    previewCollision = hasCollision; // Store collision status
+                  } else {
+                    showPreview = false;
+                    previewCollision = false;
+                  }
                 });
               }
             },
             onPanEnd: (details) {
               if (selectedPiece != null) {
+                showPreview = false;
+                previewPosition = null;
                 final index = pieces.indexOf(selectedPiece!);
 
                 final newZone = _getZoneAtPosition(selectedPiece!.position);
@@ -385,7 +405,7 @@ class PuzzleGameState extends State<PuzzleGame> {
                   collisionDetected = true;
                   debugPrint('not over either zone, return to starting position');
                 }
-
+                debugPrint('snappedPosition, snappedPosition: ${snappedPosition}');
                 if (!collisionDetected) {
                   setState(() {
                     pieces[index] = selectedPiece!.copyWith(
@@ -456,6 +476,9 @@ class PuzzleGameState extends State<PuzzleGame> {
                   grid: grid,
                   board: board,
                   selectedPiece: selectedPiece,
+                  previewPosition: previewPosition,
+                  showPreview: showPreview,
+                  previewCollision: previewCollision,
                 ),
               ),
             ),
