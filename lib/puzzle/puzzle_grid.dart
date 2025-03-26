@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 class PuzzleGrid {
@@ -32,47 +31,6 @@ class PuzzleGrid {
 
     return Offset(snappedX, snappedY);
   }
-
-  // bool isWithinBounds(Offset position, Path path) {
-  //   final transformedPath = Path()
-  //     ..addPath(path, position);
-  //   final bounds = transformedPath.getBounds();
-  //
-  //   final boardRect = Rect.fromLTWH(
-  //     origin.dx,
-  //     origin.dy,
-  //     cellSize * columns,
-  //     cellSize * rows,
-  //   );
-  //
-  //   // Add some tolerance for edge pieces
-  //   final expandedBoard = Rect.fromLTRB(
-  //       boardRect.left - 5,
-  //       boardRect.top - 5,
-  //       boardRect.right + 5,
-  //       boardRect.bottom + 5
-  //   );
-  //
-  //   // Check if the piece is largely within the expanded board
-  //   final areaOverlap = _getOverlapArea(bounds, expandedBoard);
-  //   final pieceArea = bounds.width * bounds.height;
-  //
-  //   // If more than 75% of the piece is within bounds, consider it valid
-  //   return areaOverlap / pieceArea > 0.75;
-  // }
-
-  // double _getOverlapArea(Rect a, Rect b) {
-  //   final overlapLeft = math.max(a.left, b.left);
-  //   final overlapTop = math.max(a.top, b.top);
-  //   final overlapRight = math.min(a.right, b.right);
-  //   final overlapBottom = math.min(a.bottom, b.bottom);
-  //
-  //   if (overlapLeft >= overlapRight || overlapTop >= overlapBottom) {
-  //     return 0;
-  //   }
-  //
-  //   return (overlapRight - overlapLeft) * (overlapBottom - overlapTop);
-  // }
 
   Rect getBounds() {
     return Rect.fromLTWH(

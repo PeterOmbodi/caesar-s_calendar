@@ -2,6 +2,7 @@ import 'package:caesar_puzzle/puzzle/puzzle_board.dart';
 import 'package:caesar_puzzle/puzzle/puzzle_grid.dart';
 import 'package:caesar_puzzle/puzzle/puzzle_piece.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' as intl;
 
 class PuzzleBoardPainter extends CustomPainter {
   final List<PuzzlePiece> pieces;
@@ -30,7 +31,7 @@ class PuzzleBoardPainter extends CustomPainter {
     if (showGridLines) {
       _drawGrid(canvas);
     }
-
+    _drawLabels(canvas);
     if (showPreview && selectedPiece != null && previewPosition != null) {
       _drawPreviewOutline(canvas);
     }
@@ -94,6 +95,46 @@ class PuzzleBoardPainter extends CustomPainter {
     canvas.drawRect(grid.getBounds(), borderPaint);
   }
 
+  void _drawLabels(Canvas canvas) {
+    const textStyle = TextStyle(
+      color: Colors.black,
+      fontSize: 14,
+    );
+
+    var cellIndex = 0;
+    for (int iy = 0; iy < grid.rows; iy++) {
+      final y = grid.origin.dy + iy * grid.cellSize;
+      for (int ix = 0; ix < grid.columns; ix++) {
+        if ((iy == 0 && ix == 6) ||
+            (iy == 1 && ix == 6) ||
+            (iy == 6 && ix == 3) ||
+            (iy == 6 && ix == 4) ||
+            (iy == 6 && ix == 5) ||
+            (iy == 6 && ix == 6)) {
+          continue;
+        }
+        final x = grid.origin.dx + ix * grid.cellSize;
+        final textSpan = TextSpan(
+          text: _getCellLabel(cellIndex),
+          style: textStyle,
+        );
+        final textPainter = TextPainter(
+          text: textSpan,
+          textDirection: TextDirection.ltr,
+        );
+        textPainter.layout(
+          minWidth: 0,
+          maxWidth: grid.cellSize,
+        );
+        final xCenter = x + (grid.cellSize - textPainter.width) / 2;
+        final yCenter = y + (grid.cellSize - textPainter.height) / 2;
+        final offset = Offset(xCenter, yCenter);
+        textPainter.paint(canvas, offset);
+        cellIndex++;
+      }
+    }
+  }
+
   void _drawBoard(Canvas canvas) {
     // Draw board background
     final bgPaint = Paint()
@@ -144,8 +185,7 @@ class PuzzleBoardPainter extends CustomPainter {
     final previewPath = previewPiece.getTransformedPath();
 
     final Color outlineColor = previewCollision ? Colors.red : Colors.green;
-    final Color fillColor = previewCollision ?
-    Colors.red.withOpacity(0.2) : Colors.green.withOpacity(0.2);
+    final Color fillColor = previewCollision ? Colors.red.withOpacity(0.2) : Colors.green.withOpacity(0.2);
 
     final dashPaint = Paint()
       ..color = outlineColor
@@ -164,5 +204,13 @@ class PuzzleBoardPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
+  }
+
+  String _getCellLabel(int cellIndex) {
+    if (cellIndex < 12) {
+      return intl.DateFormat('MMM').format(DateTime(0, cellIndex + 1));
+    } else {
+      return '${cellIndex - 11}';
+    }
   }
 }
