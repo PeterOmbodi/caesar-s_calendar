@@ -10,6 +10,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
     return MaterialApp(
       title: 'Caesar Demo',
       theme: ThemeData(
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: Material(
-        child: PuzzleGame(),
+        child: PuzzleGame(screenSize: screenSize),
       ),
     );
   }

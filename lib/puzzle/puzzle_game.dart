@@ -7,7 +7,9 @@ import 'package:caesar_puzzle/puzzle/puzzle_piece.dart';
 import 'package:flutter/material.dart';
 
 class PuzzleGame extends StatefulWidget {
-  const PuzzleGame({super.key});
+  const PuzzleGame({super.key, required this.screenSize});
+
+  final Size screenSize;
 
   @override
   PuzzleGameState createState() => PuzzleGameState();
@@ -31,21 +33,27 @@ class PuzzleGameState extends State<PuzzleGame> {
   @override
   void initState() {
     super.initState();
+    final cellSize = widget.screenSize.width < 450 ? _calcCellSize() : 50.0;
     grid = PuzzleGrid(
-      cellSize: 50,
+      cellSize: cellSize,
       rows: 7,
       columns: 7,
-      origin: const Offset(50, 50),
+      origin: Offset((widget.screenSize.width - cellSize * 7) / 2, 50),
     );
 
     board = PuzzleBoard(
-      cellSize: 50,
+      cellSize: cellSize,
       rows: 8,
-      columns: 8,
-      origin: const Offset(50, 450),
+      columns: 9,
+      origin: Offset(5, cellSize * 9),
     );
 
     _initializePieces();
+  }
+
+  double _calcCellSize() {
+    final floored = (widget.screenSize.width / 8).floor();
+    return floored.isEven ? floored.toDouble() : floored - 1.0;
   }
 
   void _initializePieces() {
@@ -72,8 +80,8 @@ class PuzzleGameState extends State<PuzzleGame> {
       ..lineTo(0, 2 * cellSize)
       ..close();
 
-    // C shape
-    final Path cShape = Path()
+    // U shape
+    final Path uShape = Path()
       ..moveTo(0, 0)
       ..lineTo(cellSize, 0)
       ..lineTo(cellSize, cellSize)
@@ -92,13 +100,13 @@ class PuzzleGameState extends State<PuzzleGame> {
       ..lineTo(0, 2 * cellSize)
       ..close();
 
-    // square 3x2 with gap
-    final Path gappedSquareShape = Path()
+    // square 3x2 with gap, P-shape
+    final Path pShape = Path()
       ..moveTo(0, 0)
       ..lineTo(3 * cellSize, 0)
       ..lineTo(3 * cellSize, 2 * cellSize)
-      ..lineTo( cellSize, 2 * cellSize)
-      ..lineTo( cellSize, cellSize)
+      ..lineTo(cellSize, 2 * cellSize)
+      ..lineTo(cellSize, cellSize)
       ..lineTo(0, 1 * cellSize)
       ..close();
 
@@ -114,8 +122,8 @@ class PuzzleGameState extends State<PuzzleGame> {
       ..lineTo(0, 2 * cellSize)
       ..close();
 
-    // T shape
-    final Path tShape = Path()
+    // Y shape
+    final Path yShape = Path()
       ..moveTo(cellSize, 0)
       ..lineTo(2 * cellSize, 0)
       ..lineTo(2 * cellSize, 1 * cellSize)
@@ -126,8 +134,8 @@ class PuzzleGameState extends State<PuzzleGame> {
       ..lineTo(cellSize, 1 * cellSize)
       ..close();
 
-    // Lighting
-    final Path lightingShape = Path()
+    // Lighting, N-Shape
+    final Path nShape = Path()
       ..moveTo(0, 0)
       ..lineTo(cellSize, 0)
       ..lineTo(cellSize, 1 * cellSize)
@@ -137,60 +145,110 @@ class PuzzleGameState extends State<PuzzleGame> {
       ..lineTo(1 * cellSize, 2 * cellSize)
       ..lineTo(0 * cellSize, 2 * cellSize)
       ..close();
+    // Corner, V-Shape
+    final Path vShape = Path()
+      ..moveTo(0, 0)
+      ..lineTo(cellSize, 0)
+      ..lineTo(cellSize, 3 * cellSize)
+      ..lineTo(-2 * cellSize, 3 * cellSize)
+      ..lineTo(-2 * cellSize, 2 * cellSize)
+      ..lineTo(0, 2 * cellSize)
+      ..close();
+
+    // zone1
+    final Path zone1 = Path()
+      ..moveTo(0, 0)
+      ..lineTo(1 * cellSize, 0)
+      ..lineTo(1 * cellSize, 2 * cellSize)
+      ..lineTo(0, 2 * cellSize)
+      ..close();
+
+    final Path zone2 = Path()
+      ..moveTo(0, 0)
+      ..lineTo(4 * cellSize, 0)
+      ..lineTo(4 * cellSize, 1 * cellSize)
+      ..lineTo(0, 1 * cellSize)
+      ..close();
 
     boardPieces = [
       PuzzlePiece(
         path: cornerLShape,
         color: pieceColors[0],
-        id: 'corner-l',
-        position: Offset(board.origin.dx + 20, board.origin.dy + 30),
+        id: 'L-Shape',
+        position: Offset(board.origin.dx + 5, board.origin.dy + 30),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
         path: squareShape,
         color: pieceColors[1],
-        id: 'square',
-        position: Offset(board.origin.dx + 20, board.origin.dy + 130),
+        id: 'Square',
+        position: Offset(board.origin.dx + 5, board.origin.dy + 130),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
         path: zShape,
         color: pieceColors[2],
-        id: 'z-shape',
-        position: Offset(board.origin.dx + 20, board.origin.dy + 230),
+        id: 'Z-Shape',
+        position: Offset(board.origin.dx + 5, board.origin.dy + 200),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
-        path: tShape,
+        path: yShape,
         color: pieceColors[3],
-        id: 't-shape',
-        position: Offset(board.origin.dx + 180, board.origin.dy + 230),
+        id: 'Y-Shape',
+        position: Offset(board.origin.dx + 165, board.origin.dy + 230),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
-        path: cShape,
+        path: uShape,
         color: pieceColors[4],
-        id: 'c-shape',
-        position: Offset(board.origin.dx + 180, board.origin.dy + 130),
+        id: 'U-Shape',
+        position: Offset(board.origin.dx + 165, board.origin.dy + 130),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
-        path: gappedSquareShape,
+        path: pShape,
         color: pieceColors[5],
-        id: 'gapped-square',
-        position: Offset(board.origin.dx + 180, board.origin.dy + 20),
+        id: 'P-Shape',
+        position: Offset(board.origin.dx + 165, board.origin.dy + 20),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
-        path: lightingShape,
+        path: nShape,
         color: pieceColors[6],
-        id: 'lighting',
-        position: Offset(board.origin.dx + 330, board.origin.dy + 20),
+        id: 'N-Shape',
+        position: Offset(board.origin.dx + 305, board.origin.dy + 20),
         centerPoint: Offset(cellSize, cellSize),
+      ),
+      PuzzlePiece(
+        path: vShape,
+        color: pieceColors[7],
+        id: 'V-Shape',
+        position: Offset(board.origin.dx + 325, board.origin.dy + 180),
+        centerPoint: Offset(0, cellSize),
       ),
     ];
 
-    gridPieces = [];
+    gridPieces = [
+      PuzzlePiece(
+        path: zone1,
+        color: Colors.grey.shade300,
+        id: 'zone1',
+        position: Offset(grid.origin.dx + cellSize * 6, grid.origin.dy),
+        centerPoint: Offset(cellSize, cellSize),
+        borderRadius: 0,
+        isDraggable: false,
+      ),
+      PuzzlePiece(
+        path: zone2,
+        color: Colors.grey.shade300,
+        id: 'zone2',
+        position: Offset(grid.origin.dx + cellSize * 3, grid.origin.dy + cellSize * 6),
+        centerPoint: Offset(cellSize, cellSize),
+        borderRadius: 0,
+        isDraggable: false,
+      ),
+    ];
 
     pieces = [
       ...boardPieces,
@@ -221,15 +279,13 @@ class PuzzleGameState extends State<PuzzleGame> {
   }
 
   void _updatePieceInLists(PuzzlePiece oldPiece, PuzzlePiece newPiece) {
-    debugPrint(
-        '_updatePieceInLists, oldPiece: ${oldPiece.position}, newPiece: ${newPiece.position}, gridPieces: ${gridPieces.length}');
     final boardIndex = boardPieces.indexWhere((item) => item.id == oldPiece.id);
     if (boardIndex != -1) {
       boardPieces[boardIndex] = newPiece;
     }
 
     final gridIndex = gridPieces.indexWhere((item) => item.id == oldPiece.id);
-    ;
+
     if (gridIndex != -1) {
       gridPieces[gridIndex] = newPiece;
     }
@@ -377,7 +433,7 @@ class PuzzleGameState extends State<PuzzleGame> {
             },
             onPanStart: (details) {
               final piece = _findPieceAtPosition(details.localPosition);
-              if (piece != null) {
+              if (piece != null && piece.isDraggable) {
                 setState(() {
                   pieces.remove(piece);
                   pieces.add(piece);
@@ -516,13 +572,13 @@ class PuzzleGameState extends State<PuzzleGame> {
 
                   final zone = _getZoneAtPosition(piece.position);
 
-                  if (!_checkCollision(flippedPiece, flippedPiece.position, zone: zone)) {
+                  //if (!_checkCollision(flippedPiece, flippedPiece.position, zone: zone)) {
                     pieces[index] = flippedPiece;
                     _updatePieceInLists(piece, flippedPiece);
                     debugPrint('Flipped successfully');
-                  } else {
-                    debugPrint('Flipping would cause collision, aborting');
-                  }
+                  // } else {
+                  //   debugPrint('Flipping would cause collision, aborting');
+                  // }
                 });
               }
             },
@@ -570,13 +626,13 @@ class PuzzleGameState extends State<PuzzleGame> {
 
                         final zone = _getZoneAtPosition(selectedPiece!.position);
 
-                        if (!_checkCollision(flippedPiece, flippedPiece.position, zone: zone)) {
+                        //if (!_checkCollision(flippedPiece, flippedPiece.position, zone: zone)) {
                           pieces[index] = flippedPiece;
 
                           _updatePieceInLists(selectedPiece!, flippedPiece);
 
                           selectedPiece = flippedPiece;
-                        }
+                        //}
                       });
                     }
                   },

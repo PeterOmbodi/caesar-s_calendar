@@ -96,10 +96,7 @@ class PuzzleBoardPainter extends CustomPainter {
   }
 
   void _drawLabels(Canvas canvas) {
-    const textStyle = TextStyle(
-      color: Colors.black,
-      fontSize: 14,
-    );
+    final today = DateTime.now();
 
     var cellIndex = 0;
     for (int iy = 0; iy < grid.rows; iy++) {
@@ -114,12 +111,8 @@ class PuzzleBoardPainter extends CustomPainter {
           continue;
         }
         final x = grid.origin.dx + ix * grid.cellSize;
-        final textSpan = TextSpan(
-          text: _getCellLabel(cellIndex),
-          style: textStyle,
-        );
         final textPainter = TextPainter(
-          text: textSpan,
+          text: _getCellTextSpan(cellIndex, today),
           textDirection: TextDirection.ltr,
         );
         textPainter.layout(
@@ -206,11 +199,20 @@ class PuzzleBoardPainter extends CustomPainter {
     return true;
   }
 
-  String _getCellLabel(int cellIndex) {
-    if (cellIndex < 12) {
-      return intl.DateFormat('MMM').format(DateTime(0, cellIndex + 1));
-    } else {
-      return '${cellIndex - 11}';
-    }
+  TextSpan _getCellTextSpan(int cellIndex, DateTime today) {
+    final label = cellIndex < 12 ? intl.DateFormat('MMM').format(DateTime(0, cellIndex + 1)) : '${cellIndex - 11}';
+
+    final isTodayLabel = cellIndex < 12 && today.month == cellIndex + 1 || cellIndex - 11 == today.day;
+
+    final textStyle = TextStyle(
+      color: isTodayLabel ? Colors.blue : Colors.black,
+      fontSize: 14,
+      fontWeight: isTodayLabel ? FontWeight.w700 : FontWeight.w400,
+    );
+
+    return TextSpan(
+      text: label,
+      style: textStyle,
+    );
   }
 }
