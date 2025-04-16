@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:caesar_puzzle/dancing_links/puzzle_solver.dart';
 import 'package:caesar_puzzle/puzzle/puzzle_board.dart';
 import 'package:caesar_puzzle/puzzle/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/puzzle/puzzle_grid.dart';
@@ -395,6 +396,15 @@ class PuzzleGameState extends State<PuzzleGame> {
     debugPrint('Grid pieces: ${gridPieces.map((p) => p.id).join(', ')}');
   }
 
+  void _solvePuzzle() {
+    PuzzleSolver solver = PuzzleSolver(
+      grid: grid,
+      pieces: pieces,
+      currentDate: DateTime.now(),
+    );
+    solver.solve();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -605,6 +615,12 @@ class PuzzleGameState extends State<PuzzleGame> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                FloatingActionButton(
+                  onPressed: () => _solvePuzzle(),
+                  backgroundColor: selectedPiece != null ? Colors.orange : Colors.grey,
+                  child: const Icon(Icons.lightbulb),
+                ),
+                const SizedBox(height: 20),
                 FloatingActionButton(
                   onPressed: () {
                     if (selectedPiece != null) {
