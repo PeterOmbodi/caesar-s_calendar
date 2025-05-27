@@ -271,6 +271,9 @@ class PuzzleGameState extends State<PuzzleGame> {
       final index = pieces.indexWhere((item) => item.id == piece.id);
       if (index != -1) {
         final newRotation = (piece.rotation + math.pi / 2) % (math.pi * 2);
+
+        debugPrint('newRotation: $newRotation');
+
         pieces[index] = piece.copyWith(newRotation: newRotation);
 
         _updatePieceInLists(piece, pieces[index]);
@@ -402,7 +405,10 @@ class PuzzleGameState extends State<PuzzleGame> {
       pieces: pieces,
       currentDate: DateTime.now(),
     );
-    solver.solve();
+    final List<String> solution = solver.solve();
+    if (solution.isNotEmpty) {
+      loadSolution(solution);
+    }
   }
 
   @override
@@ -580,12 +586,12 @@ class PuzzleGameState extends State<PuzzleGame> {
 
                   debugPrint('Flipping piece ${piece.id}: ${piece.isFlipped} -> ${flippedPiece.isFlipped}');
 
-                  final zone = _getZoneAtPosition(piece.position);
+                  // final zone = _getZoneAtPosition(piece.position);
 
                   //if (!_checkCollision(flippedPiece, flippedPiece.position, zone: zone)) {
-                    pieces[index] = flippedPiece;
-                    _updatePieceInLists(piece, flippedPiece);
-                    debugPrint('Flipped successfully');
+                  pieces[index] = flippedPiece;
+                  _updatePieceInLists(piece, flippedPiece);
+                  debugPrint('Flipped successfully');
                   // } else {
                   //   debugPrint('Flipping would cause collision, aborting');
                   // }
@@ -640,14 +646,14 @@ class PuzzleGameState extends State<PuzzleGame> {
                           newIsFlipped: !selectedPiece!.isFlipped,
                         );
 
-                        final zone = _getZoneAtPosition(selectedPiece!.position);
+                        // final zone = _getZoneAtPosition(selectedPiece!.position);
 
                         //if (!_checkCollision(flippedPiece, flippedPiece.position, zone: zone)) {
-                          pieces[index] = flippedPiece;
+                        pieces[index] = flippedPiece;
 
-                          _updatePieceInLists(selectedPiece!, flippedPiece);
+                        _updatePieceInLists(selectedPiece!, flippedPiece);
 
-                          selectedPiece = flippedPiece;
+                        selectedPiece = flippedPiece;
                         //}
                       });
                     }
@@ -662,4 +668,50 @@ class PuzzleGameState extends State<PuzzleGame> {
       ),
     );
   }
+
+  void loadSolution(List<String> solutionIds) {
+    setState(() {
+      for (var id in solutionIds) {
+        final params = _parsePlacementId(id);
+        if (params == null) continue;
+        final idx = pieces.indexWhere((p) => p.id == params.pieceId);
+        pieces[idx] = _placePiece(pieces[idx], params);
+      }
+    });
+  }
+
+  PuzzlePiece _placePiece(PuzzlePiece piece, _PlacementParams params) {
+    final dx = params.col * grid.cellSize;
+    final dy = params.row * grid.cellSize;
+    final targetOffset = Offset(grid.origin.dx + dx, grid.origin.dy + dy);
+
+    final updatedPiece = piece.copyWith(
+      newIsFlipped: params.isFlipped,
+      newPosition: targetOffset,
+      newRotation: params.rotationSteps * math.pi / 2 ,
+    );
+    debugPrint('Solution for piece: ${updatedPiece.id} / ${updatedPiece.position} /${updatedPiece.rotation} / ${params.rotationSteps}');
+    return updatedPiece;
+  }
+}
+
+class _PlacementParams {
+  final String pieceId;
+  final int row, col, rotationSteps;
+  final bool isFlipped;
+
+  _PlacementParams(this.pieceId, this.row, this.col, this.rotationSteps, this.isFlipped);
+}
+
+_PlacementParams? _parsePlacementId(String id) {
+  final match = RegExp(r'^(.+)_r(\d+)_c(\d+)_rot(\d+)(_F)?$').firstMatch(id);
+  if (match == null) return null;
+
+  final pieceId = match.group(1)!;
+  final row = int.parse(match.group(2)!);
+  final col = int.parse(match.group(3)!);
+  final rotSteps = int.parse(match.group(4)!);
+  final flipped = match.group(5) != null;
+
+  return _PlacementParams(pieceId, row, col, rotSteps, flipped);
 }

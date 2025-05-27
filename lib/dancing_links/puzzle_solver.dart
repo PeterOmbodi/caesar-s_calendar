@@ -86,7 +86,7 @@ class PuzzleSolver {
   }
 
   /// Build a set of forbidden cells.
-    Set<Cell> buildForbiddenCells() {
+  Set<Cell> buildForbiddenCells() {
     Set<Cell> forbidden = {};
     pieces
         .where((e) => !e.isDraggable)
@@ -169,37 +169,25 @@ class PuzzleSolver {
   /// Solves the puzzle using Dancing Links.
   /// It builds the exact cover matrix from the grid configuration and candidate placements,
   /// runs the search and, if a solution is found, interprets it.
-  void solve() {
+  List<String> solve() {
     // 1. Build universe (list of constraints).
     List<String> constraints = buildConstraints();
 
-    for (var label in constraints) {
-      debugPrint(' ---- constraint: $label');
-    }
-
     var universe = DlxUniverse(constraints);
-
+    final idToPlacement = <String, Placement>{};
     // 2. For each piece, generate candidate placements and add them as rows.
     for (var piece in pieces) {
       List<Placement> placements = generatePlacementsForPiece(piece);
-      for (var label in placements) {
-        debugPrint(' ---- placements: $label');
-      }
       for (var placement in placements) {
-        List<String> rowConstraints = [];
-        for (var cell in placement.coveredCells) {
-          rowConstraints.add('cell_${cell.row}_${cell.col}');
-        }
+        idToPlacement[placement.id] = placement;
+        final rowConstraints = <String>[
+          for (var cell in placement.coveredCells) 'cell_${cell.row}_${cell.col}',
+          'piece_${placement.piece.id}',
+        ];
         // add restriction for piece single using
         rowConstraints.add('piece_${piece.id}');
-        for (var label in rowConstraints) {
-          debugPrint(' ---- rowConstraints: $label');
-        }
         // Add the row to DLX universe.
         universe.addRow(placement.id, rowConstraints);
-      }
-      for (var labels in universe.solutions) {
-        debugPrint(' ---- solution: ${labels.join('+')}');
       }
     }
 
@@ -208,9 +196,20 @@ class PuzzleSolver {
 
     // 4. Interpret the solution.
     if (universe.solutions.isNotEmpty) {
-      debugPrint("---- Solution found: ${universe.solutions.first}");
+      final solution = universe.solutions.first;
+      debugPrint("---- Solution found: $solution");
+      for (var id in solution) {
+        final placement = idToPlacement[id]!;
+        final coordinates = placement.coveredCells.map((cell) {
+          final rowLetter = String.fromCharCode('A'.codeUnitAt(0) + cell.row);
+          return '$rowLetter${cell.col}';
+        }).toList();
+        debugPrint('---- $id covers: ${coordinates.join(', ')}');
+      }
+      return solution;
     } else {
       debugPrint("---- No solution found.");
+      return [];
     }
   }
 }

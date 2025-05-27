@@ -28,11 +28,11 @@ class Placement {
     // Assume that piece.relativeCells returns List<Cell> for the piece's default orientation.
     // Then, apply rotation and flip to these cells and offset by (row, col).
     List<Cell> cells = [];
-    for (var rel in piece.relativeCells) {
+    for (var relativeCell in piece.relativeCells) {
       // Apply rotation. For each 90° rotation, the transformation is:
       // (r, c) -> (c, -r)
-      int r = rel.row;
-      int c = rel.col;
+      int r = relativeCell.row;
+      int c = relativeCell.col;
       for (int i = 0; i < rotationSteps; i++) {
         int temp = r;
         r = c;
