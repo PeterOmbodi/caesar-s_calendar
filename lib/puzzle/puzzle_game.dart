@@ -150,10 +150,10 @@ class PuzzleGameState extends State<PuzzleGame> {
     final Path vShape = Path()
       ..moveTo(0, 0)
       ..lineTo(cellSize, 0)
-      ..lineTo(cellSize, 3 * cellSize)
-      ..lineTo(-2 * cellSize, 3 * cellSize)
-      ..lineTo(-2 * cellSize, 2 * cellSize)
-      ..lineTo(0, 2 * cellSize)
+      ..lineTo(cellSize, 2 * cellSize)
+      ..lineTo(3 * cellSize, 2 * cellSize)
+      ..lineTo(3 * cellSize, 3 * cellSize)
+      ..lineTo(0, 3 * cellSize)
       ..close();
 
     // zone1
@@ -226,7 +226,7 @@ class PuzzleGameState extends State<PuzzleGame> {
         color: pieceColors[7],
         id: 'V-Shape',
         position: Offset(board.origin.dx + 325, board.origin.dy + 180),
-        centerPoint: Offset(0, cellSize),
+        centerPoint: Offset(cellSize, cellSize),
       ),
     ];
 
@@ -289,7 +289,6 @@ class PuzzleGameState extends State<PuzzleGame> {
     }
 
     final gridIndex = gridPieces.indexWhere((item) => item.id == oldPiece.id);
-
     if (gridIndex != -1) {
       gridPieces[gridIndex] = newPiece;
     }

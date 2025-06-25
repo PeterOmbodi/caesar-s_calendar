@@ -57,13 +57,13 @@ class PuzzleSolver {
     final Set<Cell> forbidden = buildForbiddenCells();
     final Set<Cell> dateCells = buildDateCells();
     final Set<String> placementSignatures = {};
-    debugPrint('generatePlacementsForPiece, forbidden: $forbidden');
-    debugPrint('generatePlacementsForPiece, free: $dateCells');
+    // debugPrint('generatePlacementsForPiece, forbidden: $forbidden');
+    // debugPrint('generatePlacementsForPiece, free: $dateCells');
     for (int rot = 0; rot < 4; rot++) {
       for (bool flip in [false, true]) {
-        for (int r = 0; r < grid.rows; r++) {
-          for (int c = 0; c < grid.columns; c++) {
-            var placement = Placement(piece, r, c, rot, flip);
+        for (int row = 0; row < grid.rows; row++) {
+          for (int col = 0; col < grid.columns; col++) {
+            var placement = Placement(piece, row, col, rot, flip);
             if (placement.fitsInBoard(grid) &&
                 placement.doesNotOverlapForbiddenZones(forbidden) &&
                 placement.doesNotCoverFreeCells(dateCells)) {
@@ -73,6 +73,9 @@ class PuzzleSolver {
                 return a.row.compareTo(b.row);
               });
               final signature = cells.map((cell) => '${cell.row}:${cell.col}').join(',');
+              // if (piece.id == 'L-Shape') {
+              //   debugPrint('L-Shape row: $row, col: $col, rot: $rot, flip: $flip, signature: $signature');
+              // }
               if (!placementSignatures.contains(signature)) {
                 placementSignatures.add(signature);
                 placements.add(placement);

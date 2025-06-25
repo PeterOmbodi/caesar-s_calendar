@@ -30,24 +30,28 @@ class PuzzlePiece {
   }
 
   bool containsPoint(Offset point) {
-    final matrix = Matrix4.identity()
-      ..translate(position.dx, position.dy)
-      ..translate(centerPoint.dx, centerPoint.dy)
-      ..rotateZ(rotation);
-
-    if (isFlipped) {
-      matrix.scale(-1.0, 1.0);
-    }
-
-    matrix.translate(-centerPoint.dx, -centerPoint.dy);
-
-    final invertedMatrix = Matrix4.inverted(matrix);
+    final invertedMatrix = Matrix4.inverted(_getMatrix());
     final transformedPoint = Offset(
       invertedMatrix.storage[0] * point.dx + invertedMatrix.storage[4] * point.dy + invertedMatrix.storage[12],
       invertedMatrix.storage[1] * point.dx + invertedMatrix.storage[5] * point.dy + invertedMatrix.storage[13],
     );
 
     return path.contains(transformedPoint);
+  }
+
+  Matrix4 _getMatrix() {
+    final matrix = Matrix4.identity()
+      ..translate(position.dx, position.dy)
+      ..translate(centerPoint.dx / 2, centerPoint.dy / 2);
+
+    if (isFlipped) {
+      matrix.scale(-1.0, 1.0);
+    }
+
+    matrix
+      ..rotateZ(rotation)
+      ..translate(-centerPoint.dx / 2, -centerPoint.dy / 2);
+    return matrix;
   }
 
   Path get path {
@@ -176,21 +180,6 @@ class PuzzlePiece {
   }
 
   Path getTransformedPath() {
-    final matrix = Matrix4.identity()
-      ..translate(position.dx, position.dy)
-      ..translate(centerPoint.dx, centerPoint.dy)
-      ..rotateZ(rotation);
-
-    if (isFlipped) {
-      matrix.scale(-1.0, 1.0);
-    }
-
-    matrix.translate(-centerPoint.dx, -centerPoint.dy);
-
-    return path.transform(matrix.storage);
-  }
-
-  void rotate() {
-    rotation = (rotation + math.pi / 2) % (math.pi * 2);
+    return path.transform(_getMatrix().storage);
   }
 }
