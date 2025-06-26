@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Node for Dancing Links.
 /// Each node is linked to its neighbors in four directions,
 /// and also stores a reference to its column (if it's not a header node).
@@ -33,10 +35,10 @@ class DlxUniverse {
   final DlxColumn header;
   final List<String> solution = []; // current partial solution
   final List<List<String>> solutions = []; // all found solutions
+  final Map<String, DlxColumn> columnMap = {};
 
   /// Constructs a universe from a list of column names.
-  DlxUniverse(List<String> columnNames)
-      : header = DlxColumn("HEADER") {
+  DlxUniverse(List<String> columnNames) : header = DlxColumn("HEADER") {
     DlxNode prev = header;
     for (var name in columnNames) {
       var col = DlxColumn(name);
@@ -49,6 +51,7 @@ class DlxUniverse {
       col.up = col;
       col.down = col;
       prev = col;
+      columnMap[name] = col;
     }
   }
 
@@ -56,32 +59,33 @@ class DlxUniverse {
   /// where the row contains a 1.
   void addRow(String rowName, List<String> columns) {
     DlxNode? firstNode;
-    // Traverse all columns in the universe (from left to right).
-    var col = header.right;
-    while (col != header) {
-      var dCol = col as DlxColumn;
-      if (columns.contains(dCol.name)) {
-        var newNode = DlxNode();
-        newNode.column = dCol;
-        newNode.subsetName = rowName;
-        // Insert the new node at the bottom of column [dCol] (just above its header).
-        newNode.down = dCol;
-        newNode.up = dCol.up;
-        dCol.up.down = newNode;
-        dCol.up = newNode;
-        dCol.size++;
-
-        if (firstNode == null) {
-          firstNode = newNode;
-        } else {
-          // Insert the new node in the row (linking it horizontally).
-          newNode.right = firstNode;
-          newNode.left = firstNode.left;
-          firstNode.left.right = newNode;
-          firstNode.left = newNode;
-        }
+    for (var colName in columns) {
+      var dCol = columnMap[colName];
+      if (dCol==null) {
+        debugPrint("Column '$colName' not found in universe columns. Available: ${columnMap.keys.toList()}");
+        continue;
       }
-      col = col.right;
+      var newNode = DlxNode();
+      newNode.column = dCol;
+      newNode.subsetName = rowName;
+      // Insert the new node at the bottom of column [dCol] (just above its header).
+      newNode.down = dCol;
+      newNode.up = dCol.up;
+      dCol.up.down = newNode;
+      dCol.up = newNode;
+      dCol.size++;
+
+      if (firstNode == null) {
+        firstNode = newNode;
+        newNode.left = newNode;
+        newNode.right = newNode;
+      } else {
+        // Insert the new node in the row (linking it horizontally).
+        newNode.right = firstNode;
+        newNode.left = firstNode.left;
+        firstNode.left.right = newNode;
+        firstNode.left = newNode;
+      }
     }
   }
 
@@ -118,10 +122,13 @@ class DlxUniverse {
   /// Chooses the column with the smallest number of nodes (heuristic).
   DlxColumn chooseColumn() {
     DlxColumn chosen = header.right as DlxColumn;
+    int minSize = chosen.size;
     for (var col = header.right; col != header; col = col.right) {
       var dCol = col as DlxColumn;
-      if (dCol.size < chosen.size) {
+      if (dCol.size < minSize) {
         chosen = dCol;
+        minSize = dCol.size;
+        if (minSize == 0) break;
       }
     }
     return chosen;

@@ -1,5 +1,5 @@
-import 'package:caesar_puzzle/dancing_links/cell.dart';
-import 'package:caesar_puzzle/puzzle/puzzle_piece.dart';
+import 'package:caesar_puzzle/core/models/cell.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
 import 'package:flutter/material.dart';
 
 /// Extension for PuzzlePiece to add the [relativeCells] getter.

@@ -40,4 +40,18 @@ class PuzzleGrid {
       cellSize * rows,
     );
   }
+
+  Map<String, dynamic> toSerializable() => {
+    'cellSize': cellSize,
+    'rows': rows,
+    'columns': columns,
+    'origin': {'dx': origin.dx, 'dy': origin.dy},
+  };
+
+  static PuzzleGrid fromSerializable(Map<String, dynamic> map) => PuzzleGrid(
+    cellSize: map['cellSize'],
+    rows: map['rows'],
+    columns: map['columns'],
+    origin: Offset(map['origin']['dx'], map['origin']['dy']),
+  );
 }

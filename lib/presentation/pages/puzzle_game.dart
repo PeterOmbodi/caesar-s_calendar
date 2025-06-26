@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
-import 'package:caesar_puzzle/dancing_links/puzzle_solver.dart';
-import 'package:caesar_puzzle/puzzle/puzzle_board.dart';
-import 'package:caesar_puzzle/puzzle/puzzle_board_painter.dart';
-import 'package:caesar_puzzle/puzzle/puzzle_grid.dart';
-import 'package:caesar_puzzle/puzzle/puzzle_piece.dart';
+import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
+import 'package:caesar_puzzle/presentation/widgets/puzzle_board_painter.dart';
 import 'package:flutter/material.dart';
 
 class PuzzleGame extends StatefulWidget {
@@ -26,6 +26,7 @@ class PuzzleGameState extends State<PuzzleGame> {
   late PuzzleGrid grid;
   late PuzzleBoard board;
   bool isDragging = false;
+  bool isSolving = false;
   String? dropZone;
   Offset? previewPosition;
   bool showPreview = false;
@@ -58,6 +59,7 @@ class PuzzleGameState extends State<PuzzleGame> {
   }
 
   void _initializePieces() {
+    isSolving = false;
     final List<Color> pieceColors = [
       Colors.teal.withOpacity(0.8),
       Colors.indigo.withOpacity(0.8),
@@ -398,16 +400,18 @@ class PuzzleGameState extends State<PuzzleGame> {
     debugPrint('Grid pieces: ${gridPieces.map((p) => p.id).join(', ')}');
   }
 
-  void _solvePuzzle() {
-    PuzzleSolver solver = PuzzleSolver(
-      grid: grid,
-      pieces: pieces,
-      currentDate: DateTime.now(),
-    );
-    final List<String> solution = solver.solve();
-    if (solution.isNotEmpty) {
-      loadSolution(solution);
-    }
+  Future<void> _solvePuzzle() async {
+    setState(() {
+      isSolving = true;
+    });
+
+    SolvePuzzleUseCase(pieces, grid).call().then((solution) {
+      debugPrint('solving finished, solutions: ${solution.length}');
+      isSolving = false;
+      if (solution.isNotEmpty) {
+        loadSolution(solution);
+      }
+    });
   }
 
   @override
@@ -620,11 +624,13 @@ class PuzzleGameState extends State<PuzzleGame> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                FloatingActionButton(
-                  onPressed: () => _solvePuzzle(),
-                  backgroundColor: selectedPiece != null ? Colors.orange : Colors.grey,
-                  child: const Icon(Icons.lightbulb),
-                ),
+                isSolving
+                    ? CircularProgressIndicator()
+                    : FloatingActionButton(
+                        onPressed: () => _solvePuzzle(),
+                        backgroundColor: selectedPiece != null ? Colors.orange : Colors.grey,
+                        child: const Icon(Icons.lightbulb),
+                      ),
                 const SizedBox(height: 20),
                 FloatingActionButton(
                   onPressed: () {
@@ -687,9 +693,8 @@ class PuzzleGameState extends State<PuzzleGame> {
     final updatedPiece = piece.copyWith(
       newIsFlipped: params.isFlipped,
       newPosition: targetOffset,
-      newRotation: params.rotationSteps * math.pi / 2 ,
+      newRotation: params.rotationSteps * math.pi / 2,
     );
-    debugPrint('Solution for piece: ${updatedPiece.id} / ${updatedPiece.position} /${updatedPiece.rotation} / ${params.rotationSteps}');
     return updatedPiece;
   }
 }

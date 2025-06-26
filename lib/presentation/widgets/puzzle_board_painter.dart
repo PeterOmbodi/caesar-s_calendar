@@ -1,6 +1,6 @@
-import 'package:caesar_puzzle/puzzle/puzzle_board.dart';
-import 'package:caesar_puzzle/puzzle/puzzle_grid.dart';
-import 'package:caesar_puzzle/puzzle/puzzle_piece.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 

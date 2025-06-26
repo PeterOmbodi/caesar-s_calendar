@@ -1,4 +1,4 @@
-import 'package:caesar_puzzle/puzzle/puzzle_game.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle_game.dart';
 import 'package:flutter/material.dart';
 
 void main() {

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:flutter/material.dart';
 
 class PuzzlePiece {
@@ -182,4 +183,36 @@ class PuzzlePiece {
   Path getTransformedPath() {
     return path.transform(_getMatrix().storage);
   }
+
+  /// Returns a set of grid cells (as [Cell]) that are covered by the given [originalPath].
+  /// The [origin] represents the top-left corner of the grid and [cellSize] is the size of one grid cell.
+  Set<Cell> cells(Offset origin, double cellSize) {
+    final path = getTransformedPath();
+    final Set<Cell> cells = {};
+    final Rect bounds = path.getBounds();
+    // Determine grid indices covering the path's bounding box.
+    // We adjust by the grid's origin.
+    final int startCol = ((bounds.left - origin.dx) / cellSize).floor();
+    final int startRow = ((bounds.top - origin.dy) / cellSize).floor();
+    final int endCol = ((bounds.right - origin.dx) / cellSize).ceil();
+    final int endRow = ((bounds.bottom - origin.dy) / cellSize).ceil();
+
+    // Loop over each grid cell index within the bounding box.
+    for (int row = startRow; row < endRow; row++) {
+      for (int col = startCol; col < endCol; col++) {
+        // Compute the center point of the cell.
+        final Offset cellCenter = Offset(
+          origin.dx + col * cellSize + cellSize / 2,
+          origin.dy + row * cellSize + cellSize / 2,
+        );
+        // If the cell center lies within the path, add the cell.
+        if (path.contains(cellCenter)) {
+          cells.add(Cell(row, col));
+        }
+      }
+    }
+    return cells;
+  }
 }
+
+

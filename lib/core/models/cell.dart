@@ -14,4 +14,12 @@ class Cell {
 
   @override
   String toString() => 'Cell($row, $col)';
+
+  factory Cell.fromMap(Map<String, dynamic> map) =>
+      Cell(map['row'], map['col']);
+
+  Map<String, dynamic> toMap() => {
+    'row': row,
+    'col': col,
+  };
 }
