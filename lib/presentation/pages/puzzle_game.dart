@@ -61,14 +61,14 @@ class PuzzleGameState extends State<PuzzleGame> {
   void _initializePieces() {
     isSolving = false;
     final List<Color> pieceColors = [
-      Colors.teal.withOpacity(0.8),
-      Colors.indigo.withOpacity(0.8),
-      Colors.brown.withOpacity(0.8),
-      Colors.blueGrey.withOpacity(0.8),
-      Colors.grey.withOpacity(0.8),
-      Colors.deepPurple.withOpacity(0.8),
-      Colors.blue.withOpacity(0.8),
-      Colors.cyan.withOpacity(0.8),
+      Colors.teal.withValues(alpha: 0.8),
+      Colors.indigo.withValues(alpha:0.8),
+      Colors.brown.withValues(alpha:0.8),
+      Colors.blueGrey.withValues(alpha:0.8),
+      Colors.grey.withValues(alpha:0.8),
+      Colors.deepPurple.withValues(alpha:0.8),
+      Colors.blue.withValues(alpha:0.8),
+      Colors.cyan.withValues(alpha:0.8),
     ];
 
     final double cellSize = grid.cellSize;
@@ -405,7 +405,7 @@ class PuzzleGameState extends State<PuzzleGame> {
       isSolving = true;
     });
 
-    SolvePuzzleUseCase(pieces, grid).call().then((solution) {
+    SolvePuzzleUseCase().call(pieces: pieces, grid: grid).then((solution) {
       debugPrint('solving finished, solutions: ${solution.length}');
       isSolving = false;
       if (solution.isNotEmpty) {
