@@ -8,7 +8,7 @@ class SolvePuzzleUseCase {
 
   SolvePuzzleUseCase();
 
-  Future<List<String>> call({required List<PuzzlePiece> pieces, required PuzzleGrid grid}) async {
+  Future<List<List<String>>> call({required List<PuzzlePiece> pieces, required PuzzleGrid grid}) async {
 
     return getIt<PuzzleSolverService>().solve(pieces: pieces, grid: grid);
   }

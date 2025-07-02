@@ -124,16 +124,10 @@ class PuzzleSolver {
   }
 
   /// Solves the puzzle using Dancing Links.
-  /// It builds the exact cover matrix from the grid configuration and candidate placements,
-  /// runs the search and, if a solution is found, interprets it.
-  List<String> solve() {
-    // 1. Build universe (list of constraints).
+  List<List<String>> solve() {
     List<String> constraints = buildConstraints();
-    debugPrint('Solves the puzzle using Dancing Links. constraints: $constraints');
     var universe = DlxUniverse(constraints);
     final idToPlacement = <String, PlacementDto>{};
-    // 2. For each piece, generate candidate placements and add them as rows.
-
     for (var piece in pieces.where((item) => item.isDraggable)) {
       List<PlacementDto> placements = generatePlacementsForPiece(piece);
       for (var placement in placements) {
@@ -142,38 +136,27 @@ class PuzzleSolver {
           for (var cell in placement.coveredCells) 'cell_${cell.row}_${cell.col}',
           'piece_${placement.piece.id}',
         ];
-        // add restriction for piece single using
         rowConstraints.add('piece_${piece.id}');
-        // Add the row to DLX universe.
         universe.addRow(placement.id, rowConstraints);
-        //debugPrint('universe.addRow. ${placement.id} - rowConstraints: $rowConstraints');
       }
     }
 
-    // 3. Run the Dancing Links search.
-    debugPrint('Run the Dancing Links search. ${DateTime.now()}');
-
+    debugPrint('${DateTime.now()}, Run the Dancing Links search.');
     universe.search();
-
-    debugPrint('next step. ${DateTime.now()}');
-
-    // 4. Interpret the solution.
     if (universe.solutions.isNotEmpty) {
-      final solution = universe.solutions.first;
-      debugPrint("---- Solution found: $solution");
-      for (var id in solution) {
-        final placement = idToPlacement[id]!;
-        final coordinates = placement.coveredCells.map((cell) {
-          final rowLetter = String.fromCharCode('A'.codeUnitAt(0) + cell.row);
-          return '$rowLetter${cell.col}';
-        }).toList();
-        debugPrint('---- $id covers: ${coordinates.join(', ')}');
-      }
-      return solution;
+      debugPrint("${DateTime.now()}, Solution found: ${universe.solutions.first}");
+      // for (var id in solution) {
+      //   final placement = idToPlacement[id]!;
+      //   final coordinates = placement.coveredCells.map((cell) {
+      //     final rowLetter = String.fromCharCode('A'.codeUnitAt(0) + cell.row);
+      //     return '$rowLetter${cell.col}';
+      //   }).toList();
+      //   debugPrint('---- $id covers: ${coordinates.join(', ')}');
+      // }
     } else {
-      debugPrint("---- No solution found.");
-      return [];
+      debugPrint("${DateTime.now()}, No solution found.");
     }
+    return universe.solutions;
   }
 
   Map<String, dynamic> toSerializable() {
@@ -192,11 +175,11 @@ class PuzzleSolver {
     );
   }
 
-  Future<List<String>> solveInIsolate() async {
+  Future<List<List<String>>> solveInIsolate() async {
     return await compute(_solveEntryPoint, toSerializable());
   }
 
-  static List<String> _solveEntryPoint(Map<String, dynamic> data) {
+  static List<List<String>> _solveEntryPoint(Map<String, dynamic> data) {
     final solver = PuzzleSolver.fromSerializable(data);
     return solver.solve();
   }

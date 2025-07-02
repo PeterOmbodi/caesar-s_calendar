@@ -12,7 +12,7 @@ class DancingLinksSolverImpl implements PuzzleSolverService {
   DancingLinksSolverImpl();
 
   @override
-  Future<List<String>> solve({required List<PuzzlePiece> pieces, required PuzzleGrid grid}) async {
+  Future<List<List<String>>> solve({required List<PuzzlePiece> pieces, required PuzzleGrid grid}) async {
     final serializablePieces = pieces
         .map((p) => PuzzlePieceDto(
             id: p.id,

@@ -1,11 +1,11 @@
-import 'package:caesar_puzzle/presentation/pages/puzzle_game.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'injection.dart';
 
 Future<void> main() async {
-    configureInjection();
-    runApp(const MyApp());
+  configureInjection();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -13,7 +13,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
     return MaterialApp(
       title: 'Caesar Demo',
       theme: ThemeData(
@@ -21,7 +20,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: Material(
-        child: PuzzleGame(screenSize: screenSize),
+        child: const PuzzleScreen(),
       ),
     );
   }

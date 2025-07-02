@@ -38,7 +38,7 @@ class PuzzleBoardPainter extends CustomPainter {
 
     for (var piece in pieces) {
       final paint = Paint()
-        ..color = piece == selectedPiece ? piece.color.withOpacity(0.9) : piece.color
+        ..color = piece == selectedPiece ? piece.color.withValues(alpha: 0.9) : piece.color
         ..style = PaintingStyle.fill;
 
       final transformedPath = piece.getTransformedPath();
@@ -178,7 +178,7 @@ class PuzzleBoardPainter extends CustomPainter {
     final previewPath = previewPiece.getTransformedPath();
 
     final Color outlineColor = previewCollision ? Colors.red : Colors.green;
-    final Color fillColor = previewCollision ? Colors.red.withOpacity(0.2) : Colors.green.withOpacity(0.2);
+    final Color fillColor = previewCollision ? Colors.red.withValues(alpha: 0.2) : Colors.green.withValues(alpha: 0.2);
 
     final dashPaint = Paint()
       ..color = outlineColor
