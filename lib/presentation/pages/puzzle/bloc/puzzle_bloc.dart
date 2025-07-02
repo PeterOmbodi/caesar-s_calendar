@@ -239,6 +239,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
               pieces: pieces,
               selectedPiece: piece,
               showPreview: true,
+              previewPosition: state.gridConfig.snapToGrid(newPosition),
               previewCollision: _checkCollision(
                 piece: piece,
                 newPosition: state.gridConfig.snapToGrid(newPosition),
