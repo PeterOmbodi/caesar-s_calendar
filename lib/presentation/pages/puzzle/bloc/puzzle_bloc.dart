@@ -29,6 +29,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_RotatePiece>(_rotatePiece);
     on<_Solve>(_solve);
     on<_SetSolvingResults>(_setSolvingResults);
+    on<_ShowSolution>(_showSolution);
   }
 
   PuzzlePiece? _findPieceAtPosition(Offset position) => state.pieces.values.expand((e) => e).firstWhereOrNull(
@@ -114,7 +115,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           debugPrint('Piece not overlapping with board');
           return true;
         }
-      }
+    }
 
     return false;
   }
@@ -368,7 +369,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     }
   }
 
-  Future<void> _solve(_Solve event, Emitter<PuzzleState> emit)  async {
+  Future<void> _solve(_Solve event, Emitter<PuzzleState> emit) async {
     emit(state.copyWith(isSolving: true));
     await Future.delayed(Duration(milliseconds: 200));
     final pieces = [
@@ -382,26 +383,12 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   FutureOr<void> _setSolvingResults(_SetSolvingResults event, Emitter<PuzzleState> emit) {
+    emit(state.copyWith(isSolving: false, solutions: event.solutions));
+    for (final solution in event.solutions){
+      debugPrint('sol: $solution');
+    }
     if (event.solutions.isNotEmpty) {
-      final pieces = [
-        ...state.pieces[PieceZone.grid]!,
-        ...state.pieces[PieceZone.board]!,
-      ];
-      final solutionIds = event.solutions.first;
-      final gridPieces = <PuzzlePiece>[];
-      for (var solution in solutionIds) {
-        final params = _parsePlacementId(solution);
-        if (params == null) continue;
-        final idx = pieces.indexWhere((p) => p.id == params.pieceId);
-        gridPieces.add(_placePiece(pieces[idx], params));
-      }
-      final solvedPieces = <PieceZone, List<PuzzlePiece>>{
-        PieceZone.board: [],
-        PieceZone.grid: gridPieces,
-      };
-      emit(state.copyWith(pieces: solvedPieces, isSolving: false, solutions: event.solutions));
-    } else {
-      emit(state.copyWith(isSolving: false, solutions: []));
+      add(PuzzleEvent.showSolution(0));
     }
   }
 
@@ -416,5 +403,25 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final flipped = match.group(5) != null;
 
     return PlacementParams(pieceId, row, col, rotSteps, flipped);
+  }
+
+  FutureOr<void> _showSolution(_ShowSolution event, Emitter<PuzzleState> emit) {
+    final pieces = [
+      ...state.pieces[PieceZone.grid]!,
+      ...state.pieces[PieceZone.board]!,
+    ];
+    final solutionIds = state.solutions[event.index];
+    final gridPieces = <PuzzlePiece>[];
+    for (var solution in solutionIds) {
+      final params = _parsePlacementId(solution);
+      if (params == null) continue;
+      final idx = pieces.indexWhere((p) => p.id == params.pieceId);
+      gridPieces.add(_placePiece(pieces[idx], params));
+    }
+    final solvedPieces = <PieceZone, List<PuzzlePiece>>{
+      PieceZone.board: [],
+      PieceZone.grid: gridPieces,
+    };
+    emit(state.copyWith(pieces: solvedPieces, solutionIdx: event.index));
   }
 }

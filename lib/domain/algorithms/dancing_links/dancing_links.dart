@@ -61,7 +61,7 @@ class DlxUniverse {
     DlxNode? firstNode;
     for (var colName in columns) {
       var dCol = columnMap[colName];
-      if (dCol==null) {
+      if (dCol == null) {
         debugPrint("Column '$colName' not found in universe columns. Available: ${columnMap.keys.toList()}");
         continue;
       }
@@ -138,7 +138,9 @@ class DlxUniverse {
   void _search() {
     // If no columns remain, a complete solution has been found.
     if (header.right == header) {
-      solutions.add(List.from(solution));
+      if (solutions.indexWhere((e) => e.join('#') == solution.join('#')) == -1) {
+        solutions.add(List.from(solution));
+      }
       return;
     }
     // Choose a column using the heuristic.

@@ -13,4 +13,5 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.onDoubleTapDown(Offset localPosition) = _OnDoubleTapDown;
   const factory PuzzleEvent.solve() = _Solve;
   const factory PuzzleEvent.setSolvingResults(List<List<String>> solutions) = _SetSolvingResults;
+  const factory PuzzleEvent.showSolution(int index) = _ShowSolution;
 }
