@@ -18,19 +18,22 @@ abstract class PuzzleState with _$PuzzleState {
     }
 
     final cellSize = screenSize.width < 450 ? calcCellSize(screenSize) : 50.0;
+    final gridLeftPadding = screenSize.width < 450 ? (screenSize.width - cellSize * 7) / 2 : 24.0;
 
     final gridConfig = PuzzleGrid(
       cellSize: cellSize,
       rows: 7,
       columns: 7,
-      origin: Offset((screenSize.width - cellSize * 7) / 2, 50),
+      origin: Offset(gridLeftPadding, 16),
     );
+
     final boardConfig = PuzzleBoard(
-      cellSize: cellSize,
-      rows: 8,
-      columns: 9,
-      origin: Offset(5, cellSize * 9),
+      cellSize: cellSize + gridLeftPadding / 7,
+      rows: 7,
+      columns: 7,
+      origin: Offset(gridLeftPadding / 2, gridConfig.origin.dy + gridConfig.cellSize * gridConfig.rows + 16),
     );
+
     final List<Color> pieceColors = [
       Colors.teal.withValues(alpha: 0.8),
       Colors.indigo.withValues(alpha: 0.8),
@@ -67,56 +70,61 @@ abstract class PuzzleState with _$PuzzleState {
     // square 3x2
     final Path squareShape = Path()
       ..moveTo(0, 0)
-      ..lineTo(3 * cellSize, 0)
-      ..lineTo(3 * cellSize, 2 * cellSize)
-      ..lineTo(0, 2 * cellSize)
+      ..lineTo(2 * cellSize, 0)
+      ..lineTo(2 * cellSize, 3 * cellSize)
+      ..lineTo(0, 3 * cellSize)
       ..close();
 
     // square 3x2 with gap, P-shape
     final Path pShape = Path()
       ..moveTo(0, 0)
       ..lineTo(3 * cellSize, 0)
-      ..lineTo(3 * cellSize, 2 * cellSize)
-      ..lineTo(cellSize, 2 * cellSize)
-      ..lineTo(cellSize, cellSize)
-      ..lineTo(0, 1 * cellSize)
+      ..lineTo(3 * cellSize, cellSize)
+      ..lineTo(2 * cellSize, cellSize)
+      ..lineTo(2 * cellSize, 2 * cellSize)
+      ..lineTo(0, 2 * cellSize)
+      ..lineTo(0, 0)
       ..close();
 
     // Z shape 2-3-2
     final Path zShape = Path()
-      ..moveTo(0, 0)
-      ..lineTo(cellSize, 0)
-      ..lineTo(cellSize, cellSize)
-      ..lineTo(3 * cellSize, cellSize)
-      ..lineTo(3 * cellSize, 3 * cellSize)
-      ..lineTo(2 * cellSize, 3 * cellSize)
-      ..lineTo(2 * cellSize, 2 * cellSize)
-      ..lineTo(0, 2 * cellSize)
+      ..moveTo(0, cellSize)
+      ..lineTo(2 * cellSize, cellSize)
+      ..lineTo(2 * cellSize, 0)
+      ..lineTo(3 * cellSize, 0)
+      ..lineTo(3 * cellSize, 2 * cellSize)
+      ..lineTo(cellSize, 2 * cellSize)
+      ..lineTo(cellSize, 3 * cellSize)
+      ..lineTo(0, 3 * cellSize)
+      ..lineTo(0, cellSize)
       ..close();
 
     // Y shape
     final Path yShape = Path()
-      ..moveTo(cellSize, 0)
-      ..lineTo(2 * cellSize, 0)
-      ..lineTo(2 * cellSize, 1 * cellSize)
-      ..lineTo(4 * cellSize, 1 * cellSize)
-      ..lineTo(4 * cellSize, 2 * cellSize)
-      ..lineTo(0, 2 * cellSize)
-      ..lineTo(0, 1 * cellSize)
-      ..lineTo(cellSize, 1 * cellSize)
+      ..moveTo(0, 0)
+      ..lineTo(4 * cellSize, 0)
+      ..lineTo(4 * cellSize, cellSize)
+      ..lineTo(3 * cellSize, cellSize)
+      ..lineTo(3 * cellSize, 2 * cellSize)
+      ..lineTo(2 * cellSize, 2 * cellSize)
+      ..lineTo(2 * cellSize, cellSize)
+      ..lineTo(0, cellSize)
+      ..lineTo(0, 0)
       ..close();
 
     // Lighting, N-Shape
     final Path nShape = Path()
-      ..moveTo(0, 0)
+      ..moveTo(0, cellSize)
+      ..lineTo(cellSize, cellSize)
       ..lineTo(cellSize, 0)
-      ..lineTo(cellSize, 1 * cellSize)
-      ..lineTo(2 * cellSize, 1 * cellSize)
-      ..lineTo(2 * cellSize, 4 * cellSize)
-      ..lineTo(1 * cellSize, 4 * cellSize)
-      ..lineTo(1 * cellSize, 2 * cellSize)
-      ..lineTo(0 * cellSize, 2 * cellSize)
+      ..lineTo(4 * cellSize, 0)
+      ..lineTo(4 * cellSize, cellSize)
+      ..lineTo(2 * cellSize, cellSize)
+      ..lineTo(2 * cellSize, 2 * cellSize)
+      ..lineTo(0, 2 * cellSize)
+      ..lineTo(0, cellSize)
       ..close();
+
     // Corner, V-Shape
     final Path vShape = Path()
       ..moveTo(0, 0)
@@ -142,61 +150,67 @@ abstract class PuzzleState with _$PuzzleState {
       ..lineTo(0, 1 * cellSize)
       ..close();
 
+    /// initial placement for shapes on board
+    const extraX = 1.5;
+    final initialX = boardConfig.origin.dx + cellSize / 4;
+    final initialY = boardConfig.origin.dy + cellSize / 1.5;
+    final cellXOffset = cellSize + extraX;
+
     final boardPieces = [
       PuzzlePiece(
         path: cornerLShape,
         color: pieceColors[0],
         id: 'L-Shape',
-        position: Offset(boardConfig.origin.dx + 5, boardConfig.origin.dy + 30),
+        position: Offset(initialX, initialY + cellSize * 4),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
         path: squareShape,
         color: pieceColors[1],
         id: 'Square',
-        position: Offset(boardConfig.origin.dx + 5, boardConfig.origin.dy + 130),
+        position: Offset(initialX + cellXOffset * 5 + extraX, initialY + cellSize * 2),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
         path: zShape,
         color: pieceColors[2],
         id: 'Z-Shape',
-        position: Offset(boardConfig.origin.dx + 5, boardConfig.origin.dy + 200),
+        position: Offset(initialX + cellXOffset * 4, initialY),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
         path: yShape,
         color: pieceColors[3],
         id: 'Y-Shape',
-        position: Offset(boardConfig.origin.dx + 165, boardConfig.origin.dy + 230),
+        position: Offset(initialX + 3, initialY + cellSize * 2),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
         path: uShape,
         color: pieceColors[4],
         id: 'U-Shape',
-        position: Offset(boardConfig.origin.dx + 165, boardConfig.origin.dy + 130),
+        position: Offset(initialX + cellXOffset+ extraX, initialY + cellSize * 3),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
         path: pShape,
         color: pieceColors[5],
         id: 'P-Shape',
-        position: Offset(boardConfig.origin.dx + 165, boardConfig.origin.dy + 20),
+        position: Offset(initialX, initialY),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
         path: nShape,
         color: pieceColors[6],
         id: 'N-Shape',
-        position: Offset(boardConfig.origin.dx + 305, boardConfig.origin.dy + 20),
+        position: Offset(initialX + 2 * cellXOffset, initialY),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
         path: vShape,
         color: pieceColors[7],
         id: 'V-Shape',
-        position: Offset(boardConfig.origin.dx + 325, boardConfig.origin.dy + 180),
+        position: Offset(initialX + cellXOffset * 4, initialY + cellSize * 3),
         centerPoint: Offset(cellSize, cellSize),
       ),
     ];
