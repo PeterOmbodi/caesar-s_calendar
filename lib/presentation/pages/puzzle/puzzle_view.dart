@@ -54,9 +54,33 @@ class PuzzleView extends StatelessWidget {
               Positioned(
                 bottom: 20,
                 right: 20,
-                child: Column(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (!state.isSolving && state.solutions.length > 1) ...[
+                      FloatingActionButton(
+                        onPressed: () => bloc.add(
+                          PuzzleEvent.showSolution(
+                            (state.solutionIdx > 0 ? state.solutionIdx : state.solutions.length) - 1,
+                          ),
+                        ),
+                        backgroundColor: state.selectedPiece != null ? Colors.orange : Colors.grey,
+                        child: const Icon(Icons.arrow_left),
+                      ),
+                      const SizedBox(width: 8),
+                      Text('solution: ${state.solutionIdx + 1} / ${state.solutions.length}'),
+                      const SizedBox(width: 8),
+                      FloatingActionButton(
+                        onPressed: () => bloc.add(
+                          PuzzleEvent.showSolution(
+                            state.solutionIdx < state.solutions.length - 1 ? state.solutionIdx + 1 : 0,
+                          ),
+                        ),
+                        backgroundColor: state.selectedPiece != null ? Colors.orange : Colors.grey,
+                        child: const Icon(Icons.arrow_right),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     state.isSolving
                         ? CircularProgressIndicator()
                         : FloatingActionButton(
@@ -64,7 +88,7 @@ class PuzzleView extends StatelessWidget {
                             backgroundColor: state.selectedPiece != null ? Colors.orange : Colors.grey,
                             child: const Icon(Icons.lightbulb),
                           ),
-                    const SizedBox(height: 20),
+                    const SizedBox(width: 8),
                     // FloatingActionButton(
                     //   onPressed: () {
                     //     if (state.selectedPiece != null) {
