@@ -8,7 +8,6 @@ import 'package:injectable/injectable.dart';
 
 @Injectable(as: PuzzleSolverService)
 class DancingLinksSolverImpl implements PuzzleSolverService {
-
   DancingLinksSolverImpl();
 
   @override
@@ -16,7 +15,7 @@ class DancingLinksSolverImpl implements PuzzleSolverService {
     final serializablePieces = pieces
         .map((p) => PuzzlePieceDto(
             id: p.id,
-            relativeCells: p.relativeCells.map((c) => [c.row, c.col]).toList(),
+            relativeCells: p.relativeCells(grid.cellSize).map((c) => [c.row, c.col]).toList(),
             isForbidden: p.isForbidden,
             cells: !p.isForbidden ? {} : p.cells(grid.origin, grid.cellSize)))
         .toList();
@@ -26,6 +25,6 @@ class DancingLinksSolverImpl implements PuzzleSolverService {
       date: DateTime.now(),
     );
 
-    return solver.solve();
+    return solver.solveInIsolate();
   }
 }

@@ -43,7 +43,7 @@ class PuzzlePiece {
   Matrix4 _getMatrix() {
     final matrix = Matrix4.identity()
       ..translate(position.dx, position.dy)
-      ..translate(centerPoint.dx / 2, centerPoint.dy / 2);
+      ..translate(centerPoint.dx, centerPoint.dy);
 
     if (isFlipped) {
       matrix.scale(-1.0, 1.0);
@@ -51,7 +51,7 @@ class PuzzlePiece {
 
     matrix
       ..rotateZ(rotation)
-      ..translate(-centerPoint.dx / 2, -centerPoint.dy / 2);
+      ..translate(-centerPoint.dx, -centerPoint.dy);
     return matrix;
   }
 
@@ -202,8 +202,8 @@ class PuzzlePiece {
       for (int col = startCol; col < endCol; col++) {
         // Compute the center point of the cell.
         final Offset cellCenter = Offset(
-          origin.dx + col * cellSize + cellSize / 2,
-          origin.dy + row * cellSize + cellSize / 2,
+          origin.dx + col * cellSize + centerPoint.dx,
+          origin.dy + row * cellSize + centerPoint.dy,
         );
         // If the cell center lies within the path, add the cell.
         if (path.contains(cellCenter)) {

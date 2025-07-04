@@ -9,11 +9,7 @@ extension PuzzlePieceExtensions on PuzzlePiece {
   /// Returns the list of grid cells covered by this piece in its default orientation.
   /// It uses the bounding box of the original path and samples at the cell center.
   /// Assumes that the grid "unit" is the size of a cell.
-  List<Cell> get relativeCells {
-    // Ensure unit is not zero. If centerPoint.dx is 0, fallback to centerPoint.dy, or use a default value.
-    final double unit = centerPoint.dx != 0
-        ? centerPoint.dx
-        : (centerPoint.dy != 0 ? centerPoint.dy : 1.0);
+  List<Cell> relativeCells(final double unit) {
 
     // Get the bounding box of the original path.
     final Rect bounds = originalPath.getBounds();

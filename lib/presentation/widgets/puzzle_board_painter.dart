@@ -99,7 +99,8 @@ class PuzzleBoardPainter extends CustomPainter {
   void _drawLabels(Canvas canvas) {
     final today = DateTime.now();
 
-    final forbiddenCells = pieces.where((e) => e.isForbidden).map((e) => e.cells(grid.origin, grid.cellSize)).expand((e) => e);
+    final forbiddenCells =
+        pieces.where((e) => e.isForbidden).map((e) => e.cells(grid.origin, grid.cellSize)).expand((e) => e);
 
     var cellIndex = 0;
     for (int row = 0; row < grid.rows; row++) {
