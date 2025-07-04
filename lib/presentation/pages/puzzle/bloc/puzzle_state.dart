@@ -155,63 +155,63 @@ abstract class PuzzleState with _$PuzzleState {
     final initialX = boardConfig.origin.dx + cellSize / 4;
     final initialY = boardConfig.origin.dy + cellSize / 1.5;
     final cellXOffset = cellSize + extraX;
-
+    final centerPoint = Offset(cellSize / 2, cellSize / 2);
     final boardPieces = [
       PuzzlePiece(
         path: cornerLShape,
         color: pieceColors[0],
         id: 'L-Shape',
         position: Offset(initialX, initialY + cellSize * 4),
-        centerPoint: Offset(cellSize, cellSize),
+        centerPoint: centerPoint,
       ),
       PuzzlePiece(
         path: squareShape,
         color: pieceColors[1],
         id: 'Square',
         position: Offset(initialX + cellXOffset * 5 + extraX, initialY + cellSize * 2),
-        centerPoint: Offset(cellSize, cellSize),
+        centerPoint: centerPoint,
       ),
       PuzzlePiece(
         path: zShape,
         color: pieceColors[2],
         id: 'Z-Shape',
         position: Offset(initialX + cellXOffset * 4, initialY),
-        centerPoint: Offset(cellSize, cellSize),
+        centerPoint: centerPoint,
       ),
       PuzzlePiece(
         path: yShape,
         color: pieceColors[3],
         id: 'Y-Shape',
         position: Offset(initialX + 3, initialY + cellSize * 2),
-        centerPoint: Offset(cellSize, cellSize),
+        centerPoint: centerPoint,
       ),
       PuzzlePiece(
         path: uShape,
         color: pieceColors[4],
         id: 'U-Shape',
         position: Offset(initialX + cellXOffset + extraX, initialY + cellSize * 3),
-        centerPoint: Offset(cellSize, cellSize),
+        centerPoint: centerPoint,
       ),
       PuzzlePiece(
         path: pShape,
         color: pieceColors[5],
         id: 'P-Shape',
         position: Offset(initialX, initialY),
-        centerPoint: Offset(cellSize, cellSize),
+        centerPoint: centerPoint,
       ),
       PuzzlePiece(
         path: nShape,
         color: pieceColors[6],
         id: 'N-Shape',
         position: Offset(initialX + 2 * cellXOffset, initialY),
-        centerPoint: Offset(cellSize, cellSize),
+        centerPoint: centerPoint,
       ),
       PuzzlePiece(
         path: vShape,
         color: pieceColors[7],
         id: 'V-Shape',
         position: Offset(initialX + cellXOffset * 4, initialY + cellSize * 3),
-        centerPoint: Offset(cellSize, cellSize),
+        centerPoint: centerPoint,
       ),
     ];
 
@@ -223,7 +223,7 @@ abstract class PuzzleState with _$PuzzleState {
               color: Colors.grey.shade300,
               id: 'zone1',
               position: Offset(gridConfig.origin.dx + cellSize * 6, gridConfig.origin.dy),
-              centerPoint: Offset(cellSize, cellSize),
+              centerPoint: centerPoint,
               borderRadius: 0,
               isForbidden: true,
             ),
@@ -232,7 +232,7 @@ abstract class PuzzleState with _$PuzzleState {
               color: Colors.grey.shade300,
               id: 'zone2',
               position: Offset(gridConfig.origin.dx + cellSize * 3, gridConfig.origin.dy + cellSize * 6),
-              centerPoint: Offset(cellSize, cellSize),
+              centerPoint: centerPoint,
               borderRadius: 0,
               isForbidden: true,
             ),
