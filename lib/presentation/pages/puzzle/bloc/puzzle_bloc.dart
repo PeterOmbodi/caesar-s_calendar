@@ -18,8 +18,15 @@ part 'puzzle_state.dart';
 class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   static const double collisionTolerance = 2;
 
-  PuzzleBloc(final Size screenSize) : super(PuzzleState.initial(screenSize)) {
-    on<_Reset>((event, emit) => emit(PuzzleState.initial(screenSize)));
+  PuzzleBloc(final Size screenSize) : super(PuzzleState.initial(screenSize, [])) {
+    on<_Reset>(
+      (event, emit) => emit(
+        PuzzleState.initial(
+          screenSize,
+          state.isUnlockedForbiddenCells ? [] : state.pieces[PieceZone.grid]!.where((e) => e.isForbidden),
+        ),
+      ),
+    );
     on<_OnTapDown>(_onTapDown);
     on<_OnTapUp>(_onTapUp);
     on<_OnPanStart>(_onPanStart);
@@ -30,6 +37,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_Solve>(_solve);
     on<_SetSolvingResults>(_setSolvingResults);
     on<_ShowSolution>(_showSolution);
+    on<_ChangeForbiddenCellsMode>(
+        (event, emit) => emit(state.copyWith(isUnlockedForbiddenCells: !state.isUnlockedForbiddenCells)));
   }
 
   PuzzlePiece? _findPieceAtPosition(Offset position) => state.pieces.values.expand((e) => e).firstWhereOrNull(
@@ -155,7 +164,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   FutureOr<void> _onTapDown(_OnTapDown event, Emitter<PuzzleState> emit) {
     final piece = _findPieceAtPosition(event.localPosition);
-    if (piece != null) {
+    if (piece != null && (!piece.isForbidden || state.isUnlockedForbiddenCells)) {
       emit(state.copyWith(selectedPiece: piece));
     }
   }
@@ -181,7 +190,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   FutureOr<void> _onPanStart(_OnPanStart event, Emitter<PuzzleState> emit) {
     final piece = _findPieceAtPosition(event.localPosition);
-    if (piece != null && piece.isDraggable) {
+    if (piece != null && (!piece.isForbidden || state.isUnlockedForbiddenCells)) {
       final pieces = Map<PieceZone, List<PuzzlePiece>>.from(state.pieces);
       final boardPieces = state.pieces[PieceZone.board];
       final boardIndex = boardPieces?.indexWhere((item) => item.id == piece.id) ?? -1;
@@ -358,7 +367,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   FutureOr<void> _onDoubleTapDown(_OnDoubleTapDown event, Emitter<PuzzleState> emit) {
     final piece = _findPieceAtPosition(event.localPosition);
-    if (piece != null) {
+    if (piece != null && (!piece.isForbidden || state.isUnlockedForbiddenCells)) {
       final flippedPiece = piece.copyWith(newIsFlipped: !piece.isFlipped);
       debugPrint('Flipping piece ${piece.id}: ${piece.isFlipped} -> ${flippedPiece.isFlipped}');
       emit(
@@ -384,7 +393,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   FutureOr<void> _setSolvingResults(_SetSolvingResults event, Emitter<PuzzleState> emit) {
     emit(state.copyWith(isSolving: false, solutions: event.solutions));
-    for (final solution in event.solutions){
+    for (final solution in event.solutions) {
       debugPrint('sol: $solution');
     }
     if (event.solutions.isNotEmpty) {
@@ -411,7 +420,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       ...state.pieces[PieceZone.board]!,
     ];
     final solutionIds = state.solutions[event.index];
-    final gridPieces = <PuzzlePiece>[];
+    final gridPieces = state.pieces[PieceZone.grid]!.where((e) => e.isForbidden).toList();
     for (var solution in solutionIds) {
       final params = _parsePlacementId(solution);
       if (params == null) continue;

@@ -15,28 +15,23 @@ class PuzzleSolver {
   final PuzzleGrid grid;
   final List<PuzzlePieceDto> pieces;
   final DateTime date;
+  late Iterable<Cell> forbiddenCells;
 
   PuzzleSolver({
     required this.grid,
     required this.pieces,
     required this.date,
-  });
+  }) : forbiddenCells = pieces.where((e) => e.isForbidden).map((e) => e.cells).expand((e) => e);
 
   /// Build the list of constraints (columns) for the exact cover problem.
   /// Here we assume that each grid cell (except those that must remain free) gets an identifier
   /// in the format "cell_r_c". Also, for each piece we add a constraint "piece_<id>".
   List<String> buildConstraints() {
     List<String> constraints = [];
-
     var cellIndex = 0;
     for (int row = 0; row < grid.rows; row++) {
       for (int column = 0; column < grid.columns; column++) {
-        if ((row == 0 && column == 6) ||
-            (row == 1 && column == 6) ||
-            (row == 6 && column == 3) ||
-            (row == 6 && column == 4) ||
-            (row == 6 && column == 5) ||
-            (row == 6 && column == 6)) {
+        if (forbiddenCells.contains(Cell(row, column))) {
           continue;
         }
         final isTodayLabel = cellIndex < 12 && date.month == cellIndex + 1 || cellIndex - 11 == date.day;
@@ -46,7 +41,7 @@ class PuzzleSolver {
         cellIndex++;
       }
     }
-    for (var piece in pieces.where((p) => p.isDraggable)) {
+    for (var piece in pieces.where((p) => !p.isForbidden)) {
       constraints.add('piece_${piece.id}');
     }
     return constraints;
@@ -55,11 +50,11 @@ class PuzzleSolver {
   /// Generate candidate placements for a given puzzle piece.
   List<PlacementDto> generatePlacementsForPiece(PuzzlePieceDto piece) {
     List<PlacementDto> placements = [];
-    final Set<Cell> forbidden = buildForbiddenCells();
+    final Set<Cell> forbidden = forbiddenCells.toSet();
     final Set<Cell> dateCells = buildDateCells();
     final Set<String> placementSignatures = {};
     // debugPrint('generatePlacementsForPiece, forbidden: $forbidden');
-    // debugPrint('generatePlacementsForPiece, free: $dateCells');
+    // debugPrint('generatePlacementsForPiece, dateCells: $dateCells');
     for (int rot = 0; rot < 4; rot++) {
       for (bool flip in [false, true]) {
         for (int row = 0; row < grid.rows; row++) {
@@ -86,30 +81,13 @@ class PuzzleSolver {
     return placements;
   }
 
-  /// Build a set of forbidden cells.
-  Set<Cell> buildForbiddenCells() {
-    Set<Cell> forbidden = {};
-    for (var item in pieces.where((e) => !e.isDraggable)) {
-      for (var cell in item.cells) {
-        forbidden.add(cell);
-      }
-    }
-    return forbidden;
-  }
-
   /// Build a set of cells that must remain free
   Set<Cell> buildDateCells() {
     Set<Cell> free = {};
     var cellIndex = 0;
     for (int row = 0; row < grid.rows; row++) {
       for (int column = 0; column < grid.columns; column++) {
-        if ((row == 0 && column == 6) ||
-            (row == 1 && column == 6) ||
-            (row == 6 && column == 3) ||
-            (row == 6 && column == 4) ||
-            (row == 6 && column == 5) ||
-            (row == 6 && column == 6)) {
-          //todo could be used instead buildForbiddenCells?
+        if (forbiddenCells.contains(Cell(row, column))) {
           continue;
         }
         final isTodayLabel = cellIndex < 12 && date.month == cellIndex + 1 || cellIndex - 11 == date.day;
@@ -128,7 +106,7 @@ class PuzzleSolver {
     List<String> constraints = buildConstraints();
     var universe = DlxUniverse(constraints);
     final idToPlacement = <String, PlacementDto>{};
-    for (var piece in pieces.where((item) => item.isDraggable)) {
+    for (var piece in pieces.where((item) => !item.isForbidden)) {
       List<PlacementDto> placements = generatePlacementsForPiece(piece);
       for (var placement in placements) {
         idToPlacement[placement.id] = placement;

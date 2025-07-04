@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
@@ -98,19 +99,16 @@ class PuzzleBoardPainter extends CustomPainter {
   void _drawLabels(Canvas canvas) {
     final today = DateTime.now();
 
+    final forbiddenCells = pieces.where((e) => e.isForbidden).map((e) => e.cells(grid.origin, grid.cellSize)).expand((e) => e);
+
     var cellIndex = 0;
-    for (int iy = 0; iy < grid.rows; iy++) {
-      final y = grid.origin.dy + iy * grid.cellSize;
-      for (int ix = 0; ix < grid.columns; ix++) {
-        if ((iy == 0 && ix == 6) ||
-            (iy == 1 && ix == 6) ||
-            (iy == 6 && ix == 3) ||
-            (iy == 6 && ix == 4) ||
-            (iy == 6 && ix == 5) ||
-            (iy == 6 && ix == 6)) {
+    for (int row = 0; row < grid.rows; row++) {
+      final y = grid.origin.dy + row * grid.cellSize;
+      for (int column = 0; column < grid.columns; column++) {
+        if (forbiddenCells.contains(Cell(row, column))) {
           continue;
         }
-        final x = grid.origin.dx + ix * grid.cellSize;
+        final x = grid.origin.dx + column * grid.cellSize;
         final textPainter = TextPainter(
           text: _getCellTextSpan(cellIndex, today),
           textDirection: TextDirection.ltr,
