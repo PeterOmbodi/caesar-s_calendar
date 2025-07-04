@@ -12,7 +12,7 @@ class PuzzlePiece {
   double rotation;
   bool isFlipped;
   final double borderRadius;
-  final bool isDraggable;
+  final bool isForbidden;
 
   PuzzlePiece({
     required Path path,
@@ -23,7 +23,7 @@ class PuzzlePiece {
     required this.centerPoint,
     this.isFlipped = false,
     this.borderRadius = 8.0,
-    this.isDraggable = true,
+    this.isForbidden = false,
   }) : originalPath = path;
 
   void mirror() {
@@ -165,7 +165,7 @@ class PuzzlePiece {
     Offset? newPosition,
     double? newRotation,
     bool? newIsFlipped,
-    bool? newIsDraggable,
+    bool? newIsForbidden,
   }) {
     return PuzzlePiece(
       path: originalPath,
@@ -176,7 +176,7 @@ class PuzzlePiece {
       centerPoint: centerPoint,
       isFlipped: newIsFlipped ?? isFlipped,
       borderRadius: borderRadius,
-      isDraggable: newIsDraggable ?? isDraggable,
+      isForbidden: newIsForbidden ?? isForbidden,
     );
   }
 

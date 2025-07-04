@@ -11,7 +11,7 @@ enum GameStatus {
 
 @freezed
 abstract class PuzzleState with _$PuzzleState {
-  factory PuzzleState.initial(final Size screenSize) {
+  factory PuzzleState.initial(final Size screenSize, final Iterable<PuzzlePiece> forbiddenPieces) {
     double calcCellSize(final Size screenSize) {
       final floored = (screenSize.width / 8).floor();
       return floored.isEven ? floored.toDouble() : floored - 1.0;
@@ -189,7 +189,7 @@ abstract class PuzzleState with _$PuzzleState {
         path: uShape,
         color: pieceColors[4],
         id: 'U-Shape',
-        position: Offset(initialX + cellXOffset+ extraX, initialY + cellSize * 3),
+        position: Offset(initialX + cellXOffset + extraX, initialY + cellSize * 3),
         centerPoint: Offset(cellSize, cellSize),
       ),
       PuzzlePiece(
@@ -215,26 +215,28 @@ abstract class PuzzleState with _$PuzzleState {
       ),
     ];
 
-    final gridPieces = [
-      PuzzlePiece(
-        path: zone1,
-        color: Colors.grey.shade300,
-        id: 'zone1',
-        position: Offset(gridConfig.origin.dx + cellSize * 6, gridConfig.origin.dy),
-        centerPoint: Offset(cellSize, cellSize),
-        borderRadius: 0,
-        isDraggable: false,
-      ),
-      PuzzlePiece(
-        path: zone2,
-        color: Colors.grey.shade300,
-        id: 'zone2',
-        position: Offset(gridConfig.origin.dx + cellSize * 3, gridConfig.origin.dy + cellSize * 6),
-        centerPoint: Offset(cellSize, cellSize),
-        borderRadius: 0,
-        isDraggable: false,
-      ),
-    ];
+    final gridPieces = forbiddenPieces.isNotEmpty
+        ? forbiddenPieces.toList()
+        : [
+            PuzzlePiece(
+              path: zone1,
+              color: Colors.grey.shade300,
+              id: 'zone1',
+              position: Offset(gridConfig.origin.dx + cellSize * 6, gridConfig.origin.dy),
+              centerPoint: Offset(cellSize, cellSize),
+              borderRadius: 0,
+              isForbidden: true,
+            ),
+            PuzzlePiece(
+              path: zone2,
+              color: Colors.grey.shade300,
+              id: 'zone2',
+              position: Offset(gridConfig.origin.dx + cellSize * 3, gridConfig.origin.dy + cellSize * 6),
+              centerPoint: Offset(cellSize, cellSize),
+              borderRadius: 0,
+              isForbidden: true,
+            ),
+          ];
     return PuzzleState(
       status: GameStatus.waiting,
       gridConfig: gridConfig,
@@ -251,6 +253,7 @@ abstract class PuzzleState with _$PuzzleState {
       isSolving: false,
       showPreview: false,
       previewCollision: false,
+      isUnlockedForbiddenCells: false,
     );
   }
 
@@ -271,5 +274,6 @@ abstract class PuzzleState with _$PuzzleState {
     required bool isSolving,
     required bool showPreview,
     required bool previewCollision,
+    required bool isUnlockedForbiddenCells,
   }) = _PuzzleState;
 }

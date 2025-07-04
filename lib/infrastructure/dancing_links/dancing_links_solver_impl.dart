@@ -17,8 +17,8 @@ class DancingLinksSolverImpl implements PuzzleSolverService {
         .map((p) => PuzzlePieceDto(
             id: p.id,
             relativeCells: p.relativeCells.map((c) => [c.row, c.col]).toList(),
-            isDraggable: p.isDraggable,
-            cells: p.isDraggable ? {} : p.cells(grid.origin, grid.cellSize)))
+            isForbidden: p.isForbidden,
+            cells: !p.isForbidden ? {} : p.cells(grid.origin, grid.cellSize)))
         .toList();
     final solver = PuzzleSolver(
       grid: grid,

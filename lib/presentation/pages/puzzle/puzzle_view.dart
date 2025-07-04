@@ -14,6 +14,12 @@ class PuzzleView extends StatelessWidget {
         title: const Text('Caesars calendar'),
         actions: [
           IconButton(
+            icon: BlocBuilder<PuzzleBloc, PuzzleState>(
+                builder: (context, state) =>
+                    Icon(state.isUnlockedForbiddenCells ? Icons.lock_open_outlined : Icons.lock_outlined)),
+            onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.changeForbiddenCellsMode()),
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset()),
           ),
