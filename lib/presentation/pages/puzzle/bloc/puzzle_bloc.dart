@@ -18,11 +18,12 @@ part 'puzzle_state.dart';
 class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   static const double collisionTolerance = 2;
 
-  PuzzleBloc(final Size screenSize) : super(PuzzleState.initial(screenSize, [])) {
+  PuzzleBloc() : super(PuzzleState.initial()) {
+    on<_SetScreenSize>(_setScreenSize);
     on<_Reset>(
       (event, emit) => emit(
-        PuzzleState.initial(
-          screenSize,
+        PuzzleState.configured(
+          event.screenSize,
           state.isUnlockedForbiddenCells ? [] : state.pieces[PieceZone.grid]!.where((e) => e.isForbidden),
         ),
       ),
@@ -160,6 +161,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       newRotation: params.rotationSteps * math.pi / 2,
     );
     return updatedPiece;
+  }
+
+  FutureOr<void> _setScreenSize(_SetScreenSize event, Emitter<PuzzleState> emit) {
+    emit(PuzzleState.configured(event.screenSize, []));
   }
 
   FutureOr<void> _onTapDown(_OnTapDown event, Emitter<PuzzleState> emit) {

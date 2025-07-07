@@ -13,6 +13,8 @@ class PuzzleBoard {
     required this.origin,
   });
 
+  factory PuzzleBoard.initial() => PuzzleBoard(cellSize: 1, rows: 1, columns: 1, origin: Offset.zero);
+
   Offset snapToGrid(Offset position) {
     final relativeX = position.dx - origin.dx;
     final relativeY = position.dy - origin.dy;
