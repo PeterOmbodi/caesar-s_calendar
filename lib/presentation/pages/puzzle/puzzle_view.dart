@@ -21,7 +21,7 @@ class PuzzleView extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset()),
+            onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset(MediaQuery.of(context).size)),
           ),
         ],
       ),
@@ -30,33 +30,35 @@ class PuzzleView extends StatelessWidget {
           final bloc = context.read<PuzzleBloc>();
           return Stack(
             children: [
-              GestureDetector(
-                onTapDown: (details) => bloc.add(PuzzleEvent.onTapDown(details.localPosition)),
-                onTapUp: (details) => bloc.add(PuzzleEvent.onTapUp(details.localPosition)),
-                onPanStart: (details) => bloc.add(PuzzleEvent.onPanStart(details.localPosition)),
-                onPanUpdate: (details) => bloc.add(PuzzleEvent.onPanUpdate(details.localPosition)),
-                onPanEnd: (details) => bloc.add(PuzzleEvent.onPanEnd(details.localPosition)),
-                onDoubleTapDown: (details) => bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition)),
-                child: Container(
-                  color: Colors.grey[200],
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: CustomPaint(
-                    painter: PuzzleBoardPainter(
-                      pieces: [
-                        ...state.pieces[PieceZone.grid]!,
-                        ...state.pieces[PieceZone.board]!,
-                      ],
-                      grid: state.gridConfig,
-                      board: state.boardConfig,
-                      selectedPiece: state.selectedPiece,
-                      previewPosition: state.previewPosition,
-                      showPreview: state.showPreview,
-                      previewCollision: state.previewCollision,
+              state.status == GameStatus.initializing
+                  ? CircularProgressIndicator()
+                  : GestureDetector(
+                      onTapDown: (details) => bloc.add(PuzzleEvent.onTapDown(details.localPosition)),
+                      onTapUp: (details) => bloc.add(PuzzleEvent.onTapUp(details.localPosition)),
+                      onPanStart: (details) => bloc.add(PuzzleEvent.onPanStart(details.localPosition)),
+                      onPanUpdate: (details) => bloc.add(PuzzleEvent.onPanUpdate(details.localPosition)),
+                      onPanEnd: (details) => bloc.add(PuzzleEvent.onPanEnd(details.localPosition)),
+                      onDoubleTapDown: (details) => bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition)),
+                      child: Container(
+                        color: Colors.grey[200],
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: CustomPaint(
+                          painter: PuzzleBoardPainter(
+                            pieces: [
+                              ...state.pieces[PieceZone.grid]!,
+                              ...state.pieces[PieceZone.board]!,
+                            ],
+                            grid: state.gridConfig,
+                            board: state.boardConfig,
+                            selectedPiece: state.selectedPiece,
+                            previewPosition: state.previewPosition,
+                            showPreview: state.showPreview,
+                            previewCollision: state.previewCollision,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
               Positioned(
                 bottom: 20,
                 right: 20,

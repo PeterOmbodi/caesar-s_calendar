@@ -3,7 +3,8 @@ part of 'puzzle_bloc.dart';
 @freezed
 sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.started() = _Started;
-  const factory PuzzleEvent.reset() = _Reset;
+  const factory PuzzleEvent.setScreenSize(Size screenSize) = _SetScreenSize;
+  const factory PuzzleEvent.reset(final Size screenSize) = _Reset;
   const factory PuzzleEvent.onTapDown(Offset localPosition) = _OnTapDown;
   const factory PuzzleEvent.onTapUp(Offset localPosition) = _OnTapUp;
   const factory PuzzleEvent.rotatePiece(PuzzlePiece piece) = _RotatePiece;

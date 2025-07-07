@@ -3,6 +3,7 @@ part of 'puzzle_bloc.dart';
 enum PieceZone { grid, board }
 
 enum GameStatus {
+  initializing,
   waiting,
   playing,
   solving,
@@ -11,7 +12,24 @@ enum GameStatus {
 
 @freezed
 abstract class PuzzleState with _$PuzzleState {
-  factory PuzzleState.initial(final Size screenSize, final Iterable<PuzzlePiece> forbiddenPieces) {
+
+  factory PuzzleState.initial() => PuzzleState(
+    status: GameStatus.initializing,
+    gridConfig: PuzzleGrid.initial(),
+    boardConfig: PuzzleBoard.initial(),
+    pieces: {},
+    solutions: [],
+    solutionIdx: 0,
+    timer: 0,
+    selectedPiece: null,
+    isDragging: false,
+    isSolving: false,
+    showPreview: false,
+    previewCollision: false,
+    isUnlockedForbiddenCells: false,
+  );
+
+  factory PuzzleState.configured(final Size screenSize, final Iterable<PuzzlePiece> forbiddenPieces) {
     double calcCellSize(final Size screenSize) {
       final floored = (screenSize.width / 8).floor();
       return floored.isEven ? floored.toDouble() : floored - 1.0;
