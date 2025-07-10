@@ -15,32 +15,4 @@ class PuzzleBoard {
 
   factory PuzzleBoard.initial() => PuzzleBoard(cellSize: 1, rows: 1, columns: 1, origin: Offset.zero);
 
-  Offset snapToGrid(Offset position) {
-    final relativeX = position.dx - origin.dx;
-    final relativeY = position.dy - origin.dy;
-
-    final snappedX = (relativeX / cellSize).round() * cellSize + origin.dx;
-    final snappedY = (relativeY / cellSize).round() * cellSize + origin.dy;
-
-    return Offset(snappedX, snappedY);
-  }
-
-  bool isWithinBounds(Offset position, Size pieceSize) {
-    final relativeX = position.dx - origin.dx;
-    final relativeY = position.dy - origin.dy;
-
-    return relativeX >= 0 &&
-        relativeX + pieceSize.width <= cellSize * columns &&
-        relativeY >= 0 &&
-        relativeY + pieceSize.height <= cellSize * rows;
-  }
-
-  Rect getBounds() {
-    return Rect.fromLTWH(
-      origin.dx,
-      origin.dy,
-      cellSize * columns,
-      cellSize * rows,
-    );
-  }
 }
