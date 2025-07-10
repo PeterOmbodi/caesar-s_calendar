@@ -1,4 +1,7 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
+import 'package:caesar_puzzle/core/utils/puzzle_board_extension.dart';
+import 'package:caesar_puzzle/core/utils/puzzle_grid_extension.dart';
+import 'package:caesar_puzzle/core/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
@@ -93,7 +96,7 @@ class PuzzleBoardPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    canvas.drawRect(grid.getBounds(), borderPaint);
+    canvas.drawRect(grid.getBounds, borderPaint);
   }
 
   void _drawLabels(Canvas canvas) {
@@ -133,7 +136,7 @@ class PuzzleBoardPainter extends CustomPainter {
       ..color = Colors.grey[100]!
       ..style = PaintingStyle.fill;
 
-    canvas.drawRect(board.getBounds(), bgPaint);
+    canvas.drawRect(board.getBounds, bgPaint);
 
     // Draw board border
     final borderPaint = Paint()
@@ -141,7 +144,7 @@ class PuzzleBoardPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    canvas.drawRect(board.getBounds(), borderPaint);
+    canvas.drawRect(board.getBounds, borderPaint);
 
     // Draw board label
     const textStyle = TextStyle(
@@ -173,7 +176,7 @@ class PuzzleBoardPainter extends CustomPainter {
   void _drawPreviewOutline(Canvas canvas) {
     if (selectedPiece == null || previewPosition == null) return;
 
-    final previewPiece = selectedPiece!.copyWith(newPosition: previewPosition!);
+    final previewPiece = selectedPiece!.copyWith(position: previewPosition!);
     final previewPath = previewPiece.getTransformedPath();
 
     final Color outlineColor = previewCollision ? Colors.red : Colors.green;

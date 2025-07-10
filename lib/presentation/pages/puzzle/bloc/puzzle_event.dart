@@ -3,8 +3,8 @@ part of 'puzzle_bloc.dart';
 @freezed
 sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.started() = _Started;
-  const factory PuzzleEvent.setScreenSize(Size screenSize) = _SetScreenSize;
-  const factory PuzzleEvent.reset(final Size screenSize) = _Reset;
+  const factory PuzzleEvent.setViewSize(Size viewSize) = _SetViewSize;
+  const factory PuzzleEvent.reset() = _Reset;
   const factory PuzzleEvent.onTapDown(Offset localPosition) = _OnTapDown;
   const factory PuzzleEvent.onTapUp(Offset localPosition) = _OnTapUp;
   const factory PuzzleEvent.rotatePiece(PuzzlePiece piece) = _RotatePiece;
@@ -16,4 +16,9 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.setSolvingResults(List<List<String>> solutions) = _SetSolvingResults;
   const factory PuzzleEvent.showSolution(int index) = _ShowSolution;
   const factory PuzzleEvent.changeForbiddenCellsMode() = _ChangeForbiddenCellsMode;
+  const factory PuzzleEvent.configure({
+    required Size viewSize,
+    required PuzzleState prevState,
+    required Iterable<PuzzlePiece> forbiddenPieces,
+  }) = _Configure;
 }
