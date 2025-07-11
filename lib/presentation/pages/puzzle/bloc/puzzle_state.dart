@@ -12,17 +12,18 @@ enum GameStatus {
 
 @freezed
 abstract class PuzzleState with _$PuzzleState {
+  const PuzzleState._();
+
   factory PuzzleState.initial() => PuzzleState(
         status: GameStatus.initializing,
         gridConfig: PuzzleGrid.initial(),
         boardConfig: PuzzleBoard.initial(),
         pieces: {},
         solutions: [],
-        solutionIdx: 0,
+        solutionIdx: -1,
         timer: 0,
         selectedPiece: null,
         isDragging: false,
-        isSolving: false,
         showPreview: false,
         previewCollision: false,
         isUnlockedForbiddenCells: false,
@@ -42,10 +43,12 @@ abstract class PuzzleState with _$PuzzleState {
     Offset? pieceStartPosition,
     Offset? previewPosition,
     PieceZone? dropZone,
-    required bool isSolving,
     required bool showPreview,
     required bool previewCollision,
     required bool isUnlockedForbiddenCells,
   }) = _PuzzleState;
 
+  bool get isSolving => status == GameStatus.solving;
+
+  bool get allowSolutionDisplay => status == GameStatus.solved && solutions.isNotEmpty && solutionIdx >= 0;
 }

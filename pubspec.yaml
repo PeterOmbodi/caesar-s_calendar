@@ -25,6 +25,8 @@ dependencies:
   freezed: ^3.1.0
   freezed_annotation: ^3.1.0
   collection: ^1.19.1
+  flutter_platform_widgets: ^9.0.0
+
   flutter_localizations:
     sdk: flutter
 
@@ -82,5 +84,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  generate: true
+
 flutter_intl:
   enabled: true

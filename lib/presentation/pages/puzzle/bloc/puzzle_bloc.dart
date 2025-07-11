@@ -409,7 +409,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   Future<void> _solve(_Solve event, Emitter<PuzzleState> emit) async {
-    emit(state.copyWith(isSolving: true));
+    emit(state.copyWith(
+      status: GameStatus.solving,
+      solutions: [],
+      solutionIdx: -1,
+    ));
     await Future.delayed(solvingDelay);
     final pieces = [
       ...state.pieces[PieceZone.grid]!,
@@ -422,12 +426,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   FutureOr<void> _setSolvingResults(_SetSolvingResults event, Emitter<PuzzleState> emit) {
-    emit(state.copyWith(isSolving: false, solutions: event.solutions));
+    emit(state.copyWith(status: GameStatus.solved, solutions: event.solutions));
     for (final solution in event.solutions) {
       debugPrint('sol: $solution');
-    }
-    if (event.solutions.isNotEmpty) {
-      add(PuzzleEvent.showSolution(0));
     }
   }
 
@@ -605,7 +606,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       timer: prevState.timer,
       selectedPiece: null,
       isDragging: false,
-      isSolving: false,
       showPreview: false,
       previewCollision: false,
       isUnlockedForbiddenCells: false,

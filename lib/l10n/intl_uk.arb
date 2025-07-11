@@ -2,6 +2,12 @@
   "@@locale": "uk",
   "appTitle": "Цезар Демо",
   "calendarTitle": "Календар Цезаря",
-  "solutionLabel": "розв'язок: {current} / {total}",
-  "boardLabel": "Фігури"
+  "solutionLabel": "рішення:\n {current} / {total}",
+  "boardLabel": "Фігури",
+  "searchCompletedDialogTitle": "Пошук завершено",
+  "solutionsFoundDialogMessage": "Знайдено {count} рішень. Показати?",
+  "solutionsNotFoundDialogMessage": "Не знайдено рішень для заданої конфігурації",
+  "ok": "Ok",
+  "solutionsFoundDialogOk": "Показати",
+  "solutionsFoundDialogCancel": "Скасувати"
 }
