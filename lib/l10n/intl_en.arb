@@ -1,0 +1,7 @@
+{
+  "@@locale": "en",
+  "appTitle": "Caesar Demo",
+  "calendarTitle": "Caesars calendar",
+  "solutionLabel": "solution: {current} / {total}",
+  "boardLabel": "Shapes"
+}

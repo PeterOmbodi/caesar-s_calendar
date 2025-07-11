@@ -1,0 +1,7 @@
+{
+  "@@locale": "uk",
+  "appTitle": "Цезар Демо",
+  "calendarTitle": "Календар Цезаря",
+  "solutionLabel": "розв'язок: {current} / {total}",
+  "boardLabel": "Фігури"
+}

@@ -17,11 +17,13 @@ class PuzzleBoardPainter extends CustomPainter {
   final Offset? previewPosition;
   final bool showPreview;
   final bool previewCollision;
+  final String boardLabel;
 
   PuzzleBoardPainter({
     required this.pieces,
     required this.grid,
     required this.board,
+    required this.boardLabel,
     this.selectedPiece,
     this.showGridLines = true,
     this.previewPosition,
@@ -154,7 +156,7 @@ class PuzzleBoardPainter extends CustomPainter {
     );
 
     final textSpan = TextSpan(
-      text: 'Shapes',
+      text: boardLabel,
       style: textStyle,
     );
 
