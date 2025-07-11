@@ -22,9 +22,11 @@ dependencies:
   provider: ^6.1.5
   bloc: ^9.0.0
   flutter_bloc: ^9.1.1
-  freezed: ^3.0.6
-  freezed_annotation: ^3.0.0
+  freezed: ^3.1.0
+  freezed_annotation: ^3.1.0
   collection: ^1.19.1
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
@@ -80,3 +82,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_intl:
+  enabled: true

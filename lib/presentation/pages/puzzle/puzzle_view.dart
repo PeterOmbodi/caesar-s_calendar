@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/generated/l10n.dart';
 
 class PuzzleView extends StatelessWidget {
   const PuzzleView({super.key});
@@ -11,7 +12,7 @@ class PuzzleView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Caesars calendar'),
+        title: Text(S.of(context).calendarTitle),
         actions: [
           IconButton(
             icon: BlocBuilder<PuzzleBloc, PuzzleState>(
@@ -58,6 +59,7 @@ class PuzzleView extends StatelessWidget {
                                 previewPosition: state.previewPosition,
                                 showPreview: state.showPreview,
                                 previewCollision: state.previewCollision,
+                                boardLabel:  S.current.boardLabel,
                               ),
                             ),
                           ),
@@ -79,7 +81,7 @@ class PuzzleView extends StatelessWidget {
                             child: const Icon(Icons.arrow_left),
                           ),
                           const SizedBox(width: 8),
-                          Text('solution: ${state.solutionIdx + 1} / ${state.solutions.length}'),
+                          Text(S.of(context).solutionLabel(state.solutionIdx + 1, state.solutions.length)),
                           const SizedBox(width: 8),
                           FloatingActionButton(
                             onPressed: () => bloc.add(
