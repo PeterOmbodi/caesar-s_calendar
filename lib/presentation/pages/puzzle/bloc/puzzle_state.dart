@@ -1,7 +1,5 @@
 part of 'puzzle_bloc.dart';
 
-enum PieceZone { grid, board }
-
 enum GameStatus {
   initializing,
   waiting,
@@ -18,7 +16,7 @@ abstract class PuzzleState with _$PuzzleState {
         status: GameStatus.initializing,
         gridConfig: PuzzleGrid.initial(),
         boardConfig: PuzzleBoard.initial(),
-        pieces: {},
+        pieces: [],
         solutions: [],
         solutionIdx: -1,
         timer: 0,
@@ -27,6 +25,8 @@ abstract class PuzzleState with _$PuzzleState {
         showPreview: false,
         previewCollision: false,
         isUnlockedForbiddenCells: false,
+        moveHistory: [],
+        moveIndex: 0,
       );
 
   factory PuzzleState({
@@ -36,19 +36,31 @@ abstract class PuzzleState with _$PuzzleState {
     required List<List<String>> solutions,
     required int solutionIdx,
     required int timer,
-    required Map<PieceZone, List<PuzzlePiece>> pieces,
+    required List<PuzzlePiece> pieces,
     required PuzzlePiece? selectedPiece,
     required bool isDragging,
     Offset? dragStartOffset,
     Offset? pieceStartPosition,
     Offset? previewPosition,
-    PieceZone? dropZone,
+    PlaceZone? dragStartZone,
     required bool showPreview,
     required bool previewCollision,
     required bool isUnlockedForbiddenCells,
+    required List<Move> moveHistory,
+    required int moveIndex,
   }) = _PuzzleState;
 
   bool get isSolving => status == GameStatus.solving;
 
   bool get allowSolutionDisplay => status == GameStatus.solved && solutions.isNotEmpty && solutionIdx >= 0;
+
+  Iterable<PuzzlePiece> piecesByZone(PlaceZone zone) => pieces.where((p) => p.placeZone == zone);
+
+  Iterable<PuzzlePiece> get gridPieces => piecesByZone(PlaceZone.grid);
+
+  Iterable<PuzzlePiece> get boardPieces => piecesByZone(PlaceZone.board);
+
+  bool get isRedoEnabled => moveHistory.length > moveIndex;
+
+  bool get isUndoEnabled => moveHistory.isNotEmpty && moveIndex > 0;
 }
