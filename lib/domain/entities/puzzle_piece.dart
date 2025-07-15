@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/core/models/puzzle_piece_base.dart';
 import 'package:caesar_puzzle/core/utils/puzzle_piece_utils.dart';
 import 'package:flutter/material.dart';
 
@@ -71,27 +72,24 @@ double borderRadiusForType(PieceType type) {
   return isForbiddenType(type) ? 0 : 8.0;
 }
 
-class PuzzlePiece {
+class PuzzlePiece extends PuzzlePieceBase {
   final PieceType type;
   final Path originalPath;
   final Color color;
-  final String id;
   final Offset centerPoint;
-  Offset position;
-  double rotation;
-  bool isFlipped;
   final double borderRadius;
   final bool isForbidden;
 
   PuzzlePiece({
+    required super.id,
+    required super.position,
+    super.rotation = 0.0,
+    super.isFlipped = false,
+    required super.placeZone,
     required this.type,
     required this.originalPath,
     required this.color,
-    required this.id,
-    required this.position,
-    this.rotation = 0.0,
     required this.centerPoint,
-    this.isFlipped = false,
     this.borderRadius = 8.0,
     this.isForbidden = false,
   });
@@ -101,17 +99,20 @@ class PuzzlePiece {
     Offset position,
     Offset centerPoint,
     double cellSize,
-  ) =>
-      PuzzlePiece(
-        type: type,
-        originalPath: generatePathForType(type, cellSize),
-        color: colorForType(type),
-        id: idForType(type),
-        position: position,
-        centerPoint: centerPoint,
-        borderRadius: borderRadiusForType(type),
-        isForbidden: isForbiddenType(type),
-      );
+  ) {
+    final isForbidden = isForbiddenType(type);
+    return PuzzlePiece(
+      type: type,
+      originalPath: generatePathForType(type, cellSize),
+      color: colorForType(type),
+      id: idForType(type),
+      position: position,
+      centerPoint: centerPoint,
+      borderRadius: borderRadiusForType(type),
+      isForbidden: isForbidden,
+      placeZone: isForbidden ? PlaceZone.grid : PlaceZone.board,
+    );
+  }
 
   PuzzlePiece copyWith({
     Offset? position,
@@ -120,6 +121,7 @@ class PuzzlePiece {
     bool? isFlipped,
     bool? isForbidden,
     Path? originalPath,
+    PlaceZone? placeZone,
   }) {
     return PuzzlePiece(
       type: type,
@@ -132,6 +134,7 @@ class PuzzlePiece {
       isFlipped: isFlipped ?? this.isFlipped,
       borderRadius: borderRadius,
       isForbidden: isForbidden ?? this.isForbidden,
+      placeZone: placeZone ?? this.placeZone,
     );
   }
 }

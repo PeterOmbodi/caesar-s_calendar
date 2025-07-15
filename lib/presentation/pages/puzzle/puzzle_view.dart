@@ -51,10 +51,7 @@ class PuzzleView extends StatelessWidget {
                               height: double.infinity,
                               child: CustomPaint(
                                 painter: PuzzleBoardPainter(
-                                  pieces: [
-                                    ...state.pieces[PieceZone.grid]!,
-                                    ...state.pieces[PieceZone.board]!,
-                                  ],
+                                  pieces: state.pieces,
                                   grid: state.gridConfig,
                                   board: state.boardConfig,
                                   selectedPiece: state.selectedPiece,
@@ -104,6 +101,20 @@ class PuzzleView extends StatelessWidget {
                                   child: const Icon(Icons.lightbulb),
                                 ),
                           const SizedBox(width: 8),
+                          FloatingActionButton(
+                            onPressed: state.isUndoEnabled ? () => bloc.add(PuzzleEvent.undo()) : null,
+                            backgroundColor: state.isUndoEnabled ? Colors.grey : Colors.grey[400],
+                            child: Icon(Icons.undo, color: state.isUndoEnabled ? Colors.black : Colors.grey),
+                          ),
+                          const SizedBox(width: 8),
+                          //for debugging, temporary
+                          Text('${state.moveIndex}\n${state.moveHistory.length}'),
+                          const SizedBox(width: 8),
+                          FloatingActionButton(
+                            onPressed: state.isRedoEnabled ? () => bloc.add(PuzzleEvent.redo()) : null,
+                            backgroundColor: state.isRedoEnabled ? Colors.grey : Colors.grey[400],
+                            child: Icon(Icons.redo, color: state.isRedoEnabled ? Colors.black : Colors.grey),
+                          ),
                           // FloatingActionButton(
                           //   onPressed: () {
                           //     if (state.selectedPiece != null) {

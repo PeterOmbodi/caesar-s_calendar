@@ -21,4 +21,6 @@ sealed class PuzzleEvent with _$PuzzleEvent {
     required PuzzleState prevState,
     required Iterable<PuzzlePiece> forbiddenPieces,
   }) = _Configure;
+  const factory PuzzleEvent.undo() = _Undo;
+  const factory PuzzleEvent.redo() = _Redo;
 }

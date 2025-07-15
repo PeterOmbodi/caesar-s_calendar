@@ -1,6 +1,5 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
-import 'package:caesar_puzzle/core/utils/puzzle_board_extension.dart';
-import 'package:caesar_puzzle/core/utils/puzzle_grid_extension.dart';
+import 'package:caesar_puzzle/core/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/core/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
