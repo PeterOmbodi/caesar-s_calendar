@@ -14,7 +14,6 @@ import 'package:caesar_puzzle/core/utils/puzzle_piece_utils.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -445,7 +444,12 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       final piece = state.pieces.firstWhere((p) => p.id == params.pieceId);
       gridPieces.add(_applyPlacementToPiece(piece, params));
     }
-    emit(state.copyWith(pieces: gridPieces, solutionIdx: event.index));
+    emit(state.copyWith(
+      pieces: gridPieces,
+      solutionIdx: event.index,
+      moveHistory: [],
+      moveIndex: 0,
+    ));
   }
 
   FutureOr<void> _configure(_Configure event, Emitter<PuzzleState> emit) {

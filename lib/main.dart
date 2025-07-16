@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
+import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -17,10 +18,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       onGenerateTitle: (context) => S.of(context).appTitle,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       localizationsDelegates: [
         S.delegate,
         GlobalMaterialLocalizations.delegate,
