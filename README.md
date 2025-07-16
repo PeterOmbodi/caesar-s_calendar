@@ -46,7 +46,17 @@ cd CaesarPuzzle
 flutter pub get
 ```
 
-### 3. Run on your desired platform
+### 3. Run code generation for libraries like freezed, injectable etc:
+```
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+### 4. Run code generation for internationalized strings:
+```
+flutter pub global run intl_utils:generate
+```
+
+### 5. Run on your desired platform
 
 - **Android/iOS:**  
   Open the project in Android Studio or VS Code and run on an emulator/device.
