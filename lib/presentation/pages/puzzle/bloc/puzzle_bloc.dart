@@ -65,7 +65,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_Redo>(_redoMove);
   }
 
-  PuzzlePiece? _findPieceAtPosition(Offset position) => state.pieces.firstWhereOrNull(
+  PuzzlePiece? _findPieceAtPosition(Offset position) => state.pieces.lastWhere(
         (piece) => piece.containsPoint(position),
       );
 
