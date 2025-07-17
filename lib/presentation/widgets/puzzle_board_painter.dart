@@ -44,7 +44,7 @@ class PuzzleBoardPainter extends CustomPainter {
 
     for (var piece in pieces) {
       final paint = Paint()
-        ..color = piece == selectedPiece ? piece.color.withValues(alpha: 0.9) : piece.color
+        ..color = piece == selectedPiece ? piece.color().withValues(alpha: 0.9) : piece.color()
         ..style = PaintingStyle.fill;
 
       final transformedPath = piece.getTransformedPath();

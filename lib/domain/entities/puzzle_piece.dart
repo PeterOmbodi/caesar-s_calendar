@@ -16,7 +16,7 @@ enum PieceType {
   zone2,
 }
 
-Color colorForType(PieceType type) {
+ Color colorForType(PieceType type) {
   switch (type) {
     case PieceType.lShape:
       return Colors.teal.withValues(alpha: 0.8);
@@ -36,7 +36,7 @@ Color colorForType(PieceType type) {
       return Colors.cyan.withValues(alpha: 0.8);
     case PieceType.zone1:
     case PieceType.zone2:
-      return AppColors.current.boardBackground.withAlpha(50);
+      return AppColors.current.primary.withAlpha(50);
   }
 }
 
@@ -73,10 +73,12 @@ double borderRadiusForType(PieceType type) {
   return isForbiddenType(type) ? 0 : 8.0;
 }
 
+typedef GetPieceColor = Color Function();
+
 class PuzzlePiece extends PuzzlePieceBase {
   final PieceType type;
   final Path originalPath;
-  final Color color;
+  final GetPieceColor color;
   final Offset centerPoint;
   final double borderRadius;
   final bool isForbidden;
@@ -105,7 +107,7 @@ class PuzzlePiece extends PuzzlePieceBase {
     return PuzzlePiece(
       type: type,
       originalPath: generatePathForType(type, cellSize),
-      color: colorForType(type),
+      color: () => colorForType(type),
       id: idForType(type),
       position: position,
       centerPoint: centerPoint,
