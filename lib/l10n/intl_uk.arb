@@ -9,5 +9,6 @@
   "solutionsNotFoundDialogMessage": "Не знайдено рішень для заданої конфігурації",
   "ok": "Ok",
   "solutionsFoundDialogOk": "Показати",
-  "solutionsFoundDialogCancel": "Скасувати"
+  "solutionsFoundDialogCancel": "Скасувати",
+  "switchTheme": "Переключити тему"
 }

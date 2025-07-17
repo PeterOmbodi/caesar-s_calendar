@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../generated/l10n.dart';
+import '../../theme/theme.dart';
 import 'bloc/puzzle_bloc.dart';
 
 class PuzzleScreen extends StatelessWidget {
@@ -26,6 +27,11 @@ class PuzzleScreen extends StatelessWidget {
                     final bloc = context.read<PuzzleBloc>();
                     return FloatingPanel(
                       children: [
+                        IconButton(
+                          icon: Icon(Icons.brightness_6),
+                          onPressed: () => context.read<ThemeModeNotifier>().toggle(),
+                          tooltip: S.current.switchTheme,
+                        ),
                         if (state.allowSolutionDisplay) ...[
                           IconButton(
                             icon: Icon(Icons.arrow_left),
@@ -70,10 +76,11 @@ class PuzzleScreen extends StatelessWidget {
                             onPressed: state.isRedoEnabled ? () => bloc.add(PuzzleEvent.redo()) : null,
                           ),
                         ],
-                        IconButton(
-                          icon: Icon(state.isUnlockedForbiddenCells ? Icons.lock_open_outlined : Icons.lock_outlined),
-                          onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.changeForbiddenCellsMode()),
-                        ),
+                        if (!state.allowSolutionDisplay)
+                          IconButton(
+                            icon: Icon(state.isUnlockedForbiddenCells ? Icons.lock_open_outlined : Icons.lock_outlined),
+                            onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.changeForbiddenCellsMode()),
+                          ),
                         IconButton(
                           icon: const Icon(Icons.refresh),
                           onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset()),

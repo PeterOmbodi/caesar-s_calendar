@@ -1,5 +1,19 @@
 import 'package:flutter/material.dart';
 
+class ThemeModeNotifier extends ChangeNotifier {
+  ThemeMode _mode = ThemeMode.light;
+  ThemeMode get mode => _mode;
+  set mode(ThemeMode value) {
+    if (_mode != value) {
+      _mode = value;
+      notifyListeners();
+    }
+  }
+  void toggle() {
+    mode = _mode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+  }
+}
+
 class AppTheme {
   static final ThemeData light = ThemeData(
     useMaterial3: true,

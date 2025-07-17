@@ -9,5 +9,6 @@
   "solutionsNotFoundDialogMessage": "No solutions found for the given configuration",
   "ok": "Ok",
   "solutionsFoundDialogOk": "Show",
-  "solutionsFoundDialogCancel": "Cancel"
+  "solutionsFoundDialogCancel": "Cancel",
+  "switchTheme": "Switch theme"
 }
