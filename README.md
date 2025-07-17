@@ -1,8 +1,8 @@
 ---
 
-## CaesarPuzzle
+## Caesar's Puzzle
 
-CaesarPuzzle is a cross-platform puzzle game built with Flutter, where players assemble pieces on a board in a style reminiscent of Tetris or Tangram. The project supports Android, iOS, Windows, macOS, Linux, and Web.
+Caesar's Puzzle is a cross-platform puzzle game built with Flutter, where players assemble pieces on a board in a style reminiscent of Tetris or Tangram. The project supports Android, iOS, Windows, macOS, Linux, and Web.
 
 ---
 
@@ -23,9 +23,12 @@ https://github.com/user-attachments/assets/91496d97-04af-49c6-9fc9-181f21d011be
 ## Features
 
 - Intuitive drag-and-drop interface for placing puzzle pieces
-- Rotate pieces with a single tap/click
+- Rotate pieces with a single tap or click
 - Flip pieces with a double tap/click
-- Automatic puzzle solver (Dancing Links algorithm)
+- Automatic puzzle solver powered by the Dancing Links algorithm
+- Move history with undo and redo functionality
+- Supports screen rotation and dynamic resizing
+- Light and dark themes with manual override
 - Multi-platform support: Android, iOS, Windows, macOS, Linux, Web
 - Modern UI built with Flutter
 
