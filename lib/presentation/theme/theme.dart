@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
 
 class ThemeModeNotifier extends ChangeNotifier {
@@ -18,7 +19,7 @@ class AppTheme {
   static final ThemeData light = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.deepPurple,
+      seedColor: AppColors.light.primary,
       brightness: Brightness.light,
     ),
     appBarTheme: const AppBarTheme(
@@ -42,7 +43,7 @@ class AppTheme {
   static final ThemeData dark = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.deepPurple,
+      seedColor: AppColors.dark.primary,
       brightness: Brightness.dark,
     ),
     appBarTheme: const AppBarTheme(

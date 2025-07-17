@@ -70,7 +70,7 @@ class PuzzleScreen extends StatelessWidget {
                             onPressed: state.isUndoEnabled ? () => bloc.add(PuzzleEvent.undo()) : null,
                           ),
                           //for debugging, temporary
-                          Text('${state.moveIndex}\n${state.moveHistory.length}'),
+                          //Text('${state.moveIndex}\n${state.moveHistory.length}'),
                           IconButton(
                             icon: Icon(Icons.redo),
                             onPressed: state.isRedoEnabled ? () => bloc.add(PuzzleEvent.redo()) : null,
