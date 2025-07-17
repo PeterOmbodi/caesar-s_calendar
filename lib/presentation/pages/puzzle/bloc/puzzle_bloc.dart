@@ -14,6 +14,7 @@ import 'package:caesar_puzzle/core/utils/puzzle_piece_utils.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -64,7 +65,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_Redo>(_redoMove);
   }
 
-  PuzzlePiece? _findPieceAtPosition(Offset position) => state.pieces.lastWhere(
+  PuzzlePiece? _findPieceAtPosition(Offset position) => state.pieces.lastWhereOrNull(
         (piece) => piece.containsPoint(position),
       );
 
