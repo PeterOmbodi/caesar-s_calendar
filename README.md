@@ -16,8 +16,7 @@ CaesarPuzzle is a cross-platform puzzle game built with Flutter, where players a
 
 ## Video
 
-![2025-07-17_18-57-07](https://github.com/user-attachments/assets/658f022a-9105-4136-b88b-dd013c0b17fe)
-
+https://github.com/user-attachments/assets/91496d97-04af-49c6-9fc9-181f21d011be
 
 ---
 
