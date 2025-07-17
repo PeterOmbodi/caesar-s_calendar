@@ -28,7 +28,7 @@ class PuzzleView extends StatelessWidget {
                   onPanEnd: (details) => bloc.add(PuzzleEvent.onPanEnd(details.localPosition)),
                   onDoubleTapDown: (details) => bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition)),
                   child: Container(
-                    color: Colors.grey[200],
+                    color: Theme.of(context).colorScheme.primary.withAlpha(18),
                     width: double.infinity,
                     height: double.infinity,
                     child: CustomPaint(

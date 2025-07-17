@@ -5,10 +5,17 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'injection.dart';
 import 'generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   configureInjection();
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeModeNotifier(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -16,11 +23,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = context.watch<ThemeModeNotifier>();
     return MaterialApp(
       onGenerateTitle: (context) => S.of(context).appTitle,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: themeNotifier.mode,
+      builder: (context, child) {
+        final brightness = Theme.of(context).brightness;
+        AppColors.update(brightness);
+        return child!;
+      },
       localizationsDelegates: [
         S.delegate,
         GlobalMaterialLocalizations.delegate,

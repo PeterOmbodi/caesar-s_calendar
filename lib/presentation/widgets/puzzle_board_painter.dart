@@ -4,6 +4,7 @@ import 'package:caesar_puzzle/core/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
+import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -50,14 +51,14 @@ class PuzzleBoardPainter extends CustomPainter {
       canvas.drawPath(transformedPath, paint);
 
       final borderPaint = Paint()
-        ..color = piece == selectedPiece ? Colors.yellow : Colors.black
+        ..color = piece == selectedPiece ? AppColors.current.pieceBorderSelected : AppColors.current.pieceBorder
         ..style = PaintingStyle.stroke
         ..strokeWidth = piece == selectedPiece ? 3.0 : 2.0;
       canvas.drawPath(transformedPath, borderPaint);
 
       if (piece == selectedPiece) {
         final centerPaint = Paint()
-          ..color = Colors.red
+          ..color = AppColors.current.pieceCenterDot
           ..style = PaintingStyle.fill;
 
         canvas.drawCircle(piece.position + piece.centerPoint, 5.0, centerPaint);
@@ -67,7 +68,7 @@ class PuzzleBoardPainter extends CustomPainter {
 
   void _drawGrid(Canvas canvas) {
     final paint = Paint()
-      ..color = Colors.grey[300]!
+      ..color = AppColors.current.gridLine
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -93,7 +94,7 @@ class PuzzleBoardPainter extends CustomPainter {
 
     // game board borders
     final borderPaint = Paint()
-      ..color = Colors.black
+      ..color = AppColors.current.gridBorder
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
@@ -134,22 +135,22 @@ class PuzzleBoardPainter extends CustomPainter {
   void _drawBoard(Canvas canvas) {
     // Draw board background
     final bgPaint = Paint()
-      ..color = Colors.grey[100]!
+      ..color = AppColors.current.boardBackground
       ..style = PaintingStyle.fill;
 
     canvas.drawRect(board.getBounds, bgPaint);
 
     // Draw board border
     final borderPaint = Paint()
-      ..color = Colors.grey[400]!
+      ..color = AppColors.current.boardBorder
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
     canvas.drawRect(board.getBounds, borderPaint);
 
     // Draw board label
-    const textStyle = TextStyle(
-      color: Colors.black54,
+    final textStyle = TextStyle(
+      color: AppColors.current.boardLabelText,
       fontSize: 16,
       fontWeight: FontWeight.bold,
     );
@@ -180,8 +181,11 @@ class PuzzleBoardPainter extends CustomPainter {
     final previewPiece = selectedPiece!.copyWith(position: previewPosition!);
     final previewPath = previewPiece.getTransformedPath();
 
-    final Color outlineColor = previewCollision ? Colors.red : Colors.green;
-    final Color fillColor = previewCollision ? Colors.red.withValues(alpha: 0.2) : Colors.green.withValues(alpha: 0.2);
+    final Color outlineColor =
+        previewCollision ? AppColors.current.previewOutlineCollision : AppColors.current.previewOutline;
+    final Color fillColor = previewCollision
+        ? AppColors.current.previewFillCollision.withValues(alpha: 0.2)
+        : AppColors.current.previewFill.withValues(alpha: 0.2);
 
     final dashPaint = Paint()
       ..color = outlineColor
@@ -208,7 +212,7 @@ class PuzzleBoardPainter extends CustomPainter {
     final isTodayLabel = cellIndex < 12 && today.month == cellIndex + 1 || cellIndex - 11 == today.day;
 
     final textStyle = TextStyle(
-      color: isTodayLabel ? Colors.blue : Colors.black,
+      color: isTodayLabel ? AppColors.current.todayLabel : AppColors.current.cellLabel,
       fontSize: 14,
       fontWeight: isTodayLabel ? FontWeight.w700 : FontWeight.w400,
     );

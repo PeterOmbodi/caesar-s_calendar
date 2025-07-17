@@ -1,5 +1,6 @@
 import 'package:caesar_puzzle/core/models/puzzle_piece_base.dart';
 import 'package:caesar_puzzle/core/utils/puzzle_piece_utils.dart';
+import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
 
 enum PieceType {
@@ -35,7 +36,7 @@ Color colorForType(PieceType type) {
       return Colors.cyan.withValues(alpha: 0.8);
     case PieceType.zone1:
     case PieceType.zone2:
-      return Colors.grey.shade300;
+      return AppColors.current.boardBackground.withAlpha(50);
   }
 }
 
