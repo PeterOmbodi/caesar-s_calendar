@@ -40,7 +40,6 @@ class PuzzleView extends StatelessWidget {
                         previewPosition: state.previewPosition,
                         showPreview: state.showPreview,
                         previewCollision: state.previewCollision,
-                        boardLabel: S.current.boardLabel,
                       ),
                     ),
                   ),

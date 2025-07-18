@@ -17,13 +17,11 @@ class PuzzleBoardPainter extends CustomPainter {
   final Offset? previewPosition;
   final bool showPreview;
   final bool previewCollision;
-  final String boardLabel;
 
   PuzzleBoardPainter({
     required this.pieces,
     required this.grid,
     required this.board,
-    required this.boardLabel,
     this.selectedPiece,
     this.showGridLines = true,
     this.previewPosition,
@@ -148,31 +146,6 @@ class PuzzleBoardPainter extends CustomPainter {
 
     canvas.drawRect(board.getBounds, borderPaint);
 
-    // Draw board label
-    final textStyle = TextStyle(
-      color: AppColors.current.boardLabelText,
-      fontSize: 16,
-      fontWeight: FontWeight.bold,
-    );
-
-    final textSpan = TextSpan(
-      text: boardLabel,
-      style: textStyle,
-    );
-
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    );
-
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(
-        board.origin.dx + 10,
-        board.origin.dy + 10,
-      ),
-    );
   }
 
   void _drawPreviewOutline(Canvas canvas) {

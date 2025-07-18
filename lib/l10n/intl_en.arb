@@ -3,7 +3,6 @@
   "appTitle": "Caesar Demo",
   "calendarTitle": "Caesars calendar",
   "solutionLabel": "solution:\n {current} / {total}",
-  "boardLabel": "Shapes",
   "searchCompletedDialogTitle": "Search completed",
   "solutionsFoundDialogMessage": "Found {count} solutions. Show them?",
   "solutionsNotFoundDialogMessage": "No solutions found for the given configuration",
