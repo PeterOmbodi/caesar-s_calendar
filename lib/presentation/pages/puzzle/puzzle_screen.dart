@@ -29,7 +29,7 @@ class PuzzleScreen extends StatelessWidget {
                       children: [
                         IconButton(
                           icon: Icon(Icons.brightness_6),
-                          onPressed: () => context.read<ThemeModeNotifier>().toggle(),
+                          onPressed: () async => await context.read<ThemeModeNotifier>().toggle(Theme.of(context).brightness),
                           tooltip: S.current.switchTheme,
                         ),
                         if (state.allowSolutionDisplay) ...[
