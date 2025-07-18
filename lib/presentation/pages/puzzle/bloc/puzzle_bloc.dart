@@ -222,7 +222,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   FutureOr<void> _onPanStart(_OnPanStart event, Emitter<PuzzleState> emit) {
-    final piece = _findPieceAtPosition(event.localPosition);
+    final piece = _findPieceAtPosition(event.localPosition) ?? state.selectedPiece;
     if (piece != null && (!piece.isForbidden || state.isUnlockedForbiddenCells)) {
       final pieces = List<PuzzlePiece>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((item) => item.id == piece.id);
@@ -336,7 +336,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         final move = MovePiece(
           selectedPiece.id,
           from: (
-            zone: state.dragStartZone!,
+            zone: state.dragStartZone ?? PlaceZone.board,
             position: fromConfig.relativePosition(state.pieceStartPosition!),
           ),
           to: (
