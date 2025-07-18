@@ -67,6 +67,11 @@ flutter pub global run intl_utils:generate
   ```bash
   flutter run -d chrome
   ```
+  Use a fixed port to ensure persistent `SharedPreferences` in development:
+  ```bash
+  flutter run -d chrome --web-port=5000
+  ```
+
 - **Windows/macOS/Linux:**  
   ```bash
   flutter run -d windows   # or macos, linux

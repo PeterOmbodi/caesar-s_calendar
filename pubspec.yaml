@@ -26,6 +26,7 @@ dependencies:
   freezed_annotation: ^3.1.0
   collection: ^1.19.1
   flutter_platform_widgets: ^9.0.0
+  shared_preferences: ^2.5.3
 
   flutter_localizations:
     sdk: flutter

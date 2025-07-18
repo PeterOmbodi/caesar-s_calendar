@@ -9,10 +9,13 @@ import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   configureInjection();
+  final themeNotifier = ThemeModeNotifier();
+  await themeNotifier.load();
   runApp(
     ChangeNotifierProvider(
-      create: (_) => ThemeModeNotifier(),
+      create: (_) => themeNotifier,
       child: const MyApp(),
     ),
   );

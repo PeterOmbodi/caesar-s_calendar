@@ -1,17 +1,48 @@
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeModeNotifier extends ChangeNotifier {
-  ThemeMode _mode = ThemeMode.light;
+  static const _themeKey = 'theme_mode';
+  ThemeMode _mode = ThemeMode.system;
+
   ThemeMode get mode => _mode;
-  set mode(ThemeMode value) {
-    if (_mode != value) {
-      _mode = value;
-      notifyListeners();
+
+  ThemeModeNotifier();
+
+  Future<void> load() async {
+    final prefs = SharedPreferencesAsync();
+    final value = await prefs.getString(_themeKey);
+    if (value != null) {
+      _mode = ThemeMode.values.firstWhere(
+        (e) => e.toString() == value,
+        orElse: () => ThemeMode.system,
+      );
+    } else {
+      _mode = ThemeMode.system;
     }
+    notifyListeners();
   }
-  void toggle() {
-    mode = _mode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+
+  Future<void> setMode(ThemeMode mode) async {
+    _mode = mode;
+    notifyListeners();
+    final prefs = SharedPreferencesAsync();
+    return await prefs.setString(_themeKey, mode.toString());
+  }
+
+  Future<void> toggle([Brightness? systemBrightness]) async {
+    if (_mode == ThemeMode.light) {
+      await setMode(ThemeMode.dark);
+    } else if (_mode == ThemeMode.dark) {
+      await setMode(ThemeMode.light);
+    } else {
+      if (systemBrightness == Brightness.dark) {
+        await setMode(ThemeMode.light);
+      } else {
+        await setMode(ThemeMode.dark);
+      }
+    }
   }
 }
 
