@@ -11,7 +11,7 @@ extension PuzzlePieceX on PuzzlePiece {
   /// Returns the list of grid cells covered by this piece in its default orientation.
   /// It uses the bounding box of the original path and samples at the cell center.
   /// Assumes that the grid "unit" is the size of a cell.
-  List<Cell> relativeCells(final double unit) {
+  Set<Cell> relativeCells(final double unit) {
     // Get the bounding box of the original path.
     final Rect bounds = originalPath.getBounds();
 
@@ -23,7 +23,7 @@ extension PuzzlePieceX on PuzzlePiece {
     final int numRows = ((bounds.bottom - bounds.top) / unit).ceil();
     final int numCols = ((bounds.right - bounds.left) / unit).ceil();
 
-    final List<Cell> cells = [];
+    final Set<Cell> cells = {};
 
     // Iterate over each grid cell in the bounding box.
     for (int r = 0; r < numRows; r++) {

@@ -8,20 +8,22 @@ import 'package:flutter/foundation.dart';
 
 /// A solver class for Caesar's calendar puzzle.
 /// This class builds an exact cover matrix based on the configuration:
-/// - grid: the grid configuration (например, для свободных ячеек и запретов),
+/// - grid: the grid configuration
 /// - pieces: the list of available puzzle pieces (boardPieces),
-/// - currentDate: the date whose cells should remain free (например, текущий месяц/day).
+/// - currentDate: the date whose cells should remain free
 class PuzzleSolver {
   final PuzzleGrid grid;
   final List<PuzzlePieceDto> pieces;
   final DateTime date;
   late Iterable<Cell> forbiddenCells;
+  late Iterable<Cell> unmovableCells;
 
   PuzzleSolver({
     required this.grid,
     required this.pieces,
     required this.date,
-  }) : forbiddenCells = pieces.where((e) => e.isForbidden).map((e) => e.cells).expand((e) => e);
+  })  : forbiddenCells = pieces.where((e) => e.isForbidden).map((e) => e.cells).expand((e) => e),
+        unmovableCells = pieces.where((e) => e.isImmovable).map((e) => e.cells).expand((e) => e);
 
   /// Build the list of constraints (columns) for the exact cover problem.
   /// Here we assume that each grid cell (except those that must remain free) gets an identifier
@@ -35,15 +37,16 @@ class PuzzleSolver {
           continue;
         }
         final isTodayLabel = cellIndex < 12 && date.month == cellIndex + 1 || cellIndex - 11 == date.day;
-        if (!isTodayLabel) {
+        if (!isTodayLabel && !unmovableCells.contains(Cell(row, column))) {
           constraints.add('cell_${row}_$column');
         }
         cellIndex++;
       }
     }
-    for (var piece in pieces.where((p) => !p.isForbidden)) {
+    for (var piece in pieces.where((p) => !p.isForbidden && !p.isImmovable)) {
       constraints.add('piece_${piece.id}');
     }
+    debugPrint('buildConstraints: $constraints');
     return constraints;
   }
 
@@ -106,7 +109,7 @@ class PuzzleSolver {
     List<String> constraints = buildConstraints();
     var universe = DlxUniverse(constraints);
     final idToPlacement = <String, PlacementDto>{};
-    for (var piece in pieces.where((item) => !item.isForbidden)) {
+    for (var piece in pieces.where((item) => !item.isForbidden && !item.isImmovable)) {
       List<PlacementDto> placements = generatePlacementsForPiece(piece);
       for (var placement in placements) {
         idToPlacement[placement.id] = placement;

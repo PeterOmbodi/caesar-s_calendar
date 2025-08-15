@@ -6,9 +6,9 @@ import '../../domain/entities/puzzle_base_entity.dart';
 extension PlacementX on PlacementDto {
   List<Cell> get coveredCells {
     List<Cell> cells = [];
-    for (var rel in piece.relativeCells) {
-      int r = rel[0];
-      int c = rel[1];
+    for (var rel in piece.cells) {
+      int r = rel.row;
+      int c = rel.col;
       for (int i = 0; i < rotationSteps; i++) {
         int temp = r;
         r = c;

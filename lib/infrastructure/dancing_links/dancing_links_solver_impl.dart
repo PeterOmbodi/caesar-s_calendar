@@ -20,10 +20,12 @@ class DancingLinksSolverImpl implements PuzzleSolverService {
     final serializablePieces = pieces.map((p) {
       final immovablePiece = keepUserMoves ? p.placeZone == PlaceZone.grid : p.isForbidden;
       return PuzzlePieceDto(
-          id: p.id,
-          relativeCells: p.relativeCells(grid.cellSize).map((c) => [c.row, c.col]).toList(),
-          isForbidden: p.isForbidden,
-          cells: !immovablePiece ? {} : p.cells(grid.origin, grid.cellSize));
+        id: p.id,
+        cells:
+            immovablePiece || p.isForbidden ? p.cells(grid.origin, grid.cellSize) : p.relativeCells(grid.cellSize),
+        isForbidden: p.isForbidden,
+        isImmovable: immovablePiece,
+      );
     }).toList();
     final solver = PuzzleSolver(
       grid: grid,
