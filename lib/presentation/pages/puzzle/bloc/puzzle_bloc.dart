@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
+import 'package:caesar_puzzle/application/hint_puzzle_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
@@ -53,6 +54,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_Solve>(_solve);
     on<_SetSolvingResults>(_setSolvingResults);
     on<_ShowSolution>(_showSolution);
+    on<_Hint>(_hint);
+    on<_SetHintingResults>(_setHintingResults);
+    on<_ShowHint>(_showHint);
     on<_ChangeForbiddenCellsMode>(
       (_, emit) => emit(
         state.copyWith(
@@ -402,7 +406,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   Future<void> _solve(_Solve event, Emitter<PuzzleState> emit) async {
     emit(state.copyWith(
-      status: GameStatus.solving,
+      status: GameStatus.searchingAllSolutions,
       solutions: [],
       solutionIdx: -1,
     ));
@@ -414,23 +418,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   FutureOr<void> _setSolvingResults(_SetSolvingResults event, Emitter<PuzzleState> emit) {
-    emit(state.copyWith(status: GameStatus.solved, solutions: event.solutions));
+    emit(state.copyWith(status: GameStatus.solutionsReady, solutions: event.solutions));
     for (final solution in event.solutions) {
       debugPrint('sol: $solution');
     }
-  }
-
-  PlacementParams? _parsePlacementId(String solution) {
-    final match = RegExp(placementIdPattern).firstMatch(solution);
-    if (match == null) return null;
-
-    final pieceId = match.group(1)!;
-    final row = int.parse(match.group(2)!);
-    final col = int.parse(match.group(3)!);
-    final rotSteps = int.parse(match.group(4)!);
-    final flipped = match.group(5) != null;
-
-    return PlacementParams(pieceId, row, col, rotSteps, flipped);
   }
 
   FutureOr<void> _showSolution(_ShowSolution event, Emitter<PuzzleState> emit) {
@@ -451,6 +442,56 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       moveHistory: [],
       moveIndex: 0,
     ));
+  }
+
+  FutureOr<void> _hint(_Hint event, Emitter<PuzzleState> emit) async {
+    emit(state.copyWith(
+      status: GameStatus.searchingHint,
+      solutions: [],
+    ));
+    await Future.delayed(solvingDelay);
+    HintPuzzleUseCase().call(pieces: state.pieces, grid: state.gridConfig).then((solutions) {
+      debugPrint('hinting finished, found solutions: ${solutions.length}');
+      add(PuzzleEvent.setHintingResults(solutions));
+    });
+  }
+
+  FutureOr<void> _setHintingResults(_SetHintingResults event, Emitter<PuzzleState> emit) {
+    emit(state.copyWith(status: GameStatus.hintReady, solutions: event.solutions));
+  }
+
+  FutureOr<void> _showHint(_ShowHint event, Emitter<PuzzleState> emit) {
+    final solutionIds = state.solutions[event.index];
+    final gridPieces = List<PuzzlePiece>.from(state.gridPieces);
+
+    final solution = solutionIds.first;
+    final params = _parsePlacementId(solution);
+    final piece = state.pieces.firstWhere((p) => p.id == params!.pieceId);
+    gridPieces.add(_applyPlacementToPiece(piece, params!));
+    final boardPieces = List<PuzzlePiece>.from(state.boardPieces)..removeWhere((p) => p.id == params.pieceId);
+    emit(state.copyWith(
+      pieces: [
+        ...gridPieces,
+        ...boardPieces,
+      ],
+      solutionIdx: event.index,
+      //todo hint move should be in history too
+      moveHistory: [],
+      moveIndex: 0,
+    ));
+  }
+
+  PlacementParams? _parsePlacementId(String solution) {
+    final match = RegExp(placementIdPattern).firstMatch(solution);
+    if (match == null) return null;
+
+    final pieceId = match.group(1)!;
+    final row = int.parse(match.group(2)!);
+    final col = int.parse(match.group(3)!);
+    final rotSteps = int.parse(match.group(4)!);
+    final flipped = match.group(5) != null;
+
+    return PlacementParams(pieceId, row, col, rotSteps, flipped);
   }
 
   FutureOr<void> _configure(_Configure event, Emitter<PuzzleState> emit) {

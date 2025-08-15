@@ -29,7 +29,8 @@ class PuzzleScreen extends StatelessWidget {
                       children: [
                         IconButton(
                           icon: Icon(Icons.brightness_6),
-                          onPressed: () async => await context.read<ThemeModeNotifier>().toggle(Theme.of(context).brightness),
+                          onPressed: () async =>
+                              await context.read<ThemeModeNotifier>().toggle(Theme.of(context).brightness),
                           tooltip: S.current.switchTheme,
                         ),
                         if (state.allowSolutionDisplay) ...[
@@ -40,6 +41,7 @@ class PuzzleScreen extends StatelessWidget {
                                 (state.solutionIdx > 0 ? state.solutionIdx : state.solutions.length) - 1,
                               ),
                             ),
+                            tooltip: S.current.prevSolution,
                           ),
                           Text(S.of(context).solutionLabel(state.solutionIdx + 1, state.solutions.length)),
                           IconButton(
@@ -49,6 +51,7 @@ class PuzzleScreen extends StatelessWidget {
                                 state.solutionIdx < state.solutions.length - 1 ? state.solutionIdx + 1 : 0,
                               ),
                             ),
+                            tooltip: S.current.nextSolution,
                           ),
                         ] else
                           state.isSolving
@@ -63,27 +66,38 @@ class PuzzleScreen extends StatelessWidget {
                               : IconButton(
                                   icon: Icon(Icons.lightbulb),
                                   onPressed: () => bloc.add(PuzzleEvent.solve()),
+                                  tooltip: S.current.searchSolution,
                                 ),
+                        if (state.allowHintDisplay)
+                          IconButton(
+                            icon: Icon(Icons.tips_and_updates_outlined),
+                            onPressed:  () => bloc.add(PuzzleEvent.hint()),
+                            tooltip: S.current.hint,
+                          ),
                         if (state.moveHistory.isNotEmpty) ...[
                           IconButton(
                             icon: Icon(Icons.undo),
                             onPressed: state.isUndoEnabled ? () => bloc.add(PuzzleEvent.undo()) : null,
+                            tooltip: S.current.undo,
                           ),
                           //for debugging, temporary
                           //Text('${state.moveIndex}\n${state.moveHistory.length}'),
                           IconButton(
                             icon: Icon(Icons.redo),
                             onPressed: state.isRedoEnabled ? () => bloc.add(PuzzleEvent.redo()) : null,
+                            tooltip: S.current.redo,
                           ),
                         ],
                         if (!state.allowSolutionDisplay)
                           IconButton(
                             icon: Icon(state.isUnlockedForbiddenCells ? Icons.lock_open_outlined : Icons.lock_outlined),
                             onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.changeForbiddenCellsMode()),
+                            tooltip: state.isUnlockedForbiddenCells ? S.current.lockConfig : S.current.unlockConfig,
                           ),
                         IconButton(
                           icon: const Icon(Icons.refresh),
                           onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset()),
+                          tooltip: S.current.reset,
                         ),
                       ],
                     );

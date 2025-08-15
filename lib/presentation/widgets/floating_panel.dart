@@ -1,6 +1,8 @@
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
 
+import '../../generated/l10n.dart';
+
 class FloatingPanel extends StatefulWidget {
   const FloatingPanel({super.key, required this.children});
 
@@ -44,11 +46,13 @@ class FloatingPanelState extends State<FloatingPanel> {
                     : SizedBox.shrink(),
               ),
               IconButton(
-                  icon: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: _isPanelOpen ? Icon(Icons.close) : Icon(Icons.menu),
-                  ),
-                  onPressed: _togglePanel),
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _isPanelOpen ? Icon(Icons.close) : Icon(Icons.menu),
+                ),
+                onPressed: _togglePanel,
+                tooltip: _isPanelOpen ? S.current.hideControls : S.current.showControls,
+              ),
             ],
           ),
         ));

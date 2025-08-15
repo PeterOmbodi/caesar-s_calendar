@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
 import 'package:caesar_puzzle/infrastructure/dto/placement_dto.dart';
+
+import '../../domain/entities/puzzle_base_entity.dart';
 
 extension PlacementX on PlacementDto {
   List<Cell> get coveredCells {
@@ -21,7 +22,7 @@ extension PlacementX on PlacementDto {
     return cells;
   }
 
-  bool fitsInBoard(PuzzleGrid grid) {
+  bool fitsInBoard(PuzzleBaseEntity grid) {
     for (var cell in coveredCells) {
       if (cell.row < 0 || cell.row >= grid.rows || cell.col < 0 || cell.col >= grid.columns) {
         return false;

@@ -4,8 +4,10 @@ enum GameStatus {
   initializing,
   waiting,
   playing,
-  solving,
-  solved,
+  searchingAllSolutions,
+  solutionsReady,
+  searchingHint,
+  hintReady,
 }
 
 @freezed
@@ -50,9 +52,11 @@ abstract class PuzzleState with _$PuzzleState {
     required int moveIndex,
   }) = _PuzzleState;
 
-  bool get isSolving => status == GameStatus.solving;
+  bool get isSolving => status == GameStatus.searchingAllSolutions;
 
-  bool get allowSolutionDisplay => status == GameStatus.solved && solutions.isNotEmpty && solutionIdx >= 0;
+  bool get allowSolutionDisplay => status == GameStatus.solutionsReady && solutions.isNotEmpty && solutionIdx >= 0;
+
+  bool get allowHintDisplay =>  solutionIdx < 0 && moveHistory.isNotEmpty;
 
   Iterable<PuzzlePiece> piecesByZone(PlaceZone zone) => pieces.where((p) => p.placeZone == zone);
 

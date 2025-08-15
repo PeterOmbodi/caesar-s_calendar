@@ -12,7 +12,9 @@ class PuzzleView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<PuzzleBloc, PuzzleState>(
-      listenWhen: (previous, current) => previous.status == GameStatus.solving && current.status == GameStatus.solved,
+      listenWhen: (previous, current) =>
+          previous.status == GameStatus.searchingAllSolutions && current.status == GameStatus.solutionsReady ||
+          previous.status == GameStatus.searchingHint && current.status == GameStatus.hintReady,
       listener: _showResultDialog,
       builder: (BuildContext context, PuzzleState state) => LayoutBuilder(
         builder: (context, constraints) {
@@ -70,17 +72,17 @@ class PuzzleView extends StatelessWidget {
         ),
       );
       if (result == true) {
-        bloc.add(PuzzleEvent.showSolution(0));
+        bloc.add(state.status == GameStatus.solutionsReady ? PuzzleEvent.showSolution(0) : PuzzleEvent.showHint(0));
       }
     } else {
-      await showDialog<bool>(
+      await showDialog(
         context: context,
         builder: (context) => PlatformAlertDialog(
           title: Text(S.of(context).searchCompletedDialogTitle),
           content: Text(S.of(context).solutionsNotFoundDialogMessage),
           actions: [
             PlatformDialogAction(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Navigator.of(context).pop(),
               child: Text(S.of(context).ok),
             ),
           ],
