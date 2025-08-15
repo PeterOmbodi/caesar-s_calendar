@@ -39,6 +39,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   static const double fullRotation = math.pi * 2;
   static const double gridCenterOffset = 0.5;
 
+  final Set<String> _keepOnGridIds = {};
   Size? _lastViewSize;
 
   PuzzleBloc() : super(PuzzleState.initial()) {
@@ -189,6 +190,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           prevState: PuzzleState.initial(),
           forbiddenPieces: state.isUnlockedForbiddenCells ? [] : state.gridPieces.where((e) => e.isForbidden)));
     }
+    _keepOnGridIds.clear();
   }
 
   FutureOr<void> _onTapDown(_OnTapDown event, Emitter<PuzzleState> emit) {
@@ -411,7 +413,14 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       solutionIdx: -1,
     ));
     await Future.delayed(solvingDelay);
-    SolvePuzzleUseCase().call(pieces: state.pieces, grid: state.gridConfig).then((solutions) {
+    if (event.keepUserMoves) {
+      _keepOnGridIds.addAll(state.gridPieces.map((e) => e.id));
+    } else {
+      _keepOnGridIds.clear();
+    }
+    SolvePuzzleUseCase()
+        .call(pieces: state.pieces, grid: state.gridConfig, keepUserMoves: event.keepUserMoves)
+        .then((solutions) {
       debugPrint('solving finished, found solutions: ${solutions.length}');
       add(PuzzleEvent.setSolvingResults(solutions));
     });
@@ -427,7 +436,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   FutureOr<void> _showSolution(_ShowSolution event, Emitter<PuzzleState> emit) {
     final solutionIds = state.solutions[event.index];
     final gridPieces = state.gridPieces
-        .where((e) => e.isForbidden)
+        .where((e) => e.isForbidden || _keepOnGridIds.contains(e.id))
         .map((p) => p.copyWith(originalPath: generatePathForType(p.type, state.gridConfig.cellSize)))
         .toList();
     for (var solution in solutionIds) {

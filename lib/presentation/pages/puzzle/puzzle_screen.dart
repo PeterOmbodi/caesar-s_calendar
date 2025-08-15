@@ -65,7 +65,7 @@ class PuzzleScreen extends StatelessWidget {
                                 )
                               : IconButton(
                                   icon: Icon(Icons.lightbulb),
-                                  onPressed: () => bloc.add(PuzzleEvent.solve()),
+                                  onPressed: () => bloc.add(PuzzleEvent.solve(keepUserMoves: true)),
                                   tooltip: S.current.searchSolution,
                                 ),
                         if (state.allowHintDisplay)

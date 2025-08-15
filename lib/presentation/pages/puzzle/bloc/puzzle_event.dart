@@ -12,7 +12,7 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.onPanUpdate(Offset localPosition) = _OnPanUpdate;
   const factory PuzzleEvent.onPanEnd(Offset localPosition) = _OnPanEnd;
   const factory PuzzleEvent.onDoubleTapDown(Offset localPosition) = _OnDoubleTapDown;
-  const factory PuzzleEvent.solve() = _Solve;
+  const factory PuzzleEvent.solve({required bool keepUserMoves}) = _Solve;
   const factory PuzzleEvent.setSolvingResults(List<List<String>> solutions) = _SetSolvingResults;
   const factory PuzzleEvent.showSolution(int index) = _ShowSolution;
   const factory PuzzleEvent.changeForbiddenCellsMode() = _ChangeForbiddenCellsMode;

@@ -5,11 +5,13 @@ import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
 import '../injection.dart';
 
 class SolvePuzzleUseCase {
-
   SolvePuzzleUseCase();
 
-  Future<List<List<String>>> call({required List<PuzzlePiece> pieces, required PuzzleGrid grid}) async {
-
-    return getIt<PuzzleSolverService>().solve(pieces: pieces, grid: grid);
+  Future<List<List<String>>> call({
+    required List<PuzzlePiece> pieces,
+    required PuzzleGrid grid,
+    bool keepUserMoves = false,
+  }) async {
+    return getIt<PuzzleSolverService>().solve(pieces: pieces, grid: grid, keepUserMoves: keepUserMoves);
   }
 }
