@@ -1,8 +1,13 @@
 ---
 
-## Caesar's Puzzle
+## Caesar's Puzzle 
 
 Caesar's Puzzle is a cross-platform puzzle game built with Flutter, where players assemble pieces on a board in a style reminiscent of Tetris or Tangram. The project supports Android, iOS, Windows, macOS, Linux, and Web.
+
+---
+You can try it **here**: [Live demo][demo]
+
+[demo]: https://<username>.github.io/caesar-s_calendar/
 
 ---
 
