@@ -26,7 +26,6 @@ abstract class PuzzleState with _$PuzzleState {
         isDragging: false,
         showPreview: false,
         previewCollision: false,
-        isUnlockedForbiddenCells: false,
         moveHistory: [],
         moveIndex: 0,
       );
@@ -47,7 +46,6 @@ abstract class PuzzleState with _$PuzzleState {
     PlaceZone? dragStartZone,
     required bool showPreview,
     required bool previewCollision,
-    required bool isUnlockedForbiddenCells,
     required List<Move> moveHistory,
     required int moveIndex,
   }) = _PuzzleState;

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
+import 'package:caesar_puzzle/application/contracts/settings_query.dart';
 import 'package:caesar_puzzle/application/hint_puzzle_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
@@ -39,10 +40,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   static const double fullRotation = math.pi * 2;
   static const double gridCenterOffset = 0.5;
 
+  final SettingsQuery _settings;
   final Set<String> _keepOnGridIds = {};
   Size? _lastViewSize;
 
-  PuzzleBloc() : super(PuzzleState.initial()) {
+  PuzzleBloc({required SettingsQuery settings}) : _settings = settings, super(PuzzleState.initial()) {
     on<_SetViewSize>(_setViewSize);
     on<_Reset>(_reset);
     on<_OnTapDown>(_onTapDown);
@@ -58,13 +60,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_Hint>(_hint);
     on<_SetHintingResults>(_setHintingResults);
     on<_ShowHint>(_showHint);
-    on<_ChangeForbiddenCellsMode>(
-      (_, emit) => emit(
-        state.copyWith(
-          isUnlockedForbiddenCells: !state.isUnlockedForbiddenCells,
-        ),
-      ),
-    );
     on<_Configure>(_configure);
     on<_Undo>(_undoMove);
     on<_Redo>(_redoMove);
@@ -188,14 +183,14 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       add(PuzzleEvent.configure(
           viewSize: _lastViewSize!,
           prevState: PuzzleState.initial(),
-          forbiddenPieces: state.isUnlockedForbiddenCells ? [] : state.gridPieces.where((e) => e.isForbidden)));
+          forbiddenPieces: _settings.unlockConfig ? [] : state.gridPieces.where((e) => e.isForbidden)));
     }
     _keepOnGridIds.clear();
   }
 
   FutureOr<void> _onTapDown(_OnTapDown event, Emitter<PuzzleState> emit) {
     final piece = _findPieceAtPosition(event.localPosition);
-    if (piece != null && (!piece.isForbidden || state.isUnlockedForbiddenCells)) {
+    if (piece != null && (!piece.isForbidden || _settings.unlockConfig)) {
       emit(state.copyWith(selectedPiece: piece));
     }
   }
@@ -229,7 +224,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   FutureOr<void> _onPanStart(_OnPanStart event, Emitter<PuzzleState> emit) {
     final piece = _findPieceAtPosition(event.localPosition) ?? state.selectedPiece;
-    if (piece != null && (!piece.isForbidden || state.isUnlockedForbiddenCells)) {
+    if (piece != null && (!piece.isForbidden || _settings.unlockConfig)) {
       final pieces = List<PuzzlePiece>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((item) => item.id == piece.id);
       if (pieceIndex >= 0) {
@@ -391,7 +386,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   FutureOr<void> _onDoubleTapDown(_OnDoubleTapDown event, Emitter<PuzzleState> emit) {
     final piece = _findPieceAtPosition(event.localPosition);
-    if (piece != null && (!piece.isForbidden || state.isUnlockedForbiddenCells)) {
+    if (piece != null && (!piece.isForbidden || _settings.unlockConfig)) {
       final flippedPiece = piece.copyWith(isFlipped: !piece.isFlipped);
       emit(
         state.copyWith(
