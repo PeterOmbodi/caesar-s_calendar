@@ -1,7 +1,7 @@
 name: Deploy Flutter Web to GH Pages
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:  
 permissions:
   contents: write
@@ -15,7 +15,7 @@ jobs:
           channel: stable
       - run: flutter pub get
       - run: dart run build_runner build -d
-      - run: flutter pub global run intl_utils:generate
+      - run: dart run intl_utils:generate
       - run: flutter build web --release --base-href /caesar-s_calendar/
       - uses: peaceiris/actions-gh-pages@v3
         with:
