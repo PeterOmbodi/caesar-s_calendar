@@ -7,7 +7,7 @@ Caesar's Puzzle is a cross-platform puzzle game built with Flutter, where player
 ---
 You can try it **here**: [Live demo][demo]
 
-[demo]: https://<username>.github.io/caesar-s_calendar/
+[demo]: https://peterombodi.github.io/caesar-s_calendar/
 
 ---
 
