@@ -1,52 +1,7 @@
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class ThemeModeNotifier extends ChangeNotifier {
-  static const _themeKey = 'theme_mode';
-  ThemeMode _mode = ThemeMode.system;
-
-  ThemeMode get mode => _mode;
-
-  ThemeModeNotifier();
-
-  Future<void> load() async {
-    final prefs = SharedPreferencesAsync();
-    final value = await prefs.getString(_themeKey);
-    if (value != null) {
-      _mode = ThemeMode.values.firstWhere(
-        (e) => e.toString() == value,
-        orElse: () => ThemeMode.system,
-      );
-    } else {
-      _mode = ThemeMode.system;
-    }
-    notifyListeners();
-  }
-
-  Future<void> setMode(ThemeMode mode) async {
-    _mode = mode;
-    notifyListeners();
-    final prefs = SharedPreferencesAsync();
-    return await prefs.setString(_themeKey, mode.toString());
-  }
-
-  Future<void> toggle([Brightness? systemBrightness]) async {
-    if (_mode == ThemeMode.light) {
-      await setMode(ThemeMode.dark);
-    } else if (_mode == ThemeMode.dark) {
-      await setMode(ThemeMode.light);
-    } else {
-      if (systemBrightness == Brightness.dark) {
-        await setMode(ThemeMode.light);
-      } else {
-        await setMode(ThemeMode.dark);
-      }
-    }
-  }
-}
-
-class AppTheme {
+class AppThemeData {
   static final ThemeData light = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(

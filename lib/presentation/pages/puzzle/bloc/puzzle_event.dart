@@ -15,7 +15,6 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.solve({required bool keepUserMoves}) = _Solve;
   const factory PuzzleEvent.setSolvingResults(List<List<String>> solutions) = _SetSolvingResults;
   const factory PuzzleEvent.showSolution(int index) = _ShowSolution;
-  const factory PuzzleEvent.changeForbiddenCellsMode() = _ChangeForbiddenCellsMode;
   const factory PuzzleEvent.configure({
     required Size viewSize,
     required PuzzleState prevState,
