@@ -11,7 +11,7 @@ const RESOURCES = {"splash/img/light-2x.png": "620b2ea9f31f9ae45e92ad63640d600b"
 "splash/img/dark-3x.png": "0c121d854d1b7f5e8c5e84fc691a1ab2",
 "splash/img/light-3x.png": "0c121d854d1b7f5e8c5e84fc691a1ab2",
 "splash/img/dark-2x.png": "620b2ea9f31f9ae45e92ad63640d600b",
-"flutter_bootstrap.js": "7175d91fc70ee9aadc974ba2c5b601df",
+"flutter_bootstrap.js": "f8fb55887f0edd7a5c6cfd6629b3a3c2",
 "flutter.js": "888483df48293866f9f41d3d9274a779",
 "favicon.png": "96eff321f80babf4bbc275ac10def1ab",
 "icons/Icon-maskable-512.png": "620b2ea9f31f9ae45e92ad63640d600b",
