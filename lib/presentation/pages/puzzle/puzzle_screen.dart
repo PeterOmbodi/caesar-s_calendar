@@ -111,12 +111,6 @@ class _BottomFAB extends StatelessWidget {
                 tooltip: S.current.redo,
               ),
             ],
-            // if (!state.allowSolutionDisplay)
-            //   IconButton(
-            //     icon: Icon(state.isUnlockedForbiddenCells ? Icons.lock_open_outlined : Icons.lock_outlined),
-            //     onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.changeForbiddenCellsMode()),
-            //     tooltip: state.isUnlockedForbiddenCells ? S.current.lockConfig : S.current.unlockConfig,
-            //   ),
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset()),

@@ -65,9 +65,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_Redo>(_redoMove);
   }
 
-  PuzzlePiece? _findPieceAtPosition(Offset position) => state.pieces.lastWhereOrNull(
-        (piece) => piece.containsPoint(position),
-      );
+  PuzzlePiece? _findPieceAtPosition(Offset position) =>
+      state.pieces.lastWhereOrNull((piece) => piece.containsPoint(position));
 
   PlaceZone? _getZoneAtPosition(Offset position) {
     if (state.gridConfig.getBounds.contains(position)) {
@@ -79,40 +78,36 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   /// Checks for collision of piece at newPosition.
-  bool _checkCollision({
-    required PuzzlePiece piece,
-    required Offset newPosition,
-    required PlaceZone zone,
-  }) {
+  bool _checkCollision({required PuzzlePiece piece, required Offset newPosition, required PlaceZone zone}) {
     final testPiece = piece.copyWith(position: newPosition);
     final testPath = testPiece.getTransformedPath();
     final testBounds = testPath.getBounds();
 
-    final piecesToCheck = state.piecesByZone(zone).where((p) => p.id != piece.id);
+    if (_settings.preventOverlap) {
+      final piecesToCheck = state.piecesByZone(zone).where((p) => p.id != piece.id);
+      for (var otherPiece in piecesToCheck) {
+        final otherPath = otherPiece.getTransformedPath();
+        final otherBounds = otherPath.getBounds();
 
-    for (var otherPiece in piecesToCheck) {
-      final otherPath = otherPiece.getTransformedPath();
-      final otherBounds = otherPath.getBounds();
+        if (!testBounds.overlaps(otherBounds)) {
+          continue;
+        }
 
-      if (!testBounds.overlaps(otherBounds)) {
-        continue;
-      }
+        try {
+          final combinedPath = Path.combine(PathOperation.intersect, testPath, otherPath);
+          final intersectionBounds = combinedPath.getBounds();
 
-      try {
-        final combinedPath = Path.combine(PathOperation.intersect, testPath, otherPath);
-        final intersectionBounds = combinedPath.getBounds();
-
-        if (!intersectionBounds.isEmpty &&
-            intersectionBounds.width > intersectionWidthThreshold &&
-            intersectionBounds.height > collisionTolerance) {
+          if (!intersectionBounds.isEmpty &&
+              intersectionBounds.width > intersectionWidthThreshold &&
+              intersectionBounds.height > collisionTolerance) {
+            return true;
+          }
+        } catch (e) {
+          debugPrint('Checking collision exception: $e');
           return true;
         }
-      } catch (e) {
-        debugPrint('Checking collision exception: $e');
-        return true;
       }
     }
-
     switch (zone) {
       case PlaceZone.grid:
         final gridRect = state.gridConfig.getBounds;
@@ -126,8 +121,12 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           return true;
         }
         // Allow some tolerance for pieces at edges
-        final expandedGrid = Rect.fromLTRB(gridRect.left - gridEdgeTolerance, gridRect.top - gridEdgeTolerance,
-            gridRect.right + gridEdgeTolerance, gridRect.bottom + gridEdgeTolerance);
+        final expandedGrid = Rect.fromLTRB(
+          gridRect.left - gridEdgeTolerance,
+          gridRect.top - gridEdgeTolerance,
+          gridRect.right + gridEdgeTolerance,
+          gridRect.bottom + gridEdgeTolerance,
+        );
         if (testBounds.left < expandedGrid.left ||
             testBounds.right > expandedGrid.right ||
             testBounds.top < expandedGrid.top ||
@@ -145,10 +144,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     return false;
   }
 
-  List<PuzzlePiece> _updatePieceInList(
-    List<PuzzlePiece> statePieces,
-    PuzzlePiece piece,
-  ) {
+  List<PuzzlePiece> _updatePieceInList(List<PuzzlePiece> statePieces, PuzzlePiece piece) {
     return List<PuzzlePiece>.from(statePieces)
       ..removeWhere((p) => p.id == piece.id)
       ..add(piece);
@@ -180,10 +176,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     if (_lastViewSize == null) {
       emit(PuzzleState.initial());
     } else {
-      add(PuzzleEvent.configure(
+      add(
+        PuzzleEvent.configure(
           viewSize: _lastViewSize!,
           prevState: PuzzleState.initial(),
-          forbiddenPieces: _settings.unlockConfig ? [] : state.gridPieces.where((e) => e.isForbidden)));
+          forbiddenPieces: _settings.unlockConfig ? [] : state.gridPieces.where((e) => e.isForbidden),
+        ),
+      );
     }
     _keepOnGridIds.clear();
   }
@@ -203,23 +202,17 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   FutureOr<void> _rotatePiece(_RotatePiece event, Emitter<PuzzleState> emit) {
-    final selectedPiece = event.piece.copyWith(
-      rotation: (event.piece.rotation + rotationStep) % fullRotation,
-    );
-    emit(state.copyWith(
-      pieces: _updatePieceInList(
-        state.pieces,
-        selectedPiece,
+    final selectedPiece = event.piece.copyWith(rotation: (event.piece.rotation + rotationStep) % fullRotation);
+    emit(
+      state.copyWith(
+        pieces: _updatePieceInList(state.pieces, selectedPiece),
+        moveHistory: [
+          ...state.moveHistory,
+          RotatePiece(selectedPiece.id, rotation: selectedPiece.rotation),
+        ],
+        moveIndex: state.moveIndex + 1,
       ),
-      moveHistory: [
-        ...state.moveHistory,
-        RotatePiece(
-          selectedPiece.id,
-          rotation: selectedPiece.rotation,
-        ),
-      ],
-      moveIndex: state.moveIndex + 1,
-    ));
+    );
   }
 
   FutureOr<void> _onPanStart(_OnPanStart event, Emitter<PuzzleState> emit) {
@@ -275,14 +268,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           );
         case PlaceZone.board:
         case null:
-          emit(
-            state.copyWith(
-              pieces: pieces,
-              selectedPiece: piece,
-              showPreview: false,
-              previewCollision: false,
-            ),
-          );
+          emit(state.copyWith(pieces: pieces, selectedPiece: piece, showPreview: false, previewCollision: false));
       }
     }
   }
@@ -315,8 +301,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             snappedPosition = Offset(snappedPosition.dx, snappedPosition.dy + (boardBounds.top - pieceBounds.top));
           }
           if (pieceBounds.bottom > boardBounds.bottom) {
-            snappedPosition =
-                Offset(snappedPosition.dx, snappedPosition.dy - (pieceBounds.bottom - boardBounds.bottom));
+            snappedPosition = Offset(
+              snappedPosition.dx,
+              snappedPosition.dy - (pieceBounds.bottom - boardBounds.bottom),
+            );
           }
 
           collisionDetected = false;
@@ -340,10 +328,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             zone: state.dragStartZone ?? PlaceZone.board,
             position: fromConfig.relativePosition(state.pieceStartPosition!),
           ),
-          to: (
-            zone: newZone!,
-            position: toConfig.relativePosition(snappedPosition),
-          ),
+          to: (zone: newZone!, position: toConfig.relativePosition(snappedPosition)),
         );
         final moveHistory = List<Move>.from(state.moveHistory);
         if (moveHistory.length > state.moveIndex) {
@@ -366,20 +351,21 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         );
       } else {
         debugPrint(
-            'Collision detected, returning to original position, pieceStartPosition: ${state.pieceStartPosition}');
-        final selectedPiece = state.selectedPiece!.copyWith(
-          position: state.pieceStartPosition,
+          'Collision detected, returning to original position, pieceStartPosition: ${state.pieceStartPosition}',
         );
-        emit(state.copyWith(
-          pieces: _updatePieceInList(state.pieces, selectedPiece),
-          showPreview: false,
-          previewPosition: null,
-          selectedPiece: null,
-          dragStartOffset: null,
-          pieceStartPosition: null,
-          dragStartZone: null,
-          isDragging: false,
-        ));
+        final selectedPiece = state.selectedPiece!.copyWith(position: state.pieceStartPosition);
+        emit(
+          state.copyWith(
+            pieces: _updatePieceInList(state.pieces, selectedPiece),
+            showPreview: false,
+            previewPosition: null,
+            selectedPiece: null,
+            dragStartOffset: null,
+            pieceStartPosition: null,
+            dragStartZone: null,
+            isDragging: false,
+          ),
+        );
       }
     }
   }
@@ -402,20 +388,16 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   Future<void> _solve(_Solve event, Emitter<PuzzleState> emit) async {
-    emit(state.copyWith(
-      status: GameStatus.searchingAllSolutions,
-      solutions: [],
-      solutionIdx: -1,
-    ));
+    emit(state.copyWith(status: GameStatus.searchingAllSolutions, solutions: [], solutionIdx: -1));
     await Future.delayed(solvingDelay);
     if (event.keepUserMoves) {
       _keepOnGridIds.addAll(state.gridPieces.map((e) => e.id));
     } else {
       _keepOnGridIds.clear();
     }
-    SolvePuzzleUseCase()
-        .call(pieces: state.pieces, grid: state.gridConfig, keepUserMoves: event.keepUserMoves)
-        .then((solutions) {
+    SolvePuzzleUseCase().call(pieces: state.pieces, grid: state.gridConfig, keepUserMoves: event.keepUserMoves).then((
+      solutions,
+    ) {
       debugPrint('solving finished, found solutions: ${solutions.length}');
       add(PuzzleEvent.setSolvingResults(solutions));
     });
@@ -440,19 +422,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       final piece = state.pieces.firstWhere((p) => p.id == params.pieceId);
       gridPieces.add(_applyPlacementToPiece(piece, params));
     }
-    emit(state.copyWith(
-      pieces: gridPieces,
-      solutionIdx: event.index,
-      moveHistory: [],
-      moveIndex: 0,
-    ));
+    emit(state.copyWith(pieces: gridPieces, solutionIdx: event.index, moveHistory: [], moveIndex: 0));
   }
 
   FutureOr<void> _hint(_Hint event, Emitter<PuzzleState> emit) async {
-    emit(state.copyWith(
-      status: GameStatus.searchingHint,
-      solutions: [],
-    ));
+    emit(state.copyWith(status: GameStatus.searchingHint, solutions: []));
     await Future.delayed(solvingDelay);
     HintPuzzleUseCase().call(pieces: state.pieces, grid: state.gridConfig).then((solutions) {
       debugPrint('hinting finished, found solutions: ${solutions.length}');
@@ -473,16 +447,15 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final piece = state.pieces.firstWhere((p) => p.id == params!.pieceId);
     gridPieces.add(_applyPlacementToPiece(piece, params!));
     final boardPieces = List<PuzzlePiece>.from(state.boardPieces)..removeWhere((p) => p.id == params.pieceId);
-    emit(state.copyWith(
-      pieces: [
-        ...gridPieces,
-        ...boardPieces,
-      ],
-      solutionIdx: event.index,
-      //todo hint move should be in history too
-      moveHistory: [],
-      moveIndex: 0,
-    ));
+    emit(
+      state.copyWith(
+        pieces: [...gridPieces, ...boardPieces],
+        solutionIdx: event.index,
+        //todo hint move should be in history too
+        moveHistory: [],
+        moveIndex: 0,
+      ),
+    );
   }
 
   PlacementParams? _parsePlacementId(String solution) {
@@ -508,8 +481,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       final floored = (smallestSide / (gridRows + 1)).floor();
       return floored < maxCellSize
           ? floored.isEven
-              ? floored.toDouble()
-              : floored - 1.0
+                ? floored.toDouble()
+                : floored - 1.0
           : maxCellSize;
     }
 
@@ -557,13 +530,25 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         ),
         PuzzlePiece.fromType(PieceType.zShape, Offset(boardX + cellXOffset * 4, boardY), centerPoint, gCellSize),
         PuzzlePiece.fromType(
-            PieceType.yShape, Offset(boardX + boardExtraX * 2, boardY + gCellSize * 2), centerPoint, gCellSize),
-        PuzzlePiece.fromType(PieceType.uShape, Offset(boardX + cellXOffset + boardExtraX, boardY + gCellSize * 3),
-            centerPoint, gCellSize),
+          PieceType.yShape,
+          Offset(boardX + boardExtraX * 2, boardY + gCellSize * 2),
+          centerPoint,
+          gCellSize,
+        ),
+        PuzzlePiece.fromType(
+          PieceType.uShape,
+          Offset(boardX + cellXOffset + boardExtraX, boardY + gCellSize * 3),
+          centerPoint,
+          gCellSize,
+        ),
         PuzzlePiece.fromType(PieceType.pShape, Offset(boardX, boardY), centerPoint, gCellSize),
         PuzzlePiece.fromType(PieceType.nShape, Offset(boardX + 2 * cellXOffset, boardY), centerPoint, gCellSize),
         PuzzlePiece.fromType(
-            PieceType.vShape, Offset(boardX + cellXOffset * 4, boardY + gCellSize * 3), centerPoint, gCellSize),
+          PieceType.vShape,
+          Offset(boardX + cellXOffset * 4, boardY + gCellSize * 3),
+          centerPoint,
+          gCellSize,
+        ),
       ];
 
       gridPieces = forbiddenPieces.isNotEmpty
@@ -595,10 +580,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             (p) => p.copyWith(
               originalPath: generatePathForType(p.type, gCellSize),
               position: gridConfig.snapToGrid(
-                Offset(
-                  p.position.dx * gridCellMod + gridDeltaX,
-                  p.position.dy * gridCellMod + gridDeltaY,
-                ),
+                Offset(p.position.dx * gridCellMod + gridDeltaX, p.position.dy * gridCellMod + gridDeltaY),
               ),
               centerPoint: centerPoint,
             ),
@@ -614,10 +596,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           .map(
             (p) => p.copyWith(
               originalPath: generatePathForType(p.type, gCellSize),
-              position: Offset(
-                p.position.dx * gridCellMod + boardDeltaX,
-                p.position.dy * gridCellMod + boardDeltaY,
-              ),
+              position: Offset(p.position.dx * gridCellMod + boardDeltaX, p.position.dy * gridCellMod + boardDeltaY),
               centerPoint: centerPoint,
             ),
           )
@@ -628,10 +607,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         status: GameStatus.waiting,
         gridConfig: gridConfig,
         boardConfig: boardConfig,
-        pieces: [
-          ...gridPieces,
-          ...boardPieces,
-        ],
+        pieces: [...gridPieces, ...boardPieces],
       ),
     );
     _lastViewSize = event.viewSize;
@@ -641,30 +617,14 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     if (state.moveHistory.isNotEmpty && state.moveIndex > 0) {
       final idx = state.moveIndex - 1;
       final undoPiece = _getHistoryPiece(idx, true);
-      emit(
-        state.copyWith(
-          moveIndex: idx,
-          pieces: _updatePieceInList(
-            state.pieces,
-            undoPiece,
-          ),
-        ),
-      );
+      emit(state.copyWith(moveIndex: idx, pieces: _updatePieceInList(state.pieces, undoPiece)));
     }
   }
 
   FutureOr<void> _redoMove(_Redo event, Emitter<PuzzleState> emit) {
     final idx = state.moveIndex + 1;
     final redoPiece = _getHistoryPiece(state.moveIndex, false);
-    emit(
-      state.copyWith(
-        moveIndex: idx,
-        pieces: _updatePieceInList(
-          state.pieces,
-          redoPiece,
-        ),
-      ),
-    );
+    emit(state.copyWith(moveIndex: idx, pieces: _updatePieceInList(state.pieces, redoPiece)));
   }
 
   PuzzlePiece _getHistoryPiece(int idx, bool isUndo) {
@@ -680,9 +640,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           position: config.absolutPosition(isUndo ? mp.from.position : mp.to.position),
         );
       },
-      rotatePiece: (rp) => piece.copyWith(
-        rotation: (rp.rotation - (isUndo ? rotationStep + fullRotation : 0)) % fullRotation,
-      ),
+      rotatePiece: (rp) =>
+          piece.copyWith(rotation: (rp.rotation - (isUndo ? rotationStep + fullRotation : 0)) % fullRotation),
       flipPiece: (fp) => piece.copyWith(isFlipped: isUndo ? !fp.isFlipped : fp.isFlipped),
     );
 
