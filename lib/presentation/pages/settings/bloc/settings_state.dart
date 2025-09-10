@@ -11,6 +11,9 @@ abstract class SettingsState with _$SettingsState {
     @Default(AppTheme.system) AppTheme theme,
     @Default(false) bool unlockConfig,
     @Default(true) bool preventOverlap,
+    @Default(true) bool autoLockConfig,
+    @Default(true) bool separateMoveColors,
+    @Default(false) bool snapToGridOnTransform,
   }) = _SettingsState;
 
 

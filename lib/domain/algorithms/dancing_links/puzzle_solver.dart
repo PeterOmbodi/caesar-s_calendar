@@ -46,7 +46,7 @@ class PuzzleSolver {
     for (var piece in pieces.where((p) => !p.isForbidden && !p.isImmovable)) {
       constraints.add('piece_${piece.id}');
     }
-    debugPrint('buildConstraints: $constraints');
+    // debugPrint('buildConstraints: $constraints');
     return constraints;
   }
 

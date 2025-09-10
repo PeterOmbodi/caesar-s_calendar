@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 
 /// Node for Dancing Links.
 /// Each node is linked to its neighbors in four directions,
@@ -62,7 +61,7 @@ class DlxUniverse {
     for (var colName in columns) {
       var dCol = columnMap[colName];
       if (dCol == null) {
-        debugPrint("Column '$colName' not found in universe columns. Available: ${columnMap.keys.toList()}");
+        // debugPrint("Column '$colName' not found in universe columns. Available: ${columnMap.keys.toList()}");
         continue;
       }
       var newNode = DlxNode();
