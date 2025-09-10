@@ -202,14 +202,14 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   FutureOr<void> _rotatePiece(_RotatePiece event, Emitter<PuzzleState> emit) {
-    final selectedPiece = event.piece.copyWith(rotation: (event.piece.rotation + rotationStep) % fullRotation);
+    final selectedPiece = event.piece.copyWith(rotation: _normalizeRotation(event.piece.rotation));
+    final shouldSnap = event.piece.placeZone == PlaceZone.grid && _settings.snapToGridOnTransform;
+    final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(selectedPiece) : (selectedPiece, null);
+    final move = RotatePiece(selectedPiece.id, rotation: selectedPiece.rotation, snapCorrection: snapMove);
     emit(
       state.copyWith(
-        pieces: _updatePieceInList(state.pieces, selectedPiece),
-        moveHistory: [
-          ...state.moveHistory,
-          RotatePiece(selectedPiece.id, rotation: selectedPiece.rotation),
-        ],
+        pieces: _updatePieceInList(state.pieces, pieceToSave),
+        moveHistory: [...state.moveHistory, move],
         moveIndex: state.moveIndex + 1,
       ),
     );
@@ -324,11 +324,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         final toConfig = newZone == PlaceZone.grid ? state.gridConfig : state.boardConfig;
         final move = MovePiece(
           selectedPiece.id,
-          from: (
+          from: MovePlacement(
             zone: state.dragStartZone ?? PlaceZone.board,
             position: fromConfig.relativePosition(state.pieceStartPosition!),
           ),
-          to: (zone: newZone!, position: toConfig.relativePosition(snappedPosition)),
+          to: MovePlacement(zone: newZone!, position: toConfig.relativePosition(snappedPosition)),
         );
         final moveHistory = List<Move>.from(state.moveHistory);
         if (moveHistory.length > state.moveIndex) {
@@ -374,13 +374,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final piece = _findPieceAtPosition(event.localPosition);
     if (piece != null && (!piece.isForbidden || _settings.unlockConfig)) {
       final flippedPiece = piece.copyWith(isFlipped: !piece.isFlipped);
+      final shouldSnap = piece.placeZone == PlaceZone.grid && _settings.snapToGridOnTransform;
+      final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(flippedPiece) : (flippedPiece, null);
+      final move = FlipPiece(flippedPiece.id, isFlipped: flippedPiece.isFlipped, snapCorrection: snapMove);
       emit(
         state.copyWith(
-          pieces: _updatePieceInList(state.pieces, flippedPiece),
-          moveHistory: [
-            ...state.moveHistory,
-            FlipPiece(flippedPiece.id, isFlipped: flippedPiece.isFlipped),
-          ],
+          pieces: _updatePieceInList(state.pieces, pieceToSave),
+          moveHistory: [...state.moveHistory, move],
           moveIndex: state.moveIndex + 1,
         ),
       );
@@ -420,7 +420,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       final params = _parsePlacementId(solution);
       if (params == null) continue;
       final piece = state.pieces.firstWhere((p) => p.id == params.pieceId);
-      gridPieces.add(_applyPlacementToPiece(piece, params));
+      gridPieces.add(_applyPlacementToPiece(piece, params).copyWith(isUserMove: false));
     }
     emit(state.copyWith(pieces: gridPieces, solutionIdx: event.index, moveHistory: [], moveIndex: 0));
   }
@@ -640,11 +640,63 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           position: config.absolutPosition(isUndo ? mp.from.position : mp.to.position),
         );
       },
-      rotatePiece: (rp) =>
-          piece.copyWith(rotation: (rp.rotation - (isUndo ? rotationStep + fullRotation : 0)) % fullRotation),
-      flipPiece: (fp) => piece.copyWith(isFlipped: isUndo ? !fp.isFlipped : fp.isFlipped),
+      rotatePiece: (rp) => piece.copyWith(
+        rotation: (rp.rotation - (isUndo ? rotationStep + fullRotation : 0)) % fullRotation,
+        position: rp.snapCorrection != null
+            ? state.gridConfig.absolutPosition(isUndo ? rp.snapCorrection!.from.position : rp.snapCorrection!.to.position)
+            : null,
+      ),
+      flipPiece: (fp) => piece.copyWith(
+        isFlipped: isUndo ? !fp.isFlipped : fp.isFlipped,
+        position: fp.snapCorrection != null
+            ? state.gridConfig.absolutPosition(isUndo ? fp.snapCorrection!.from.position : fp.snapCorrection!.to.position)
+            : null,
+      ),
     );
 
     return historyPiece;
+  }
+
+  double _normalizeRotation(double value) => (value + rotationStep) % fullRotation;
+
+  (PuzzlePiece piece, MovePiece? snapMove) _maybeSnap(PuzzlePiece selectedPiece) {
+    final snappedPos = _snappedPosition(selectedPiece);
+    if (snappedPos == selectedPiece.position) {
+      return (selectedPiece, null);
+    }
+    final snapped = selectedPiece.copyWith(position: snappedPos);
+    final snapMove = MovePiece(
+      selectedPiece.id,
+      from: MovePlacement(position: state.gridConfig.relativePosition(selectedPiece.position)),
+      to: MovePlacement(position: state.gridConfig.relativePosition(snapped.position)),
+    );
+    return (snapped, snapMove);
+  }
+
+  Offset _snappedPosition(PuzzlePiece selectedPiece) {
+    Offset targetPosition = selectedPiece.position;
+
+    Offset preSnapped = state.gridConfig.snapToGrid(targetPosition);
+    final gridBounds = state.gridConfig.getBounds;
+
+    final testPiece = selectedPiece.copyWith(position: preSnapped);
+    final pieceBounds = testPiece.getTransformedPath().getBounds();
+
+    double dx = 0.0;
+    double dy = 0.0;
+    if (pieceBounds.left < gridBounds.left) {
+      dx += gridBounds.left - pieceBounds.left;
+    }
+    if (pieceBounds.right > gridBounds.right) {
+      dx -= pieceBounds.right - gridBounds.right;
+    }
+    if (pieceBounds.top < gridBounds.top) {
+      dy += gridBounds.top - pieceBounds.top;
+    }
+    if (pieceBounds.bottom > gridBounds.bottom) {
+      dy -= pieceBounds.bottom - gridBounds.bottom;
+    }
+    targetPosition = Offset(preSnapped.dx + dx, preSnapped.dy + dy);
+    return state.gridConfig.snapToGrid(targetPosition);
   }
 }

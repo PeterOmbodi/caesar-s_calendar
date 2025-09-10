@@ -17,6 +17,7 @@ class PuzzleBoardPainter extends CustomPainter {
   final Offset? previewPosition;
   final bool showPreview;
   final bool previewCollision;
+  final bool borderColorMode;
 
   PuzzleBoardPainter({
     required this.pieces,
@@ -27,6 +28,7 @@ class PuzzleBoardPainter extends CustomPainter {
     this.previewPosition,
     this.showPreview = false,
     this.previewCollision = false,
+    required this.borderColorMode,
   });
 
   @override
@@ -49,9 +51,9 @@ class PuzzleBoardPainter extends CustomPainter {
       canvas.drawPath(transformedPath, paint);
 
       final borderPaint = Paint()
-        ..color = piece == selectedPiece ? AppColors.current.pieceBorderSelected : AppColors.current.pieceBorder
+        ..color = piece == selectedPiece ? AppColors.current.pieceBorderSelected : piece.borderColor(borderColorMode)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = piece == selectedPiece ? 3.0 : 2.0;
+        ..strokeWidth = piece == selectedPiece ? 3.0 : 1.5;
       canvas.drawPath(transformedPath, borderPaint);
 
       if (piece == selectedPiece) {
@@ -73,21 +75,13 @@ class PuzzleBoardPainter extends CustomPainter {
     // horizontal lines
     for (int i = 0; i <= grid.rows; i++) {
       final y = grid.origin.dy + i * grid.cellSize;
-      canvas.drawLine(
-        Offset(grid.origin.dx, y),
-        Offset(grid.origin.dx + grid.columns * grid.cellSize, y),
-        paint,
-      );
+      canvas.drawLine(Offset(grid.origin.dx, y), Offset(grid.origin.dx + grid.columns * grid.cellSize, y), paint);
     }
 
     // vertical lines
     for (int i = 0; i <= grid.columns; i++) {
       final x = grid.origin.dx + i * grid.cellSize;
-      canvas.drawLine(
-        Offset(x, grid.origin.dy),
-        Offset(x, grid.origin.dy + grid.rows * grid.cellSize),
-        paint,
-      );
+      canvas.drawLine(Offset(x, grid.origin.dy), Offset(x, grid.origin.dy + grid.rows * grid.cellSize), paint);
     }
 
     // game board borders
@@ -102,8 +96,10 @@ class PuzzleBoardPainter extends CustomPainter {
   void _drawLabels(Canvas canvas) {
     final today = DateTime.now();
 
-    final forbiddenCells =
-        pieces.where((e) => e.isForbidden).map((e) => e.cells(grid.origin, grid.cellSize)).expand((e) => e);
+    final forbiddenCells = pieces
+        .where((e) => e.isForbidden)
+        .map((e) => e.cells(grid.origin, grid.cellSize))
+        .expand((e) => e);
 
     var cellIndex = 0;
     for (int row = 0; row < grid.rows; row++) {
@@ -113,14 +109,8 @@ class PuzzleBoardPainter extends CustomPainter {
           continue;
         }
         final x = grid.origin.dx + column * grid.cellSize;
-        final textPainter = TextPainter(
-          text: _getCellTextSpan(cellIndex, today),
-          textDirection: TextDirection.ltr,
-        );
-        textPainter.layout(
-          minWidth: 0,
-          maxWidth: grid.cellSize,
-        );
+        final textPainter = TextPainter(text: _getCellTextSpan(cellIndex, today), textDirection: TextDirection.ltr);
+        textPainter.layout(minWidth: 0, maxWidth: grid.cellSize);
         final xCenter = x + (grid.cellSize - textPainter.width) / 2;
         final yCenter = y + (grid.cellSize - textPainter.height) / 2;
         final offset = Offset(xCenter, yCenter);
@@ -145,7 +135,6 @@ class PuzzleBoardPainter extends CustomPainter {
       ..strokeWidth = 2.0;
 
     canvas.drawRect(board.getBounds, borderPaint);
-
   }
 
   void _drawPreviewOutline(Canvas canvas) {
@@ -154,8 +143,9 @@ class PuzzleBoardPainter extends CustomPainter {
     final previewPiece = selectedPiece!.copyWith(position: previewPosition!);
     final previewPath = previewPiece.getTransformedPath();
 
-    final Color outlineColor =
-        previewCollision ? AppColors.current.previewOutlineCollision : AppColors.current.previewOutline;
+    final Color outlineColor = previewCollision
+        ? AppColors.current.previewOutlineCollision
+        : AppColors.current.previewOutline;
     final Color fillColor = previewCollision
         ? AppColors.current.previewFillCollision.withValues(alpha: 0.2)
         : AppColors.current.previewFill.withValues(alpha: 0.2);
@@ -190,9 +180,6 @@ class PuzzleBoardPainter extends CustomPainter {
       fontWeight: isTodayLabel ? FontWeight.w700 : FontWeight.w400,
     );
 
-    return TextSpan(
-      text: label,
-      style: textStyle,
-    );
+    return TextSpan(text: label, style: textStyle);
   }
 }

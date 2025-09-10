@@ -59,6 +59,17 @@ class SettingsPanel extends StatelessWidget {
               },
             ),
             BlocBuilder<SettingsCubit, SettingsState>(
+              buildWhen: (p, n) => p.unlockConfig != n.unlockConfig || p.autoLockConfig != n.autoLockConfig,
+              builder: (context, state) {
+                return SwitchListTile(
+                  title: Text(S.current.autoLockConfig),
+                  subtitle: Text(S.current.autoLockConfigDescription),
+                  value: state.autoLockConfig,
+                  onChanged: cubit.state.unlockConfig ? cubit.toggleAutoLockConfig : null,
+                );
+              },
+            ),
+            BlocBuilder<SettingsCubit, SettingsState>(
               buildWhen: (p, n) => p.preventOverlap != n.preventOverlap,
               builder: (context, state) {
                 return SwitchListTile(
@@ -66,6 +77,28 @@ class SettingsPanel extends StatelessWidget {
                   subtitle: Text(S.current.preventOverlappingDescription),
                   value: state.preventOverlap,
                   onChanged: cubit.togglePreventOverlap,
+                );
+              },
+            ),
+            BlocBuilder<SettingsCubit, SettingsState>(
+              buildWhen: (p, n) => p.snapToGridOnTransform != n.snapToGridOnTransform,
+              builder: (context, state) {
+                return SwitchListTile(
+                  title: Text(S.current.snapToGrid),
+                  subtitle: Text(S.current.snapToGridDescription),
+                  value: state.snapToGridOnTransform,
+                  onChanged: cubit.toggleSnapToGrid,
+                );
+              },
+            ),
+            BlocBuilder<SettingsCubit, SettingsState>(
+              buildWhen: (p, n) => p.separateMoveColors != n.separateMoveColors,
+              builder: (context, state) {
+                return SwitchListTile(
+                  title: Text(S.current.borderConfig),
+                  subtitle: Text(S.current.borderConfigDescription),
+                  value: state.separateMoveColors,
+                  onChanged: cubit.toggleSeparateColors,
                 );
               },
             ),

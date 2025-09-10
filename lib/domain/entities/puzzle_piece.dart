@@ -3,20 +3,9 @@ import 'package:caesar_puzzle/core/utils/puzzle_piece_utils.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
 
-enum PieceType {
-  lShape,
-  square,
-  zShape,
-  yShape,
-  uShape,
-  pShape,
-  nShape,
-  vShape,
-  zone1,
-  zone2,
-}
+enum PieceType { lShape, square, zShape, yShape, uShape, pShape, nShape, vShape, zone1, zone2 }
 
- Color colorForType(PieceType type) {
+Color colorForType(PieceType type) {
   switch (type) {
     case PieceType.lShape:
       return Colors.teal.withValues(alpha: 0.8);
@@ -82,6 +71,7 @@ class PuzzlePiece extends PuzzlePieceBase {
   final Offset centerPoint;
   final double borderRadius;
   final bool isForbidden;
+  final bool isUserMove;
 
   PuzzlePiece({
     required super.id,
@@ -95,14 +85,10 @@ class PuzzlePiece extends PuzzlePieceBase {
     required this.centerPoint,
     this.borderRadius = 8.0,
     this.isForbidden = false,
+    this.isUserMove = true,
   });
 
-  factory PuzzlePiece.fromType(
-    PieceType type,
-    Offset position,
-    Offset centerPoint,
-    double cellSize,
-  ) {
+  factory PuzzlePiece.fromType(PieceType type, Offset position, Offset centerPoint, double cellSize) {
     final isForbidden = isForbiddenType(type);
     return PuzzlePiece(
       type: type,
@@ -125,6 +111,7 @@ class PuzzlePiece extends PuzzlePieceBase {
     bool? isForbidden,
     Path? originalPath,
     PlaceZone? placeZone,
+    bool? isUserMove,
   }) {
     return PuzzlePiece(
       type: type,
@@ -138,6 +125,10 @@ class PuzzlePiece extends PuzzlePieceBase {
       borderRadius: borderRadius,
       isForbidden: isForbidden ?? this.isForbidden,
       placeZone: placeZone ?? this.placeZone,
+      isUserMove: isUserMove ?? this.isUserMove,
     );
   }
+
+  Color borderColor(bool borderColorMode) =>
+      isUserMove || !borderColorMode ? AppColors.current.pieceBorder : Colors.transparent;
 }

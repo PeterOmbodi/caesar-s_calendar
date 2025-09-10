@@ -17,6 +17,9 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
   }
   void toggleUnlockConfig(bool v) => emit(state.copyWith(unlockConfig: v));
   void togglePreventOverlap(bool v) => emit(state.copyWith(preventOverlap: v));
+  void toggleAutoLockConfig(bool v) => emit(state.copyWith(autoLockConfig: v));
+  void toggleSnapToGrid(bool v) => emit(state.copyWith(snapToGridOnTransform: v));
+  void toggleSeparateColors(bool v) => emit(state.copyWith(separateMoveColors: v));
 
   @override
   SettingsState? fromJson(Map<String, dynamic> json) {
