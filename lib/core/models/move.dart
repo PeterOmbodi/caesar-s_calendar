@@ -36,16 +36,24 @@ class MovePiece extends Move {
   const MovePiece(super.pieceId, {required this.from, required this.to});
 }
 
-class RotatePiece extends Move {
-  final double rotation;
+sealed class SnappableMove extends Move {
   final MovePiece? snapCorrection;
 
-  const RotatePiece(super.pieceId, {required this.rotation, this.snapCorrection});
+  SnappableMove(super.pieceId, this.snapCorrection);
+
+  Offset? getSnapOffset(Function(Offset) absolutPosition, bool isFrom) => snapCorrection == null
+      ? null
+      : absolutPosition(isFrom ? snapCorrection!.from.position : snapCorrection!.to.position);
 }
 
-class FlipPiece extends Move {
-  final bool isFlipped;
-  final MovePiece? snapCorrection;
+class RotatePiece extends SnappableMove {
+  final double rotation;
 
-  const FlipPiece(super.pieceId, {required this.isFlipped, this.snapCorrection});
+  RotatePiece(super.pieceId, super.snapCorrection, {required this.rotation});
+}
+
+class FlipPiece extends SnappableMove {
+  final bool isFlipped;
+
+  FlipPiece(super.pieceId, super.snapCorrection, {required this.isFlipped});
 }

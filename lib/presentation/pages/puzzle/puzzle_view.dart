@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/widgets/puzzle_board_painter.dart';
 import 'package:flutter/material.dart';
@@ -45,16 +46,23 @@ class PuzzleView extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary.withAlpha(18),
                       width: double.infinity,
                       height: double.infinity,
-                      child: CustomPaint(
-                        painter: PuzzleBoardPainter(
-                          pieces: state.pieces,
-                          grid: state.gridConfig,
-                          board: state.boardConfig,
-                          selectedPiece: state.selectedPiece,
-                          previewPosition: state.previewPosition,
-                          showPreview: state.showPreview,
-                          previewCollision: state.previewCollision,
-                          borderColorMode: borderColorMode,
+                      child: AnimatedPiecesOverlay(
+                        pieces: state.pieces,
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeInOut,
+                        borderColorMode: borderColorMode,
+                        selectedPiece: state.selectedPiece,
+                        childBuilder: (hiddenIds) => CustomPaint(
+                          painter: PuzzleBoardPainter(
+                            pieces: state.pieces.where((p) => !hiddenIds.contains(p.id) || p.isForbidden),
+                            grid: state.gridConfig,
+                            board: state.boardConfig,
+                            selectedPiece: state.selectedPiece,
+                            previewPosition: state.previewPosition,
+                            showPreview: state.showPreview,
+                            previewCollision: state.previewCollision,
+                            borderColorMode: borderColorMode,
+                          ),
                         ),
                       ),
                     ),

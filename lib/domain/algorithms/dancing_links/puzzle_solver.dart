@@ -41,6 +41,9 @@ class PuzzleSolver {
           constraints.add('cell_${row}_$column');
         }
         cellIndex++;
+        if (cellIndex > 42) {
+          break;
+        }
       }
     }
     for (var piece in pieces.where((p) => !p.isForbidden && !p.isImmovable)) {
@@ -58,6 +61,7 @@ class PuzzleSolver {
     final Set<String> placementSignatures = {};
     // debugPrint('generatePlacementsForPiece, forbidden: $forbidden');
     // debugPrint('generatePlacementsForPiece, dateCells: $dateCells');
+    var cellIndex = 0;
     for (int rot = 0; rot < 4; rot++) {
       for (bool flip in [false, true]) {
         for (int row = 0; row < grid.rows; row++) {
@@ -76,6 +80,9 @@ class PuzzleSolver {
                 placementSignatures.add(signature);
                 placements.add(placement);
               }
+            }
+            if (cellIndex > 42) {
+              break;
             }
           }
         }
@@ -98,6 +105,9 @@ class PuzzleSolver {
           free.add(Cell(row, column));
         }
         cellIndex++;
+        if (cellIndex > 42) {
+          break;
+        }
       }
     }
 
