@@ -5,6 +5,7 @@ import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/piece_paint_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -43,24 +44,12 @@ class PuzzleBoardPainter extends CustomPainter {
     }
 
     for (var piece in pieces) {
-      final paint = Paint()
-        ..color = piece == selectedPiece ? piece.color().withValues(alpha: 0.9) : piece.color()
-        ..style = PaintingStyle.fill;
-
-      final transformedPath = piece.getTransformedPath();
-      canvas.drawPath(transformedPath, paint);
-
-      final borderPaint = Paint()
-        ..color = piece == selectedPiece ? AppColors.current.pieceBorderSelected : piece.borderColor(borderColorMode)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = piece == selectedPiece ? 3.0 : 1.5;
-      canvas.drawPath(transformedPath, borderPaint);
-
-      if (piece == selectedPiece) {
+      final isSelected = piece.id == selectedPiece?.id;
+      PiecePaintHelper.drawPiece(canvas, piece, isSelected, borderColorMode);
+      if (isSelected) {
         final centerPaint = Paint()
           ..color = AppColors.current.pieceCenterDot
           ..style = PaintingStyle.fill;
-
         canvas.drawCircle(piece.position + piece.centerPoint, 5.0, centerPaint);
       }
     }
