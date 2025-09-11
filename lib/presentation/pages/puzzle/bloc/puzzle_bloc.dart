@@ -52,7 +52,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_OnPanStart>(_onPanStart);
     on<_OnPanUpdate>(_onPanUpdate);
     on<_OnPanEnd>(_onPanEnd);
-    on<_OnDoubleTapDown>(_onDoubleTapDown);
+    on<_OnDoubleTapDown>(_flipPiece);
     on<_RotatePiece>(_rotatePiece);
     on<_Solve>(_solve);
     on<_SetSolvingResults>(_setSolvingResults);
@@ -205,7 +205,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final selectedPiece = event.piece.copyWith(rotation: _normalizeRotation(event.piece.rotation));
     final shouldSnap = event.piece.placeZone == PlaceZone.grid && _settings.snapToGridOnTransform;
     final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(selectedPiece) : (selectedPiece, null);
-    final move = RotatePiece(selectedPiece.id, rotation: selectedPiece.rotation, snapCorrection: snapMove);
+    final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
     emit(
       state.copyWith(
         pieces: _updatePieceInList(state.pieces, pieceToSave),
@@ -370,13 +370,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     }
   }
 
-  FutureOr<void> _onDoubleTapDown(_OnDoubleTapDown event, Emitter<PuzzleState> emit) {
+  FutureOr<void> _flipPiece(_OnDoubleTapDown event, Emitter<PuzzleState> emit) {
     final piece = _findPieceAtPosition(event.localPosition);
     if (piece != null && (!piece.isForbidden || _settings.unlockConfig)) {
       final flippedPiece = piece.copyWith(isFlipped: !piece.isFlipped);
       final shouldSnap = piece.placeZone == PlaceZone.grid && _settings.snapToGridOnTransform;
       final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(flippedPiece) : (flippedPiece, null);
-      final move = FlipPiece(flippedPiece.id, isFlipped: flippedPiece.isFlipped, snapCorrection: snapMove);
+      final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
       emit(
         state.copyWith(
           pieces: _updatePieceInList(state.pieces, pieceToSave),
@@ -642,15 +642,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       },
       rotatePiece: (rp) => piece.copyWith(
         rotation: (rp.rotation - (isUndo ? rotationStep + fullRotation : 0)) % fullRotation,
-        position: rp.snapCorrection != null
-            ? state.gridConfig.absolutPosition(isUndo ? rp.snapCorrection!.from.position : rp.snapCorrection!.to.position)
-            : null,
+        position: rp.getSnapOffset(state.gridConfig.absolutPosition, isUndo),
       ),
       flipPiece: (fp) => piece.copyWith(
         isFlipped: isUndo ? !fp.isFlipped : fp.isFlipped,
-        position: fp.snapCorrection != null
-            ? state.gridConfig.absolutPosition(isUndo ? fp.snapCorrection!.from.position : fp.snapCorrection!.to.position)
-            : null,
+        position: fp.getSnapOffset(state.gridConfig.absolutPosition, isUndo),
       ),
     );
 

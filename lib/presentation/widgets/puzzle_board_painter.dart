@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
 class PuzzleBoardPainter extends CustomPainter {
-  final List<PuzzlePiece> pieces;
+  final Iterable<PuzzlePiece> pieces;
   final PuzzleGrid grid;
   final PuzzleBoard board;
   final PuzzlePiece? selectedPiece;
@@ -116,6 +116,9 @@ class PuzzleBoardPainter extends CustomPainter {
         final offset = Offset(xCenter, yCenter);
         textPainter.paint(canvas, offset);
         cellIndex++;
+        if (cellIndex > 42) {
+          break;
+        }
       }
     }
   }
