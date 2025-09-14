@@ -24,6 +24,8 @@
   "showControls": "Показати елементи керування",
   "snapToGrid": "Прив’язка до сітки",
   "snapToGridDescription": "Утримувати фігури в межах сітки під час обертання або віддзеркалення",
+  "solvedAlertTitle": "Вітаю! \uD83C\uDF89",
+  "solvedAlertSubTitle": "Ти зробив це!",
   "solutionLabel": "рішення:\n {current} / {total}",
   "solutionsFoundDialogCancel": "Скасувати",
   "solutionsFoundDialogMessage": "Знайдено {count} рішень. Показати?",

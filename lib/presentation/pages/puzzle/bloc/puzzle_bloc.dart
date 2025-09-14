@@ -77,14 +77,41 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     return null;
   }
 
+  //todo draft solution
+  // need to check to empty date cells
+  // need to change status for unique solutions only
+  GameStatus _getStatus(Iterable<PuzzlePiece> pieces) {
+    if (state.selectedPiece?.isUserMove == false) {
+      return state.status;
+    }
+    return pieces.where((p) => p.placeZone == PlaceZone.board).isEmpty &&
+            !pieces.any(
+              (piece) => _checkCollision(
+                piece: piece,
+                newPosition: piece.position,
+                zone: PlaceZone.grid,
+                preventOverlap: true,
+                pieces: pieces,
+              ),
+            )
+        ? GameStatus.solved
+        : GameStatus.playing;
+  }
+
   /// Checks for collision of piece at newPosition.
-  bool _checkCollision({required PuzzlePiece piece, required Offset newPosition, required PlaceZone zone}) {
+  bool _checkCollision({
+    required PuzzlePiece piece,
+    required Offset newPosition,
+    required PlaceZone zone,
+    required final preventOverlap,
+    final Iterable<PuzzlePiece>? pieces,
+  }) {
     final testPiece = piece.copyWith(position: newPosition);
     final testPath = testPiece.getTransformedPath();
     final testBounds = testPath.getBounds();
 
-    if (_settings.preventOverlap) {
-      final piecesToCheck = state.piecesByZone(zone).where((p) => p.id != piece.id);
+    if (preventOverlap) {
+      final piecesToCheck = (pieces ?? state.piecesByZone(zone)).where((p) => p.id != piece.id);
       for (var otherPiece in piecesToCheck) {
         final otherPath = otherPiece.getTransformedPath();
         final otherBounds = otherPath.getBounds();
@@ -206,11 +233,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final shouldSnap = event.piece.placeZone == PlaceZone.grid && _settings.snapToGridOnTransform;
     final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(selectedPiece) : (selectedPiece, null);
     final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
+    final pieces = _updatePieceInList(state.pieces, pieceToSave);
     emit(
       state.copyWith(
-        pieces: _updatePieceInList(state.pieces, pieceToSave),
+        pieces: pieces,
         moveHistory: [...state.moveHistory, move],
         moveIndex: state.moveIndex + 1,
+        status: _getStatus(pieces),
       ),
     );
   }
@@ -263,6 +292,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
                 piece: piece,
                 newPosition: state.gridConfig.snapToGrid(newPosition),
                 zone: currentZone!,
+                preventOverlap: _settings.preventOverlap,
               ),
             ),
           );
@@ -285,6 +315,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             piece: state.selectedPiece!,
             newPosition: snappedPosition,
             zone: newZone!,
+            preventOverlap: _settings.preventOverlap,
           );
         case PlaceZone.board:
           snappedPosition = state.selectedPiece!.position;
@@ -335,9 +366,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           moveHistory.removeRange(state.moveIndex, moveHistory.length);
         }
         moveHistory.add(move);
+        final pieces = _updatePieceInList(state.pieces, selectedPiece);
         emit(
           state.copyWith(
-            pieces: _updatePieceInList(state.pieces, selectedPiece),
+            pieces: pieces,
             showPreview: false,
             previewPosition: null,
             selectedPiece: null,
@@ -347,6 +379,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             isDragging: false,
             moveHistory: moveHistory,
             moveIndex: moveHistory.length,
+            status: _getStatus(pieces),
           ),
         );
       } else {
@@ -377,11 +410,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       final shouldSnap = piece.placeZone == PlaceZone.grid && _settings.snapToGridOnTransform;
       final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(flippedPiece) : (flippedPiece, null);
       final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
+      final pieces = _updatePieceInList(state.pieces, pieceToSave);
       emit(
         state.copyWith(
-          pieces: _updatePieceInList(state.pieces, pieceToSave),
+          pieces: pieces,
           moveHistory: [...state.moveHistory, move],
           moveIndex: state.moveIndex + 1,
+          status: _getStatus(pieces),
         ),
       );
     }
@@ -617,7 +652,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     if (state.moveHistory.isNotEmpty && state.moveIndex > 0) {
       final idx = state.moveIndex - 1;
       final undoPiece = _getHistoryPiece(idx, true);
-      emit(state.copyWith(moveIndex: idx, pieces: _updatePieceInList(state.pieces, undoPiece)));
+      emit(
+        state.copyWith(moveIndex: idx, pieces: _updatePieceInList(state.pieces, undoPiece), status: GameStatus.playing),
+      );
     }
   }
 
