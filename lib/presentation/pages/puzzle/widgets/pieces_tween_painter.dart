@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:caesar_puzzle/presentation/pages/puzzle/animated_pieces_overlay.dart';
-import 'package:caesar_puzzle/presentation/widgets/piece_paint_helper.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:flutter/material.dart';
 
 class PiecesTweenPainter extends CustomPainter {

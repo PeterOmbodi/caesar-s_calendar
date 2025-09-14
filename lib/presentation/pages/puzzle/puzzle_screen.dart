@@ -1,11 +1,14 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_view.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
 import 'package:caesar_puzzle/presentation/widgets/floating_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+
 import 'bloc/puzzle_bloc.dart';
 
 const _sideWidth = 340.0;
@@ -21,25 +24,106 @@ class PuzzleScreen extends StatelessWidget {
       create: (_) => PuzzleBloc(settings: CubitSettingsQuery(context.read<SettingsCubit>())),
       child: Scaffold(
         body: SafeArea(
-          child: Stack(
-            children: [
-              const PuzzleView(),
-              Positioned(
-                bottom: 24,
-                right: 24 + (isWideScreen ? _sideWidth : 0),
-                child: _BottomFAB(isSetupVisible: !isWideScreen),
+          child: MultiBlocListener(
+            listeners: [
+              BlocListener<PuzzleBloc, PuzzleState>(
+                listenWhen: (ps, cs) =>
+                    cs.moveIndex == ps.moveIndex + 1 && cs.isPieceInGrid(cs.moveHistory.last.pieceId),
+                listener: (context, state) {
+                  final settingsCubit = context.read<SettingsCubit>();
+                  final settings = settingsCubit.state;
+                  if (settings.unlockConfig && settings.autoLockConfig) {
+                    settingsCubit.toggleUnlockConfig(false);
+                  }
+                },
               ),
-              if (isWideScreen)
-                const Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: SizedBox(width: _sideWidth, child: SettingsPanel()),
-                ),
+              BlocListener<PuzzleBloc, PuzzleState>(
+                listenWhen: (ps, cs) =>
+                    ps.status == GameStatus.searchingAllSolutions && cs.status == GameStatus.solutionsReady ||
+                    ps.status == GameStatus.searchingHint && cs.status == GameStatus.hintReady,
+                listener: _showResultDialog,
+              ),
+              BlocListener<PuzzleBloc, PuzzleState>(
+                listenWhen: (ps, cs) => ps.status == GameStatus.playing && cs.status == GameStatus.solved,
+                listener: _showSolvedDialog,
+              ),
             ],
+            child: Stack(
+              children: [
+                const PuzzleView(),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: BlocBuilder<PuzzleBloc, PuzzleState>(
+                    buildWhen: (ps, cs) =>
+                        ps.status == GameStatus.playing && cs.status == GameStatus.solved ||
+                        ps.status == GameStatus.solved && ps.status != cs.status,
+                    builder: (BuildContext context, PuzzleState state) =>
+                        state.status == GameStatus.solved ? const ConfettiView() : SizedBox.shrink(),
+                  ),
+                ),
+                Positioned(
+                  bottom: 24,
+                  right: 24 + (isWideScreen ? _sideWidth : 0),
+                  child: _BottomFAB(isSetupVisible: !isWideScreen),
+                ),
+                if (isWideScreen)
+                  const Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: SizedBox(width: _sideWidth, child: SettingsPanel()),
+                  ),
+              ],
+            ),
           ),
         ),
         endDrawer: isWideScreen ? null : const SizedBox(width: _sideWidth, child: SettingsPanel()),
+      ),
+    );
+  }
+
+  void _showResultDialog(BuildContext context, PuzzleState state) async {
+    if (state.solutions.isNotEmpty) {
+      final bloc = context.read<PuzzleBloc>();
+      final result = await showDialog<bool>(
+        context: context,
+        builder: (context) => PlatformAlertDialog(
+          title: Text(S.of(context).searchCompletedDialogTitle),
+          content: Text(S.of(context).solutionsFoundDialogMessage(state.solutions.length)),
+          actions: [
+            PlatformDialogAction(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.of(context).solutionsFoundDialogCancel),
+            ),
+            PlatformDialogAction(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(S.of(context).solutionsFoundDialogOk),
+            ),
+          ],
+        ),
+      );
+      if (result == true) {
+        bloc.add(state.status == GameStatus.solutionsReady ? PuzzleEvent.showSolution(0) : PuzzleEvent.showHint(0));
+      }
+    } else {
+      await showDialog(
+        context: context,
+        builder: (context) => PlatformAlertDialog(
+          title: Text(S.of(context).searchCompletedDialogTitle),
+          content: Text(S.of(context).solutionsNotFoundDialogMessage),
+          actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
+        ),
+      );
+    }
+  }
+
+  void _showSolvedDialog(BuildContext context, PuzzleState state) async {
+    await showDialog(
+      context: context,
+      builder: (context) => PlatformAlertDialog(
+        title: Text(S.of(context).solvedAlertTitle),
+        content: Text(S.of(context).solvedAlertSubTitle),
+        actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
       ),
     );
   }

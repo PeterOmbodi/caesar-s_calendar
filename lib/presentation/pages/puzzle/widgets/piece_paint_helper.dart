@@ -16,8 +16,8 @@ class PiecePaintHelper {
     const double innerThickness = 2.0;
     final bounds = transformedPath.getBounds().inflate(inset + innerThickness + 2);
     final smallerBorderColor = borderColorMode && !piece.isUserMove
-        ? AppColors.current.boardBackground
-        : AppColors.current.pieceBorder.withValues(alpha: 0.5);
+        ? Colors.orangeAccent
+        : AppColors.current.pieceBorder.withValues(alpha: 0.1);
     final smallerBorder = Paint()
       ..isAntiAlias = true
       ..style = PaintingStyle.stroke

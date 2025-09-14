@@ -1,6 +1,6 @@
 part of 'puzzle_bloc.dart';
 
-enum GameStatus { initializing, waiting, playing, searchingAllSolutions, solutionsReady, searchingHint, hintReady }
+enum GameStatus { initializing, waiting, playing, searchingAllSolutions, solutionsReady, searchingHint, hintReady, solved }
 
 @freezed
 abstract class PuzzleState with _$PuzzleState {

@@ -24,6 +24,8 @@
   "showControls": "Show controls",
   "snapToGrid": "Snap to Grid",
   "snapToGridDescription": "Keep pieces inside the grid when rotating or flipping",
+  "solvedAlertTitle": "Congrats! \uD83C\uDF89",
+  "solvedAlertSubTitle": "You did it!",
   "solutionLabel": "solution:\n {current} / {total}",
   "solutionsFoundDialogCancel": "Cancel",
   "solutionsFoundDialogMessage": "Found {count} solutions. Show them?",
