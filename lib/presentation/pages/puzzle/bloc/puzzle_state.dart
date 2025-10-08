@@ -1,6 +1,16 @@
 part of 'puzzle_bloc.dart';
 
-enum GameStatus { initializing, waiting, playing, searchingAllSolutions, solutionsReady, searchingHint, hintReady, solved }
+enum GameStatus {
+  initializing, // initial state
+  initialized,
+  playing, // user started to solve
+  searchingSolutions, // searching for solutions
+  solutionsReady,
+  showingSolution, //showing possible solution
+  searchingHint,
+  hintReady,
+  solvedByUser,
+}
 
 @freezed
 abstract class PuzzleState with _$PuzzleState {
@@ -12,6 +22,7 @@ abstract class PuzzleState with _$PuzzleState {
     boardConfig: PuzzleBoard.initial(),
     pieces: [],
     solutions: [],
+    applicableSolutions: [],
     solutionIdx: -1,
     timer: 0,
     selectedPiece: null,
@@ -20,16 +31,18 @@ abstract class PuzzleState with _$PuzzleState {
     previewCollision: false,
     moveHistory: [],
     moveIndex: 0,
+    selectedDate: DateTime.now(),
   );
 
   factory PuzzleState({
     required GameStatus status,
     required PuzzleGrid gridConfig,
     required PuzzleBoard boardConfig,
-    required List<List<String>> solutions,
+    required List<Map<String, String>> solutions,
+    required List<Map<String, String>> applicableSolutions,
     required int solutionIdx,
     required int timer,
-    required List<PuzzlePiece> pieces,
+    required Iterable<PuzzlePiece> pieces,
     required PuzzlePiece? selectedPiece,
     required bool isDragging,
     Offset? dragStartOffset,
@@ -40,11 +53,12 @@ abstract class PuzzleState with _$PuzzleState {
     required bool previewCollision,
     required List<Move> moveHistory,
     required int moveIndex,
+    required DateTime selectedDate,
   }) = _PuzzleState;
 
-  bool get isSolving => status == GameStatus.searchingAllSolutions;
+  bool get isSolving => status == GameStatus.searchingSolutions;
 
-  bool get allowSolutionDisplay => status == GameStatus.solutionsReady && solutions.isNotEmpty && solutionIdx >= 0;
+  bool get allowSolutionNavigation => status == GameStatus.showingSolution;
 
   bool get allowHintDisplay => solutionIdx < 0 && moveHistory.isNotEmpty;
 
@@ -58,5 +72,5 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isUndoEnabled => moveHistory.isNotEmpty && moveIndex > 0;
 
-  bool isPieceInGrid(String pieceId) => gridPieces.any((e) => !e.isForbidden && e.id == pieceId);
+  bool isPieceInGrid(String pieceId) => gridPieces.any((e) => !e.isConfigItem && e.id == pieceId);
 }

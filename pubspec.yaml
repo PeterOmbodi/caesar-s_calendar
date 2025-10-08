@@ -1,9 +1,9 @@
 name: caesar_puzzle
 description: "Caesar Puzzle Calendar"
 
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.1
 
 environment:
   sdk: ^3.8.0
@@ -11,10 +11,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
 
   intl: ^0.20.2
   get_it: ^8.2.0
@@ -32,6 +28,7 @@ dependencies:
   shared_preferences: ^2.5.3
   flutter_native_splash: ^2.4.6
   confetti: ^0.8.0
+  package_info_plus: ^9.0.0
 
   flutter_localizations:
     sdk: flutter

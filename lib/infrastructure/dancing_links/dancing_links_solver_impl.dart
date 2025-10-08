@@ -12,26 +12,22 @@ class DancingLinksSolverImpl implements PuzzleSolverService {
   DancingLinksSolverImpl();
 
   @override
-  Future<List<List<String>>> solve({
-    required List<PuzzlePiece> pieces,
+  Future<Iterable<List<String>>> solve({
+    required Iterable<PuzzlePiece> pieces,
     required PuzzleGrid grid,
     bool keepUserMoves = false,
+    DateTime? date,
   }) async {
     final serializablePieces = pieces.map((p) {
-      final immovablePiece = keepUserMoves ? p.placeZone == PlaceZone.grid : p.isForbidden;
+      final immovablePiece = keepUserMoves ? p.placeZone == PlaceZone.grid : p.isConfigItem;
       return PuzzlePieceDto(
         id: p.id,
-        cells:
-            immovablePiece || p.isForbidden ? p.cells(grid.origin, grid.cellSize) : p.relativeCells(grid.cellSize),
-        isForbidden: p.isForbidden,
+        cells: immovablePiece || p.isConfigItem ? p.cells(grid.origin, grid.cellSize) : p.relativeCells(grid.cellSize),
+        isForbidden: p.isConfigItem,
         isImmovable: immovablePiece,
       );
-    }).toList();
-    final solver = PuzzleSolver(
-      grid: grid,
-      pieces: serializablePieces,
-      date: DateTime.now(),
-    );
+    });
+    final solver = PuzzleSolver(grid: grid, pieces: serializablePieces, date: date ?? DateTime.now());
 
     return solver.solveInIsolate();
   }

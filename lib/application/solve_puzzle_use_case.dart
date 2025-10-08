@@ -7,11 +7,33 @@ import '../injection.dart';
 class SolvePuzzleUseCase {
   SolvePuzzleUseCase();
 
-  Future<List<List<String>>> call({
-    required List<PuzzlePiece> pieces,
+  Future<Iterable<Map<String, String>>> call({
+    required Iterable<PuzzlePiece> pieces,
     required PuzzleGrid grid,
     bool keepUserMoves = false,
+    DateTime? date,
   }) async {
-    return getIt<PuzzleSolverService>().solve(pieces: pieces, grid: grid, keepUserMoves: keepUserMoves);
+    final rawSolutions = await getIt<PuzzleSolverService>().solve(
+      pieces: pieces,
+      grid: grid,
+      keepUserMoves: keepUserMoves,
+      date: date,
+    );
+    return rawSolutions.map((e) => e.toSolutionMap());
+  }
+}
+
+extension SolutionExtension on List<String> {
+  Map<String, String> toSolutionMap() {
+    final result = <String, String>{};
+    for (final item in this) {
+      final parts = item.split('_');
+      if (parts.isNotEmpty) {
+        final key = parts.first;
+        final value = parts.skip(1).join('_');
+        result[key] = value;
+      }
+    }
+    return result;
   }
 }

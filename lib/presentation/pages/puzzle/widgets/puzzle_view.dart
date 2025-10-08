@@ -16,6 +16,15 @@ class PuzzleView extends StatelessWidget {
         final bloc = context.read<PuzzleBloc>();
         bloc.add(PuzzleEvent.setViewSize(constraints.biggest));
         final borderColorMode = context.watch<SettingsCubit>().state.separateMoveColors;
+
+        final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
+        final solvability = solutionIndicator == SolutionIndicator.solvability
+            ? context.watch<PuzzleBloc>().state.applicableSolutions.length
+            : -1;
+        final solutionsCount = solutionIndicator == SolutionIndicator.countSolutions
+            ? context.watch<PuzzleBloc>().state.applicableSolutions.length
+            : -1;
+
         return state.status == GameStatus.initializing
             ? Center(child: CircularProgressIndicator())
             : GestureDetector(
@@ -37,7 +46,7 @@ class PuzzleView extends StatelessWidget {
                     selectedPiece: state.selectedPiece,
                     childBuilder: (hiddenIds) => CustomPaint(
                       painter: PuzzleBoardPainter(
-                        pieces: state.pieces.where((p) => !hiddenIds.contains(p.id) || p.isForbidden),
+                        pieces: state.pieces.where((p) => !hiddenIds.contains(p.id) || p.isConfigItem),
                         grid: state.gridConfig,
                         board: state.boardConfig,
                         selectedPiece: state.selectedPiece,
@@ -45,6 +54,9 @@ class PuzzleView extends StatelessWidget {
                         showPreview: state.showPreview,
                         previewCollision: state.previewCollision,
                         borderColorMode: borderColorMode,
+                        selectedDate: state.selectedDate,
+                        solvability: solvability,
+                        solutionsCount: solutionsCount,
                       ),
                     ),
                   ),

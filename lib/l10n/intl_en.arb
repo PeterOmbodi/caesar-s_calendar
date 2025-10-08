@@ -24,8 +24,15 @@
   "showControls": "Show controls",
   "snapToGrid": "Snap to Grid",
   "snapToGridDescription": "Keep pieces inside the grid when rotating or flipping",
+  "solvability": "Solvability",
   "solvedAlertTitle": "Congrats! \uD83C\uDF89",
   "solvedAlertSubTitle": "You did it!",
+  "solutionIndicatorCountTitle": "Solution counter",
+  "solutionIndicatorCountSubtitle": "Shows how many different solutions exist for this puzzle state",
+  "solutionIndicatorHiddenTitle": "Hidden mode",
+  "solutionIndicatorHiddenSubtitle": "Reveal solvability info only when asking for a hint or solution",
+  "solutionIndicatorSolvabilityTitle": "Solvability indicator",
+  "solutionIndicatorSolvabilitySubtitle": "Shows whether the current setup can be solved",
   "solutionLabel": "solution:\n {current} / {total}",
   "solutionsFoundDialogCancel": "Cancel",
   "solutionsFoundDialogMessage": "Found {count} solutions. Show them?",
@@ -36,5 +43,6 @@
   "theme": "Theme",
   "undo": "Undo",
   "unlockConfig": "Unlock configuration",
-  "unlockConfigDescription": "Drag & rotate predefined blocks to build your custom layout"
+  "unlockConfigDescription": "Drag & rotate predefined blocks to build your custom layout",
+  "general": "General"
 }
