@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 typedef PieceId = String;
 
 class AnimatedPiecesOverlay extends StatefulWidget {
-  final List<PuzzlePiece> pieces;
+  final Iterable<PuzzlePiece> pieces;
   final Duration duration;
   final Curve curve;
   final Widget Function(Set<PieceId> hiddenIds) childBuilder;
@@ -100,7 +100,7 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
     );
   }
 
-  static Map<PieceId, PuzzlePiece> _indexById(List<PuzzlePiece> list) => {for (final p in list) p.id: p};
+  static Map<PieceId, PuzzlePiece> _indexById(Iterable<PuzzlePiece> list) => {for (final p in list) p.id: p};
 
   Map<PieceId, PieceTween> _buildTweens(Map<PieceId, PuzzlePiece> from, Map<PieceId, PuzzlePiece> to) {
     final result = <PieceId, PieceTween>{};

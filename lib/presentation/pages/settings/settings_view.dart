@@ -2,6 +2,7 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsPanel extends StatelessWidget {
   const SettingsPanel({super.key});
@@ -47,6 +48,8 @@ class SettingsPanel extends StatelessWidget {
               },
             ),
             const SizedBox(height: 16),
+            Text(S.current.general, style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
             BlocBuilder<SettingsCubit, SettingsState>(
               buildWhen: (p, n) => p.unlockConfig != n.unlockConfig,
               builder: (context, state) {
@@ -102,10 +105,55 @@ class SettingsPanel extends StatelessWidget {
                 );
               },
             ),
-
+            const SizedBox(height: 8),
+            BlocBuilder<SettingsCubit, SettingsState>(
+              buildWhen: (p, n) => p.solutionIndicator != n.solutionIndicator,
+              builder: (context, state) {
+                final cubit = context.read<SettingsCubit>();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(S.current.solvability, style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    RadioListTile<SolutionIndicator>(
+                      title: Text(S.current.solutionIndicatorHiddenTitle),
+                      subtitle: Text(S.current.solutionIndicatorHiddenSubtitle),
+                      value: SolutionIndicator.none,
+                      groupValue: state.solutionIndicator,
+                      onChanged: cubit.setSolutionIndicator,
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<SolutionIndicator>(
+                      title: Text(S.current.solutionIndicatorSolvabilityTitle),
+                      subtitle: Text(S.current.solutionIndicatorSolvabilitySubtitle),
+                      value: SolutionIndicator.solvability,
+                      groupValue: state.solutionIndicator,
+                      onChanged: cubit.setSolutionIndicator,
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<SolutionIndicator>(
+                      title: Text(S.current.solutionIndicatorCountTitle),
+                      subtitle: Text(S.current.solutionIndicatorCountSubtitle),
+                      value: SolutionIndicator.countSolutions,
+                      groupValue: state.solutionIndicator,
+                      onChanged: cubit.setSolutionIndicator,
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                );
+              },
+            ),
             const SizedBox(height: 12),
             const Divider(),
-            const SizedBox(height: 12),
+            FutureBuilder(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) return const SizedBox.shrink();
+                final info = snapshot.data!;
+                return Text('Version ${info.version}+${info.buildNumber}');
+              },
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

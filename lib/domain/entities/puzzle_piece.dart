@@ -54,12 +54,12 @@ String idForType(PieceType type) {
   }
 }
 
-bool isForbiddenType(PieceType type) {
+bool isConfigType(PieceType type) {
   return type == PieceType.zone1 || type == PieceType.zone2;
 }
 
 double borderRadiusForType(PieceType type) {
-  return isForbiddenType(type) ? 0 : 8.0;
+  return isConfigType(type) ? 0 : 8.0;
 }
 
 typedef GetPieceColor = Color Function();
@@ -70,8 +70,8 @@ class PuzzlePiece extends PuzzlePieceBase {
   final GetPieceColor color;
   final Offset centerPoint;
   final double borderRadius;
-  final bool isForbidden;
-  final bool isUserMove;
+  final bool isConfigItem;
+  final bool isUsersItem;
 
   PuzzlePiece({
     required super.id,
@@ -84,12 +84,12 @@ class PuzzlePiece extends PuzzlePieceBase {
     required this.color,
     required this.centerPoint,
     this.borderRadius = 8.0,
-    this.isForbidden = false,
-    this.isUserMove = true,
+    this.isConfigItem = false,
+    this.isUsersItem = true,
   });
 
   factory PuzzlePiece.fromType(PieceType type, Offset position, Offset centerPoint, double cellSize) {
-    final isForbidden = isForbiddenType(type);
+    final isForbidden = isConfigType(type);
     return PuzzlePiece(
       type: type,
       originalPath: generatePathForType(type, cellSize),
@@ -98,7 +98,7 @@ class PuzzlePiece extends PuzzlePieceBase {
       position: position,
       centerPoint: centerPoint,
       borderRadius: borderRadiusForType(type),
-      isForbidden: isForbidden,
+      isConfigItem: isForbidden,
       placeZone: isForbidden ? PlaceZone.grid : PlaceZone.board,
     );
   }
@@ -123,12 +123,12 @@ class PuzzlePiece extends PuzzlePieceBase {
       centerPoint: centerPoint ?? this.centerPoint,
       isFlipped: isFlipped ?? this.isFlipped,
       borderRadius: borderRadius,
-      isForbidden: isForbidden ?? this.isForbidden,
+      isConfigItem: isForbidden ?? this.isConfigItem,
       placeZone: placeZone ?? this.placeZone,
-      isUserMove: isUserMove ?? this.isUserMove,
+      isUsersItem: isUserMove ?? this.isUsersItem,
     );
   }
 
   Color borderColor(bool borderColorMode) =>
-      isUserMove || !borderColorMode ? AppColors.current.pieceBorder : Colors.transparent;
+      isUsersItem || !borderColorMode ? AppColors.current.pieceBorder : Colors.transparent;
 }

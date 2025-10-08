@@ -13,7 +13,7 @@ import 'package:flutter/foundation.dart';
 /// - currentDate: the date whose cells should remain free
 class PuzzleSolver {
   final PuzzleGrid grid;
-  final List<PuzzlePieceDto> pieces;
+  final Iterable<PuzzlePieceDto> pieces;
   final DateTime date;
   late Iterable<Cell> forbiddenCells;
   late Iterable<Cell> unmovableCells;
@@ -115,7 +115,7 @@ class PuzzleSolver {
   }
 
   /// Solves the puzzle using Dancing Links.
-  List<List<String>> solve() {
+  Iterable<List<String>> solve() {
     List<String> constraints = buildConstraints();
     var universe = DlxUniverse(constraints);
     final idToPlacement = <String, PlacementDto>{};
@@ -166,11 +166,11 @@ class PuzzleSolver {
     );
   }
 
-  Future<List<List<String>>> solveInIsolate() async {
+  Future<Iterable<List<String>>> solveInIsolate() async {
     return await compute(_solveEntryPoint, toSerializable());
   }
 
-  static List<List<String>> _solveEntryPoint(Map<String, dynamic> data) {
+  static Iterable<List<String>> _solveEntryPoint(Map<String, dynamic> data) {
     final solver = PuzzleSolver.fromSerializable(data);
     return solver.solve();
   }

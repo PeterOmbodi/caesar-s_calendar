@@ -10,6 +10,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'core/bloc/app_bloc_observer.dart';
 import 'generated/l10n.dart';
 import 'injection.dart';
 
@@ -17,13 +18,12 @@ Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   configureInjection();
-  // final themeNotifier = ThemeModeNotifier();
-  // await themeNotifier.load();
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
         ? HydratedStorageDirectory.web
         : HydratedStorageDirectory((await getApplicationDocumentsDirectory()).path),
   );
+  Bloc.observer = AppBlocObserver();
   runApp(
     Builder(
       builder: (context) {

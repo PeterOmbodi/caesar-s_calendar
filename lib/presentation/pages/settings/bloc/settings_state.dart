@@ -14,6 +14,7 @@ abstract class SettingsState with _$SettingsState {
     @Default(true) bool autoLockConfig,
     @Default(true) bool separateMoveColors,
     @Default(false) bool snapToGridOnTransform,
+    @Default(SolutionIndicator.none) SolutionIndicator solutionIndicator,
   }) = _SettingsState;
 
 

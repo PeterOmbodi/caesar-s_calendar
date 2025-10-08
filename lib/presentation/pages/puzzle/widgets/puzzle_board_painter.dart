@@ -4,8 +4,9 @@ import 'package:caesar_puzzle/core/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
-import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
+import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -19,6 +20,9 @@ class PuzzleBoardPainter extends CustomPainter {
   final bool showPreview;
   final bool previewCollision;
   final bool borderColorMode;
+  final DateTime selectedDate;
+  final int solvability;
+  final int solutionsCount;
 
   PuzzleBoardPainter({
     required this.pieces,
@@ -30,6 +34,9 @@ class PuzzleBoardPainter extends CustomPainter {
     this.showPreview = false,
     this.previewCollision = false,
     required this.borderColorMode,
+    required this.selectedDate,
+    required this.solvability,
+    required this.solutionsCount,
   });
 
   @override
@@ -52,6 +59,9 @@ class PuzzleBoardPainter extends CustomPainter {
           ..style = PaintingStyle.fill;
         canvas.drawCircle(piece.position + piece.centerPoint, 5.0, centerPaint);
       }
+    }
+    if (solvability >= 0 || solutionsCount >= 0) {
+      _drawSolutionsInfo(canvas);
     }
   }
 
@@ -83,10 +93,8 @@ class PuzzleBoardPainter extends CustomPainter {
   }
 
   void _drawLabels(Canvas canvas) {
-    final today = DateTime.now();
-
     final forbiddenCells = pieces
-        .where((e) => e.isForbidden)
+        .where((e) => e.isConfigItem)
         .map((e) => e.cells(grid.origin, grid.cellSize))
         .expand((e) => e);
 
@@ -98,7 +106,10 @@ class PuzzleBoardPainter extends CustomPainter {
           continue;
         }
         final x = grid.origin.dx + column * grid.cellSize;
-        final textPainter = TextPainter(text: _getCellTextSpan(cellIndex, today), textDirection: TextDirection.ltr);
+        final textPainter = TextPainter(
+          text: _getCellTextSpan(cellIndex, selectedDate),
+          textDirection: TextDirection.ltr,
+        );
         textPainter.layout(minWidth: 0, maxWidth: grid.cellSize);
         final xCenter = x + (grid.cellSize - textPainter.width) / 2;
         final yCenter = y + (grid.cellSize - textPainter.height) / 2;
@@ -154,6 +165,66 @@ class PuzzleBoardPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     canvas.drawPath(previewPath, fillPaint);
+  }
+
+  void _drawSolutionsInfo(Canvas canvas) {
+    final origin = grid.origin;
+    final cellSize = grid.cellSize;
+    final labelColor = AppColors.current.cellLabel;
+    const textSize = 20.0;
+
+    final forbiddenCells = pieces
+        .where((e) => e.isConfigItem)
+        .expand((e) => e.cells(origin, cellSize))
+        .sortedBy((e) => e.row * 100 + e.col);
+
+    final aligned = _firstAlignedPair(forbiddenCells);
+
+    if (aligned.length < 2) return;
+
+    final icon = solvability == 0 || solutionsCount == 0 ? Icons.cancel : Icons.check_circle;
+
+    final iconColor = solvability == 0 || solutionsCount == 0 ? Colors.red : Colors.green;
+
+    final iconPainter = _makeTextPainter(
+      String.fromCharCode(icon.codePoint),
+      TextStyle(fontFamily: icon.fontFamily, package: icon.fontPackage, fontSize: textSize, color: iconColor),
+      cellSize,
+    );
+
+    _paintCenteredInCell(canvas, iconPainter, aligned.first, origin, cellSize);
+    if (solutionsCount >= 0) {
+      final countPainter = _makeTextPainter(
+        '$solutionsCount',
+        TextStyle(color: labelColor, fontSize: textSize, fontWeight: FontWeight.w700),
+        cellSize,
+      );
+      _paintCenteredInCell(canvas, countPainter, aligned.last, origin, cellSize);
+    }
+  }
+
+  List<Cell> _firstAlignedPair(List<Cell> cells) {
+    for (var i = 0; i < cells.length; i++) {
+      for (var j = i + 1; j < cells.length; j++) {
+        final a = cells[i], b = cells[j];
+        if (a.row == b.row || a.col == b.col) return [a, b];
+      }
+    }
+    return const [];
+  }
+
+  TextPainter _makeTextPainter(String text, TextStyle style, double maxWidth) {
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+    )..layout(minWidth: 0, maxWidth: maxWidth);
+    return tp;
+  }
+
+  void _paintCenteredInCell(Canvas canvas, TextPainter tp, Cell cell, Offset origin, double cellSize) {
+    final x = origin.dx + cell.col * cellSize + (cellSize - tp.width) / 2;
+    final y = origin.dy + cell.row * cellSize + (cellSize - tp.height) / 2;
+    tp.paint(canvas, Offset(x, y));
   }
 
   @override

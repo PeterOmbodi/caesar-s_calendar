@@ -7,6 +7,11 @@ part 'settings_state.dart';
 part 'settings_cubit.freezed.dart';
 part 'settings_cubit.g.dart';
 
+enum SolutionIndicator {
+  none,
+  solvability,
+  countSolutions,
+}
 
 class SettingsCubit extends HydratedCubit<SettingsState> {
   SettingsCubit() : super(const SettingsState());
@@ -20,6 +25,7 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
   void toggleAutoLockConfig(bool v) => emit(state.copyWith(autoLockConfig: v));
   void toggleSnapToGrid(bool v) => emit(state.copyWith(snapToGridOnTransform: v));
   void toggleSeparateColors(bool v) => emit(state.copyWith(separateMoveColors: v));
+  void setSolutionIndicator(SolutionIndicator? v) => emit(state.copyWith(solutionIndicator: v ?? SolutionIndicator.none));
 
   @override
   SettingsState? fromJson(Map<String, dynamic> json) {

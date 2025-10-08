@@ -38,13 +38,7 @@ class PuzzleScreen extends StatelessWidget {
                 },
               ),
               BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (ps, cs) =>
-                    ps.status == GameStatus.searchingAllSolutions && cs.status == GameStatus.solutionsReady ||
-                    ps.status == GameStatus.searchingHint && cs.status == GameStatus.hintReady,
-                listener: _showResultDialog,
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (ps, cs) => ps.status == GameStatus.playing && cs.status == GameStatus.solved,
+                listenWhen: (ps, cs) => ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser,
                 listener: _showSolvedDialog,
               ),
             ],
@@ -55,10 +49,10 @@ class PuzzleScreen extends StatelessWidget {
                   alignment: Alignment.topCenter,
                   child: BlocBuilder<PuzzleBloc, PuzzleState>(
                     buildWhen: (ps, cs) =>
-                        ps.status == GameStatus.playing && cs.status == GameStatus.solved ||
-                        ps.status == GameStatus.solved && ps.status != cs.status,
+                        ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser ||
+                        ps.status == GameStatus.solvedByUser && ps.status != cs.status,
                     builder: (BuildContext context, PuzzleState state) =>
-                        state.status == GameStatus.solved ? const ConfettiView() : SizedBox.shrink(),
+                        state.status == GameStatus.solvedByUser ? const ConfettiView() : SizedBox.shrink(),
                   ),
                 ),
                 Positioned(
@@ -82,41 +76,6 @@ class PuzzleScreen extends StatelessWidget {
     );
   }
 
-  void _showResultDialog(BuildContext context, PuzzleState state) async {
-    if (state.solutions.isNotEmpty) {
-      final bloc = context.read<PuzzleBloc>();
-      final result = await showDialog<bool>(
-        context: context,
-        builder: (context) => PlatformAlertDialog(
-          title: Text(S.of(context).searchCompletedDialogTitle),
-          content: Text(S.of(context).solutionsFoundDialogMessage(state.solutions.length)),
-          actions: [
-            PlatformDialogAction(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(S.of(context).solutionsFoundDialogCancel),
-            ),
-            PlatformDialogAction(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(S.of(context).solutionsFoundDialogOk),
-            ),
-          ],
-        ),
-      );
-      if (result == true) {
-        bloc.add(state.status == GameStatus.solutionsReady ? PuzzleEvent.showSolution(0) : PuzzleEvent.showHint(0));
-      }
-    } else {
-      await showDialog(
-        context: context,
-        builder: (context) => PlatformAlertDialog(
-          title: Text(S.of(context).searchCompletedDialogTitle),
-          content: Text(S.of(context).solutionsNotFoundDialogMessage),
-          actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
-        ),
-      );
-    }
-  }
-
   void _showSolvedDialog(BuildContext context, PuzzleState state) async {
     await showDialog(
       context: context,
@@ -138,7 +97,53 @@ class _BottomFAB extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PuzzleBloc, PuzzleState>(
       builder: (context, state) {
-        final bloc = context.read<PuzzleBloc>();
+
+        final solutionsCount = state.applicableSolutions.length;
+        final puzzleBloc = context.read<PuzzleBloc>();
+        final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
+        final isSolvabilityInfoVisible = solutionIndicator != SolutionIndicator.none;
+        final isAssistDisabled = isSolvabilityInfoVisible && solutionsCount == 0;
+
+        void onAssistPressed(VoidCallback allowedEvent) async {
+          if (solutionsCount == 0) {
+            await showDialog(
+              context: context,
+              builder: (context) => PlatformAlertDialog(
+                title: Text(S.of(context).searchCompletedDialogTitle),
+                content: Text(S.of(context).solutionsNotFoundDialogMessage),
+                actions: [
+                  PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok)),
+                ],
+              ),
+            );
+            return;
+          }
+          if (isSolvabilityInfoVisible) {
+            allowedEvent.call();
+          } else {
+            final result = await showDialog<bool>(
+              context: context,
+              builder: (context) => PlatformAlertDialog(
+                title: Text(S.of(context).searchCompletedDialogTitle),
+                content: Text(S.of(context).solutionsFoundDialogMessage(state.applicableSolutions.length)),
+                actions: [
+                  PlatformDialogAction(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text(S.of(context).solutionsFoundDialogCancel),
+                  ),
+                  PlatformDialogAction(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text(S.of(context).solutionsFoundDialogOk),
+                  ),
+                ],
+              ),
+            );
+            if (result == true) {
+              allowedEvent.call();
+            }
+          }
+        }
+
         return FloatingPanel(
           children: [
             if (isSetupVisible)
@@ -147,19 +152,19 @@ class _BottomFAB extends StatelessWidget {
                 onPressed: () => Scaffold.of(context).openEndDrawer(),
                 tooltip: S.current.settings,
               ),
-            if (state.allowSolutionDisplay) ...[
+            if (state.allowSolutionNavigation) ...[
               IconButton(
                 icon: Icon(Icons.arrow_left),
-                onPressed: () => bloc.add(
-                  PuzzleEvent.showSolution((state.solutionIdx > 0 ? state.solutionIdx : state.solutions.length) - 1),
+                onPressed: () => puzzleBloc.add(
+                  PuzzleEvent.showSolution((state.solutionIdx > 0 ? state.solutionIdx : solutionsCount) - 1),
                 ),
                 tooltip: S.current.prevSolution,
               ),
-              Text(S.of(context).solutionLabel(state.solutionIdx + 1, state.solutions.length)),
+              Text(S.of(context).solutionLabel(state.solutionIdx + 1, solutionsCount)),
               IconButton(
                 icon: Icon(Icons.arrow_right),
-                onPressed: () => bloc.add(
-                  PuzzleEvent.showSolution(state.solutionIdx < state.solutions.length - 1 ? state.solutionIdx + 1 : 0),
+                onPressed: () => puzzleBloc.add(
+                  PuzzleEvent.showSolution(state.solutionIdx < solutionsCount - 1 ? state.solutionIdx + 1 : 0),
                 ),
                 tooltip: S.current.nextSolution,
               ),
@@ -172,26 +177,28 @@ class _BottomFAB extends StatelessWidget {
                     )
                   : IconButton(
                       icon: Icon(Icons.lightbulb),
-                      onPressed: () => bloc.add(PuzzleEvent.solve(keepUserMoves: true)),
+                      onPressed: isAssistDisabled
+                          ? null
+                          : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
                       tooltip: S.current.searchSolution,
                     ),
             if (state.allowHintDisplay)
               IconButton(
                 icon: Icon(Icons.tips_and_updates_outlined),
-                onPressed: () => bloc.add(PuzzleEvent.hint()),
+                onPressed: isAssistDisabled ? null : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.hint())),
                 tooltip: S.current.hint,
               ),
             if (state.moveHistory.isNotEmpty) ...[
               IconButton(
                 icon: Icon(Icons.undo),
-                onPressed: state.isUndoEnabled ? () => bloc.add(PuzzleEvent.undo()) : null,
+                onPressed: state.isUndoEnabled ? () => puzzleBloc.add(PuzzleEvent.undo()) : null,
                 tooltip: S.current.undo,
               ),
               //for debugging, temporary
               //Text('${state.moveIndex}\n${state.moveHistory.length}'),
               IconButton(
                 icon: Icon(Icons.redo),
-                onPressed: state.isRedoEnabled ? () => bloc.add(PuzzleEvent.redo()) : null,
+                onPressed: state.isRedoEnabled ? () => puzzleBloc.add(PuzzleEvent.redo()) : null,
                 tooltip: S.current.redo,
               ),
             ],

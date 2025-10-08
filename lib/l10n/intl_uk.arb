@@ -24,9 +24,16 @@
   "showControls": "Показати елементи керування",
   "snapToGrid": "Прив’язка до сітки",
   "snapToGridDescription": "Утримувати фігури в межах сітки під час обертання або віддзеркалення",
+  "solvability": "Розв’язуваність",
   "solvedAlertTitle": "Вітаю! \uD83C\uDF89",
   "solvedAlertSubTitle": "Ти зробив це!",
   "solutionLabel": "рішення:\n {current} / {total}",
+  "solutionIndicatorCountTitle": "Лічильник розв’язків",
+  "solutionIndicatorCountSubtitle": "Показує, скільки різних розв’язків існує для цього стану головоломки",
+  "solutionIndicatorHiddenTitle": "Прихований режим",
+  "solutionIndicatorHiddenSubtitle": "Показувати інформацію про розв’язуваність лише під час запиту підказки або розв’язку",
+  "solutionIndicatorSolvabilityTitle": "Індикатор розв’язуваності",
+  "solutionIndicatorSolvabilitySubtitle": "Показує, чи можна розв’язати поточну конфігурацію",
   "solutionsFoundDialogCancel": "Скасувати",
   "solutionsFoundDialogMessage": "Знайдено {count} рішень. Показати?",
   "solutionsFoundDialogOk": "Показати",
@@ -36,5 +43,7 @@
   "theme": "Тема",
   "undo": "Скасувати",
   "unlockConfig": "Розблокувати конфігурацію",
-  "unlockConfigDescription": "Створюйте власну конфігурацію перетягуючи/обертаючи передвстановленні блоки"
+  "unlockConfigDescription": "Створюйте власну конфігурацію перетягуючи/обертаючи передвстановленні блоки",
+  "general": "Загальні"
+
 }

@@ -12,17 +12,17 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.onPanUpdate(Offset localPosition) = _OnPanUpdate;
   const factory PuzzleEvent.onPanEnd(Offset localPosition) = _OnPanEnd;
   const factory PuzzleEvent.onDoubleTapDown(Offset localPosition) = _OnDoubleTapDown;
-  const factory PuzzleEvent.solve({required bool keepUserMoves}) = _Solve;
-  const factory PuzzleEvent.setSolvingResults(List<List<String>> solutions) = _SetSolvingResults;
+  const factory PuzzleEvent.solve({required bool showResult}) = _Solve;
+  const factory PuzzleEvent.setSolvingResults(Iterable<Map<String, String>> solutions) = _SetSolvingResults;
   const factory PuzzleEvent.showSolution(int index) = _ShowSolution;
   const factory PuzzleEvent.configure({
     required Size viewSize,
-    required PuzzleState prevState,
-    required Iterable<PuzzlePiece> forbiddenPieces,
+    @Default(false) bool toInitial,
+    @Default(<PuzzlePiece>[]) Iterable<PuzzlePiece> configurationPieces ,
   }) = _Configure;
   const factory PuzzleEvent.undo() = _Undo;
   const factory PuzzleEvent.redo() = _Redo;
   const factory PuzzleEvent.hint() = _Hint;
-  const factory PuzzleEvent.setHintingResults(List<List<String>> solutions) = _SetHintingResults;
+  const factory PuzzleEvent.setHintingResults(Iterable<Map<String, String>> solutions) = _SetHintingResults;
   const factory PuzzleEvent.showHint(int index) = _ShowHint;
 }
