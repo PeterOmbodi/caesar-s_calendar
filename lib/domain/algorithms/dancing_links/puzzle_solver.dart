@@ -27,7 +27,7 @@ class PuzzleSolver {
 
   /// Build the list of constraints (columns) for the exact cover problem.
   /// Here we assume that each grid cell (except those that must remain free) gets an identifier
-  /// in the format "cell_r_c". Also, for each piece we add a constraint "piece_<id>".
+  /// in the format "cell_r_c". Also, for each piece we add a constraint "piece_{id}".
   List<String> buildConstraints() {
     List<String> constraints = [];
     var cellIndex = 0;

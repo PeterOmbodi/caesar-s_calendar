@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 import 'package:caesar_puzzle/application/contracts/settings_query.dart';
-import 'package:caesar_puzzle/application/hint_puzzle_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
@@ -57,8 +56,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_Solve>(_solve);
     on<_SetSolvingResults>(_setSolvingResults);
     on<_ShowSolution>(_showSolution);
-    on<_Hint>(_hint);
-    on<_SetHintingResults>(_setHintingResults);
     on<_ShowHint>(_showHint);
     on<_Undo>(_undoMove);
     on<_Redo>(_redoMove);
@@ -502,7 +499,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       if (params == null) continue;
       final piece = state.pieces.firstWhere((p) => p.id == params.pieceId);
       if (gridPieces.firstWhereOrNull((e) => e.id == piece.id) == null) {
-        gridPieces.add(_applyPlacementToPiece(piece, params).copyWith(isUserMove: false));
+        gridPieces.add(_applyPlacementToPiece(piece, params).copyWith(isUsersItem: false));
       }
     }
     emit(
@@ -517,33 +514,25 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     );
   }
 
-  //todo it`s broken for now, need to rework by using _combineSolutions
-  FutureOr<void> _hint(_Hint event, Emitter<PuzzleState> emit) async {
-    emit(state.copyWith(status: GameStatus.searchingHint, solutions: []));
-    await Future.delayed(solvingDelay);
-    HintPuzzleUseCase().call(pieces: state.pieces, grid: state.gridConfig).then((solutions) {
-      debugPrint('hinting finished, found solutions: ${solutions.length}');
-      add(PuzzleEvent.setHintingResults(solutions));
-    });
-  }
-
-  FutureOr<void> _setHintingResults(_SetHintingResults event, Emitter<PuzzleState> emit) {
-    emit(state.copyWith(status: GameStatus.hintReady, solutions: event.solutions.toList()));
-  }
-
   FutureOr<void> _showHint(_ShowHint event, Emitter<PuzzleState> emit) {
-    final solutionIds = state.solutions[event.index];
-    final gridPieces = List<PuzzlePiece>.from(state.gridPieces);
-
-    final firstPiece = solutionIds.entries.first;
-    final params = _parsePlacementId(firstPiece);
-    final piece = state.pieces.firstWhere((p) => p.id == params!.pieceId);
-    gridPieces.add(_applyPlacementToPiece(piece, params!));
-    final boardPieces = List<PuzzlePiece>.from(state.boardPieces)..removeWhere((p) => p.id == params.pieceId);
+    final possibleSolutions = state.applicableSolutions.length;
+    final solutionIndex = possibleSolutions < 2 ? 0 : math.Random().nextInt(possibleSolutions - 1);
+    final solutionIds = state.applicableSolutions[solutionIndex];
+    final onGridIds = state.gridPieces.map((e) => e.id);
+    final enabledPieces = solutionIds.entries.where((e) => !onGridIds.contains(e.key)).toList();
+    final pececIndex = enabledPieces.length == 1 ? 0 : math.Random().nextInt(enabledPieces.length - 1);
+    final piecePlacement = enabledPieces[pececIndex];
+    final params = _parsePlacementId(piecePlacement);
+    final selectedPiece = _applyPlacementToPiece(
+      state.pieces.firstWhere((p) => p.id == params!.pieceId),
+      params!,
+    ).copyWith(isUsersItem: false);
+    final pieces = _updatePieceInList(selectedPiece);
+    final applicableSolutions = _combineSolutions(state.solutions, pieces);
     emit(
       state.copyWith(
-        pieces: [...gridPieces, ...boardPieces],
-        solutionIdx: event.index,
+        pieces: pieces,
+        applicableSolutions: applicableSolutions,
         //todo hint move should be in history too
         moveHistory: [],
         moveIndex: 0,
@@ -740,9 +729,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     if (solutions.isEmpty) {
       return [];
     }
-    final userPlacedPieces = pieces.where((p) => p.placeZone == PlaceZone.grid && p.isUsersItem && !p.isConfigItem);
+    final gridPlacedPieces = pieces.where((p) => p.placeZone == PlaceZone.grid && !p.isConfigItem);
 
-    if (userPlacedPieces.isEmpty) {
+    if (gridPlacedPieces.isEmpty) {
       return solutions.toList();
     }
 
@@ -750,7 +739,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final cellSize = state.gridConfig.cellSize;
 
     final userCellsById = <String, Set<Cell>>{
-      for (final userPiece in userPlacedPieces) userPiece.id: userPiece.cells(origin, cellSize),
+      for (final userPiece in gridPlacedPieces) userPiece.id: userPiece.cells(origin, cellSize),
     };
 
     return solutions.where((solution) {

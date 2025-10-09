@@ -7,8 +7,6 @@ enum GameStatus {
   searchingSolutions, // searching for solutions
   solutionsReady,
   showingSolution, //showing possible solution
-  searchingHint,
-  hintReady,
   solvedByUser,
 }
 
@@ -59,8 +57,6 @@ abstract class PuzzleState with _$PuzzleState {
   bool get isSolving => status == GameStatus.searchingSolutions;
 
   bool get allowSolutionNavigation => status == GameStatus.showingSolution;
-
-  bool get allowHintDisplay => solutionIdx < 0 && moveHistory.isNotEmpty;
 
   Iterable<PuzzlePiece> piecesByZone(PlaceZone zone) => pieces.where((p) => p.placeZone == zone);
 
