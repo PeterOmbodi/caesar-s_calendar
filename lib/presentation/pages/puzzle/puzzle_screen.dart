@@ -97,12 +97,12 @@ class _BottomFAB extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PuzzleBloc, PuzzleState>(
       builder: (context, state) {
-
         final solutionsCount = state.applicableSolutions.length;
         final puzzleBloc = context.read<PuzzleBloc>();
         final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
         final isSolvabilityInfoVisible = solutionIndicator != SolutionIndicator.none;
-        final isAssistDisabled = isSolvabilityInfoVisible && solutionsCount == 0;
+        final isSolveDisabled = isSolvabilityInfoVisible && solutionsCount == 0;
+        final isHintDisabled = isSolveDisabled || state.allowSolutionNavigation;
 
         void onAssistPressed(VoidCallback allowedEvent) async {
           if (solutionsCount == 0) {
@@ -177,31 +177,28 @@ class _BottomFAB extends StatelessWidget {
                     )
                   : IconButton(
                       icon: Icon(Icons.lightbulb),
-                      onPressed: isAssistDisabled
+                      onPressed: isSolveDisabled
                           ? null
                           : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
                       tooltip: S.current.searchSolution,
                     ),
-            if (state.allowHintDisplay)
-              IconButton(
-                icon: Icon(Icons.tips_and_updates_outlined),
-                onPressed: isAssistDisabled ? null : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.hint())),
-                tooltip: S.current.hint,
-              ),
-            if (state.moveHistory.isNotEmpty) ...[
-              IconButton(
-                icon: Icon(Icons.undo),
-                onPressed: state.isUndoEnabled ? () => puzzleBloc.add(PuzzleEvent.undo()) : null,
-                tooltip: S.current.undo,
-              ),
-              //for debugging, temporary
-              //Text('${state.moveIndex}\n${state.moveHistory.length}'),
-              IconButton(
-                icon: Icon(Icons.redo),
-                onPressed: state.isRedoEnabled ? () => puzzleBloc.add(PuzzleEvent.redo()) : null,
-                tooltip: S.current.redo,
-              ),
-            ],
+            IconButton(
+              icon: Icon(Icons.tips_and_updates_outlined),
+              onPressed: isHintDisabled ? null : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showHint())),
+              tooltip: S.current.hint,
+            ),
+            IconButton(
+              icon: Icon(Icons.undo),
+              onPressed: state.isUndoEnabled ? () => puzzleBloc.add(PuzzleEvent.undo()) : null,
+              tooltip: S.current.undo,
+            ),
+            //for debugging, temporary
+            //Text('${state.moveIndex}\n${state.moveHistory.length}'),
+            IconButton(
+              icon: Icon(Icons.redo),
+              onPressed: state.isRedoEnabled ? () => puzzleBloc.add(PuzzleEvent.redo()) : null,
+              tooltip: S.current.redo,
+            ),
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset()),

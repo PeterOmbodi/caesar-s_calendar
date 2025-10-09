@@ -111,7 +111,7 @@ class PuzzlePiece extends PuzzlePieceBase {
     bool? isForbidden,
     Path? originalPath,
     PlaceZone? placeZone,
-    bool? isUserMove,
+    bool? isUsersItem,
   }) {
     return PuzzlePiece(
       type: type,
@@ -123,9 +123,9 @@ class PuzzlePiece extends PuzzlePieceBase {
       centerPoint: centerPoint ?? this.centerPoint,
       isFlipped: isFlipped ?? this.isFlipped,
       borderRadius: borderRadius,
-      isConfigItem: isForbidden ?? this.isConfigItem,
+      isConfigItem: isForbidden ?? isConfigItem,
       placeZone: placeZone ?? this.placeZone,
-      isUsersItem: isUserMove ?? this.isUsersItem,
+      isUsersItem: isUsersItem ?? this.isUsersItem,
     );
   }
 

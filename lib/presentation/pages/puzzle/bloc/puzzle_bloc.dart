@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 import 'package:caesar_puzzle/application/contracts/settings_query.dart';
-import 'package:caesar_puzzle/application/hint_puzzle_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
@@ -35,7 +34,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   static const double defaultPadding = 16.0;
   static const double wideScreenPadding = 24.0;
   static const double boardExtraX = 1.5;
-  static const Duration solvingDelay = Duration(milliseconds: 200);
   static const double rotationStep = math.pi / 2;
   static const double fullRotation = math.pi * 2;
   static const double gridCenterOffset = 0.5;
@@ -57,8 +55,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_Solve>(_solve);
     on<_SetSolvingResults>(_setSolvingResults);
     on<_ShowSolution>(_showSolution);
-    on<_Hint>(_hint);
-    on<_SetHintingResults>(_setHintingResults);
     on<_ShowHint>(_showHint);
     on<_Undo>(_undoMove);
     on<_Redo>(_redoMove);
@@ -442,7 +438,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   FutureOr<void> _rotatePiece(_RotatePiece event, Emitter<PuzzleState> emit) {
-    final selectedPiece = event.piece.copyWith(rotation: _normalizeRotation(event.piece.rotation));
+    final selectedPiece = event.piece.copyWith(rotation: _stepRotation(event.piece.rotation));
     final shouldSnap = event.piece.placeZone == PlaceZone.grid && _settings.snapToGridOnTransform;
     final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(selectedPiece) : (selectedPiece, null);
     final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
@@ -498,11 +494,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         .map((p) => p.copyWith(originalPath: generatePathForType(p.type, state.gridConfig.cellSize)))
         .toList();
     for (var solution in solutionIds.entries) {
-      final params = _parsePlacementId(solution);
+      final params = _parsePlacementParams(solution);
       if (params == null) continue;
       final piece = state.pieces.firstWhere((p) => p.id == params.pieceId);
       if (gridPieces.firstWhereOrNull((e) => e.id == piece.id) == null) {
-        gridPieces.add(_applyPlacementToPiece(piece, params).copyWith(isUserMove: false));
+        gridPieces.add(_applyPlacementToPiece(piece, params).copyWith(isUsersItem: false));
       }
     }
     emit(
@@ -517,36 +513,35 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     );
   }
 
-  //todo it`s broken for now, need to rework by using _combineSolutions
-  FutureOr<void> _hint(_Hint event, Emitter<PuzzleState> emit) async {
-    emit(state.copyWith(status: GameStatus.searchingHint, solutions: []));
-    await Future.delayed(solvingDelay);
-    HintPuzzleUseCase().call(pieces: state.pieces, grid: state.gridConfig).then((solutions) {
-      debugPrint('hinting finished, found solutions: ${solutions.length}');
-      add(PuzzleEvent.setHintingResults(solutions));
-    });
-  }
-
-  FutureOr<void> _setHintingResults(_SetHintingResults event, Emitter<PuzzleState> emit) {
-    emit(state.copyWith(status: GameStatus.hintReady, solutions: event.solutions.toList()));
-  }
-
   FutureOr<void> _showHint(_ShowHint event, Emitter<PuzzleState> emit) {
-    final solutionIds = state.solutions[event.index];
-    final gridPieces = List<PuzzlePiece>.from(state.gridPieces);
+    final possibleSolutions = state.applicableSolutions.length;
+    final solutionIndex = possibleSolutions < 2 ? 0 : math.Random().nextInt(possibleSolutions - 1);
+    final encodedSolution = state.applicableSolutions[solutionIndex];
+    final onGridIds = state.gridPieces.map((e) => e.id);
+    final encodedPieces = encodedSolution.entries.where((e) => !onGridIds.contains(e.key)).toList();
+    final pececIndex = encodedPieces.length == 1 ? 0 : math.Random().nextInt(encodedPieces.length - 1);
+    final params = _parsePlacementParams(encodedPieces[pececIndex]);
 
-    final firstPiece = solutionIds.entries.first;
-    final params = _parsePlacementId(firstPiece);
-    final piece = state.pieces.firstWhere((p) => p.id == params!.pieceId);
-    gridPieces.add(_applyPlacementToPiece(piece, params!));
-    final boardPieces = List<PuzzlePiece>.from(state.boardPieces)..removeWhere((p) => p.id == params.pieceId);
+    final sourcePiece = state.pieces.firstWhere((p) => p.id == params!.pieceId);
+    final targetPiece = _applyPlacementToPiece(sourcePiece, params!).copyWith(isUsersItem: false);
+    final pieces = _updatePieceInList(targetPiece);
+    final applicableSolutions = _combineSolutions(state.solutions, pieces);
+
+    final move = HintMove(
+      targetPiece.id,
+      from: MovePlacement(zone: PlaceZone.board, position: state.boardConfig.relativePosition(sourcePiece.position)),
+      to: MovePlacement(zone: PlaceZone.grid, position: state.gridConfig.relativePosition(targetPiece.position)),
+      rotationFrom: sourcePiece.rotation,
+      rotationTo: targetPiece.rotation,
+      flippedFrom: sourcePiece.isFlipped,
+      flippedTo: targetPiece.isFlipped,
+    );
     emit(
       state.copyWith(
-        pieces: [...gridPieces, ...boardPieces],
-        solutionIdx: event.index,
-        //todo hint move should be in history too
-        moveHistory: [],
-        moveIndex: 0,
+        pieces: pieces,
+        applicableSolutions: applicableSolutions,
+        moveHistory: [...state.moveHistory.take(state.moveIndex), move],
+        moveIndex: state.moveIndex + 1,
       ),
     );
   }
@@ -623,17 +618,16 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     return null;
   }
 
-  PlacementParams? _parsePlacementId(MapEntry<String, String> solution) {
-    final match = RegExp(r'^r(\d+)_c(\d+)_rot(\d+)(_F)?$').firstMatch(solution.value);
+  PlacementParams? _parsePlacementParams(MapEntry<String, String> encodedPlacement) {
+    final match = RegExp(r'^r(\d+)_c(\d+)_rot(\d+)(_F)?$').firstMatch(encodedPlacement.value);
     if (match == null) return null;
 
-    final pieceId = solution.key;
     final row = int.parse(match.group(1)!);
     final col = int.parse(match.group(2)!);
     final rotSteps = int.parse(match.group(3)!);
     final flipped = match.group(4) != null;
 
-    return PlacementParams(pieceId, row, col, rotSteps, flipped);
+    return PlacementParams(encodedPlacement.key, row, col, rotSteps, flipped);
   }
 
   //todo draft solution
@@ -740,9 +734,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     if (solutions.isEmpty) {
       return [];
     }
-    final userPlacedPieces = pieces.where((p) => p.placeZone == PlaceZone.grid && p.isUsersItem && !p.isConfigItem);
+    final gridPlacedPieces = pieces.where((p) => p.placeZone == PlaceZone.grid && !p.isConfigItem);
 
-    if (userPlacedPieces.isEmpty) {
+    if (gridPlacedPieces.isEmpty) {
       return solutions.toList();
     }
 
@@ -750,7 +744,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final cellSize = state.gridConfig.cellSize;
 
     final userCellsById = <String, Set<Cell>>{
-      for (final userPiece in userPlacedPieces) userPiece.id: userPiece.cells(origin, cellSize),
+      for (final userPiece in gridPlacedPieces) userPiece.id: userPiece.cells(origin, cellSize),
     };
 
     return solutions.where((solution) {
@@ -759,7 +753,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         final pieceId = entry.key;
         final candidateStr = solution[pieceId];
         if (candidateStr == null) return false;
-        final parsed = _parsePlacementId(MapEntry(pieceId, candidateStr));
+        final parsed = _parsePlacementParams(MapEntry(pieceId, candidateStr));
         if (parsed == null) return false;
         final basePiece = pieces.firstWhereOrNull((p) => p.id == pieceId);
         if (basePiece == null) return false;
@@ -796,12 +790,22 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         isFlipped: isUndo ? !fp.isFlipped : fp.isFlipped,
         position: fp.getSnapOffset(state.gridConfig.absolutPosition, isUndo),
       ),
+      hintMove: (hm) {
+        final zone = isUndo ? hm.from.zone : hm.to.zone;
+        final config = zone == PlaceZone.grid ? state.gridConfig : state.boardConfig;
+        return piece.copyWith(
+          rotation: isUndo ? hm.rotationFrom : hm.rotationTo,
+          isFlipped: isUndo ? hm.flippedFrom : hm.flippedTo,
+          placeZone: zone,
+          position: config.absolutPosition(isUndo ? hm.from.position : hm.to.position),
+        );
+      },
     );
 
     return historyPiece;
   }
 
-  double _normalizeRotation(double value) => (value + rotationStep) % fullRotation;
+  double _stepRotation(double value) => (value + rotationStep) % fullRotation;
 
   (PuzzlePiece piece, MovePiece? snapMove) _maybeSnap(PuzzlePiece selectedPiece) {
     final snappedPos = _snappedPosition(selectedPiece);

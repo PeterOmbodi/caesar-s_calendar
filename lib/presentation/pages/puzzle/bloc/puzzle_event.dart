@@ -22,7 +22,5 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   }) = _Configure;
   const factory PuzzleEvent.undo() = _Undo;
   const factory PuzzleEvent.redo() = _Redo;
-  const factory PuzzleEvent.hint() = _Hint;
-  const factory PuzzleEvent.setHintingResults(Iterable<Map<String, String>> solutions) = _SetHintingResults;
-  const factory PuzzleEvent.showHint(int index) = _ShowHint;
+  const factory PuzzleEvent.showHint() = _ShowHint;
 }
