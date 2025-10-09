@@ -1,9 +1,9 @@
 name: caesar_puzzle
-description: "Caesar Puzzle Calendar"
+description: Caesar’s Calendar Puzzle
 
 publish_to: 'none'
 
-version: 1.0.1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.8.0
