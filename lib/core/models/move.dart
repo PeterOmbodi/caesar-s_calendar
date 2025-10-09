@@ -17,6 +17,7 @@ sealed class Move {
     required T Function(MovePiece) movePiece,
     required T Function(RotatePiece) rotatePiece,
     required T Function(FlipPiece) flipPiece,
+    required T Function(HintMove) hintMove,
   }) {
     switch (this) {
       case MovePiece m:
@@ -25,6 +26,8 @@ sealed class Move {
         return rotatePiece(r);
       case FlipPiece f:
         return flipPiece(f);
+      case HintMove f:
+       return hintMove(f);
     }
   }
 }
@@ -34,6 +37,25 @@ class MovePiece extends Move {
   final MovePlacement to;
 
   const MovePiece(super.pieceId, {required this.from, required this.to});
+}
+
+class HintMove extends Move {
+  final MovePlacement from;
+  final MovePlacement to;
+  final double rotationFrom;
+  final double rotationTo;
+  final bool flippedFrom;
+  final bool flippedTo;
+
+  const HintMove(
+    super.pieceId, {
+    required this.from,
+    required this.to,
+    required this.rotationFrom,
+    required this.rotationTo,
+    required this.flippedFrom,
+    required this.flippedTo,
+  });
 }
 
 sealed class SnappableMove extends Move {
