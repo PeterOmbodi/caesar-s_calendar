@@ -115,29 +115,31 @@ class SettingsPanel extends StatelessWidget {
                   children: [
                     Text(S.current.solvability, style: TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
-                    RadioListTile<SolutionIndicator>(
-                      title: Text(S.current.solutionIndicatorHiddenTitle),
-                      subtitle: Text(S.current.solutionIndicatorHiddenSubtitle),
-                      value: SolutionIndicator.none,
+                    RadioGroup<SolutionIndicator>(
                       groupValue: state.solutionIndicator,
                       onChanged: cubit.setSolutionIndicator,
-                      controlAffinity: ListTileControlAffinity.trailing,
-                    ),
-                    RadioListTile<SolutionIndicator>(
-                      title: Text(S.current.solutionIndicatorSolvabilityTitle),
-                      subtitle: Text(S.current.solutionIndicatorSolvabilitySubtitle),
-                      value: SolutionIndicator.solvability,
-                      groupValue: state.solutionIndicator,
-                      onChanged: cubit.setSolutionIndicator,
-                      controlAffinity: ListTileControlAffinity.trailing,
-                    ),
-                    RadioListTile<SolutionIndicator>(
-                      title: Text(S.current.solutionIndicatorCountTitle),
-                      subtitle: Text(S.current.solutionIndicatorCountSubtitle),
-                      value: SolutionIndicator.countSolutions,
-                      groupValue: state.solutionIndicator,
-                      onChanged: cubit.setSolutionIndicator,
-                      controlAffinity: ListTileControlAffinity.trailing,
+                      child: Column(
+                        children: [
+                          RadioListTile<SolutionIndicator>(
+                            title: Text(S.current.solutionIndicatorHiddenTitle),
+                            subtitle: Text(S.current.solutionIndicatorHiddenSubtitle),
+                            value: SolutionIndicator.none,
+                            controlAffinity: ListTileControlAffinity.trailing,
+                          ),
+                          RadioListTile<SolutionIndicator>(
+                            title: Text(S.current.solutionIndicatorSolvabilityTitle),
+                            subtitle: Text(S.current.solutionIndicatorSolvabilitySubtitle),
+                            value: SolutionIndicator.solvability,
+                            controlAffinity: ListTileControlAffinity.trailing,
+                          ),
+                          RadioListTile<SolutionIndicator>(
+                            title: Text(S.current.solutionIndicatorCountTitle),
+                            subtitle: Text(S.current.solutionIndicatorCountSubtitle),
+                            value: SolutionIndicator.countSolutions,
+                            controlAffinity: ListTileControlAffinity.trailing,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 );

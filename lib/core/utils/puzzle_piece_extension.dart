@@ -29,10 +29,7 @@ extension PuzzlePieceX on PuzzlePiece {
     for (int r = 0; r < numRows; r++) {
       for (int c = 0; c < numCols; c++) {
         // Calculate the center of the cell in absolute coordinates.
-        final Offset cellCenter = Offset(
-          (startCol + c) * unit + unit / 2,
-          (startRow + r) * unit + unit / 2,
-        );
+        final Offset cellCenter = Offset((startCol + c) * unit + unit / 2, (startRow + r) * unit + unit / 2);
         // Check if the original path contains the cell center.
         if (originalPath.contains(cellCenter)) {
           // Save the cell relative to the bounding box top-left.
@@ -94,16 +91,16 @@ extension PuzzlePieceX on PuzzlePiece {
 
   Matrix4 _getMatrix() {
     final matrix = Matrix4.identity()
-      ..translate(position.dx, position.dy)
-      ..translate(centerPoint.dx, centerPoint.dy);
+      ..translateByDouble(position.dx, position.dy, 0, 1)
+      ..translateByDouble(centerPoint.dx, centerPoint.dy, 0, 1);
 
     if (isFlipped) {
-      matrix.scale(-1.0, 1.0);
+      matrix.scaleByDouble(-1, 1, -1, 1);
     }
 
     matrix
       ..rotateZ(rotation)
-      ..translate(-centerPoint.dx, -centerPoint.dy);
+      ..translateByDouble(-centerPoint.dx, -centerPoint.dy, 0, 1);
     return matrix;
   }
 
@@ -159,11 +156,7 @@ extension PuzzlePieceX on PuzzlePiece {
     for (int i = 0; i < n; i++) {
       if (roundFlag[i]) {
         newPath.lineTo(prevLinePoints[i].dx, prevLinePoints[i].dy);
-        newPath.arcToPoint(
-          nextLinePoints[i],
-          radius: Radius.circular(arcOffsets[i]),
-          clockwise: true,
-        );
+        newPath.arcToPoint(nextLinePoints[i], radius: Radius.circular(arcOffsets[i]), clockwise: true);
       } else {
         newPath.lineTo(vertices[i].dx, vertices[i].dy);
       }
