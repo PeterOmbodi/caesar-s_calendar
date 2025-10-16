@@ -18,7 +18,7 @@ class PuzzleScreen extends StatelessWidget {
   const PuzzleScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     final isWideScreen = MediaQuery.of(context).size.width >= _breakpoint;
     return BlocProvider(
       create: (_) => PuzzleBloc(settings: CubitSettingsQuery(context.read<SettingsCubit>())),
@@ -27,9 +27,9 @@ class PuzzleScreen extends StatelessWidget {
           child: MultiBlocListener(
             listeners: [
               BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (ps, cs) =>
+                listenWhen: (final ps, final cs) =>
                     cs.moveIndex == ps.moveIndex + 1 && cs.isPieceInGrid(cs.moveHistory.last.pieceId),
-                listener: (context, state) {
+                listener: (final context, final state) {
                   final settingsCubit = context.read<SettingsCubit>();
                   final settings = settingsCubit.state;
                   if (settings.unlockConfig && settings.autoLockConfig) {
@@ -38,7 +38,8 @@ class PuzzleScreen extends StatelessWidget {
                 },
               ),
               BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (ps, cs) => ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser,
+                listenWhen: (final ps, final cs) =>
+                    ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser,
                 listener: _showSolvedDialog,
               ),
             ],
@@ -48,10 +49,10 @@ class PuzzleScreen extends StatelessWidget {
                 Align(
                   alignment: Alignment.topCenter,
                   child: BlocBuilder<PuzzleBloc, PuzzleState>(
-                    buildWhen: (ps, cs) =>
+                    buildWhen: (final ps, final cs) =>
                         ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser ||
                         ps.status == GameStatus.solvedByUser && ps.status != cs.status,
-                    builder: (BuildContext context, PuzzleState state) =>
+                    builder: (final BuildContext context, final PuzzleState state) =>
                         state.status == GameStatus.solvedByUser ? const ConfettiView() : SizedBox.shrink(),
                   ),
                 ),
@@ -76,10 +77,10 @@ class PuzzleScreen extends StatelessWidget {
     );
   }
 
-  void _showSolvedDialog(BuildContext context, PuzzleState state) async {
+  Future<void> _showSolvedDialog(final BuildContext context, final PuzzleState state) async {
     await showDialog(
       context: context,
-      builder: (context) => PlatformAlertDialog(
+      builder: (final context) => PlatformAlertDialog(
         title: Text(S.of(context).solvedAlertTitle),
         content: Text(S.of(context).solvedAlertSubTitle),
         actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
@@ -94,119 +95,121 @@ class _BottomFAB extends StatelessWidget {
   final bool isSetupVisible;
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PuzzleBloc, PuzzleState>(
-      builder: (context, state) {
-        final solutionsCount = state.applicableSolutions.length;
-        final puzzleBloc = context.read<PuzzleBloc>();
-        final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
-        final isSolvabilityInfoVisible = solutionIndicator != SolutionIndicator.none;
-        final isSolveDisabled = isSolvabilityInfoVisible && solutionsCount == 0;
-        final isHintDisabled = isSolveDisabled || state.allowSolutionNavigation;
+  Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
+    builder: (final context, final state) {
+      final solutionsCount = state.applicableSolutions.length;
+      final puzzleBloc = context.read<PuzzleBloc>();
+      final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
+      final isSolvabilityInfoVisible = solutionIndicator != SolutionIndicator.none;
+      final isSolveDisabled =
+          state.isSolving || (isSolvabilityInfoVisible && solutionsCount == 0) || state.allowSolutionNavigation;
+      final isHintDisabled = state.isSolving || isSolveDisabled || state.allowSolutionNavigation;
 
-        void onAssistPressed(VoidCallback allowedEvent) async {
-          if (solutionsCount == 0) {
-            await showDialog(
-              context: context,
-              builder: (context) => PlatformAlertDialog(
-                title: Text(S.of(context).searchCompletedDialogTitle),
-                content: Text(S.of(context).solutionsNotFoundDialogMessage),
-                actions: [
-                  PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok)),
-                ],
-              ),
-            );
-            return;
-          }
-          if (isSolvabilityInfoVisible) {
+      Future<void> onAssistPressed(final VoidCallback allowedEvent) async {
+        if (solutionsCount == 0) {
+          await showDialog(
+            context: context,
+            builder: (final context) => PlatformAlertDialog(
+              title: Text(S.of(context).searchCompletedDialogTitle),
+              content: Text(S.of(context).solutionsNotFoundDialogMessage),
+              actions: [
+                PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok)),
+              ],
+            ),
+          );
+          return;
+        }
+        if (isSolvabilityInfoVisible) {
+          allowedEvent.call();
+        } else {
+          final result = await showDialog<bool>(
+            context: context,
+            builder: (final context) => PlatformAlertDialog(
+              title: Text(S.of(context).searchCompletedDialogTitle),
+              content: Text(S.of(context).solutionsFoundDialogMessage(state.applicableSolutions.length)),
+              actions: [
+                PlatformDialogAction(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(S.of(context).solutionsFoundDialogCancel),
+                ),
+                PlatformDialogAction(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(S.of(context).solutionsFoundDialogOk),
+                ),
+              ],
+            ),
+          );
+          if (result == true) {
             allowedEvent.call();
-          } else {
-            final result = await showDialog<bool>(
-              context: context,
-              builder: (context) => PlatformAlertDialog(
-                title: Text(S.of(context).searchCompletedDialogTitle),
-                content: Text(S.of(context).solutionsFoundDialogMessage(state.applicableSolutions.length)),
-                actions: [
-                  PlatformDialogAction(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(S.of(context).solutionsFoundDialogCancel),
-                  ),
-                  PlatformDialogAction(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text(S.of(context).solutionsFoundDialogOk),
-                  ),
-                ],
-              ),
-            );
-            if (result == true) {
-              allowedEvent.call();
-            }
           }
         }
+      }
 
-        return FloatingPanel(
-          children: [
-            if (isSetupVisible)
+      return FloatingPanel(
+        children: [
+          if (isSetupVisible)
+            IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+              tooltip: S.current.settings,
+            ),
+          Row(
+            spacing: FloatingPanel.widgetSpacing,
+            children: [
               IconButton(
-                icon: Icon(Icons.settings),
-                onPressed: () => Scaffold.of(context).openEndDrawer(),
-                tooltip: S.current.settings,
+                icon: Icon(Icons.lightbulb),
+                onPressed: isSolveDisabled
+                    ? null
+                    : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
+                tooltip: S.current.searchSolution,
               ),
-            if (state.allowSolutionNavigation) ...[
               IconButton(
-                icon: Icon(Icons.arrow_left),
-                onPressed: () => puzzleBloc.add(
-                  PuzzleEvent.showSolution((state.solutionIdx > 0 ? state.solutionIdx : solutionsCount) - 1),
+                icon: Icon(Icons.tips_and_updates_outlined),
+                onPressed: isHintDisabled ? null : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showHint())),
+                tooltip: S.current.hint,
+              ),
+              if (state.allowSolutionNavigation) ...[
+                IconButton(
+                  icon: Icon(Icons.arrow_left),
+                  onPressed: () => puzzleBloc.add(
+                    PuzzleEvent.showSolution((state.solutionIdx > 0 ? state.solutionIdx : solutionsCount) - 1),
+                  ),
+                  tooltip: S.current.prevSolution,
                 ),
-                tooltip: S.current.prevSolution,
-              ),
-              Text(S.of(context).solutionLabel(state.solutionIdx + 1, solutionsCount)),
-              IconButton(
-                icon: Icon(Icons.arrow_right),
-                onPressed: () => puzzleBloc.add(
-                  PuzzleEvent.showSolution(state.solutionIdx < solutionsCount - 1 ? state.solutionIdx + 1 : 0),
+                IconButton(
+                  icon: Icon(Icons.arrow_right),
+                  onPressed: () => puzzleBloc.add(
+                    PuzzleEvent.showSolution(state.solutionIdx < solutionsCount - 1 ? state.solutionIdx + 1 : 0),
+                  ),
+                  tooltip: S.current.nextSolution,
                 ),
-                tooltip: S.current.nextSolution,
-              ),
-            ] else
-              state.isSolving
-                  ? SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Padding(padding: const EdgeInsets.all(8), child: CircularProgressIndicator()),
-                    )
-                  : IconButton(
-                      icon: Icon(Icons.lightbulb),
-                      onPressed: isSolveDisabled
-                          ? null
-                          : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
-                      tooltip: S.current.searchSolution,
-                    ),
-            IconButton(
-              icon: Icon(Icons.tips_and_updates_outlined),
-              onPressed: isHintDisabled ? null : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showHint())),
-              tooltip: S.current.hint,
-            ),
-            IconButton(
-              icon: Icon(Icons.undo),
-              onPressed: state.isUndoEnabled ? () => puzzleBloc.add(PuzzleEvent.undo()) : null,
-              tooltip: S.current.undo,
-            ),
-            //for debugging, temporary
-            //Text('${state.moveIndex}\n${state.moveHistory.length}'),
-            IconButton(
-              icon: Icon(Icons.redo),
-              onPressed: state.isRedoEnabled ? () => puzzleBloc.add(PuzzleEvent.redo()) : null,
-              tooltip: S.current.redo,
-            ),
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset()),
-              tooltip: S.current.reset,
-            ),
-          ],
-        );
-      },
-    );
-  }
+              ] else ...[
+                IconButton(
+                  icon: Icon(Icons.undo),
+                  onPressed: state.isUndoEnabled ? () => puzzleBloc.add(PuzzleEvent.undo()) : null,
+                  tooltip: S.current.undo,
+                ),
+                IconButton(
+                  icon: Icon(Icons.redo),
+                  onPressed: state.isRedoEnabled ? () => puzzleBloc.add(PuzzleEvent.redo()) : null,
+                  tooltip: S.current.redo,
+                ),
+              ],
+            ],
+          ),
+          state.isSolving
+              ? SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Padding(padding: const EdgeInsets.all(8), child: CircularProgressIndicator()),
+                )
+              : IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset()),
+                  tooltip: S.current.reset,
+                ),
+        ],
+      );
+    },
+  );
 }

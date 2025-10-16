@@ -5,20 +5,20 @@ enum AppTheme { system, light, dark }
 @freezed
 abstract class SettingsState with _$SettingsState {
 
-  const SettingsState._();
-
   const factory SettingsState({
-    @Default(AppTheme.system) AppTheme theme,
-    @Default(false) bool unlockConfig,
-    @Default(true) bool preventOverlap,
-    @Default(true) bool autoLockConfig,
-    @Default(true) bool separateMoveColors,
-    @Default(false) bool snapToGridOnTransform,
-    @Default(SolutionIndicator.none) SolutionIndicator solutionIndicator,
+    @Default(AppTheme.system) final AppTheme theme,
+    @Default(false) final bool unlockConfig,
+    @Default(true) final bool preventOverlap,
+    @Default(true) final bool autoLockConfig,
+    @Default(true) final bool separateMoveColors,
+    @Default(false) final bool snapToGridOnTransform,
+    @Default(SolutionIndicator.none) final SolutionIndicator solutionIndicator,
   }) = _SettingsState;
 
+  const SettingsState._();
 
-  factory SettingsState.fromJson(Map<String, dynamic> json) =>
+
+  factory SettingsState.fromJson(final Map<String, dynamic> json) =>
       _$SettingsStateFromJson(json);
 
 }
@@ -35,7 +35,7 @@ extension AppThemeX on AppTheme {
     }
   }
 
-  static AppTheme fromThemeMode(ThemeMode m) {
+  static AppTheme fromThemeMode(final ThemeMode m) {
     switch (m) {
       case ThemeMode.light:
         return AppTheme.light;
