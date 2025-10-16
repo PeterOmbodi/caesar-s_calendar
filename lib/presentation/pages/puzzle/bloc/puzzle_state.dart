@@ -12,6 +12,28 @@ enum GameStatus {
 
 @freezed
 abstract class PuzzleState with _$PuzzleState {
+  factory PuzzleState({
+    required final GameStatus status,
+    required final PuzzleGrid gridConfig,
+    required final PuzzleBoard boardConfig,
+    required final List<Map<String, String>> solutions,
+    required final List<Map<String, String>> applicableSolutions,
+    required final int solutionIdx,
+    required final int timer,
+    required final Iterable<PuzzlePiece> pieces,
+    required final PuzzlePiece? selectedPiece,
+    required final bool isDragging,
+    final Offset? dragStartOffset,
+    final Offset? pieceStartPosition,
+    final Offset? previewPosition,
+    final PlaceZone? dragStartZone,
+    required final bool showPreview,
+    required final bool previewCollision,
+    required final List<Move> moveHistory,
+    required final int moveIndex,
+    required final DateTime selectedDate,
+  }) = _PuzzleState;
+
   const PuzzleState._();
 
   factory PuzzleState.initial() => PuzzleState(
@@ -32,41 +54,38 @@ abstract class PuzzleState with _$PuzzleState {
     selectedDate: DateTime.now(),
   );
 
-  factory PuzzleState({
-    required GameStatus status,
-    required PuzzleGrid gridConfig,
-    required PuzzleBoard boardConfig,
-    required List<Map<String, String>> solutions,
-    required List<Map<String, String>> applicableSolutions,
-    required int solutionIdx,
-    required int timer,
-    required Iterable<PuzzlePiece> pieces,
-    required PuzzlePiece? selectedPiece,
-    required bool isDragging,
-    Offset? dragStartOffset,
-    Offset? pieceStartPosition,
-    Offset? previewPosition,
-    PlaceZone? dragStartZone,
-    required bool showPreview,
-    required bool previewCollision,
-    required List<Move> moveHistory,
-    required int moveIndex,
-    required DateTime selectedDate,
-  }) = _PuzzleState;
-
   bool get isSolving => status == GameStatus.searchingSolutions;
 
   bool get allowSolutionNavigation => status == GameStatus.showingSolution;
 
-  Iterable<PuzzlePiece> piecesByZone(PlaceZone zone) => pieces.where((p) => p.placeZone == zone);
+  Iterable<PuzzlePiece> piecesByZone(final PlaceZone zone) => pieces.where((final p) => p.placeZone == zone);
 
   Iterable<PuzzlePiece> get gridPieces => piecesByZone(PlaceZone.grid);
 
   Iterable<PuzzlePiece> get boardPieces => piecesByZone(PlaceZone.board);
 
-  bool get isRedoEnabled => moveHistory.length > moveIndex;
+  bool get isRedoEnabled => !isSolving && moveHistory.length > moveIndex;
 
-  bool get isUndoEnabled => moveHistory.isNotEmpty && moveIndex > 0;
+  bool get isUndoEnabled => !isSolving && moveHistory.isNotEmpty && moveIndex > 0;
 
-  bool isPieceInGrid(String pieceId) => gridPieces.any((e) => !e.isConfigItem && e.id == pieceId);
+  bool isPieceInGrid(final String pieceId) => gridPieces.any((final e) => !e.isConfigItem && e.id == pieceId);
+
+  Iterable<Cell> get sortedConfigCells => pieces
+      .where((final e) => e.isConfigItem)
+      .expand((final e) => e.cells(gridConfig.origin, gridConfig.cellSize))
+      .sortedBy((final e) => e.row * 100 + e.col);
+
+
+  Offset cfgCellOffset(final int index) {
+    if (index >= sortedConfigCells.length) {
+      return Offset.zero;
+    }
+    final cell = sortedConfigCells.toList()[index];
+    final origin = gridConfig.origin;
+    final cellSize = gridConfig.cellSize;
+
+    final x = origin.dx + cell.col * cellSize;
+    final y = origin.dy + cell.row * cellSize;
+    return Offset(x, y);
+  }
 }

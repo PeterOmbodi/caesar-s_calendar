@@ -44,7 +44,7 @@ class AppColors {
 
   static ThemeColors get current => _current;
 
-  static void update(Brightness brightness) {
+  static void update(final Brightness brightness) {
     _current = brightness == Brightness.dark ? dark : light;
   }
 }

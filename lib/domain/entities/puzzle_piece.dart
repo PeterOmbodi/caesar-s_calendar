@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 enum PieceType { lShape, square, zShape, yShape, uShape, pShape, nShape, vShape, zone1, zone2 }
 
-Color colorForType(PieceType type) {
+Color colorForType(final PieceType type) {
   switch (type) {
     case PieceType.lShape:
       return Colors.teal.withValues(alpha: 0.8);
@@ -29,7 +29,7 @@ Color colorForType(PieceType type) {
   }
 }
 
-String idForType(PieceType type) {
+String idForType(final PieceType type) {
   switch (type) {
     case PieceType.lShape:
       return 'L-Shape';
@@ -54,24 +54,13 @@ String idForType(PieceType type) {
   }
 }
 
-bool isConfigType(PieceType type) {
-  return type == PieceType.zone1 || type == PieceType.zone2;
-}
+bool isConfigType(final PieceType type) => type == PieceType.zone1 || type == PieceType.zone2;
 
-double borderRadiusForType(PieceType type) {
-  return isConfigType(type) ? 0 : 8.0;
-}
+double borderRadiusForType(final PieceType type) => isConfigType(type) ? 0 : 8.0;
 
 typedef GetPieceColor = Color Function();
 
 class PuzzlePiece extends PuzzlePieceBase {
-  final PieceType type;
-  final Path originalPath;
-  final GetPieceColor color;
-  final Offset centerPoint;
-  final double borderRadius;
-  final bool isConfigItem;
-  final bool isUsersItem;
 
   PuzzlePiece({
     required super.id,
@@ -88,7 +77,7 @@ class PuzzlePiece extends PuzzlePieceBase {
     this.isUsersItem = true,
   });
 
-  factory PuzzlePiece.fromType(PieceType type, Offset position, Offset centerPoint, double cellSize) {
+  factory PuzzlePiece.fromType(final PieceType type, final Offset position, final Offset centerPoint, final double cellSize) {
     final isForbidden = isConfigType(type);
     return PuzzlePiece(
       type: type,
@@ -102,18 +91,24 @@ class PuzzlePiece extends PuzzlePieceBase {
       placeZone: isForbidden ? PlaceZone.grid : PlaceZone.board,
     );
   }
+  final PieceType type;
+  final Path originalPath;
+  final GetPieceColor color;
+  final Offset centerPoint;
+  final double borderRadius;
+  final bool isConfigItem;
+  final bool isUsersItem;
 
   PuzzlePiece copyWith({
-    Offset? position,
-    Offset? centerPoint,
-    double? rotation,
-    bool? isFlipped,
-    bool? isForbidden,
-    Path? originalPath,
-    PlaceZone? placeZone,
-    bool? isUsersItem,
-  }) {
-    return PuzzlePiece(
+    final Offset? position,
+    final Offset? centerPoint,
+    final double? rotation,
+    final bool? isFlipped,
+    final bool? isForbidden,
+    final Path? originalPath,
+    final PlaceZone? placeZone,
+    final bool? isUsersItem,
+  }) => PuzzlePiece(
       type: type,
       originalPath: originalPath ?? this.originalPath,
       color: color,
@@ -127,8 +122,7 @@ class PuzzlePiece extends PuzzlePieceBase {
       placeZone: placeZone ?? this.placeZone,
       isUsersItem: isUsersItem ?? this.isUsersItem,
     );
-  }
 
-  Color borderColor(bool borderColorMode) =>
+  Color borderColor(final bool borderColorMode) =>
       isUsersItem || !borderColorMode ? AppColors.current.pieceBorder : Colors.transparent;
 }

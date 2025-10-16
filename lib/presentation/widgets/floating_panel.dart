@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import '../../generated/l10n.dart';
 
 class FloatingPanel extends StatefulWidget {
+
   const FloatingPanel({super.key, required this.children});
+
+  static const widgetSpacing = 4.0;
 
   final List<Widget> children;
 
@@ -13,7 +16,7 @@ class FloatingPanel extends StatefulWidget {
 }
 
 class FloatingPanelState extends State<FloatingPanel> {
-  static const widgetSpacing = 4.0;
+
 
   bool _isPanelOpen = false;
 
@@ -24,8 +27,7 @@ class FloatingPanelState extends State<FloatingPanel> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Material(
+  Widget build(final BuildContext context) => Material(
         elevation: 8,
         borderRadius: BorderRadius.circular(16),
         color: AppColors.current.primary.withValues(alpha: 0.5),
@@ -33,14 +35,16 @@ class FloatingPanelState extends State<FloatingPanel> {
           padding: const EdgeInsets.all(8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            spacing: _isPanelOpen ? widgetSpacing : 0,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            spacing: FloatingPanel.widgetSpacing,
             children: [
               AnimatedSize(
                 duration: const Duration(milliseconds: 300),
                 child: _isPanelOpen
                     ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisSize: MainAxisSize.min,
-                        spacing: widgetSpacing,
+                        spacing: FloatingPanel.widgetSpacing,
                         children: widget.children,
                       )
                     : SizedBox.shrink(),
@@ -56,5 +60,4 @@ class FloatingPanelState extends State<FloatingPanel> {
             ],
           ),
         ));
-  }
 }
