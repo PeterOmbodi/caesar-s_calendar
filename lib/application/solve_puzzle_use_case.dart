@@ -8,10 +8,10 @@ class SolvePuzzleUseCase {
   SolvePuzzleUseCase();
 
   Future<Iterable<Map<String, String>>> call({
-    required Iterable<PuzzlePiece> pieces,
-    required PuzzleGrid grid,
-    bool keepUserMoves = false,
-    DateTime? date,
+    required final Iterable<PuzzlePiece> pieces,
+    required final PuzzleGrid grid,
+    final bool keepUserMoves = false,
+    final DateTime? date,
   }) async {
     final rawSolutions = await getIt<PuzzleSolverService>().solve(
       pieces: pieces,
@@ -19,7 +19,7 @@ class SolvePuzzleUseCase {
       keepUserMoves: keepUserMoves,
       date: date,
     );
-    return rawSolutions.map((e) => e.toSolutionMap());
+    return rawSolutions.map((final e) => e.toSolutionMap());
   }
 }
 

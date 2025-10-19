@@ -102,8 +102,8 @@ class _BottomFAB extends StatelessWidget {
       final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
       final isSolvabilityInfoVisible = solutionIndicator != SolutionIndicator.none;
       final isSolveDisabled =
-          state.isSolving || (isSolvabilityInfoVisible && solutionsCount == 0) || state.allowSolutionNavigation;
-      final isHintDisabled = state.isSolving || isSolveDisabled || state.allowSolutionNavigation;
+          state.isSolving || (isSolvabilityInfoVisible && solutionsCount == 0) || state.isShowSolutions;
+      final isHintDisabled = state.isSolving || isSolveDisabled || state.isShowSolutions;
 
       Future<void> onAssistPressed(final VoidCallback allowedEvent) async {
         if (solutionsCount == 0) {
@@ -168,7 +168,7 @@ class _BottomFAB extends StatelessWidget {
                 onPressed: isHintDisabled ? null : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showHint())),
                 tooltip: S.current.hint,
               ),
-              if (state.allowSolutionNavigation) ...[
+              if (state.isShowSolutions) ...[
                 IconButton(
                   icon: Icon(Icons.arrow_left),
                   onPressed: () => puzzleBloc.add(

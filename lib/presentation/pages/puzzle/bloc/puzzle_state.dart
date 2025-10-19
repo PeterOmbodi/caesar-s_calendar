@@ -56,7 +56,7 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isSolving => status == GameStatus.searchingSolutions;
 
-  bool get allowSolutionNavigation => status == GameStatus.showingSolution;
+  bool get isShowSolutions => status == GameStatus.showingSolution;
 
   Iterable<PuzzlePiece> piecesByZone(final PlaceZone zone) => pieces.where((final p) => p.placeZone == zone);
 
