@@ -1,7 +1,8 @@
+import 'package:caesar_puzzle/core/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
-import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/flip_flap/split_flap.dart';
 import 'package:caesar_puzzle/presentation/widgets/flip_flap/split_flap_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,14 +20,21 @@ class PuzzleView extends StatelessWidget {
         bloc.add(PuzzleEvent.setViewSize(constraints.biggest));
         final borderColorMode = context.watch<SettingsCubit>().state.separateMoveColors;
 
-        final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
-        final solvability = solutionIndicator == SolutionIndicator.solvability
-            ? context.watch<PuzzleBloc>().state.applicableSolutions.length
-            : -1;
-        final solutionsCount = solutionIndicator == SolutionIndicator.countSolutions || state.allowSolutionNavigation
-            ? context.watch<PuzzleBloc>().state.applicableSolutions.length
-            : -1;
-        //todo solvability && solutionsCount not clear, need to simplify
+        int _showOrHide(final bool show, final int value) => show ? value : -1;
+
+        final settings = context.watch<SettingsCubit>().state;
+        final applicableCount = state.applicableSolutions.length;
+
+        final solvabilityState = _showOrHide(
+          settings.solutionIndicator == SolutionIndicator.solvability,
+          applicableCount,
+        );
+
+        final solutionsCountState = _showOrHide(
+          settings.solutionIndicator == SolutionIndicator.countSolutions || state.isShowSolutions,
+          applicableCount,
+        );
+
         return state.status == GameStatus.initializing
             ? Center(child: CircularProgressIndicator())
             : Container(
@@ -36,75 +44,73 @@ class PuzzleView extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    if (solvability >= 0 || solutionsCount >= 0)
+                    if (solvabilityState >= 0 || solutionsCountState >= 0)
                       Positioned(
                         left: state.cfgCellOffset(0).dx,
                         top: state.cfgCellOffset(0).dy,
-                        child: _SolvabilityMark(solvabilable: solvability>0 || solutionsCount > 0, cellSize: state.gridConfig.cellSize),
+                        child: _SolvabilityMark(
+                          solvabilable: solvabilityState > 0 || solutionsCountState > 0,
+                          cellSize: state.gridConfig.cellSize,
+                        ),
                       ),
-                    if (solutionsCount >= 0)
+                    if (solutionsCountState >= 0)
                       Positioned(
                         left: state.cfgCellOffset(1).dx,
                         top: state.cfgCellOffset(1).dy,
-                        child: Padding(
-                          padding: const EdgeInsets.all(1.0),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints.tightFor(
-                              height: state.gridConfig.cellSize,
-                              width: state.gridConfig.cellSize,
-                            ),
-                            child: SplitFlapRow(
-                              text: '$solutionsCount'.padLeft(2, '0'),
-                              cardsInPack: 2,
-                              tileConstraints: BoxConstraints(minWidth: 20, minHeight: 32),
-                              symbolStyle: Theme.of(
-                                context,
-                              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                              tileDecoration: BoxDecoration(
-                                color: AppColors.current.boardBorder,
-                                border: Border.all(color: AppColors.current.boardBackground),
-                                borderRadius: BorderRadius.all(Radius.circular(4)),
-                              ),
-                              panelDecoration: BoxDecoration(
-                                color: AppColors.current.boardBackground,
-                                border: Border.all(color: AppColors.current.boardBackground),
-                                borderRadius: BorderRadius.all(Radius.circular(2)),
-                              ),
+                        child: ConstrainedBox(
+                          constraints: state.gridConfig.cellconstraints(),
+                          child: SplitFlapPanel(
+                            text: '$solutionsCountState'.padLeft(2, '0'),
+                            cardsInPack: 4,
+                            tileConstraints: BoxConstraints(
+                              minWidth: solutionsCountState < 100 ? 20 : 14,
+                              minHeight: 32,
                             ),
                           ),
                         ),
                       ),
-                    if (state.allowSolutionNavigation)
+                    if (state.isShowSolutions) ...[
                       Positioned(
-                        left: state.cfgCellOffset(2).dx,
-                        top: state.cfgCellOffset(2).dy,
-                        child: Padding(
-                          padding: const EdgeInsets.all(1.0),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints.tightFor(
-                              height: state.gridConfig.cellSize,
-                              width: state.gridConfig.cellSize,
-                            ),
-                            child: SplitFlapRow(
-                              text: '${state.solutionIdx + 1}'.padLeft('$solutionsCount'.length, '0'),
-                              tileConstraints: BoxConstraints(minWidth: 20, minHeight: 32),
-                              symbolStyle: Theme.of(
-                                context,
-                              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                              tileDecoration: BoxDecoration(
-                                color: AppColors.current.boardBorder,
-                                border: Border.all(color: AppColors.current.boardBackground),
-                                borderRadius: BorderRadius.all(Radius.circular(4)),
-                              ),
-                              panelDecoration: BoxDecoration(
-                                color: AppColors.current.boardBackground,
-                                border: Border.all(color: AppColors.current.boardBackground),
-                                borderRadius: BorderRadius.all(Radius.circular(2)),
-                              ),
-                            ),
+                        left: state.cfgCellOffset(3).dx,
+                        top: state.cfgCellOffset(3).dy,
+                        child: ConstrainedBox(
+                          constraints: state.gridConfig.cellconstraints(),
+                          child: SplitFlapPanel(
+                            text: 'Sol',
+                            tileConstraints: const BoxConstraints(minWidth: 46, minHeight: 32),
+                            cardsInPack: 1,
+                            tileType: TileInfo.text,
                           ),
                         ),
                       ),
+                      Positioned(
+                        left: state.cfgCellOffset(4).dx,
+                        top: state.cfgCellOffset(4).dy,
+                        child: ConstrainedBox(
+                          constraints: state.gridConfig.cellconstraints(),
+                          child: SplitFlapPanel(
+                            text: ' #',
+                            tileConstraints: const BoxConstraints(minWidth: 20, minHeight: 32),
+                            cardsInPack: 1,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: state.cfgCellOffset(5).dx,
+                        top: state.cfgCellOffset(5).dy,
+                        child: ConstrainedBox(
+                          constraints: state.gridConfig.cellconstraints(),
+                          child: SplitFlapPanel(
+                            text: '${state.solutionIdx + 1}'.padLeft(solutionsCountState < 100 ? 2 : 3, '0'),
+                            tileConstraints: BoxConstraints(
+                              minWidth: solutionsCountState < 100 ? 20 : 14,
+                              minHeight: 32,
+                            ),
+                            cardsInPack: 2,
+                          ),
+                        ),
+                      ),
+                    ],
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTapDown: (final details) => bloc.add(PuzzleEvent.onTapDown(details.localPosition)),

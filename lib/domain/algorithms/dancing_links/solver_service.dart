@@ -3,9 +3,9 @@ import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
 
 abstract class PuzzleSolverService {
   Future<Iterable<List<String>>> solve({
-    required Iterable<PuzzlePiece> pieces,
-    required PuzzleGrid grid,
-    bool keepUserMoves = false,
-    DateTime? date,
+    required final Iterable<PuzzlePiece> pieces,
+    required final PuzzleGrid grid,
+    final bool keepUserMoves = false,
+    final DateTime? date,
   });
 }

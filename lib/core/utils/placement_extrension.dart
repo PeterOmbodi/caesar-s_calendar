@@ -5,12 +5,12 @@ import '../../domain/entities/puzzle_base_entity.dart';
 
 extension PlacementX on PlacementDto {
   List<Cell> get coveredCells {
-    List<Cell> cells = [];
-    for (var rel in piece.cells) {
-      int r = rel.row;
-      int c = rel.col;
-      for (int i = 0; i < rotationSteps; i++) {
-        int temp = r;
+    final cells = <Cell>[];
+    for (final rel in piece.cells) {
+      var r = rel.row;
+      var c = rel.col;
+      for (var i = 0; i < rotationSteps; i++) {
+        final temp = r;
         r = c;
         c = -temp;
       }
@@ -22,8 +22,8 @@ extension PlacementX on PlacementDto {
     return cells;
   }
 
-  bool fitsInBoard(PuzzleBaseEntity grid) {
-    for (var cell in coveredCells) {
+  bool fitsInBoard(final PuzzleBaseEntity grid) {
+    for (final cell in coveredCells) {
       if (cell.row < 0 || cell.row >= grid.rows || cell.col < 0 || cell.col >= grid.columns) {
         return false;
       }
@@ -31,15 +31,15 @@ extension PlacementX on PlacementDto {
     return true;
   }
 
-  bool doesNotOverlapForbiddenZones(Set<Cell> forbiddenCells) {
-    for (var cell in coveredCells) {
+  bool doesNotOverlapForbiddenZones(final Set<Cell> forbiddenCells) {
+    for (final cell in coveredCells) {
       if (forbiddenCells.contains(cell)) return false;
     }
     return true;
   }
 
-  bool doesNotCoverFreeCells(Set<Cell> freeCells) {
-    for (var cell in coveredCells) {
+  bool doesNotCoverFreeCells(final Set<Cell> freeCells) {
+    for (final cell in coveredCells) {
       if (freeCells.contains(cell)) return false;
     }
     return true;

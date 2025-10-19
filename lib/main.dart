@@ -26,7 +26,7 @@ Future<void> main() async {
   Bloc.observer = AppBlocObserver();
   runApp(
     Builder(
-      builder: (context) {
+      builder: (final context) {
         FlutterNativeSplash.remove();
         return const MyApp();
       },
@@ -38,19 +38,16 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => SettingsCubit(),
+  Widget build(final BuildContext context) => BlocProvider(
+      create: (final context) => SettingsCubit(),
       child: BlocBuilder<SettingsCubit, SettingsState>(
-        buildWhen: (p, n) => p.theme != n.theme,
-        builder: (context, settings) {
-          debugPrint('theme: ${settings.theme}');
-          return MaterialApp(
-            onGenerateTitle: (context) => S.of(context).appTitle,
+        buildWhen: (final p, final n) => p.theme != n.theme,
+        builder: (final context, final settings) => MaterialApp(
+            onGenerateTitle: (final context) => S.of(context).appTitle,
             theme: AppThemeData.light,
             darkTheme: AppThemeData.dark,
             themeMode: settings.theme.toThemeMode(),
-            builder: (context, child) {
+            builder: (final context, final child) {
               final brightness = Theme.of(context).brightness;
               AppColors.update(brightness);
               return child!;
@@ -62,9 +59,9 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: S.delegate.supportedLocales,
-            localeResolutionCallback: (locale, supportedLocales) {
+            localeResolutionCallback: (final locale, final supportedLocales) {
               if (locale == null) return supportedLocales.first;
-              for (var supportedLocale in supportedLocales) {
+              for (final supportedLocale in supportedLocales) {
                 if (supportedLocale.languageCode == locale.languageCode) {
                   return supportedLocale;
                 }
@@ -72,9 +69,7 @@ class MyApp extends StatelessWidget {
               return supportedLocales.first;
             },
             home: Material(child: const PuzzleScreen()),
-          );
-        },
+          ),
       ),
     );
-  }
 }

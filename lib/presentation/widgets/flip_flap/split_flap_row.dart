@@ -1,9 +1,9 @@
-import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:caesar_puzzle/presentation/widgets/flip_flap/split_flap.dart';
 import 'package:flutter/material.dart';
 
-class SplitFlapRow extends StatelessWidget {
-  const SplitFlapRow({
+class SplitFlapPanel extends StatelessWidget {
+  SplitFlapPanel({
     super.key,
     required this.text,
     this.cardsInPack,
@@ -11,7 +11,8 @@ class SplitFlapRow extends StatelessWidget {
     this.panelDecoration,
     this.tileDecoration,
     required this.tileConstraints,
-  });
+    this.tileType = TileInfo.number,
+  }) : splittedText = tileType == TileInfo.text ? [text] : text.characters.toList();
 
   final String text;
   final int? cardsInPack;
@@ -19,30 +20,33 @@ class SplitFlapRow extends StatelessWidget {
   final Decoration? panelDecoration;
   final Decoration? tileDecoration;
   final BoxConstraints tileConstraints;
+  final TileInfo tileType;
+  late final List<String> splittedText;
 
   @override
-  Widget build(final BuildContext context) => DecoratedBox(
-    decoration:
-        panelDecoration ??
-        BoxDecoration(color: AppColors.current.primary, borderRadius: BorderRadius.all(Radius.circular(4))),
-    child: Center(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: text.characters
-            .map(
-              (final e) => Center(
-                child: SplitFlapTile(
-                  symbol: e,
+  Widget build(final BuildContext context) {
+    final theme = SplitFlapTheme.of(context);
+
+    return DecoratedBox(
+      decoration: panelDecoration ?? theme.panelDecoration,
+      child: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: splittedText
+              .map(
+                (final e) => SplitFlapTile(
+                  text: e,
                   cardsInPack: cardsInPack ?? 1,
                   tileConstraints: tileConstraints,
-                  symbolStyle: symbolStyle,
-                  tileDecoration: tileDecoration,
-                  tileType: TileInfo.number,
+                  symbolStyle: symbolStyle ?? theme.symbolStyle,
+                  tileDecoration: tileDecoration ?? theme.tileDecoration,
+                  tileType: tileType,
+                  useShortestWay: false,
                 ),
-              ),
-            )
-            .toList(),
+              )
+              .toList(),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

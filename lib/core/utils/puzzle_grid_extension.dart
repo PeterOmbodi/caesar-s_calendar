@@ -3,7 +3,7 @@ import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
 import 'package:flutter/material.dart';
 
 extension PuzzleGridX on PuzzleGrid {
-  Offset snapToGrid(Offset position) {
+  Offset snapToGrid(final Offset position) {
     // Calculate the closest cell coordinates
     final cellX = (relativeX(position) / cellSize).round();
     final cellY = (relativeY(position) / cellSize).round();
@@ -18,4 +18,6 @@ extension PuzzleGridX on PuzzleGrid {
 
     return Offset(snappedX, snappedY);
   }
+
+  BoxConstraints cellconstraints() => BoxConstraints.tightFor(height: cellSize, width: cellSize);
 }
