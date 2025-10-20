@@ -1,9 +1,10 @@
 import 'package:caesar_puzzle/core/utils/puzzle_grid_extension.dart';
+import 'package:caesar_puzzle/flip_flap/widgets/flap_display.dart';
+import 'package:caesar_puzzle/flip_flap/widgets/flip_flap_display.dart';
+import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
-import 'package:caesar_puzzle/presentation/widgets/flip_flap/split_flap.dart';
-import 'package:caesar_puzzle/presentation/widgets/flip_flap/split_flap_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -59,7 +60,7 @@ class PuzzleView extends StatelessWidget {
                         top: state.cfgCellOffset(1).dy,
                         child: ConstrainedBox(
                           constraints: state.gridConfig.cellconstraints(),
-                          child: SplitFlapPanel(
+                          child: FlipFlapDisplay(
                             text: '$solutionsCountState'.padLeft(2, '0'),
                             cardsInPack: 4,
                             tileConstraints: BoxConstraints(
@@ -75,11 +76,11 @@ class PuzzleView extends StatelessWidget {
                         top: state.cfgCellOffset(3).dy,
                         child: ConstrainedBox(
                           constraints: state.gridConfig.cellconstraints(),
-                          child: SplitFlapPanel(
-                            text: 'Sol',
+                          child: FlipFlapDisplay(
+                            text: S.current.solutionShort,
                             tileConstraints: const BoxConstraints(minWidth: 46, minHeight: 32),
                             cardsInPack: 1,
-                            tileType: TileInfo.text,
+                            tileType: DisplayType.text,
                           ),
                         ),
                       ),
@@ -88,7 +89,7 @@ class PuzzleView extends StatelessWidget {
                         top: state.cfgCellOffset(4).dy,
                         child: ConstrainedBox(
                           constraints: state.gridConfig.cellconstraints(),
-                          child: SplitFlapPanel(
+                          child: FlipFlapDisplay(
                             text: ' #',
                             tileConstraints: const BoxConstraints(minWidth: 20, minHeight: 32),
                             cardsInPack: 1,
@@ -100,7 +101,7 @@ class PuzzleView extends StatelessWidget {
                         top: state.cfgCellOffset(5).dy,
                         child: ConstrainedBox(
                           constraints: state.gridConfig.cellconstraints(),
-                          child: SplitFlapPanel(
+                          child: FlipFlapDisplay(
                             text: '${state.solutionIdx + 1}'.padLeft(solutionsCountState < 100 ? 2 : 3, '0'),
                             tileConstraints: BoxConstraints(
                               minWidth: solutionsCountState < 100 ? 20 : 14,

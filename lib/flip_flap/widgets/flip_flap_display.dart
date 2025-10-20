@@ -1,9 +1,9 @@
-import 'package:caesar_puzzle/presentation/theme/theme.dart';
-import 'package:caesar_puzzle/presentation/widgets/flip_flap/split_flap.dart';
+import 'package:caesar_puzzle/flip_flap/split_flap_theme.dart';
+import 'package:caesar_puzzle/flip_flap/widgets/flap_display.dart';
 import 'package:flutter/material.dart';
 
-class SplitFlapPanel extends StatelessWidget {
-  SplitFlapPanel({
+class FlipFlapDisplay extends StatelessWidget {
+  FlipFlapDisplay({
     super.key,
     required this.text,
     this.cardsInPack,
@@ -11,8 +11,10 @@ class SplitFlapPanel extends StatelessWidget {
     this.panelDecoration,
     this.tileDecoration,
     required this.tileConstraints,
-    this.tileType = TileInfo.number,
-  }) : splittedText = tileType == TileInfo.text ? [text] : text.characters.toList();
+    this.tileType = DisplayType.number,
+  }) : splittedText = tileType == DisplayType.text
+           ? [text]
+           : text.characters.toList();
 
   final String text;
   final int? cardsInPack;
@@ -20,12 +22,12 @@ class SplitFlapPanel extends StatelessWidget {
   final Decoration? panelDecoration;
   final Decoration? tileDecoration;
   final BoxConstraints tileConstraints;
-  final TileInfo tileType;
+  final DisplayType tileType;
   late final List<String> splittedText;
 
   @override
   Widget build(final BuildContext context) {
-    final theme = SplitFlapTheme.of(context);
+    final theme = FlipFlapTheme.of(context);
 
     return DecoratedBox(
       decoration: panelDecoration ?? theme.panelDecoration,
@@ -34,13 +36,13 @@ class SplitFlapPanel extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: splittedText
               .map(
-                (final e) => SplitFlapTile(
+                (final e) => FlapDisplay(
                   text: e,
                   cardsInPack: cardsInPack ?? 1,
-                  tileConstraints: tileConstraints,
-                  symbolStyle: symbolStyle ?? theme.symbolStyle,
-                  tileDecoration: tileDecoration ?? theme.tileDecoration,
-                  tileType: tileType,
+                  unitConstraints: tileConstraints,
+                  textStyle: symbolStyle ?? theme.symbolStyle,
+                  unitDecoration: tileDecoration ?? theme.tileDecoration,
+                  displayType: tileType,
                   useShortestWay: false,
                 ),
               )

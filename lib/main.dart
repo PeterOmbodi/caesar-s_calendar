@@ -39,37 +39,37 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) => BlocProvider(
-      create: (final context) => SettingsCubit(),
-      child: BlocBuilder<SettingsCubit, SettingsState>(
-        buildWhen: (final p, final n) => p.theme != n.theme,
-        builder: (final context, final settings) => MaterialApp(
-            onGenerateTitle: (final context) => S.of(context).appTitle,
-            theme: AppThemeData.light,
-            darkTheme: AppThemeData.dark,
-            themeMode: settings.theme.toThemeMode(),
-            builder: (final context, final child) {
-              final brightness = Theme.of(context).brightness;
-              AppColors.update(brightness);
-              return child!;
-            },
-            localizationsDelegates: [
-              S.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: S.delegate.supportedLocales,
-            localeResolutionCallback: (final locale, final supportedLocales) {
-              if (locale == null) return supportedLocales.first;
-              for (final supportedLocale in supportedLocales) {
-                if (supportedLocale.languageCode == locale.languageCode) {
-                  return supportedLocale;
-                }
-              }
-              return supportedLocales.first;
-            },
-            home: Material(child: const PuzzleScreen()),
-          ),
+    create: (final context) => SettingsCubit(),
+    child: BlocBuilder<SettingsCubit, SettingsState>(
+      buildWhen: (final p, final n) => p.theme != n.theme,
+      builder: (final context, final settings) => MaterialApp(
+        onGenerateTitle: (final context) => S.of(context).appTitle,
+        theme: AppThemeData.light,
+        darkTheme: AppThemeData.dark,
+        themeMode: settings.theme.toThemeMode(),
+        builder: (final context, final child) {
+          final brightness = Theme.of(context).brightness;
+          AppColors.update(brightness);
+          return child!;
+        },
+        localizationsDelegates: [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
+        localeResolutionCallback: (final locale, final supportedLocales) {
+          if (locale == null) return supportedLocales.first;
+          for (final supportedLocale in supportedLocales) {
+            if (supportedLocale.languageCode == locale.languageCode) {
+              return supportedLocale;
+            }
+          }
+          return supportedLocales.first;
+        },
+        home: Material(child: const PuzzleScreen()),
       ),
-    );
+    ),
+  );
 }

@@ -27,6 +27,7 @@
   "solvability": "Solvability",
   "solvedAlertTitle": "Congrats! \uD83C\uDF89",
   "solvedAlertSubTitle": "You did it!",
+  "solutionShort": "Sol",
   "solutionIndicatorCountTitle": "Solution counter",
   "solutionIndicatorCountSubtitle": "Shows how many different solutions exist for this puzzle state",
   "solutionIndicatorHiddenTitle": "Hidden mode",
