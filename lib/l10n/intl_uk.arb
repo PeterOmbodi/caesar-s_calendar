@@ -27,6 +27,7 @@
   "solvability": "Розв’язуваність",
   "solvedAlertTitle": "Вітаю! \uD83C\uDF89",
   "solvedAlertSubTitle": "Ти зробив це!",
+  "solutionShort": "Ріш",
   "solutionLabel": "рішення:\n {current} / {total}",
   "solutionIndicatorCountTitle": "Лічильник розв’язків",
   "solutionIndicatorCountSubtitle": "Показує, скільки різних розв’язків існує для цього стану головоломки",

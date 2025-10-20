@@ -1,54 +1,51 @@
 import 'dart:math';
 
-import 'package:caesar_puzzle/presentation/widgets/flip_flap/letter_plate.dart';
+import 'package:caesar_puzzle/flip_flap/widgets/flap_unit.dart';
 import 'package:flutter/material.dart';
 
-enum TileInfo { character, number, special, mixed, text }
+enum DisplayType { character, number, special, mixed, text }
 
-extension TileInfoX on TileInfo {
+extension DisplayTypeX on DisplayType {
   List<String> get defValues => switch (this) {
-    TileInfo.character => [
-      '',
-      ...List<String>.generate(26, (final i) => String.fromCharCode(65 + i)), // A-Z
-    ],
-    TileInfo.number => ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-    TileInfo.special => ['', '!', '@', '#', '', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+'],
-    TileInfo.mixed => [
+    DisplayType.character => ['', ...List<String>.generate(26, (final i) => String.fromCharCode(65 + i))],
+    DisplayType.number => ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+    DisplayType.special => ['', '!', '@', '#', '\u007f', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+'],
+    DisplayType.mixed => [
       '',
       ...List<String>.generate(26, (final i) => String.fromCharCode(65 + i)),
       ...['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
     ],
-    TileInfo.text => [],
+    DisplayType.text => [],
   };
 }
 
-class SplitFlapTile extends StatefulWidget {
-  const SplitFlapTile({
+class FlapDisplay extends StatefulWidget {
+  const FlapDisplay({
     super.key,
     this.cardsInPack = 1,
     required this.text,
     this.values = const [],
     this.useShortestWay = true,
-    this.symbolStyle,
-    this.tileDecoration,
-    required this.tileConstraints,
-    this.tileType = TileInfo.mixed,
+    this.textStyle,
+    this.unitDecoration,
+    required this.unitConstraints,
+    this.displayType = DisplayType.mixed,
   });
 
   final String text;
   final List<String>? values;
-  final TileInfo tileType;
+  final DisplayType displayType;
   final int cardsInPack;
   final bool useShortestWay;
-  final TextStyle? symbolStyle;
-  final Decoration? tileDecoration;
-  final BoxConstraints tileConstraints;
+  final TextStyle? textStyle;
+  final Decoration? unitDecoration;
+  final BoxConstraints unitConstraints;
 
   @override
-  State<SplitFlapTile> createState() => _SplitFlapTileState();
+  State<FlapDisplay> createState() => _FlapDisplayState();
 }
 
-class _SplitFlapTileState extends State<SplitFlapTile> with TickerProviderStateMixin {
+class _FlapDisplayState extends State<FlapDisplay> with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation _animation;
 
@@ -71,7 +68,7 @@ class _SplitFlapTileState extends State<SplitFlapTile> with TickerProviderStateM
   void initState() {
     super.initState();
 
-    _values = (widget.values == null || widget.values!.isEmpty) ? widget.tileType.defValues : widget.values!;
+    _values = (widget.values == null || widget.values!.isEmpty) ? widget.displayType.defValues : widget.values!;
 
     if (!_values.contains(targetValue)) {
       _values = List<String>.from(_values)..add(targetValue);
@@ -88,18 +85,17 @@ class _SplitFlapTileState extends State<SplitFlapTile> with TickerProviderStateM
           )
           ..addStatusListener(_nextStep)
           ..addListener(() {
-            //ignore: no-empty-block
             setState(() {});
           });
     _animation = Tween(begin: 0, end: pi / 2).animate(_controller);
   }
 
   @override
-  void didUpdateWidget(final SplitFlapTile oldWidget) {
+  void didUpdateWidget(final FlapDisplay oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.text != widget.text) {
       final provided = widget.values;
-      _values = (provided == null || provided.isEmpty) ? widget.tileType.defValues : provided;
+      _values = (provided == null || provided.isEmpty) ? widget.displayType.defValues : provided;
 
       final prevValue = oldWidget.text;
       final nextTarget = targetValue;
@@ -161,11 +157,11 @@ class _SplitFlapTileState extends State<SplitFlapTile> with TickerProviderStateM
                   child: Align(
                     alignment: Alignment.topCenter,
                     heightFactor: 0.495,
-                    child: LetterPlate(
-                      symbol: nextChar,
-                      constraints: widget.tileConstraints,
-                      decoration: widget.tileDecoration,
-                      symbolStyle: widget.symbolStyle,
+                    child: FlapUnit(
+                      text: nextChar,
+                      constraints: widget.unitConstraints,
+                      decoration: widget.unitDecoration,
+                      textStyle: widget.textStyle,
                     ),
                   ),
                 ),
@@ -178,17 +174,18 @@ class _SplitFlapTileState extends State<SplitFlapTile> with TickerProviderStateM
                     child: Align(
                       alignment: Alignment.topCenter,
                       heightFactor: 0.495,
-                      child: LetterPlate(
-                        symbol: currentChar,
-                        constraints: widget.tileConstraints,
-                        decoration: widget.tileDecoration,
-                        symbolStyle: widget.symbolStyle,
+                      child: FlapUnit(
+                        text: currentChar,
+                        constraints: widget.unitConstraints,
+                        decoration: widget.unitDecoration,
+                        textStyle: widget.textStyle,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
+            //todo any sense to extract to theme?
             Container(color: Theme.of(context).primaryColor, height: 0.5),
             Stack(
               children: [
@@ -196,11 +193,11 @@ class _SplitFlapTileState extends State<SplitFlapTile> with TickerProviderStateM
                   child: Align(
                     alignment: Alignment.bottomCenter,
                     heightFactor: 0.495,
-                    child: LetterPlate(
-                      symbol: currentChar,
-                      constraints: widget.tileConstraints,
-                      decoration: widget.tileDecoration,
-                      symbolStyle: widget.symbolStyle,
+                    child: FlapUnit(
+                      text: currentChar,
+                      constraints: widget.unitConstraints,
+                      decoration: widget.unitDecoration,
+                      textStyle: widget.textStyle,
                     ),
                   ),
                 ),
@@ -213,11 +210,11 @@ class _SplitFlapTileState extends State<SplitFlapTile> with TickerProviderStateM
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       heightFactor: 0.495,
-                      child: LetterPlate(
-                        symbol: nextChar,
-                        constraints: widget.tileConstraints,
-                        decoration: widget.tileDecoration,
-                        symbolStyle: widget.symbolStyle,
+                      child: FlapUnit(
+                        text: nextChar,
+                        constraints: widget.unitConstraints,
+                        decoration: widget.unitDecoration,
+                        textStyle: widget.textStyle,
                       ),
                     ),
                   ),
