@@ -87,7 +87,7 @@ class _FlapDisplayState extends State<FlapDisplay> with TickerProviderStateMixin
           ..addListener(() {
             setState(() {});
           });
-    _animation = Tween(begin: 0, end: pi / 2).animate(_controller);
+    _animation = Tween(begin: 0, end: pi / 2).chain(CurveTween(curve: Curves.easeInCubic)).animate(_controller);
   }
 
   @override
@@ -130,6 +130,7 @@ class _FlapDisplayState extends State<FlapDisplay> with TickerProviderStateMixin
         useShortestWay: widget.useShortestWay,
       );
       if (!_controller.isAnimating) {
+        _animation = Tween(begin: 0, end: pi / 2).chain(CurveTween(curve: Curves.easeInCubic)).animate(_controller);
         _controller.forward(from: 0);
       }
     }
@@ -230,12 +231,15 @@ class _FlapDisplayState extends State<FlapDisplay> with TickerProviderStateMixin
   void _nextStep(final AnimationStatus status) {
     if (status == AnimationStatus.completed) {
       _secondStage = true;
+      final secondPhaseCurve = nextValue == targetValue ? FlippedCurve(_BackOutCurve(overshoot: 2.8)) : Curves.easeInCubic;
+      _animation = Tween(begin: 0, end: pi / 2).chain(CurveTween(curve: secondPhaseCurve)).animate(_controller);
       _controller.reverse();
     }
     if (status == AnimationStatus.dismissed) {
       _currentValue = nextValue;
       _currentPlannedIndex = nextIndex;
       _secondStage = false;
+      _animation = Tween(begin: 0, end: pi / 2).chain(CurveTween(curve: Curves.easeInCubic)).animate(_controller);
       if (_currentValue != targetValue) {
         _controller.forward();
       }
@@ -316,5 +320,19 @@ class _FlapDisplayState extends State<FlapDisplay> with TickerProviderStateMixin
     if (result.first != from) result[0] = from;
     if (result.last != to) result[result.length - 1] = to;
     return result;
+  }
+}
+
+class _BackOutCurve extends Curve {
+  const _BackOutCurve({this.overshoot = 2.5});
+
+  final double overshoot;
+
+  @override
+  double transformInternal(double t) {
+    // Classic backOut: t -> t-1; return t*t*((s+1)*t + s) + 1
+    final s = overshoot;
+    t -= 1.0;
+    return t * t * ((s + 1) * t + s) + 1.0;
   }
 }
