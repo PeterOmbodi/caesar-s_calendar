@@ -1,6 +1,6 @@
-import 'package:caesar_puzzle/flip_flap/split_flap_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_flip_flap/split_flap_theme.dart';
 
 class AppThemeData {
   static final ThemeData light = ThemeData(
@@ -17,13 +17,13 @@ class AppThemeData {
     ),
     extensions: [
       FlipFlapTheme(
-        tileDecoration: BoxDecoration(
+        unitDecoration: BoxDecoration(
           color: AppColors.light.boardBorder,
           border: Border.fromBorderSide(BorderSide(color: AppColors.light.boardBackground, width: 0.5)),
           borderRadius: BorderRadius.all(Radius.circular(4)),
         ),
-        panelDecoration: const BoxDecoration(color: Colors.transparent),
-        symbolStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: AppColors.light.cellLabel),
+        displayDecoration: const BoxDecoration(color: Colors.transparent),
+        textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: AppColors.light.cellLabel),
       ),
     ],
   );
@@ -42,13 +42,13 @@ class AppThemeData {
     ),
     extensions: [
       FlipFlapTheme(
-        tileDecoration: BoxDecoration(
+        unitDecoration: BoxDecoration(
           color: AppColors.dark.boardBorder,
           border: Border.fromBorderSide(BorderSide(color: AppColors.dark.boardBackground, width: 0.5)),
           borderRadius: BorderRadius.all(Radius.circular(4)),
         ),
-        panelDecoration: const BoxDecoration(color: Colors.transparent),
-        symbolStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: AppColors.dark.cellLabel),
+        displayDecoration: const BoxDecoration(color: Colors.transparent),
+        textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: AppColors.dark.cellLabel),
       ),
     ],
   );
