@@ -16,24 +16,25 @@ enum SolutionIndicator {
 class SettingsCubit extends HydratedCubit<SettingsState> {
   SettingsCubit() : super(const SettingsState());
 
-  void setTheme(AppTheme theme) {
+  void setTheme(final AppTheme theme) {
     debugPrint('setTheme: $theme');
     emit(state.copyWith(theme: theme));
   }
-  void toggleUnlockConfig(bool v) => emit(state.copyWith(unlockConfig: v));
-  void togglePreventOverlap(bool v) => emit(state.copyWith(preventOverlap: v));
-  void toggleAutoLockConfig(bool v) => emit(state.copyWith(autoLockConfig: v));
-  void toggleSnapToGrid(bool v) => emit(state.copyWith(snapToGridOnTransform: v));
-  void toggleSeparateColors(bool v) => emit(state.copyWith(separateMoveColors: v));
-  void setSolutionIndicator(SolutionIndicator? v) => emit(state.copyWith(solutionIndicator: v ?? SolutionIndicator.none));
+  void toggleUnlockConfig(final bool v) => emit(state.copyWith(unlockConfig: v));
+  void togglePreventOverlap(final bool v) => emit(state.copyWith(preventOverlap: v));
+  void toggleAutoLockConfig(final bool v) => emit(state.copyWith(autoLockConfig: v));
+  void toggleSnapToGrid(final bool v) => emit(state.copyWith(snapToGridOnTransform: v));
+  void toggleSeparateColors(final bool v) => emit(state.copyWith(separateMoveColors: v));
+  void setSolutionIndicator(final SolutionIndicator? v) => emit(state.copyWith(solutionIndicator: v ?? SolutionIndicator.none));
+  void toggleShowTimer(final bool v) => emit(state.copyWith(showTimer: v));
 
   @override
-  SettingsState? fromJson(Map<String, dynamic> json) {
+  SettingsState? fromJson(final Map<String, dynamic> json) {
     try { return SettingsState.fromJson(json); } catch (_) { return null; }
   }
 
   @override
-  Map<String, dynamic>? toJson(SettingsState state) {
+  Map<String, dynamic>? toJson(final SettingsState state) {
     try { return state.toJson(); } catch (_) { return null; }
   }
 }

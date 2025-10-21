@@ -32,6 +32,7 @@ abstract class PuzzleState with _$PuzzleState {
     required final List<Move> moveHistory,
     required final int moveIndex,
     required final DateTime selectedDate,
+    final int? firstMoveAt,
   }) = _PuzzleState;
 
   const PuzzleState._();

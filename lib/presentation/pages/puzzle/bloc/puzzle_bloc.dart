@@ -64,29 +64,25 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   FutureOr<void> _onViewSize(final _SetViewSize event, final Emitter<PuzzleState> emit) {
     if (_lastViewSize != event.viewSize && event.viewSize.width > 0 && event.viewSize.height > 0) {
-      add(PuzzleEvent.configure(viewSize: event.viewSize));
+      _lastViewSize = event.viewSize;
+      add(PuzzleEvent.configure());
     }
   }
 
   FutureOr<void> _reset(final _Reset event, final Emitter<PuzzleState> emit) {
-    if (_lastViewSize == null) {
-      emit(PuzzleState.initial());
-    } else {
-      add(
-        PuzzleEvent.configure(
-          viewSize: _lastViewSize!,
-          toInitial: true,
-          configurationPieces: _settings.unlockConfig ? [] : state.gridPieces.where((final e) => e.isConfigItem),
-        ),
-      );
-    }
+    add(
+      PuzzleEvent.configure(
+        toInitial: true,
+        configurationPieces: _settings.unlockConfig ? [] : state.gridPieces.where((final e) => e.isConfigItem),
+      ),
+    );
     if (state.solutions.isEmpty && _settings.requireSolutions) {
       add(PuzzleEvent.solve(showResult: false));
     }
   }
 
   Future<void> _configure(final _Configure event, final Emitter<PuzzleState> emit) async {
-    final viewSize = event.viewSize;
+    final viewSize = _lastViewSize!;
     final configurationPieces = event.configurationPieces;
     final isInitializing = state.status == GameStatus.initializing || event.toInitial;
 
@@ -223,11 +219,19 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     );
 
     if (isInitializing) {
-      emit(newState.copyWith(status: GameStatus.initialized, solutionIdx: -1, moveHistory: [], moveIndex: 0));
+      emit(
+        newState.copyWith(
+          status: GameStatus.initialized,
+          solutionIdx: -1,
+          moveHistory: [],
+          moveIndex: 0,
+          firstMoveAt: null,
+        ),
+      );
     } else {
       emit(newState);
     }
-    _lastViewSize = event.viewSize;
+
     if (isInitializing) {
       //solving causes UI freezes, let`s wait a bit for animation comlplete
       await Future<void>.delayed(Duration(milliseconds: 150));
@@ -370,8 +374,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         if (moveHistory.length > state.moveIndex) {
           moveHistory.removeRange(state.moveIndex, moveHistory.length);
         }
+        final firstMoveAt = moveHistory.isEmpty ? DateTime.now().millisecondsSinceEpoch * 1000 : null;
         moveHistory.add(move);
         final pieces = _updatePieceInList(selectedPiece);
+        final shouldResolve = selectedPiece.isConfigItem;
+        final applicableSolutions = shouldResolve
+            ? <Map<String, String>>[]
+            : _combineSolutions(state.solutions, pieces);
         emit(
           state.copyWith(
             pieces: pieces,
@@ -385,10 +394,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             moveHistory: moveHistory,
             moveIndex: moveHistory.length,
             status: _getStatus(pieces),
-            applicableSolutions: _combineSolutions(state.solutions, pieces),
+            applicableSolutions: applicableSolutions,
+            firstMoveAt: firstMoveAt ?? state.firstMoveAt,
           ),
         );
-        if (selectedPiece.isConfigItem && _settings.requireSolutions) {
+        if (shouldResolve) {
           add(PuzzleEvent.solve(showResult: false));
         }
       } else {
@@ -420,10 +430,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(flippedPiece) : (flippedPiece, null);
       final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
       final pieces = _updatePieceInList(pieceToSave);
-      final shouldResolve = selectedPiece.isConfigItem && _settings.requireSolutions;
-      final applicableSolutions = shouldResolve
-          ? state.applicableSolutions
-          : _combineSolutions(state.solutions, pieces);
+      final shouldResolve = selectedPiece.isConfigItem;
+      final applicableSolutions = shouldResolve ? <Map<String, String>>[] : _combineSolutions(state.solutions, pieces);
       emit(
         state.copyWith(
           pieces: pieces,
@@ -445,8 +453,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(selectedPiece) : (selectedPiece, null);
     final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
     final pieces = _updatePieceInList(pieceToSave);
-    final shouldResolve = selectedPiece.isConfigItem && _settings.requireSolutions;
-    final applicableSolutions = shouldResolve ? state.applicableSolutions : _combineSolutions(state.solutions, pieces);
+    final shouldResolve = selectedPiece.isConfigItem;
+    final applicableSolutions = shouldResolve ? <Map<String, String>>[] : _combineSolutions(state.solutions, pieces);
     emit(
       state.copyWith(
         pieces: pieces,
@@ -730,8 +738,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   List<PuzzlePiece> _updatePieceInList(final PuzzlePiece piece) => List<PuzzlePiece>.from(state.pieces)
-      ..removeWhere((final p) => p.id == piece.id)
-      ..add(piece);
+    ..removeWhere((final p) => p.id == piece.id)
+    ..add(piece);
 
   List<Map<String, String>> _combineSolutions(
     final Iterable<Map<String, String>> solutions,
