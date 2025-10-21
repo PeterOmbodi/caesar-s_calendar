@@ -294,6 +294,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.1.1"
+  flutter_flip_flap:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: a98a7ca20e4711ae1569326c669f44327ae5c650
+      url: "https://github.com/PeterOmbodi/flutter_flip_flap"
+    source: git
+    version: "0.1.1"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
