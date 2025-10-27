@@ -19,7 +19,6 @@ abstract class PuzzleState with _$PuzzleState {
     required final List<Map<String, String>> solutions,
     required final List<Map<String, String>> applicableSolutions,
     required final int solutionIdx,
-    required final int timer,
     required final Iterable<PuzzlePiece> pieces,
     required final PuzzlePiece? selectedPiece,
     required final bool isDragging,
@@ -32,6 +31,7 @@ abstract class PuzzleState with _$PuzzleState {
     required final List<Move> moveHistory,
     required final int moveIndex,
     required final DateTime selectedDate,
+    final int? firstMoveAt,
   }) = _PuzzleState;
 
   const PuzzleState._();
@@ -44,7 +44,6 @@ abstract class PuzzleState with _$PuzzleState {
     solutions: [],
     applicableSolutions: [],
     solutionIdx: -1,
-    timer: 0,
     selectedPiece: null,
     isDragging: false,
     showPreview: false,
