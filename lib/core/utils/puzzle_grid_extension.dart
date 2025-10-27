@@ -19,5 +19,5 @@ extension PuzzleGridX on PuzzleGrid {
     return Offset(snappedX, snappedY);
   }
 
-  BoxConstraints cellconstraints() => BoxConstraints.tightFor(height: cellSize, width: cellSize);
+  BoxConstraints cellConstraints() => BoxConstraints.tightFor(height: cellSize, width: cellSize);
 }

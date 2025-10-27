@@ -324,7 +324,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             piece: state.selectedPiece!,
             newPosition: snappedPosition,
             zone: newZone!,
-            preventOverlap: _settings.preventOverlap,
+            preventOverlap: _settings.preventOverlap || state.selectedPiece!.isConfigItem,
           );
         case PlaceZone.board:
           snappedPosition = state.selectedPiece!.position;
@@ -374,7 +374,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         if (moveHistory.length > state.moveIndex) {
           moveHistory.removeRange(state.moveIndex, moveHistory.length);
         }
-        final firstMoveAt = moveHistory.isEmpty ? DateTime.now().millisecondsSinceEpoch * 1000 : null;
+        final firstMoveAt = state.gridPieces.where((final p)=>!p.isConfigItem).isEmpty ? DateTime.now().millisecondsSinceEpoch : null;
         moveHistory.add(move);
         final pieces = _updatePieceInList(selectedPiece);
         final shouldResolve = selectedPiece.isConfigItem;
@@ -426,7 +426,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final selectedPiece = _findPieceAtPosition(event.localPosition);
     if (selectedPiece != null && (!selectedPiece.isConfigItem || _settings.unlockConfig)) {
       final flippedPiece = selectedPiece.copyWith(isFlipped: !selectedPiece.isFlipped);
-      final shouldSnap = selectedPiece.placeZone == PlaceZone.grid && _settings.snapToGridOnTransform;
+      final shouldSnap =
+          selectedPiece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
       final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(flippedPiece) : (flippedPiece, null);
       final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
       final pieces = _updatePieceInList(pieceToSave);
@@ -449,7 +450,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   FutureOr<void> _rotatePiece(final _RotatePiece event, final Emitter<PuzzleState> emit) {
     final selectedPiece = event.piece.copyWith(rotation: _stepRotation(event.piece.rotation));
-    final shouldSnap = event.piece.placeZone == PlaceZone.grid && _settings.snapToGridOnTransform;
+    final shouldSnap =
+        event.piece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
     final (pieceToSave, snapMove) = shouldSnap ? _maybeSnap(selectedPiece) : (selectedPiece, null);
     final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
     final pieces = _updatePieceInList(pieceToSave);

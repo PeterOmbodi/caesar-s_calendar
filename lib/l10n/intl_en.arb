@@ -42,6 +42,7 @@
   "solutionsNotFoundDialogMessage": "No solutions found for the given configuration",
   "switchTheme": "Switch theme",
   "system": "System",
+  "time": "Time",
   "timerToggleTitle": "Solving timer",
   "timerToggleSubtitle": "Show total time from first move to solution",
   "theme": "Theme",
