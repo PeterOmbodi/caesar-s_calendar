@@ -93,13 +93,13 @@ class InfoDisplay3Cell extends StatelessWidget {
         children: [
           ConstrainedBox(
             constraints: state.gridConfig.cellConstraints(),
-            child: FlipFlapDisplay(
+            child: FlipFlapDisplay.fromText(
               key: const Key('unit#1'),
               text: displayMode.label,
               textStyle: FlipFlapTheme.of(context).textStyle.copyWith(fontSize: 16),
               unitConstraints: const BoxConstraints(minWidth: 46, minHeight: 32),
               cardsInPack: 1,
-              displayType: UnitType.text,
+              unitType: UnitType.text,
             ),
           ),
           StreamBuilder<String>(
@@ -107,11 +107,9 @@ class InfoDisplay3Cell extends StatelessWidget {
             initialData: '',
             builder: (final context, final snapshot) => ConstrainedBox(
               constraints: state.gridConfig.cellConstraints(),
-              child: FlipFlapDisplay(
-                key: const Key('unit#2'),
+              child: FlipFlapDisplay.fromText(
                 text: snapshot.data ?? '',
                 unitConstraints: const BoxConstraints(minWidth: 20, minHeight: 32),
-                cardsInPack: 2,
               ),
             ),
           ),
@@ -120,11 +118,9 @@ class InfoDisplay3Cell extends StatelessWidget {
             initialData: '',
             builder: (final context, final snapshot) => ConstrainedBox(
               constraints: state.gridConfig.cellConstraints(),
-              child: FlipFlapDisplay(
-                key: const Key('unit#3'),
+              child: FlipFlapDisplay.fromText(
                 text: snapshot.data ?? '',
                 unitConstraints: BoxConstraints(minWidth: cell3minWidth, minHeight: 32),
-                cardsInPack: 2,
               ),
             ),
           ),

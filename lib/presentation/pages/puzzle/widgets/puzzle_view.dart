@@ -47,10 +47,7 @@ class PuzzleView extends StatelessWidget {
                       Positioned(
                         left: state.cfgCellOffset(0).dx,
                         top: state.cfgCellOffset(0).dy,
-                        child: _SolvabilityMark(
-                          solvabilable: solvabilityState > 0 || solutionsCountState > 0,
-                          cellSize: state.gridConfig.cellSize,
-                        ),
+                        child: const _SolvabilityMark(),
                       ),
                     if (solutionsCountState >= 0)
                       Positioned(
@@ -58,13 +55,14 @@ class PuzzleView extends StatelessWidget {
                         top: state.cfgCellOffset(1).dy,
                         child: ConstrainedBox(
                           constraints: state.gridConfig.cellConstraints(),
-                          child: FlipFlapDisplay(
+                          child: FlipFlapDisplay.fromText(
                             text: '$solutionsCountState'.padLeft(2, '0'),
                             cardsInPack: 4,
                             unitConstraints: BoxConstraints(
                               minWidth: solutionsCountState < 100 ? 20 : 14,
                               minHeight: 32,
                             ),
+                            unitType: UnitType.number,
                           ),
                         ),
                       ),
@@ -113,24 +111,52 @@ class PuzzleView extends StatelessWidget {
 }
 
 class _SolvabilityMark extends StatelessWidget {
-  const _SolvabilityMark({required this.solvabilable, required this.cellSize});
-
-  final bool solvabilable;
-  final double cellSize;
+  const _SolvabilityMark();
 
   @override
-  Widget build(final BuildContext context) {
-    final icon = solvabilable ? Icons.check_circle : Icons.cancel;
-    final iconColor = solvabilable ? Colors.green : Colors.red;
-
-    return ConstrainedBox(
-      constraints: BoxConstraints.tightFor(height: cellSize, width: cellSize),
-      child: Center(
-        child: Text(
-          String.fromCharCode(icon.codePoint),
-          style: TextStyle(fontFamily: icon.fontFamily, package: icon.fontPackage, fontSize: 20, color: iconColor),
-        ),
+  Widget build(final BuildContext context) =>
+      BlocSelector<PuzzleBloc, PuzzleState, bool>(
+        selector: (final s) => s.applicableSolutions.isNotEmpty,
+        builder: (final context, final solvabilable) {
+          final icon = solvabilable ? Icons.check_circle : Icons.cancel;
+          final iconColor = solvabilable ? Colors.green : Colors.red;
+          final cellSize = context
+              .read<PuzzleBloc>()
+              .state
+              .gridConfig
+              .cellSize;
+          return Padding(
+            padding: const EdgeInsets.all(6),
+            child: FlipFlapDisplay(
+              items: [
+                FlipFlapWidgetItem(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(cellSize / 2), color: Colors.grey.shade200),
+                      child: Center(
+                        child: Baseline(
+                          baseline: 24,
+                          baselineType: TextBaseline.alphabetic,
+                          child: Text(
+                            String.fromCharCode(icon.codePoint),
+                            style: TextStyle(
+                              fontFamily: icon.fontFamily,
+                              package: icon.fontPackage,
+                              fontSize: 26,
+                              color: iconColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              unitConstraints: BoxConstraints.tightFor(height: cellSize - 12, width: cellSize - 12),
       ),
     );
-  }
+        },
+      );
 }
