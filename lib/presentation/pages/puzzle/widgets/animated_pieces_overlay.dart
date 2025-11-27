@@ -7,12 +7,6 @@ import 'package:flutter/material.dart';
 typedef PieceId = String;
 
 class AnimatedPiecesOverlay extends StatefulWidget {
-  final Iterable<PuzzlePiece> pieces;
-  final Duration duration;
-  final Curve curve;
-  final Widget Function(Set<PieceId> hiddenIds) childBuilder;
-  final bool borderColorMode;
-  final PuzzlePiece? selectedPiece;
 
   const AnimatedPiecesOverlay({
     super.key,
@@ -23,6 +17,12 @@ class AnimatedPiecesOverlay extends StatefulWidget {
     this.borderColorMode = false,
     this.selectedPiece,
   });
+  final Iterable<PuzzlePiece> pieces;
+  final Duration duration;
+  final Curve curve;
+  final Widget Function(Set<PieceId> hiddenIds) childBuilder;
+  final bool borderColorMode;
+  final PuzzlePiece? selectedPiece;
 
   @override
   State<AnimatedPiecesOverlay> createState() => _AnimatedPiecesOverlayState();
@@ -44,7 +44,7 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
   }
 
   @override
-  void didUpdateWidget(covariant AnimatedPiecesOverlay oldWidget) {
+  void didUpdateWidget(covariant final AnimatedPiecesOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     final nextById = _indexById(widget.pieces);
@@ -75,7 +75,7 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     if (_tweens.isEmpty) {
       return widget.childBuilder(const {});
     }
@@ -100,9 +100,9 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
     );
   }
 
-  static Map<PieceId, PuzzlePiece> _indexById(Iterable<PuzzlePiece> list) => {for (final p in list) p.id: p};
+  static Map<PieceId, PuzzlePiece> _indexById(final Iterable<PuzzlePiece> list) => {for (final p in list) p.id: p};
 
-  Map<PieceId, PieceTween> _buildTweens(Map<PieceId, PuzzlePiece> from, Map<PieceId, PuzzlePiece> to) {
+  Map<PieceId, PieceTween> _buildTweens(final Map<PieceId, PuzzlePiece> from, final Map<PieceId, PuzzlePiece> to) {
     final result = <PieceId, PieceTween>{};
     for (final entry in to.entries) {
       final id = entry.key;
@@ -122,29 +122,29 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
     return result;
   }
 
-  bool _offsetEq(Offset a, Offset b) => (a - b).distance <= 0.01;
+  bool _offsetEq(final Offset a, final Offset b) => (a - b).distance <= 0.01;
 
-  bool _doubleEq(double a, double b) => (a - b).abs() <= 0.001;
+  bool _doubleEq(final double a, final double b) => (a - b).abs() <= 0.001;
 }
 
 class PieceTween {
+
+  PieceTween({required this.from, required this.to});
   final PuzzlePiece from;
   final PuzzlePiece to;
 
-  PieceTween({required this.from, required this.to});
+  Offset lerpPos(final double t) => Offset.lerp(from.position, to.position, t)!;
 
-  Offset lerpPos(double t) => Offset.lerp(from.position, to.position, t)!;
+  double lerpRot(final double t) => _lerpAngle(from.rotation, to.rotation, t);
 
-  double lerpRot(double t) => _lerpAngle(from.rotation, to.rotation, t);
-
-  double lerpFlipScaleX(double t) {
+  double lerpFlipScaleX(final double t) {
     final a = from.isFlipped ? -1.0 : 1.0;
     final b = to.isFlipped ? -1.0 : 1.0;
     return a + (b - a) * t;
   }
 
-  double _lerpAngle(double a, double b, double t) {
-    double d = (b - a);
+  double _lerpAngle(final double a, final double b, final double t) {
+    var d = (b - a);
     while (d > math.pi) {
       d -= 2 * math.pi;
     }

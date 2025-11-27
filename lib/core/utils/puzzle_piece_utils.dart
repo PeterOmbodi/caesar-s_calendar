@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
+import 'package:flutter/material.dart';
 
-Path generatePathForType(PieceType type, double cellSize) {
+Path generatePathForType(final PieceType type, final double cellSize) {
   switch (type) {
     case PieceType.lShape:
       return Path()

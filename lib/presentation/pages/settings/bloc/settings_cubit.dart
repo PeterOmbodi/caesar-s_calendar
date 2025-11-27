@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'settings_state.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 part 'settings_cubit.freezed.dart';
 part 'settings_cubit.g.dart';
+part 'settings_state.dart';
 
 enum SolutionIndicator {
   none,
