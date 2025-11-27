@@ -5,10 +5,6 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_help
 import 'package:flutter/material.dart';
 
 class PiecesTweenPainter extends CustomPainter {
-  final Map<PieceId, PieceTween> tweens;
-  final double t;
-  final bool borderColorMode;
-  final String? selectedPieceId;
 
   PiecesTweenPainter({
     required this.tweens,
@@ -16,9 +12,13 @@ class PiecesTweenPainter extends CustomPainter {
     required this.borderColorMode,
     required this.selectedPieceId,
   });
+  final Map<PieceId, PieceTween> tweens;
+  final double t;
+  final bool borderColorMode;
+  final String? selectedPieceId;
 
   @override
-  void paint(Canvas canvas, Size size) {
+  void paint(final Canvas canvas, final Size size) {
     for (final tw in tweens.values) {
       final pos = tw.lerpPos(t);
       final rot = tw.lerpRot(t);
@@ -57,7 +57,7 @@ class PiecesTweenPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant PiecesTweenPainter old) =>
+  bool shouldRepaint(covariant final PiecesTweenPainter old) =>
       old.tweens != tweens ||
       old.t != t ||
       old.borderColorMode != borderColorMode ||

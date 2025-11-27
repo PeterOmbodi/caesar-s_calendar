@@ -1,10 +1,6 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
 
 class PuzzlePieceDto {
-  final String id;
-  final Set<Cell> cells;
-  final bool isForbidden;
-  final bool isImmovable;
 
   PuzzlePieceDto({
     required this.id,
@@ -13,17 +9,22 @@ class PuzzlePieceDto {
     required this.isImmovable,
   });
 
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'cells': cells.map((c) => c.toMap()).toSet(),
-        'isForbidden': isForbidden,
-        'isImmovable': isImmovable,
-      };
-
-  static PuzzlePieceDto fromMap(Map<String, dynamic> map) => PuzzlePieceDto(
+  factory PuzzlePieceDto.fromMap(final Map<String, dynamic> map) =>
+      PuzzlePieceDto(
         id: map['id'],
-        cells: (map['cells'] as Set).map((e) => Cell.fromMap(Map<String, dynamic>.from(e))).toSet(),
+        cells: (map['cells'] as Set).map((final e) => Cell.fromMap(Map<String, dynamic>.from(e))).toSet(),
         isForbidden: map['isForbidden'],
         isImmovable: map['isImmovable'],
       );
+  final String id;
+  final Set<Cell> cells;
+  final bool isForbidden;
+  final bool isImmovable;
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'cells': cells.map((final c) => c.toMap()).toSet(),
+        'isForbidden': isForbidden,
+        'isImmovable': isImmovable,
+      };
 }

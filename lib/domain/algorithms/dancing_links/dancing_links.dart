@@ -3,12 +3,7 @@
 /// Each node is linked to its neighbors in four directions,
 /// and also stores a reference to its column (if it's not a header node).
 class DlxNode {
-  late DlxNode left;
-  late DlxNode right;
-  late DlxNode up;
-  late DlxNode down;
-  DlxColumn? column; // for non-header nodes
-  String? subsetName; // name of the row (subset), if applicable
+  // name of the row (subset), if applicable
 
   DlxNode() {
     left = this;
@@ -16,31 +11,31 @@ class DlxNode {
     up = this;
     down = this;
   }
+  late DlxNode left;
+  late DlxNode right;
+  late DlxNode up;
+  late DlxNode down;
+  DlxColumn? column; // for non-header nodes
+  String? subsetName;
 }
 
 /// Column header node for Dancing Links, extends DlxNode.
 /// Stores the column name and the count of nodes (ones) in the column.
 class DlxColumn extends DlxNode {
+  DlxColumn(this.name) : super();
   int size = 0;
   final String name;
-
-  DlxColumn(this.name) : super();
 }
 
 /// Class implementing Dancing Links for solving the exact cover problem.
 /// The interface: create a universe from a list of column names, add rows (subsets)
 /// via [addRow], and then call [search] to find all solutions.
 class DlxUniverse {
-  final DlxColumn header;
-  final List<String> solution = []; // current partial solution
-  final List<List<String>> solutions = []; // all found solutions
-  final Map<String, DlxColumn> columnMap = {};
-
   /// Constructs a universe from a list of column names.
-  DlxUniverse(List<String> columnNames) : header = DlxColumn("HEADER") {
+  DlxUniverse(final List<String> columnNames) : header = DlxColumn('HEADER') {
     DlxNode prev = header;
-    for (var name in columnNames) {
-      var col = DlxColumn(name);
+    for (final name in columnNames) {
+      final col = DlxColumn(name);
       // Insert the column to the right of [prev].
       col.left = prev;
       col.right = header;
@@ -53,18 +48,22 @@ class DlxUniverse {
       columnMap[name] = col;
     }
   }
+  final DlxColumn header;
+  final List<String> solution = []; // current partial solution
+  final List<List<String>> solutions = []; // all found solutions
+  final Map<String, DlxColumn> columnMap = {};
 
   /// Adds a row (subset) with the given [rowName] and a list of column names
   /// where the row contains a 1.
-  void addRow(String rowName, List<String> columns) {
+  void addRow(final String rowName, final List<String> columns) {
     DlxNode? firstNode;
-    for (var colName in columns) {
-      var dCol = columnMap[colName];
+    for (final colName in columns) {
+      final dCol = columnMap[colName];
       if (dCol == null) {
         // debugPrint("Column '$colName' not found in universe columns. Available: ${columnMap.keys.toList()}");
         continue;
       }
-      var newNode = DlxNode();
+      final newNode = DlxNode();
       newNode.column = dCol;
       newNode.subsetName = rowName;
       // Insert the new node at the bottom of column [dCol] (just above its header).
@@ -90,7 +89,7 @@ class DlxUniverse {
 
   /// Covers a column: removes the column from the structure and
   /// all rows that contain this column.
-  void cover(DlxColumn col) {
+  void cover(final DlxColumn col) {
     // Remove the column from the list of columns.
     col.right.left = col.left;
     col.left.right = col.right;
@@ -105,7 +104,7 @@ class DlxUniverse {
   }
 
   /// Uncovers a previously covered column, restoring it back into the structure.
-  void uncover(DlxColumn col) {
+  void uncover(final DlxColumn col) {
     // Restore rows in reverse order.
     for (var i = col.up; i != col; i = i.up) {
       for (var j = i.left; j != i; j = j.left) {
@@ -120,10 +119,10 @@ class DlxUniverse {
 
   /// Chooses the column with the smallest number of nodes (heuristic).
   DlxColumn chooseColumn() {
-    DlxColumn chosen = header.right as DlxColumn;
-    int minSize = chosen.size;
+    var chosen = header.right as DlxColumn;
+    var minSize = chosen.size;
     for (var col = header.right; col != header; col = col.right) {
-      var dCol = col as DlxColumn;
+      final dCol = col as DlxColumn;
       if (dCol.size < minSize) {
         chosen = dCol;
         minSize = dCol.size;
@@ -137,13 +136,13 @@ class DlxUniverse {
   void _search() {
     // If no columns remain, a complete solution has been found.
     if (header.right == header) {
-      if (solutions.indexWhere((e) => e.join('#') == solution.join('#')) == -1) {
+      if (solutions.indexWhere((final e) => e.join('#') == solution.join('#')) == -1) {
         solutions.add(List.from(solution));
       }
       return;
     }
     // Choose a column using the heuristic.
-    DlxColumn col = chooseColumn();
+    final col = chooseColumn();
     cover(col);
     // For each row in the chosen column...
     for (var r = col.down; r != col; r = r.down) {

@@ -12,27 +12,36 @@ import 'package:flutter/foundation.dart';
 /// - pieces: the list of available puzzle pieces (boardPieces),
 /// - currentDate: the date whose cells should remain free
 class PuzzleSolver {
+
+  PuzzleSolver({
+    required this.grid,
+    required this.pieces,
+    required this.date,
+  })
+      : forbiddenCells = pieces.where((final e) => e.isForbidden).map((final e) => e.cells).expand((final e) => e),
+        unmovableCells = pieces.where((final e) => e.isImmovable).map((final e) => e.cells).expand((final e) => e);
+
+  factory PuzzleSolver.fromSerializable(final Map<String, dynamic> map) =>
+      PuzzleSolver(
+        grid: PuzzleGrid.fromSerializable(map['grid']),
+        pieces: (map['pieces'] as List).map((final e) => PuzzlePieceDto.fromMap(e)).toList(),
+        date: DateTime.parse(map['currentDate']),
+      );
+
   final PuzzleGrid grid;
   final Iterable<PuzzlePieceDto> pieces;
   final DateTime date;
   late Iterable<Cell> forbiddenCells;
   late Iterable<Cell> unmovableCells;
 
-  PuzzleSolver({
-    required this.grid,
-    required this.pieces,
-    required this.date,
-  })  : forbiddenCells = pieces.where((e) => e.isForbidden).map((e) => e.cells).expand((e) => e),
-        unmovableCells = pieces.where((e) => e.isImmovable).map((e) => e.cells).expand((e) => e);
-
   /// Build the list of constraints (columns) for the exact cover problem.
   /// Here we assume that each grid cell (except those that must remain free) gets an identifier
   /// in the format "cell_r_c". Also, for each piece we add a constraint "piece_{id}".
   List<String> buildConstraints() {
-    List<String> constraints = [];
+    final constraints = <String>[];
     var cellIndex = 0;
-    for (int row = 0; row < grid.rows; row++) {
-      for (int column = 0; column < grid.columns; column++) {
+    for (var row = 0; row < grid.rows; row++) {
+      for (var column = 0; column < grid.columns; column++) {
         if (forbiddenCells.contains(Cell(row, column))) {
           continue;
         }
@@ -46,7 +55,7 @@ class PuzzleSolver {
         }
       }
     }
-    for (var piece in pieces.where((p) => !p.isForbidden && !p.isImmovable)) {
+    for (final piece in pieces.where((final p) => !p.isForbidden && !p.isImmovable)) {
       constraints.add('piece_${piece.id}');
     }
     // debugPrint('buildConstraints: $constraints');
@@ -54,28 +63,28 @@ class PuzzleSolver {
   }
 
   /// Generate candidate placements for a given puzzle piece.
-  List<PlacementDto> generatePlacementsForPiece(PuzzlePieceDto piece) {
-    List<PlacementDto> placements = [];
-    final Set<Cell> forbidden = forbiddenCells.toSet();
-    final Set<Cell> dateCells = buildDateCells();
-    final Set<String> placementSignatures = {};
+  List<PlacementDto> generatePlacementsForPiece(final PuzzlePieceDto piece) {
+    final placements = <PlacementDto>[];
+    final forbidden = forbiddenCells.toSet();
+    final dateCells = buildDateCells();
+    final placementSignatures = <String>{};
     // debugPrint('generatePlacementsForPiece, forbidden: $forbidden');
     // debugPrint('generatePlacementsForPiece, dateCells: $dateCells');
-    var cellIndex = 0;
-    for (int rot = 0; rot < 4; rot++) {
-      for (bool flip in [false, true]) {
-        for (int row = 0; row < grid.rows; row++) {
-          for (int col = 0; col < grid.columns; col++) {
-            var placement = PlacementDto(piece, row, col, rot, flip);
+    final cellIndex = 0;
+    for (var rot = 0; rot < 4; rot++) {
+      for (final flip in [false, true]) {
+        for (var row = 0; row < grid.rows; row++) {
+          for (var col = 0; col < grid.columns; col++) {
+            final placement = PlacementDto(piece, row, col, rot, flip);
             if (placement.fitsInBoard(grid) &&
                 placement.doesNotOverlapForbiddenZones(forbidden) &&
                 placement.doesNotCoverFreeCells(dateCells)) {
               final cells = List<Cell>.from(placement.coveredCells);
-              cells.sort((a, b) {
+              cells.sort((final a, final b) {
                 if (a.row == b.row) return a.col.compareTo(b.col);
                 return a.row.compareTo(b.row);
               });
-              final signature = cells.map((cell) => '${cell.row}:${cell.col}').join(',');
+              final signature = cells.map((final cell) => '${cell.row}:${cell.col}').join(',');
               if (!placementSignatures.contains(signature)) {
                 placementSignatures.add(signature);
                 placements.add(placement);
@@ -93,10 +102,10 @@ class PuzzleSolver {
 
   /// Build a set of cells that must remain free
   Set<Cell> buildDateCells() {
-    Set<Cell> free = {};
+    final free = <Cell>{};
     var cellIndex = 0;
-    for (int row = 0; row < grid.rows; row++) {
-      for (int column = 0; column < grid.columns; column++) {
+    for (var row = 0; row < grid.rows; row++) {
+      for (var column = 0; column < grid.columns; column++) {
         if (forbiddenCells.contains(Cell(row, column))) {
           continue;
         }
@@ -116,15 +125,15 @@ class PuzzleSolver {
 
   /// Solves the puzzle using Dancing Links.
   Iterable<List<String>> solve() {
-    List<String> constraints = buildConstraints();
-    var universe = DlxUniverse(constraints);
+    final constraints = buildConstraints();
+    final universe = DlxUniverse(constraints);
     final idToPlacement = <String, PlacementDto>{};
-    for (var piece in pieces.where((item) => !item.isForbidden && !item.isImmovable)) {
-      List<PlacementDto> placements = generatePlacementsForPiece(piece);
-      for (var placement in placements) {
+    for (final piece in pieces.where((final item) => !item.isForbidden && !item.isImmovable)) {
+      final placements = generatePlacementsForPiece(piece);
+      for (final placement in placements) {
         idToPlacement[placement.id] = placement;
         final rowConstraints = <String>[
-          for (var cell in placement.coveredCells) 'cell_${cell.row}_${cell.col}',
+          for (final cell in placement.coveredCells) 'cell_${cell.row}_${cell.col}',
           'piece_${placement.piece.id}',
         ];
         rowConstraints.add('piece_${piece.id}');
@@ -135,7 +144,7 @@ class PuzzleSolver {
     debugPrint('${DateTime.now()}, Run the Dancing Links search.');
     universe.search();
     if (universe.solutions.isNotEmpty) {
-      debugPrint("${DateTime.now()}, Solution found: ${universe.solutions.first}");
+      debugPrint('${DateTime.now()}, Solution found: ${universe.solutions.first}');
       // for (var id in solution) {
       //   final placement = idToPlacement[id]!;
       //   final coordinates = placement.coveredCells.map((cell) {
@@ -145,32 +154,21 @@ class PuzzleSolver {
       //   debugPrint('---- $id covers: ${coordinates.join(', ')}');
       // }
     } else {
-      debugPrint("${DateTime.now()}, No solution found.");
+      debugPrint('${DateTime.now()}, No solution found.');
     }
     return universe.solutions;
   }
 
-  Map<String, dynamic> toSerializable() {
-    return {
+  Map<String, dynamic> toSerializable() =>
+      {
       'grid': grid.toSerializable(),
-      'pieces': pieces.map((e) => e.toMap()).toList(),
+        'pieces': pieces.map((final e) => e.toMap()).toList(),
       'currentDate': date.toIso8601String(),
     };
-  }
 
-  static PuzzleSolver fromSerializable(Map<String, dynamic> map) {
-    return PuzzleSolver(
-      grid: PuzzleGrid.fromSerializable(map['grid']),
-      pieces: (map['pieces'] as List).map((e) => PuzzlePieceDto.fromMap(e)).toList(),
-      date: DateTime.parse(map['currentDate']),
-    );
-  }
+  Future<Iterable<List<String>>> solveInIsolate() async => compute(_solveEntryPoint, toSerializable());
 
-  Future<Iterable<List<String>>> solveInIsolate() async {
-    return await compute(_solveEntryPoint, toSerializable());
-  }
-
-  static Iterable<List<String>> _solveEntryPoint(Map<String, dynamic> data) {
+  static Iterable<List<String>> _solveEntryPoint(final Map<String, dynamic> data) {
     final solver = PuzzleSolver.fromSerializable(data);
     return solver.solve();
   }

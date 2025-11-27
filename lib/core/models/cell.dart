@@ -1,12 +1,15 @@
 /// A helper class representing a cell (grid coordinate) on the board.
 class Cell {
-  final int row;
-  final int col;
 
   Cell(this.row, this.col);
 
+  factory Cell.fromMap(final Map<String, dynamic> map) =>
+      Cell(map['row'], map['col']);
+  final int row;
+  final int col;
+
   @override
-  bool operator ==(Object other) =>
+  bool operator ==(final Object other) =>
       identical(this, other) || other is Cell && row == other.row && col == other.col;
 
   @override
@@ -14,9 +17,6 @@ class Cell {
 
   @override
   String toString() => 'Cell($row, $col)';
-
-  factory Cell.fromMap(Map<String, dynamic> map) =>
-      Cell(map['row'], map['col']);
 
   Map<String, dynamic> toMap() => {
     'row': row,

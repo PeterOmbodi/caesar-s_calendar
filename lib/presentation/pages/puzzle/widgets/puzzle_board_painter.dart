@@ -102,7 +102,7 @@ class PuzzleBoardPainter extends CustomPainter {
           text: _getCellTextSpan(cellIndex, selectedDate),
           textDirection: TextDirection.ltr,
         );
-        textPainter.layout(minWidth: 0, maxWidth: grid.cellSize);
+        textPainter.layout(maxWidth: grid.cellSize);
         final xCenter = x + (grid.cellSize - textPainter.width) / 2;
         final yCenter = y + (grid.cellSize - textPainter.height) / 2;
         final offset = Offset(xCenter, yCenter);

@@ -4,7 +4,7 @@ import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
 
 class PiecePaintHelper {
-  static void drawPiece(Canvas canvas, PuzzlePiece piece, bool isSelected, bool borderColorMode) {
+  static void drawPiece(final Canvas canvas, final PuzzlePiece piece, final bool isSelected, final bool borderColorMode) {
     final transformedPath = piece.getTransformedPath();
 
     final fill = Paint()
@@ -12,8 +12,8 @@ class PiecePaintHelper {
       ..color = isSelected ? piece.color().withValues(alpha: 0.9) : piece.color()
       ..style = PaintingStyle.fill;
 
-    const double inset = 2.0;
-    const double innerThickness = 2.0;
+    const inset = 2.0;
+    const innerThickness = 2.0;
     final bounds = transformedPath.getBounds().inflate(inset + innerThickness + 2);
     final smallerBorderColor = borderColorMode && !piece.isUsersItem
         ? Colors.orangeAccent

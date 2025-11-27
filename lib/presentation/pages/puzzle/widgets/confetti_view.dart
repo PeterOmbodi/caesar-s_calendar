@@ -32,18 +32,18 @@ class _ConfettiViewState extends State<ConfettiView> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _controllerCenter.play());
   }
 
-  Path drawPuzzle(Size size) {
+  Path drawPuzzle(final Size size) {
     final presets = [
-          (Size s) => drawPuzzle1,
-          (Size s) => drawPuzzle2,
-          (Size s) => drawPuzzle3,
+          (final Size s) => drawPuzzle1,
+          (final Size s) => drawPuzzle2,
+          (final Size s) => drawPuzzle3,
     ];
     final rnd = Random();
     final path = (presets[rnd.nextInt(presets.length)])(size);
     return path(size);
   }
 
-  Path drawPuzzle1(Size size) {
+  Path drawPuzzle1(final Size size) {
     final minX = 4787.148438;
     final minY = 13171.40625;
     final width = 4685.742187;
@@ -85,7 +85,7 @@ class _ConfettiViewState extends State<ConfettiView> {
     return path;
   }
 
-  Path drawPuzzle2(Size size) {
+  Path drawPuzzle2(final Size size) {
     const minX = 5180.195312, maxX = 10800.585938;
     const minY = 17693.203125, maxY = 20787.5;
     const sx0 = 0.1, sy0 = -0.1, ty0 = 2400.0;
@@ -94,8 +94,8 @@ class _ConfettiViewState extends State<ConfettiView> {
     final s = min(size.width / w0, size.height / h0);
     final ox = minX * sx0;
     final oy = ty0 + sy0 * maxY;
-    double X(num x) => (x * sx0 - ox) * s;
-    double Y(num y) => (ty0 + sy0 * y - oy) * s;
+    double X(final num x) => (x * sx0 - ox) * s;
+    double Y(final num y) => (ty0 + sy0 * y - oy) * s;
 
     final p = Path();
     p.moveTo(X(5180.195312), Y(19255.703125));
@@ -147,7 +147,7 @@ class _ConfettiViewState extends State<ConfettiView> {
     return p;
   }
 
-  Path drawPuzzle3(Size size) {
+  Path drawPuzzle3(final Size size) {
     const minX = 1800.117188, maxX = 6222.421875;
     const minY = 17686.09375, maxY = 22371.796875;
     const sx0 = 0.1, sy0 = -0.1, ty0 = 2400.0;
@@ -156,8 +156,8 @@ class _ConfettiViewState extends State<ConfettiView> {
     final s = (size.width / w0 < size.height / h0) ? size.width / w0 : size.height / h0;
     final ox = minX * sx0;
     final oy = ty0 + sy0 * maxY;
-    double X(num x) => (x * sx0 - ox) * s;
-    double Y(num y) => (ty0 + sy0 * y - oy) * s;
+    double X(final num x) => (x * sx0 - ox) * s;
+    double Y(final num y) => (ty0 + sy0 * y - oy) * s;
 
     final p = Path();
     p.moveTo(X(3124.53125), Y(17861.40625));
@@ -214,8 +214,7 @@ class _ConfettiViewState extends State<ConfettiView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ConfettiWidget(
+  Widget build(final BuildContext context) => ConfettiWidget(
       confettiController: _controllerCenter,
       blastDirectionality: BlastDirectionality.explosive,
       shouldLoop: true,
@@ -223,5 +222,4 @@ class _ConfettiViewState extends State<ConfettiView> {
       maximumSize:Size(64, 64),
       createParticlePath: drawPuzzle,
     );
-  }
 }

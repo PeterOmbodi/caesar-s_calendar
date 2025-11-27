@@ -7,7 +7,7 @@ class AppBlocObserver extends BlocObserver {
   String _lastEvent = '';
 
   @override
-  void onChange(BlocBase<dynamic> bloc, Change<dynamic> change) {
+  void onChange(final BlocBase<dynamic> bloc, final Change<dynamic> change) {
     super.onChange(bloc, change);
     if (bloc is Cubit && change.nextState != change.currentState) {
       debugPrint('AppBlocObserver, ${bloc.runtimeType} state changed: ${change.nextState}');
@@ -15,7 +15,7 @@ class AppBlocObserver extends BlocObserver {
   }
 
   @override
-  void onTransition(Bloc<dynamic, dynamic> bloc, Transition<dynamic, dynamic> transition) {
+  void onTransition(final Bloc<dynamic, dynamic> bloc, final Transition<dynamic, dynamic> transition) {
     super.onTransition(bloc, transition);
     if (transition.nextState != transition.currentState) {
       // debugPrint('AppBlocObserver, ${bloc.runtimeType} state changed by ${(transition.event as Object).runtimeType}: ${transition.nextState}');
