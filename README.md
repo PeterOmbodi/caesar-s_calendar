@@ -99,10 +99,26 @@ lib/
 
 ## How to Play
 
-1. Drag and drop pieces onto the board.
-2. Rotate pieces with a single tap/click.
-3. Flip pieces with a double tap/click.
-4. Use the "Solve" button to see the automatic solution.
+**Goal:**
+Place all puzzle pieces on the board so that _exactly two cells remain free_ - the ones corresponding to the current month and current day.
+Every day the target cells change, creating a new unique challenge.
+For even more variety, you can modify the layout by moving the predefined blocks.
+
+1. **Drag & Drop** pieces onto the board.
+2. **Rotate** pieces with a single tap/click.
+3. **Flip** pieces with a double tap/click.
+4. Use the **Solve** button to see the automatic solution.
+5. Press **Hint** to reveal one move for a random piece.
+6. Use **Undo** / **Redo** to revert or repeat your last actions.
+7. Press **Reset** to return to the initial puzzle state.
+8. Open **Settings** to:
+    - switch theme
+    - lock/unlock configuration (move predefined blocks to create your own layout)
+    - enable/disable overlapping and snapping to grid
+    - highlight pieces when using a hint
+    - display solvability status
+    - show the number of possible solutions for the current configuration and already placed pieces
+    - track the time spent on solving the puzzle
 
 ---
 
