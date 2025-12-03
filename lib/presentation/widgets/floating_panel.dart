@@ -8,6 +8,8 @@ import '../../generated/l10n.dart';
 class FloatingPanel extends StatefulWidget {
   const FloatingPanel({super.key, required this.children});
 
+  static const widgetSpacing = 0.0;
+
   final List<Widget> children;
 
   @override
@@ -39,41 +41,46 @@ class FloatingPanelState extends State<FloatingPanel> {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             child: Row(
-              mainAxisSize: _isPanelOpen ? MainAxisSize.max : MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: _isPanelOpen ? MainAxisSize.min : MainAxisSize.min,
+              spacing: FloatingPanel.widgetSpacing,
               children: [
-                Expanded(
-                  flex: _isPanelOpen ? 1 : 0,
+                Flexible(
                   child: SizedBox(
-                    height: 48,
-                    child: ListView(
+                    height: 40,
+                    child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       shrinkWrap: true,
-                      padding: EdgeInsetsGeometry.symmetric(vertical: 4),
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.info_outline_rounded),
-                          onPressed: () async {
-                            await showDialog(
-                              context: context,
-                              builder: (final context) =>
-                                  PlatformAlertDialog(
-                                    title: const Text('How to Play'),
-                                    content: const HowToPlayHint(),
-                                    actions: [
-                                      PlatformDialogAction(
-                                        onPressed: () => Navigator.of(context).pop(),
-                                        child: Text(S
-                                            .of(context)
-                                            .ok),
-                                      ),
-                                    ],
-                                  ),
-                            );
-                          },
-                        ),
-                        if (_isPanelOpen) ...widget.children,
-                      ],
+                      itemCount: _isPanelOpen ? widget.children.length + 1 : 1,
+                      itemBuilder: (_, final i) {
+                        if (i == 0) {
+                          return IconButton(
+                            icon: const Icon(Icons.info_outline_rounded),
+                            onPressed: () async {
+                              await showDialog(
+                                context: context,
+                                builder: (final context) =>
+                                    PlatformAlertDialog(
+                                      title: const Text('How to Play'),
+                                      content: const HowToPlayHint(),
+                                      actions: [
+                                        PlatformDialogAction(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: Text(S
+                                              .of(context)
+                                              .ok),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                            },
+                          );
+                        }
+                        return SizedBox(width: 48, child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: widget.children[i - 1],
+                        ));
+                      },
+                      separatorBuilder: (_, final __) => const SizedBox(width: FloatingPanel.widgetSpacing),
                     ),
                   ),
                 ),
