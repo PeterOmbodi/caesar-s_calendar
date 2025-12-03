@@ -18,6 +18,7 @@ analyzer:
     - ios/**
     - build/**
     - assets/**
+    - lib/generated/**
     - "**.g.dart"
     - "**.gr.dart"
     - "**/use_case.dart"

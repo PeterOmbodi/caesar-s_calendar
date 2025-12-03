@@ -58,7 +58,7 @@ class PuzzleScreen extends StatelessWidget {
                 ),
                 Positioned(
                   bottom: 24,
-                  right: 24 + (isWideScreen ? _sideWidth : 0),
+                  right: 12 + (isWideScreen ? _sideWidth : 0),
                   child: _BottomFAB(isSetupVisible: !isWideScreen),
                 ),
                 if (isWideScreen)
@@ -153,10 +153,7 @@ class _BottomFAB extends StatelessWidget {
               onPressed: () => Scaffold.of(context).openEndDrawer(),
               tooltip: S.current.settings,
             ),
-          Row(
-            spacing: FloatingPanel.widgetSpacing,
-            children: [
-              IconButton(
+          IconButton(
                 icon: Icon(Icons.lightbulb),
                 onPressed: isSolveDisabled
                     ? null
@@ -195,8 +192,6 @@ class _BottomFAB extends StatelessWidget {
                   tooltip: S.current.redo,
                 ),
               ],
-            ],
-          ),
           state.isSolving
               ? SizedBox(
                   width: 48,
