@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class HowToPlayHint extends StatelessWidget {
@@ -5,11 +6,12 @@ class HowToPlayHint extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
+
     final textTheme = Theme.of(context).textTheme;
     final steps = <String>[
-      'Drag & Drop pieces onto the board.',
-      'Rotate pieces with a single tap/click.',
-      'Flip pieces with a double tap/click.',
+      S.current.howToPlayStepDrag,
+      S.current.howToPlayStepRotate,
+      S.current.howToPlayStepFlip,
     ];
 
     return SingleChildScrollView(
@@ -31,17 +33,14 @@ class HowToPlayHint extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Goal', style: textTheme.titleMedium),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Place all puzzle pieces on the board so that exactly two cells remain free — the ones '
-                          'corresponding to the current month and current day.',
+                        Text(
+                          S.current.howToPlayGoalTitle,
+                          style: textTheme.titleMedium,
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          'Every day the target cells change, creating a new unique challenge. Move the predefined '
-                          'blocks to reshape the board when you want extra variety.',
-                        ),
+                        Text(S.current.howToPlayGoalDescription),
+                        const SizedBox(height: 4),
+                        Text(S.current.howToPlayGoalDailyChange),
                       ],
                     ),
                   ),
@@ -50,70 +49,70 @@ class HowToPlayHint extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Basics', style: textTheme.titleMedium),
+          Text(S.current.howToPlayBasicsTitle, style: textTheme.titleMedium),
           const SizedBox(height: 8),
           ...List.generate(
             steps.length,
             (final index) => Padding(
               padding: const EdgeInsets.only(bottom: 6),
-              child: Text('${index + 1}. ${steps[index]}', style: textTheme.bodyMedium),
+              child: Text(
+                '${index + 1}. ${steps[index]}',
+                style: textTheme.bodyMedium,
+              ),
             ),
           ),
           const SizedBox(height: 16),
-          Text('Controls & buttons', style: textTheme.titleMedium),
+          Text(S.current.howToPlayControlsTitle, style: textTheme.titleMedium),
           const SizedBox(height: 8),
-          const _ActionRow(
+          _ActionRow(
             icon: Icons.menu,
-            title: 'Menu',
-            description: 'Open menu panel',
+            title: S.current.howToPlayMenuTitle,
+            description: S.current.howToPlayMenuDescription,
           ),
-          const _ActionRow(
+          _ActionRow(
             icon: Icons.lightbulb,
-            title: 'Solve',
-            description: 'Shows the automatic solution for the current layout.',
+            title: S.current.howToPlaySolveTitle,
+            description: S.current.howToPlaySolveDescription,
           ),
-          const _ActionRow(
+          _ActionRow(
             icon: Icons.tips_and_updates_outlined,
-            title: 'Hint',
-            description: 'Reveals one move for a random piece.',
+            title: S.current.howToPlayHintTitle,
+            description: S.current.howToPlayHintDescription,
           ),
-          const _ActionRow(
+          _ActionRow(
             icon: Icons.undo,
-            title: 'Undo',
-            description: 'Reverts your last action.',
+            title: S.current.howToPlayUndoTitle,
+            description: S.current.howToPlayUndoDescription,
           ),
-          const _ActionRow(
+          _ActionRow(
             icon: Icons.redo,
-            title: 'Redo',
-            description: 'Repeats the last reverted action.',
+            title: S.current.howToPlayRedoTitle,
+            description: S.current.howToPlayRedoDescription,
           ),
-          const _ActionRow(
+          _ActionRow(
             icon: Icons.refresh,
-            title: 'Reset',
-            description: 'Returns the puzzle to its initial state.',
+            title: S.current.howToPlayResetTitle,
+            description: S.current.howToPlayResetDescription,
           ),
           const SizedBox(height: 16),
-          Text('Settings & indicators', style: textTheme.titleMedium),
+          Text(S.current.howToPlaySettingsTitle, style: textTheme.titleMedium),
           const SizedBox(height: 8),
-          const _ActionRow(
+          _ActionRow(
             icon: Icons.settings,
-            title: 'Settings panel',
-            description:
-                'Switch theme, lock/unlock the configuration, toggle overlapping and snapping, highlight pieces when '
-                'a hint is shown, display solvability status, show the number of possible solutions, and track solving '
-                'time.',
+            title: S.current.howToPlaySettingsPanelTitle,
+            description: S.current.howToPlaySettingsPanelDescription,
           ),
-          const _ActionRow(
+          _ActionRow(
             icon: Icons.check_circle,
             iconColor: Colors.green,
-            title: 'Solvable layout',
-            description: 'Green indicator appears when the current configuration has at least one solution.',
+            title: S.current.howToPlaySolvableTitle,
+            description: S.current.howToPlaySolvableDescription,
           ),
-          const _ActionRow(
+          _ActionRow(
             icon: Icons.cancel,
             iconColor: Colors.red,
-            title: 'Unsolvable layout',
-            description: 'Red indicator warns that the current configuration has no solutions — adjust the setup.',
+            title: S.current.howToPlayUnsolvableTitle,
+            description: S.current.howToPlayUnsolvableDescription,
           ),
         ],
       ),

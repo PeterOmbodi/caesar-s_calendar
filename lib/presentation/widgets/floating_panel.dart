@@ -78,9 +78,9 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
     await showDialog(
       context: context,
       builder: (final context) => PlatformAlertDialog(
-        title: const Text('How to Play'),
+        title: Text(S.current.howToPlayTitle),
         content: const HowToPlayHint(),
-        actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
+        actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
       ),
     );
   }
@@ -115,7 +115,9 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
                         final isFirst = i == 0;
                         final isLast = i == widget.children.length;
                         final item = isFirst
-                            ? IconButton(icon: const Icon(Icons.info_outline_rounded), onPressed: _showHowToPlayDialog)
+                            ? IconButton(icon: const Icon(Icons.info_outline_rounded),
+                            onPressed: _showHowToPlayDialog,
+                            tooltip: S.current.howToPlayTitle)
                             : _AnimatedPanelItem(
                                 index: i,
                                 isVisible: i <= _visibleChildren,
