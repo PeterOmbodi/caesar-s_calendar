@@ -13,9 +13,12 @@ class HowToPlayHint extends StatelessWidget {
       S.current.howToPlayStepRotate,
       S.current.howToPlayStepFlip,
     ];
-
+    final viewWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(viewWidth < 600 ? 0 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
