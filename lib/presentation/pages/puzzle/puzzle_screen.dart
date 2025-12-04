@@ -78,11 +78,23 @@ class PuzzleScreen extends StatelessWidget {
   }
 
   Future<void> _showSolvedDialog(final BuildContext context, final PuzzleState state) async {
+    final spentSeconds = ((DateTime.now().millisecondsSinceEpoch - state.firstMoveAt!) / 1000).ceil();
+    final secondsText = '${spentSeconds % 60}'.padLeft(2, '0');
+    final minutesText = '${spentSeconds ~/ 60}'.padLeft(2, '0');
+    final spentTime = '$minutesText:$secondsText';
+    final usedHints = state.gridPieces.where((final e) => !e.isUsersItem).length;
     await showDialog(
       context: context,
       builder: (final context) => PlatformAlertDialog(
         title: Text(S.of(context).solvedAlertTitle),
-        content: Text(S.of(context).solvedAlertSubTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(S.current.solvedAlertSubTitle),
+            Text('${S.current.timeSpent}: $spentTime'),
+            Text('${S.current.hintUsed}: $usedHints'),
+          ],
+        ),
         actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
       ),
     );
