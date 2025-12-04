@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
 import 'package:flutter/foundation.dart';
@@ -24,6 +26,7 @@ class FloatingPanel extends StatefulWidget {
   static const Duration closeAnimationDelay = Duration(milliseconds: 80);
   static const Duration animationDuration = Duration(milliseconds: 200);
   static const Duration switcherDuration = Duration(milliseconds: 300);
+  static const double swipeVelocityThreshold = 300;
 
   final List<Widget> children;
 
@@ -86,68 +89,87 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
   }
 
   @override
-  Widget build(final BuildContext context) => ConstrainedBox(
-    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - FloatingPanel.screenMargin),
-    child: Material(
-      elevation: FloatingPanel.panelElevation,
-      borderRadius: BorderRadius.circular(FloatingPanel.panelBorderRadius),
-      color: AppColors.current.primary.withValues(alpha: FloatingPanel.panelAlpha),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: FloatingPanel.verticalPadding,
-          horizontal: FloatingPanel.horizontalPadding,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: AnimatedSize(
-                duration: FloatingPanel.switcherDuration,
-                curve: Curves.easeInOut,
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                  height: FloatingPanel.itemHeight,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(widget.children.length + 1, (final i) {
-                        final isFirst = i == 0;
-                        final isLast = i == widget.children.length;
-                        final item = isFirst
-                            ? IconButton(icon: const Icon(Icons.info_outline_rounded),
-                            onPressed: _showHowToPlayDialog,
-                            tooltip: S.current.howToPlayTitle)
-                            : _AnimatedPanelItem(
+  Widget build(final BuildContext context) =>
+      GestureDetector(
+        onHorizontalDragEnd: _handleHorizontalDragEnd,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: MediaQuery
+              .of(context)
+              .size
+              .width - FloatingPanel.screenMargin),
+          child: Material(
+            elevation: FloatingPanel.panelElevation,
+            borderRadius: BorderRadius.circular(FloatingPanel.panelBorderRadius),
+            color: AppColors.current.primary.withValues(alpha: FloatingPanel.panelAlpha),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: FloatingPanel.verticalPadding,
+                horizontal: FloatingPanel.horizontalPadding,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: AnimatedSize(
+                      duration: FloatingPanel.switcherDuration,
+                      curve: Curves.easeInOut,
+                      alignment: Alignment.centerLeft,
+                      child: SizedBox(
+                        height: FloatingPanel.itemHeight,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(widget.children.length + 1, (final i) {
+                              final isFirst = i == 0;
+                              final isLast = i == widget.children.length;
+                              final item = isFirst
+                                  ? IconButton(icon: const Icon(Icons.info_outline_rounded),
+                                  onPressed: _showHowToPlayDialog,
+                                  tooltip: S.current.howToPlayTitle)
+                                  : _AnimatedPanelItem(
                                 index: i,
                                 isVisible: i <= _visibleChildren,
                                 child: widget.children[i - 1],
                               );
-                        return Padding(
-                          padding: kIsWeb && (isFirst || isLast)
-                              ? EdgeInsets.only(right: 4)
-                              : EdgeInsets.symmetric(horizontal: FloatingPanel.widgetSpacing),
-                          child: item,
-                        );
-                      }),
+                              return Padding(
+                                padding: kIsWeb && (isFirst || isLast)
+                                    ? EdgeInsets.only(right: 4)
+                                    : EdgeInsets.symmetric(horizontal: FloatingPanel.widgetSpacing),
+                                child: item,
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  IconButton(
+                    icon: AnimatedSwitcher(
+                      duration: FloatingPanel.switcherDuration,
+                      child: Icon(_isPanelOpen ? Icons.close : Icons.menu, key: ValueKey(_isPanelOpen)),
+                    ),
+                    onPressed: _togglePanel,
+                    tooltip: _isPanelOpen ? S.current.hideControls : S.current.showControls,
+                  ),
+                ],
               ),
-            ),
-            IconButton(
-              icon: AnimatedSwitcher(
-                duration: FloatingPanel.switcherDuration,
-                child: Icon(_isPanelOpen ? Icons.close : Icons.menu, key: ValueKey(_isPanelOpen)),
-              ),
-              onPressed: _togglePanel,
-              tooltip: _isPanelOpen ? S.current.hideControls : S.current.showControls,
-            ),
-          ],
         ),
       ),
     ),
   );
+
+  void _handleHorizontalDragEnd(final DragEndDetails details) {
+    final velocity = details.primaryVelocity;
+    if (velocity == null || velocity.abs() < FloatingPanel.swipeVelocityThreshold) {
+      return;
+    }
+    if (velocity < 0 && !_isPanelOpen) {
+      unawaited(_animateOpen());
+    } else if (velocity > 0 && _isPanelOpen) {
+      unawaited(_animateClose());
+    }
+  }
 }
 
 class _AnimatedPanelItem extends StatelessWidget {
