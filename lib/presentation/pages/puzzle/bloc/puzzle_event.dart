@@ -38,4 +38,6 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.redo() = _Redo;
 
   const factory PuzzleEvent.showHint() = _ShowHint;
+
+  const factory PuzzleEvent.setTimer({required final bool running}) = _SetTimer;
 }

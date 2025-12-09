@@ -166,44 +166,44 @@ class _BottomFAB extends StatelessWidget {
               tooltip: S.current.settings,
             ),
           IconButton(
-                icon: Icon(Icons.lightbulb),
-                onPressed: isSolveDisabled
-                    ? null
-                    : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
-                tooltip: S.current.searchSolution,
+            icon: Icon(Icons.lightbulb),
+            onPressed: isSolveDisabled
+                ? null
+                : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
+            tooltip: S.current.searchSolution,
+          ),
+          IconButton(
+            icon: Icon(Icons.tips_and_updates_outlined),
+            onPressed: isHintDisabled ? null : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showHint())),
+            tooltip: S.current.hint,
+          ),
+          if (state.isShowSolutions) ...[
+            IconButton(
+              icon: Icon(Icons.arrow_left),
+              onPressed: () => puzzleBloc.add(
+                PuzzleEvent.showSolution((state.solutionIdx > 0 ? state.solutionIdx : solutionsCount) - 1),
               ),
-              IconButton(
-                icon: Icon(Icons.tips_and_updates_outlined),
-                onPressed: isHintDisabled ? null : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showHint())),
-                tooltip: S.current.hint,
+              tooltip: S.current.prevSolution,
+            ),
+            IconButton(
+              icon: Icon(Icons.arrow_right),
+              onPressed: () => puzzleBloc.add(
+                PuzzleEvent.showSolution(state.solutionIdx < solutionsCount - 1 ? state.solutionIdx + 1 : 0),
               ),
-              if (state.isShowSolutions) ...[
-                IconButton(
-                  icon: Icon(Icons.arrow_left),
-                  onPressed: () => puzzleBloc.add(
-                    PuzzleEvent.showSolution((state.solutionIdx > 0 ? state.solutionIdx : solutionsCount) - 1),
-                  ),
-                  tooltip: S.current.prevSolution,
-                ),
-                IconButton(
-                  icon: Icon(Icons.arrow_right),
-                  onPressed: () => puzzleBloc.add(
-                    PuzzleEvent.showSolution(state.solutionIdx < solutionsCount - 1 ? state.solutionIdx + 1 : 0),
-                  ),
-                  tooltip: S.current.nextSolution,
-                ),
-              ] else ...[
-                IconButton(
-                  icon: Icon(Icons.undo),
-                  onPressed: state.isUndoEnabled ? () => puzzleBloc.add(PuzzleEvent.undo()) : null,
-                  tooltip: S.current.undo,
-                ),
-                IconButton(
-                  icon: Icon(Icons.redo),
-                  onPressed: state.isRedoEnabled ? () => puzzleBloc.add(PuzzleEvent.redo()) : null,
-                  tooltip: S.current.redo,
-                ),
-              ],
+              tooltip: S.current.nextSolution,
+            ),
+          ] else ...[
+            IconButton(
+              icon: Icon(Icons.undo),
+              onPressed: state.isUndoEnabled ? () => puzzleBloc.add(PuzzleEvent.undo()) : null,
+              tooltip: S.current.undo,
+            ),
+            IconButton(
+              icon: Icon(Icons.redo),
+              onPressed: state.isRedoEnabled ? () => puzzleBloc.add(PuzzleEvent.redo()) : null,
+              tooltip: S.current.redo,
+            ),
+          ],
           state.isSolving
               ? SizedBox(
                   width: 48,

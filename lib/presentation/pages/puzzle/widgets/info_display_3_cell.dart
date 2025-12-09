@@ -16,34 +16,36 @@ extension TripleInfoDisplayX on TripleInfoDisplay {
     TripleInfoDisplay.solutionIndex => S.current.solutionShort,
   };
 
-  Stream<String> cell2Stream({
-    required final PuzzleBloc bloc,
-    required final TimerService timerService,
-    required final ({int start, bool running}) timer,
-  }) {
+  Stream<String> cell2Stream({required final PuzzleState state, required final TimerService timerService}) {
     switch (this) {
       case TripleInfoDisplay.blank:
         return Stream<String>.value('  ');
       case TripleInfoDisplay.timer:
         return timerService
-            .minutes(start: timer.start, running: timer.running)
+            .minutes(
+              startedAt: state.firstMoveAt,
+              lastResumedAt: state.lastResumedAt,
+              activeElapsedMs: state.activeElapsedMs,
+              isPaused: state.isPaused,
+            )
             .map((final e) => e.toString().padLeft(2, '0'));
       case TripleInfoDisplay.solutionIndex:
         return Stream<String>.value(' #');
     }
   }
 
-  Stream<String> cell3Stream({
-    required final PuzzleBloc bloc,
-    required final TimerService timerService,
-    required final ({int start, bool running}) timer,
-  }) {
+  Stream<String> cell3Stream({required final PuzzleBloc bloc, required final TimerService timerService}) {
     switch (this) {
       case TripleInfoDisplay.blank:
         return Stream<String>.value('  ');
       case TripleInfoDisplay.timer:
         return timerService
-            .seconds(start: timer.start, running: timer.running)
+            .seconds(
+              startedAt: bloc.state.firstMoveAt,
+              lastResumedAt: bloc.state.lastResumedAt,
+              activeElapsedMs: bloc.state.activeElapsedMs,
+              isPaused: bloc.state.isPaused,
+            )
             .map((final e) => e.toString().padLeft(2, '0'));
       case TripleInfoDisplay.solutionIndex:
         String formatState(final PuzzleState state) =>
@@ -71,18 +73,11 @@ class InfoDisplay3Cell extends StatelessWidget {
         _ => TripleInfoDisplay.blank,
       };
 
-      final timer = context.select<PuzzleBloc, ({int start, bool running})>(
-        (final b) => (
-          start: b.state.firstMoveAt ?? 0,
-          running: b.state.status == GameStatus.playing || b.state.status == GameStatus.solutionsReady,
-        ),
-      );
-
       final timerService = getIt<TimerService>();
 
       final bloc = context.read<PuzzleBloc>();
-      final cell2 = displayMode.cell2Stream(bloc: bloc, timerService: timerService, timer: timer);
-      final cell3 = displayMode.cell3Stream(bloc: bloc, timerService: timerService, timer: timer);
+      final cell2Stream = displayMode.cell2Stream(state: bloc.state, timerService: timerService);
+      final cell3Stream = displayMode.cell3Stream(bloc: bloc, timerService: timerService);
 
       final cell3minWidth = displayMode == TripleInfoDisplay.solutionIndex && state.applicableSolutions.length > 99
           ? 14.0
@@ -103,7 +98,7 @@ class InfoDisplay3Cell extends StatelessWidget {
             ),
           ),
           StreamBuilder<String>(
-            stream: cell2,
+            stream: cell2Stream,
             initialData: '',
             builder: (final context, final snapshot) => ConstrainedBox(
               constraints: state.gridConfig.cellConstraints(),
@@ -114,7 +109,7 @@ class InfoDisplay3Cell extends StatelessWidget {
             ),
           ),
           StreamBuilder<String>(
-            stream: cell3,
+            stream: cell3Stream,
             initialData: '',
             builder: (final context, final snapshot) => ConstrainedBox(
               constraints: state.gridConfig.cellConstraints(),

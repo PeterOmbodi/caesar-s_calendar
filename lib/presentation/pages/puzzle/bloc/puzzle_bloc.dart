@@ -8,6 +8,7 @@ import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/core/models/puzzle_piece_base.dart';
+import 'package:caesar_puzzle/core/services/lifecycle_service.dart';
 import 'package:caesar_puzzle/core/utils/puzzle_board_extension.dart';
 import 'package:caesar_puzzle/core/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/core/utils/puzzle_grid_extension.dart';
@@ -26,6 +27,8 @@ part 'puzzle_state.dart';
 
 class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   PuzzleBloc({required final SettingsQuery settings}) : _settings = settings, super(PuzzleState.initial()) {
+    _lifecycleService = LifecycleService(_onLifecycleChanged);
+
     on<_SetViewSize>(_onViewSize);
     on<_Reset>(_reset);
     on<_Configure>(_configure);
@@ -42,6 +45,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_ShowHint>(_showHint);
     on<_Undo>(_undoMove);
     on<_Redo>(_redoMove);
+    on<_SetTimer>(_timerStateChanged);
   }
 
   static const double collisionTolerance = 2;
@@ -58,7 +62,15 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   static const double gridCenterOffset = 0.5;
 
   final SettingsQuery _settings;
+  late final LifecycleService _lifecycleService;
+
   Size? _lastViewSize;
+
+  @override
+  Future<void> close() {
+    _lifecycleService.dispose();
+    return super.close();
+  }
 
   /* handle events */
 
@@ -226,6 +238,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           moveHistory: [],
           moveIndex: 0,
           firstMoveAt: null,
+          lastResumedAt: null,
+          activeElapsedMs: 0,
         ),
       );
     } else {
@@ -374,7 +388,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         if (moveHistory.length > state.moveIndex) {
           moveHistory.removeRange(state.moveIndex, moveHistory.length);
         }
-        final firstMoveAt = state.gridPieces.where((final p)=>!p.isConfigItem).isEmpty ? DateTime.now().millisecondsSinceEpoch : null;
+        final firstMoveAt = state.gridPieces.where((final p) => !p.isConfigItem).isEmpty
+            ? DateTime.now().millisecondsSinceEpoch
+            : null;
         moveHistory.add(move);
         final pieces = _updatePieceInList(selectedPiece);
         final shouldResolve = selectedPiece.isConfigItem;
@@ -603,7 +619,43 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     }
   }
 
+  FutureOr<void> _timerStateChanged(final _SetTimer event, final Emitter<PuzzleState> emit) {
+    if (event.running) {
+      if (state.status == GameStatus.paused) {
+        emit(state.copyWith(status: GameStatus.playing, lastResumedAt: DateTime.now().millisecondsSinceEpoch));
+      }
+      return Future.value();
+    }
+
+    if (state.status == GameStatus.playing && state.firstMoveAt != null) {
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      final resumedAt = state.lastResumedAt ?? state.firstMoveAt!;
+      emit(
+        state.copyWith(
+          status: GameStatus.paused,
+          activeElapsedMs: state.activeElapsedMs + (nowMs - resumedAt),
+          lastResumedAt: null,
+        ),
+      );
+    } else if (state.status == GameStatus.playing) {
+      emit(state.copyWith(status: GameStatus.paused));
+    }
+  }
+
   /*  helpers etc  */
+
+  void _onLifecycleChanged(final AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        add(const PuzzleEvent.setTimer(running: true));
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+        add(const PuzzleEvent.setTimer(running: false));
+      case AppLifecycleState.detached:
+        break;
+    }
+  }
 
   PuzzlePiece _applyPlacementToPiece(final PuzzlePiece piece, final PlacementParams params) {
     final cellSize = state.gridConfig.cellSize;
