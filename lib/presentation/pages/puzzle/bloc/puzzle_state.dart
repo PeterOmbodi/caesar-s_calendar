@@ -8,6 +8,7 @@ enum GameStatus {
   solutionsReady,
   showingSolution, //showing possible solution
   solvedByUser,
+  paused,
 }
 
 @freezed
@@ -32,6 +33,8 @@ abstract class PuzzleState with _$PuzzleState {
     required final int moveIndex,
     required final DateTime selectedDate,
     final int? firstMoveAt,
+    final int? lastResumedAt,
+    required final int activeElapsedMs,
   }) = _PuzzleState;
 
   const PuzzleState._();
@@ -51,9 +54,12 @@ abstract class PuzzleState with _$PuzzleState {
     moveHistory: [],
     moveIndex: 0,
     selectedDate: DateTime.now(),
+    activeElapsedMs: 0,
   );
 
   bool get isSolving => status == GameStatus.searchingSolutions;
+
+  bool get isPaused => status == GameStatus.paused || (status != GameStatus.playing && status != GameStatus.solutionsReady);
 
   bool get isShowSolutions => status == GameStatus.showingSolution;
 
