@@ -1,11 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:caesar_puzzle/core/models/cell.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
+import 'package:caesar_puzzle/core/models/position.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece.dart';
 import 'package:flutter/material.dart';
 
 /// Extension for PuzzlePiece to add the [relativeCells] getter.
-/// This computes the grid cells (relative to the shape’s top-left in its default orientation)
+/// This computes the grid cells (relative to the shape's top-left in its default orientation)
 /// covered by the piece based on its [originalPath].
 extension PuzzlePieceX on PuzzlePiece {
   /// Returns the list of grid cells covered by this piece in its default orientation.
@@ -43,7 +44,7 @@ extension PuzzlePieceX on PuzzlePiece {
 
   /// Returns a set of grid cells (as [Cell]) that are covered by the given [originalPath].
   /// The [origin] represents the top-left corner of the grid and [cellSize] is the size of one grid cell.
-  Set<Cell> cells(final Offset origin, final double cellSize) {
+  Set<Cell> cells(final Position origin, final double cellSize) {
     final path = getTransformedPath();
     final cells = <Cell>{};
     final bounds = path.getBounds();

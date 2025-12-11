@@ -15,8 +15,8 @@ enum GameStatus {
 abstract class PuzzleState with _$PuzzleState {
   factory PuzzleState({
     required final GameStatus status,
-    required final PuzzleGrid gridConfig,
-    required final PuzzleBoard boardConfig,
+    required final PuzzleGridEntity gridConfig,
+    required final PuzzleBoardEntity boardConfig,
     required final List<Map<String, String>> solutions,
     required final List<Map<String, String>> applicableSolutions,
     required final int solutionIdx,
@@ -41,8 +41,8 @@ abstract class PuzzleState with _$PuzzleState {
 
   factory PuzzleState.initial() => PuzzleState(
     status: GameStatus.initializing,
-    gridConfig: PuzzleGrid.initial(),
-    boardConfig: PuzzleBoard.initial(),
+    gridConfig: PuzzleGridEntity.initial(),
+    boardConfig: PuzzleBoardEntity.initial(),
     pieces: [],
     solutions: [],
     applicableSolutions: [],

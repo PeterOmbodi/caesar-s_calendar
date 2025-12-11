@@ -1,11 +1,11 @@
-import 'package:caesar_puzzle/core/models/puzzle_piece_base.dart';
-import 'package:flutter/material.dart';
+import 'package:caesar_puzzle/core/models/place_zone.dart';
+import 'package:caesar_puzzle/core/models/position.dart';
 
 class MovePlacement {
   MovePlacement({this.zone = PlaceZone.grid, required this.position});
 
   final PlaceZone zone;
-  final Offset position;
+  final Position position;
 }
 
 sealed class Move {
@@ -62,10 +62,6 @@ sealed class SnappableMove extends Move {
   SnappableMove(super.pieceId, this.snapCorrection);
 
   final MovePiece? snapCorrection;
-
-  Offset? getSnapOffset(final Function(Offset) absolutPosition, final bool isFrom) => snapCorrection == null
-      ? null
-      : absolutPosition(isFrom ? snapCorrection!.from.position : snapCorrection!.to.position);
 }
 
 class RotatePiece extends SnappableMove {

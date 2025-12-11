@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/presentation/bloc/app_bloc_observer.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
@@ -10,7 +11,6 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'core/bloc/app_bloc_observer.dart';
 import 'generated/l10n.dart';
 import 'injection.dart';
 

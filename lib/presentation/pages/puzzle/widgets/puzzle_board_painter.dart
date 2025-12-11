@@ -1,9 +1,9 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/core/utils/puzzle_piece_extension.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_board.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +24,8 @@ class PuzzleBoardPainter extends CustomPainter {
   });
 
   final Iterable<PuzzlePiece> pieces;
-  final PuzzleGrid grid;
-  final PuzzleBoard board;
+  final PuzzleGridEntity grid;
+  final PuzzleBoardEntity board;
   final PuzzlePiece? selectedPiece;
   final bool showGridLines;
   final Offset? previewPosition;

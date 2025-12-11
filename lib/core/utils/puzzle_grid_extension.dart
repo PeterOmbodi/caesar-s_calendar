@@ -1,8 +1,8 @@
 import 'package:caesar_puzzle/core/utils/puzzle_entity_extension.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:flutter/material.dart';
 
-extension PuzzleGridX on PuzzleGrid {
+extension PuzzleGridX on PuzzleGridEntity {
   Offset snapToGrid(final Offset position) {
     // Calculate the closest cell coordinates
     final cellX = (relativeX(position) / cellSize).round();

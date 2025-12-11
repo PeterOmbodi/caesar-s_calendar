@@ -1,10 +1,9 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/utils/placement_extrension.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/dancing_links.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/infrastructure/dto/placement_dto.dart';
 import 'package:caesar_puzzle/infrastructure/dto/puzzle_piece_dto.dart';
-import 'package:flutter/foundation.dart';
 
 /// A solver class for Caesar's calendar puzzle.
 /// This class builds an exact cover matrix based on the configuration:
@@ -23,12 +22,12 @@ class PuzzleSolver {
 
   factory PuzzleSolver.fromSerializable(final Map<String, dynamic> map) =>
       PuzzleSolver(
-        grid: PuzzleGrid.fromSerializable(map['grid']),
+        grid: PuzzleGridEntity.fromSerializable(map['grid']),
         pieces: (map['pieces'] as List).map((final e) => PuzzlePieceDto.fromMap(e)).toList(),
         date: DateTime.parse(map['currentDate']),
       );
 
-  final PuzzleGrid grid;
+  final PuzzleGridEntity grid;
   final Iterable<PuzzlePieceDto> pieces;
   final DateTime date;
   late Iterable<Cell> forbiddenCells;
@@ -141,21 +140,7 @@ class PuzzleSolver {
       }
     }
 
-    debugPrint('${DateTime.now()}, Run the Dancing Links search.');
     universe.search();
-    if (universe.solutions.isNotEmpty) {
-      debugPrint('${DateTime.now()}, Solution found: ${universe.solutions.first}');
-      // for (var id in solution) {
-      //   final placement = idToPlacement[id]!;
-      //   final coordinates = placement.coveredCells.map((cell) {
-      //     final rowLetter = String.fromCharCode('A'.codeUnitAt(0) + cell.row);
-      //     return '$rowLetter${cell.col}';
-      //   }).toList();
-      //   debugPrint('---- $id covers: ${coordinates.join(', ')}');
-      // }
-    } else {
-      debugPrint('${DateTime.now()}, No solution found.');
-    }
     return universe.solutions;
   }
 
@@ -166,9 +151,7 @@ class PuzzleSolver {
       'currentDate': date.toIso8601String(),
     };
 
-  Future<Iterable<List<String>>> solveInIsolate() async => compute(_solveEntryPoint, toSerializable());
-
-  static Iterable<List<String>> _solveEntryPoint(final Map<String, dynamic> data) {
+  static Iterable<List<String>> solveEntryPoint(final Map<String, dynamic> data) {
     final solver = PuzzleSolver.fromSerializable(data);
     return solver.solve();
   }
