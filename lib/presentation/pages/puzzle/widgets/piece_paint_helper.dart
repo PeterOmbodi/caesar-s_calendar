@@ -1,5 +1,5 @@
 import 'package:caesar_puzzle/core/utils/puzzle_piece_extension.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
 

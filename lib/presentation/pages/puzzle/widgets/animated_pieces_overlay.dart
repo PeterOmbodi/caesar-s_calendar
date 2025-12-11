@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/pieces_tween_painter.dart';
 import 'package:flutter/material.dart';
 

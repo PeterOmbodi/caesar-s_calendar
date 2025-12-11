@@ -1,4 +1,4 @@
-import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
 import 'package:flutter/material.dart';
 
 Path generatePathForType(final PieceType type, final double cellSize) {

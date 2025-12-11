@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:caesar_puzzle/core/models/position.dart';
 
 abstract class PuzzleBaseEntity {
   const PuzzleBaseEntity({required this.cellSize, required this.rows, required this.columns, required this.origin});
@@ -6,7 +6,7 @@ abstract class PuzzleBaseEntity {
   final double cellSize;
   final int rows;
   final int columns;
-  final Offset origin;
+  final Position origin;
 
-  Offset get topLeft => origin;
+  Position get topLeft => origin;
 }

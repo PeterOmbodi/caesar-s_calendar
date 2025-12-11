@@ -1,6 +1,6 @@
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/solver_service.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_grid.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_piece.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
 
 import '../injection.dart';
 
@@ -8,8 +8,8 @@ class SolvePuzzleUseCase {
   SolvePuzzleUseCase();
 
   Future<Iterable<Map<String, String>>> call({
-    required final Iterable<PuzzlePiece> pieces,
-    required final PuzzleGrid grid,
+    required final Iterable<PuzzlePieceEntity> pieces,
+    required final PuzzleGridEntity grid,
     final bool keepUserMoves = false,
     final DateTime? date,
   }) async {

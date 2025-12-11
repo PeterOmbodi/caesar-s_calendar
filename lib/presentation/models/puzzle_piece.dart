@@ -1,9 +1,10 @@
-import 'package:caesar_puzzle/core/models/puzzle_piece_base.dart';
+import 'package:caesar_puzzle/core/models/place_zone.dart';
+import 'package:caesar_puzzle/core/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/core/utils/puzzle_piece_utils.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
-
-enum PieceType { lShape, square, zShape, yShape, uShape, pShape, nShape, vShape, zone1, zone2 }
 
 Color colorForType(final PieceType type) {
   switch (type) {
@@ -60,14 +61,13 @@ double borderRadiusForType(final PieceType type) => isConfigType(type) ? 0 : 8.0
 
 typedef GetPieceColor = Color Function();
 
-class PuzzlePiece extends PuzzlePieceBase {
-
+class PuzzlePiece {
   PuzzlePiece({
-    required super.id,
-    required super.position,
-    super.rotation = 0.0,
-    super.isFlipped = false,
-    required super.placeZone,
+    required this.id,
+    required this.position,
+    this.rotation = 0.0,
+    this.isFlipped = false,
+    required this.placeZone,
     required this.type,
     required this.originalPath,
     required this.color,
@@ -91,6 +91,7 @@ class PuzzlePiece extends PuzzlePieceBase {
       placeZone: isForbidden ? PlaceZone.grid : PlaceZone.board,
     );
   }
+
   final PieceType type;
   final Path originalPath;
   final GetPieceColor color;
@@ -98,6 +99,11 @@ class PuzzlePiece extends PuzzlePieceBase {
   final double borderRadius;
   final bool isConfigItem;
   final bool isUsersItem;
+  final String id;
+  final Offset position;
+  final double rotation;
+  final bool isFlipped;
+  final PlaceZone placeZone;
 
   PuzzlePiece copyWith({
     final Offset? position,
@@ -108,21 +114,32 @@ class PuzzlePiece extends PuzzlePieceBase {
     final Path? originalPath,
     final PlaceZone? placeZone,
     final bool? isUsersItem,
-  }) => PuzzlePiece(
-      type: type,
-      originalPath: originalPath ?? this.originalPath,
-      color: color,
-      id: id,
-      position: position ?? this.position,
-      rotation: rotation ?? this.rotation,
-      centerPoint: centerPoint ?? this.centerPoint,
-      isFlipped: isFlipped ?? this.isFlipped,
-      borderRadius: borderRadius,
-      isConfigItem: isForbidden ?? isConfigItem,
-      placeZone: placeZone ?? this.placeZone,
-      isUsersItem: isUsersItem ?? this.isUsersItem,
-    );
+  }) =>
+      PuzzlePiece(
+        type: type,
+        originalPath: originalPath ?? this.originalPath,
+        color: color,
+        id: id,
+        position: position ?? this.position,
+        rotation: rotation ?? this.rotation,
+        centerPoint: centerPoint ?? this.centerPoint,
+        isFlipped: isFlipped ?? this.isFlipped,
+        borderRadius: borderRadius,
+        isConfigItem: isForbidden ?? isConfigItem,
+        placeZone: placeZone ?? this.placeZone,
+        isUsersItem: isUsersItem ?? this.isUsersItem,
+      );
 
   Color borderColor(final bool borderColorMode) =>
       isUsersItem || !borderColorMode ? AppColors.current.pieceBorder : Colors.transparent;
+
+  PuzzlePieceEntity toDomain(final PuzzleGridEntity grid) => PuzzlePieceEntity(
+        id: id,
+        type: type,
+        placeZone: placeZone,
+        relativeCells: relativeCells(grid.cellSize),
+        absoluteCells: cells(grid.origin, grid.cellSize),
+        isConfigItem: isConfigItem,
+        isUsersItem: isUsersItem,
+      );
 }

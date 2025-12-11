@@ -1,0 +1,1 @@
+enum PlaceZone { grid, board }
