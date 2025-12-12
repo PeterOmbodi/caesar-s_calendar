@@ -10,31 +10,36 @@ import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 /// - pieces: the list of available puzzle pieces (boardPieces),
 /// - currentDate: the date whose cells should remain free
 class PuzzleSolver {
+  PuzzleSolver({required this.grid, required this.pieces, required this.date})
+    : forbiddenCells = pieces
+          .where((final e) => e.isForbidden)
+          .map((final e) => e.cells)
+          .expand((final e) => e)
+          .toSet(),
+      unmovableCells = pieces
+          .where((final e) => e.isImmovable)
+          .map((final e) => e.cells)
+          .expand((final e) => e)
+          .toSet() {
+    forbiddenCellKeys = {for (final cell in forbiddenCells) _cellKey(cell.row, cell.col)};
+    unmovableCellKeys = {for (final cell in unmovableCells) _cellKey(cell.row, cell.col)};
+  }
 
-  PuzzleSolver({
-    required this.grid,
-    required this.pieces,
-    required this.date,
-  })
-      : forbiddenCells =
-            pieces.where((final e) => e.isForbidden).map((final e) => e.cells).expand((final e) => e).toSet(),
-        unmovableCells =
-            pieces.where((final e) => e.isImmovable).map((final e) => e.cells).expand((final e) => e).toSet();
-
-  factory PuzzleSolver.fromSerializable(final Map<String, dynamic> map) =>
-      PuzzleSolver(
-        grid: PuzzleGridEntity.fromSerializable(map['grid']),
-        pieces: (map['pieces'] as List)
-            .map((final e) => SolverPiece.fromSerializable(Map<String, dynamic>.from(e as Map)))
-            .toList(),
-        date: DateTime.parse(map['currentDate']),
-      );
+  factory PuzzleSolver.fromSerializable(final Map<String, dynamic> map) => PuzzleSolver(
+    grid: PuzzleGridEntity.fromSerializable(map['grid']),
+    pieces: (map['pieces'] as List)
+        .map((final e) => SolverPiece.fromSerializable(Map<String, dynamic>.from(e as Map)))
+        .toList(),
+    date: DateTime.parse(map['currentDate']),
+  );
 
   final PuzzleGridEntity grid;
   final Iterable<SolverPiece> pieces;
   final DateTime date;
   late Set<Cell> forbiddenCells;
   late Set<Cell> unmovableCells;
+  late final Set<int> forbiddenCellKeys;
+  late final Set<int> unmovableCellKeys;
 
   /// Build the list of constraints (columns) for the exact cover problem.
   /// Here we assume that each grid cell (except those that must remain free) gets an identifier
@@ -44,11 +49,11 @@ class PuzzleSolver {
     var cellIndex = 0;
     for (var row = 0; row < grid.rows; row++) {
       for (var column = 0; column < grid.columns; column++) {
-        if (forbiddenCells.contains(Cell(row, column))) {
+        if (_isForbidden(row, column)) {
           continue;
         }
-        final isTodayLabel = cellIndex < 12 && date.month == cellIndex + 1 || cellIndex - 11 == date.day;
-        if (!isTodayLabel && !unmovableCells.contains(Cell(row, column))) {
+        final isTodayLabel = (cellIndex < 12 && date.month == cellIndex + 1) || (cellIndex - 11 == date.day);
+        if (!isTodayLabel && !_isUnmovable(row, column)) {
           constraints.add('cell_${row}_$column');
         }
         cellIndex++;
@@ -60,7 +65,6 @@ class PuzzleSolver {
     for (final piece in pieces.where((final p) => !p.isForbidden && !p.isImmovable)) {
       constraints.add('piece_${piece.id}');
     }
-    // debugPrint('buildConstraints: $constraints');
     return constraints;
   }
 
@@ -70,9 +74,6 @@ class PuzzleSolver {
     final forbidden = forbiddenCells;
     final dateCells = buildDateCells();
     final placementSignatures = <String>{};
-    // debugPrint('generatePlacementsForPiece, forbidden: $forbidden');
-    // debugPrint('generatePlacementsForPiece, dateCells: $dateCells');
-    final cellIndex = 0;
     for (var rot = 0; rot < 4; rot++) {
       for (final flip in [false, true]) {
         for (var row = 0; row < grid.rows; row++) {
@@ -92,9 +93,6 @@ class PuzzleSolver {
                 placements.add(placement);
               }
             }
-            if (cellIndex > 42) {
-              break;
-            }
           }
         }
       }
@@ -108,10 +106,10 @@ class PuzzleSolver {
     var cellIndex = 0;
     for (var row = 0; row < grid.rows; row++) {
       for (var column = 0; column < grid.columns; column++) {
-        if (forbiddenCells.contains(Cell(row, column))) {
+        if (_isForbidden(row, column)) {
           continue;
         }
-        final isTodayLabel = cellIndex < 12 && date.month == cellIndex + 1 || cellIndex - 11 == date.day;
+        final isTodayLabel = (cellIndex < 12 && date.month == cellIndex + 1) || (cellIndex - 11 == date.day);
         if (isTodayLabel) {
           free.add(Cell(row, column));
         }
@@ -138,7 +136,6 @@ class PuzzleSolver {
           for (final cell in placement.coveredCells) 'cell_${cell.row}_${cell.col}',
           'piece_${placement.piece.id}',
         ];
-        rowConstraints.add('piece_${piece.id}');
         universe.addRow(placement.id, rowConstraints);
       }
     }
@@ -147,15 +144,20 @@ class PuzzleSolver {
     return universe.solutions;
   }
 
-  Map<String, dynamic> toSerializable() =>
-      {
-      'grid': grid.toSerializable(),
-        'pieces': pieces.map((final e) => e.toMap()).toList(),
-      'currentDate': date.toIso8601String(),
-    };
+  Map<String, dynamic> toSerializable() => {
+    'grid': grid.toSerializable(),
+    'pieces': pieces.map((final e) => e.toMap()).toList(),
+    'currentDate': date.toIso8601String(),
+  };
 
   static Iterable<List<String>> solveEntryPoint(final Map<String, dynamic> data) {
     final solver = PuzzleSolver.fromSerializable(data);
     return solver.solve();
   }
+
+  int _cellKey(final int row, final int col) => row * grid.columns + col;
+
+  bool _isForbidden(final int row, final int col) => forbiddenCellKeys.contains(_cellKey(row, col));
+
+  bool _isUnmovable(final int row, final int col) => unmovableCellKeys.contains(_cellKey(row, col));
 }
