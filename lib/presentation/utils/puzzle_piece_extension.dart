@@ -2,13 +2,13 @@ import 'dart:math' as math;
 
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
-import 'package:caesar_puzzle/presentation/models/puzzle_piece.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:flutter/material.dart';
 
 /// Extension for PuzzlePiece to add the [relativeCells] getter.
 /// This computes the grid cells (relative to the shape's top-left in its default orientation)
 /// covered by the piece based on its [originalPath].
-extension PuzzlePieceX on PuzzlePiece {
+extension PuzzlePieceX on PuzzlePieceUI {
   /// Returns the list of grid cells covered by this piece in its default orientation.
   /// It uses the bounding box of the original path and samples at the cell center.
   /// Assumes that the grid "unit" is the size of a cell.

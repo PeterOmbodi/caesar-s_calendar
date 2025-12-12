@@ -6,19 +6,19 @@ import 'package:caesar_puzzle/application/contracts/settings_query.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
+import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
-import 'package:caesar_puzzle/core/services/lifecycle_service.dart';
-import 'package:caesar_puzzle/core/utils/puzzle_board_extension.dart';
-import 'package:caesar_puzzle/core/utils/puzzle_entity_extension.dart';
-import 'package:caesar_puzzle/core/utils/puzzle_grid_extension.dart';
-import 'package:caesar_puzzle/core/utils/puzzle_piece_extension.dart';
-import 'package:caesar_puzzle/core/utils/puzzle_piece_utils.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
-import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
-import 'package:caesar_puzzle/presentation/models/puzzle_piece.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
+import 'package:caesar_puzzle/presentation/services/lifecycle_service.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_board_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -141,33 +141,33 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final cellXOffset = gCellSize + boardExtraX;
 
     final centerPoint = Offset(gCellSize * gridCenterOffset, gCellSize * gridCenterOffset);
-    var boardPieces = <PuzzlePiece>[];
-    var gridPieces = <PuzzlePiece>[];
+    var boardPieces = <PuzzlePieceUI>[];
+    var gridPieces = <PuzzlePieceUI>[];
     if (isInitializing) {
       boardPieces = [
-        PuzzlePiece.fromType(PieceType.lShape, Offset(boardX, boardY + gCellSize * 4), centerPoint, gCellSize),
-        PuzzlePiece.fromType(
+        PuzzlePieceUI.fromType(PieceType.lShape, Offset(boardX, boardY + gCellSize * 4), centerPoint, gCellSize),
+        PuzzlePieceUI.fromType(
           PieceType.square,
           Offset(boardX + cellXOffset * 5 + boardExtraX, boardY + gCellSize * 2),
           centerPoint,
           gCellSize,
         ),
-        PuzzlePiece.fromType(PieceType.zShape, Offset(boardX + cellXOffset * 4, boardY), centerPoint, gCellSize),
-        PuzzlePiece.fromType(
+        PuzzlePieceUI.fromType(PieceType.zShape, Offset(boardX + cellXOffset * 4, boardY), centerPoint, gCellSize),
+        PuzzlePieceUI.fromType(
           PieceType.yShape,
           Offset(boardX + boardExtraX * 2, boardY + gCellSize * 2),
           centerPoint,
           gCellSize,
         ),
-        PuzzlePiece.fromType(
+        PuzzlePieceUI.fromType(
           PieceType.uShape,
           Offset(boardX + cellXOffset + boardExtraX, boardY + gCellSize * 3),
           centerPoint,
           gCellSize,
         ),
-        PuzzlePiece.fromType(PieceType.pShape, Offset(boardX, boardY), centerPoint, gCellSize),
-        PuzzlePiece.fromType(PieceType.nShape, Offset(boardX + 2 * cellXOffset, boardY), centerPoint, gCellSize),
-        PuzzlePiece.fromType(
+        PuzzlePieceUI.fromType(PieceType.pShape, Offset(boardX, boardY), centerPoint, gCellSize),
+        PuzzlePieceUI.fromType(PieceType.nShape, Offset(boardX + 2 * cellXOffset, boardY), centerPoint, gCellSize),
+        PuzzlePieceUI.fromType(
           PieceType.vShape,
           Offset(boardX + cellXOffset * 4, boardY + gCellSize * 3),
           centerPoint,
@@ -178,13 +178,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       gridPieces = configurationPieces.isNotEmpty
           ? configurationPieces.toList()
           : [
-              PuzzlePiece.fromType(
+              PuzzlePieceUI.fromType(
                 PieceType.zone1,
                 Offset(gridConfig.origin.dx + gCellSize * 6, gridConfig.origin.dy),
                 centerPoint,
                 gCellSize,
               ),
-              PuzzlePiece.fromType(
+              PuzzlePieceUI.fromType(
                 PieceType.zone2,
                 Offset(gridConfig.origin.dx + gCellSize * 3, gridConfig.origin.dy + gCellSize * 6),
                 centerPoint,
@@ -272,7 +272,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   FutureOr<void> _onPanStart(final _OnPanStart event, final Emitter<PuzzleState> emit) {
     final piece = _findPieceAtPosition(event.localPosition) ?? state.selectedPiece;
     if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
-      final pieces = List<PuzzlePiece>.from(state.pieces);
+      final pieces = List<PuzzlePieceUI>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((final item) => item.id == piece.id);
       if (pieceIndex >= 0) {
         pieces.removeAt(pieceIndex);
@@ -297,7 +297,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     if (state.selectedPiece != null && state.dragStartOffset != null) {
       final newPosition = event.localPosition - state.dragStartOffset!;
       final piece = state.selectedPiece!.copyWith(position: newPosition);
-      final pieces = List<PuzzlePiece>.from(state.pieces);
+      final pieces = List<PuzzlePieceUI>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((final item) => item.id == piece.id);
       if (pieceIndex >= 0) {
         pieces[pieceIndex] = piece;
@@ -681,7 +681,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     }
   }
 
-  PuzzlePiece _applyPlacementToPiece(final PuzzlePiece piece, final PlacementParams params) {
+  PuzzlePieceUI _applyPlacementToPiece(final PuzzlePieceUI piece, final PlacementParams params) {
     final cellSize = state.gridConfig.cellSize;
     final origin = state.gridConfig.origin;
     final dx = params.col * cellSize;
@@ -697,7 +697,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     return updatedPiece;
   }
 
-  PuzzlePiece? _findPieceAtPosition(final Offset position) =>
+  PuzzlePieceUI? _findPieceAtPosition(final Offset position) =>
       state.pieces.lastWhereOrNull((final piece) => piece.containsPoint(position));
 
   PlaceZone? _getZoneAtPosition(final Offset position) {
@@ -724,7 +724,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   //todo draft solution
   // need to check to empty date cells
   // need to change status for unique solutions only
-  GameStatus _getStatus(final Iterable<PuzzlePiece> pieces) {
+  GameStatus _getStatus(final Iterable<PuzzlePieceUI> pieces) {
     if (state.selectedPiece?.isUsersItem == false) {
       return state.status;
     }
@@ -744,11 +744,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   /// Checks for collision of piece at newPosition.
   bool _checkCollision({
-    required final PuzzlePiece piece,
+    required final PuzzlePieceUI piece,
     required final Offset newPosition,
     required final PlaceZone zone,
     required final preventOverlap,
-    final Iterable<PuzzlePiece>? pieces,
+    final Iterable<PuzzlePieceUI>? pieces,
   }) {
     final testPiece = piece.copyWith(position: newPosition);
     final testPath = testPiece.getTransformedPath();
@@ -815,13 +815,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     return false;
   }
 
-  List<PuzzlePiece> _updatePieceInList(final PuzzlePiece piece) => List<PuzzlePiece>.from(state.pieces)
+  List<PuzzlePieceUI> _updatePieceInList(final PuzzlePieceUI piece) => List<PuzzlePieceUI>.from(state.pieces)
     ..removeWhere((final p) => p.id == piece.id)
     ..add(piece);
 
   List<Map<String, String>> _combineSolutions(
     final Iterable<Map<String, String>> solutions,
-    final Iterable<PuzzlePiece> pieces,
+    final Iterable<PuzzlePieceUI> pieces,
   ) {
     if (solutions.isEmpty) {
       return [];
@@ -861,7 +861,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     }).toList();
   }
 
-  PuzzlePiece _getHistoryPiece(final int idx, final bool isUndo) {
+  PuzzlePieceUI _getHistoryPiece(final int idx, final bool isUndo) {
     final move = state.moveHistory[idx];
     final piece = state.pieces.firstWhere((final p) => p.id == move.pieceId);
 
@@ -869,12 +869,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       movePiece: (final mp) {
         final zone = isUndo ? mp.from.zone : mp.to.zone;
         final config = zone == PlaceZone.grid ? state.gridConfig : state.boardConfig;
-        return piece.copyWith(
-          placeZone: zone,
-          position: config.absolutPosition(
-            Offset((isUndo ? mp.from.position : mp.to.position).dx, (isUndo ? mp.from.position : mp.to.position).dy),
-          ),
-        );
+        final pos = isUndo ? mp.from.position : mp.to.position;
+        final absPos = config.absolutPositionPos(pos);
+        return piece.copyWith(placeZone: zone, position: Offset(absPos.dx, absPos.dy));
       },
       rotatePiece: (final rp) => piece.copyWith(
         rotation: (rp.rotation - (isUndo ? rotationStep + fullRotation : 0)) % fullRotation,
@@ -887,13 +884,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       hintMove: (final hm) {
         final zone = isUndo ? hm.from.zone : hm.to.zone;
         final config = zone == PlaceZone.grid ? state.gridConfig : state.boardConfig;
+        final pos = isUndo ? hm.from.position : hm.to.position;
+        final absPos = config.absolutPositionPos(pos);
         return piece.copyWith(
           rotation: isUndo ? hm.rotationFrom : hm.rotationTo,
           isFlipped: isUndo ? hm.flippedFrom : hm.flippedTo,
           placeZone: zone,
-          position: config.absolutPosition(
-            Offset((isUndo ? hm.from.position : hm.to.position).dx, (isUndo ? hm.from.position : hm.to.position).dy),
-          ),
+          position: Offset(absPos.dx, absPos.dy),
         );
       },
     );
@@ -903,7 +900,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   double _stepRotation(final double value) => (value + rotationStep) % fullRotation;
 
-  (PuzzlePiece piece, MovePiece? snapMove) _maybeSnap(final PuzzlePiece selectedPiece) {
+  (PuzzlePieceUI piece, MovePiece? snapMove) _maybeSnap(final PuzzlePieceUI selectedPiece) {
     final snappedPos = _snappedPosition(selectedPiece);
     if (snappedPos == selectedPiece.position) {
       return (selectedPiece, null);
@@ -927,7 +924,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     return (snapped, snapMove);
   }
 
-  Offset _snappedPosition(final PuzzlePiece selectedPiece) {
+  Offset _snappedPosition(final PuzzlePieceUI selectedPiece) {
     var targetPosition = selectedPiece.position;
 
     final preSnapped = state.gridConfig.snapToGrid(targetPosition);

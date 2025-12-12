@@ -12,7 +12,7 @@ sealed class PuzzleEvent with _$PuzzleEvent {
 
   const factory PuzzleEvent.onTapUp(final Offset localPosition) = _OnTapUp;
 
-  const factory PuzzleEvent.rotatePiece(final PuzzlePiece piece) = _RotatePiece;
+  const factory PuzzleEvent.rotatePiece(final PuzzlePieceUI piece) = _RotatePiece;
 
   const factory PuzzleEvent.onPanStart(final Offset localPosition) = _OnPanStart;
 
@@ -30,7 +30,7 @@ sealed class PuzzleEvent with _$PuzzleEvent {
 
   const factory PuzzleEvent.configure({
     @Default(false) final bool toInitial,
-    @Default(<PuzzlePiece>[]) final Iterable<PuzzlePiece> configurationPieces,
+    @Default(<PuzzlePieceUI>[]) final Iterable<PuzzlePieceUI> configurationPieces,
   }) = _Configure;
 
   const factory PuzzleEvent.undo() = _Undo;
