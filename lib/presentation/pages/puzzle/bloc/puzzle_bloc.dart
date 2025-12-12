@@ -28,7 +28,10 @@ part 'puzzle_event.dart';
 part 'puzzle_state.dart';
 
 class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
-  PuzzleBloc({required final SettingsQuery settings}) : _settings = settings, super(PuzzleState.initial()) {
+  PuzzleBloc({required final SettingsQuery settings, required final SolvePuzzleUseCase solvePuzzleUseCase})
+    : _settings = settings,
+      _solvePuzzleUseCase = solvePuzzleUseCase,
+      super(PuzzleState.initial()) {
     _lifecycleService = LifecycleService(_onLifecycleChanged);
 
     on<_SetViewSize>(_onViewSize);
@@ -64,6 +67,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   static const double gridCenterOffset = 0.5;
 
   final SettingsQuery _settings;
+  final SolvePuzzleUseCase _solvePuzzleUseCase;
   late final LifecycleService _lifecycleService;
 
   Size? _lastViewSize;
@@ -502,7 +506,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     emit(state.copyWith(status: GameStatus.searchingSolutions, solutions: [], solutionIdx: -1));
     await Future<void>.delayed(Duration.zero);
     unawaited(
-      SolvePuzzleUseCase()
+      _solvePuzzleUseCase
           .call(pieces: state.pieces.map((final p) => p.toDomain(state.gridConfig)), grid: state.gridConfig)
           .then((final solutions) {
             debugPrint('solving finished, found solutions: ${solutions.length}');

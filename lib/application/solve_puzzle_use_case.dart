@@ -2,10 +2,10 @@ import 'package:caesar_puzzle/domain/algorithms/dancing_links/solver_service.dar
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
 
-import '../injection.dart';
-
 class SolvePuzzleUseCase {
-  SolvePuzzleUseCase();
+  SolvePuzzleUseCase(this._solver);
+
+  final PuzzleSolverService _solver;
 
   Future<Iterable<Map<String, String>>> call({
     required final Iterable<PuzzlePieceEntity> pieces,
@@ -13,7 +13,7 @@ class SolvePuzzleUseCase {
     final bool keepUserMoves = false,
     final DateTime? date,
   }) async {
-    final rawSolutions = await getIt<PuzzleSolverService>().solve(
+    final rawSolutions = await _solver.solve(
       pieces: pieces,
       grid: grid,
       keepUserMoves: keepUserMoves,

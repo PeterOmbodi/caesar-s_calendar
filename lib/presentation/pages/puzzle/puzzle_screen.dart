@@ -1,4 +1,6 @@
+import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
@@ -21,7 +23,10 @@ class PuzzleScreen extends StatelessWidget {
   Widget build(final BuildContext context) {
     final isWideScreen = MediaQuery.of(context).size.width >= _breakpoint;
     return BlocProvider(
-      create: (_) => PuzzleBloc(settings: CubitSettingsQuery(context.read<SettingsCubit>())),
+      create: (_) => PuzzleBloc(
+        settings: CubitSettingsQuery(context.read<SettingsCubit>()),
+        solvePuzzleUseCase: getIt<SolvePuzzleUseCase>(),
+      ),
       child: Scaffold(
         body: SafeArea(
           child: MultiBlocListener(
