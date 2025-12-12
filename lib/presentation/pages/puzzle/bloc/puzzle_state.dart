@@ -20,8 +20,8 @@ abstract class PuzzleState with _$PuzzleState {
     required final List<Map<String, String>> solutions,
     required final List<Map<String, String>> applicableSolutions,
     required final int solutionIdx,
-    required final Iterable<PuzzlePiece> pieces,
-    required final PuzzlePiece? selectedPiece,
+    required final Iterable<PuzzlePieceUI> pieces,
+    required final PuzzlePieceUI? selectedPiece,
     required final bool isDragging,
     final Offset? dragStartOffset,
     final Offset? pieceStartPosition,
@@ -63,11 +63,11 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isShowSolutions => status == GameStatus.showingSolution;
 
-  Iterable<PuzzlePiece> piecesByZone(final PlaceZone zone) => pieces.where((final p) => p.placeZone == zone);
+  Iterable<PuzzlePieceUI> piecesByZone(final PlaceZone zone) => pieces.where((final p) => p.placeZone == zone);
 
-  Iterable<PuzzlePiece> get gridPieces => piecesByZone(PlaceZone.grid);
+  Iterable<PuzzlePieceUI> get gridPieces => piecesByZone(PlaceZone.grid);
 
-  Iterable<PuzzlePiece> get boardPieces => piecesByZone(PlaceZone.board);
+  Iterable<PuzzlePieceUI> get boardPieces => piecesByZone(PlaceZone.board);
 
   bool get isRedoEnabled => !isSolving && moveHistory.length > moveIndex;
 

@@ -1,10 +1,10 @@
-import 'package:caesar_puzzle/core/utils/puzzle_piece_extension.dart';
-import 'package:caesar_puzzle/presentation/models/puzzle_piece.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
 
 class PiecePaintHelper {
-  static void drawPiece(final Canvas canvas, final PuzzlePiece piece, final bool isSelected, final bool borderColorMode) {
+  static void drawPiece(final Canvas canvas, final PuzzlePieceUI piece, final bool isSelected, final bool borderColorMode) {
     final transformedPath = piece.getTransformedPath();
 
     final fill = Paint()

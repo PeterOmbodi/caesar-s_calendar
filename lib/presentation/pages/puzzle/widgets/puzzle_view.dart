@@ -1,9 +1,9 @@
-import 'package:caesar_puzzle/core/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/info_display_3_cell.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_flap/flutter_flip_flap.dart';

@@ -1,11 +1,11 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
-import 'package:caesar_puzzle/core/utils/puzzle_entity_extension.dart';
-import 'package:caesar_puzzle/core/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
-import 'package:caesar_puzzle/presentation/models/puzzle_piece.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -23,10 +23,10 @@ class PuzzleBoardPainter extends CustomPainter {
     required this.selectedDate,
   });
 
-  final Iterable<PuzzlePiece> pieces;
+  final Iterable<PuzzlePieceUI> pieces;
   final PuzzleGridEntity grid;
   final PuzzleBoardEntity board;
-  final PuzzlePiece? selectedPiece;
+  final PuzzlePieceUI? selectedPiece;
   final bool showGridLines;
   final Offset? previewPosition;
   final bool showPreview;

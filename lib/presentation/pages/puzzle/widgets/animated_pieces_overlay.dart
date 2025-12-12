@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:caesar_puzzle/presentation/models/puzzle_piece.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/pieces_tween_painter.dart';
 import 'package:flutter/material.dart';
 
@@ -17,12 +17,12 @@ class AnimatedPiecesOverlay extends StatefulWidget {
     this.borderColorMode = false,
     this.selectedPiece,
   });
-  final Iterable<PuzzlePiece> pieces;
+  final Iterable<PuzzlePieceUI> pieces;
   final Duration duration;
   final Curve curve;
   final Widget Function(Set<PieceId> hiddenIds) childBuilder;
   final bool borderColorMode;
-  final PuzzlePiece? selectedPiece;
+  final PuzzlePieceUI? selectedPiece;
 
   @override
   State<AnimatedPiecesOverlay> createState() => _AnimatedPiecesOverlayState();
@@ -32,7 +32,7 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
   late AnimationController _controller;
   late Animation<double> _animation;
 
-  Map<PieceId, PuzzlePiece> _prevById = {};
+  Map<PieceId, PuzzlePieceUI> _prevById = {};
   Map<PieceId, PieceTween> _tweens = {};
 
   @override
@@ -100,9 +100,9 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
     );
   }
 
-  static Map<PieceId, PuzzlePiece> _indexById(final Iterable<PuzzlePiece> list) => {for (final p in list) p.id: p};
+  static Map<PieceId, PuzzlePieceUI> _indexById(final Iterable<PuzzlePieceUI> list) => {for (final p in list) p.id: p};
 
-  Map<PieceId, PieceTween> _buildTweens(final Map<PieceId, PuzzlePiece> from, final Map<PieceId, PuzzlePiece> to) {
+  Map<PieceId, PieceTween> _buildTweens(final Map<PieceId, PuzzlePieceUI> from, final Map<PieceId, PuzzlePieceUI> to) {
     final result = <PieceId, PieceTween>{};
     for (final entry in to.entries) {
       final id = entry.key;
@@ -130,8 +130,8 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
 class PieceTween {
 
   PieceTween({required this.from, required this.to});
-  final PuzzlePiece from;
-  final PuzzlePiece to;
+  final PuzzlePieceUI from;
+  final PuzzlePieceUI to;
 
   Offset lerpPos(final double t) => Offset.lerp(from.position, to.position, t)!;
 

@@ -23,7 +23,7 @@ class DancingLinksSolverImpl implements PuzzleSolverService {
       final cells = immovablePiece || p.isConfigItem ? p.absoluteCells : p.relativeCells;
       return PuzzlePieceDto(
         id: p.id,
-        cells: cells ?? {},
+        cells: cells,
         isForbidden: p.isConfigItem,
         isImmovable: immovablePiece,
       );

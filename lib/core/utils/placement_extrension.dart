@@ -1,7 +1,6 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_base_entity.dart';
 import 'package:caesar_puzzle/infrastructure/dto/placement_dto.dart';
-
-import '../../domain/entities/puzzle_base_entity.dart';
 
 extension PlacementX on PlacementDto {
   List<Cell> get coveredCells {

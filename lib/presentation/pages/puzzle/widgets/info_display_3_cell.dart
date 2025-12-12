@@ -1,8 +1,8 @@
 import 'package:caesar_puzzle/core/services/timer_service.dart';
-import 'package:caesar_puzzle/core/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_flap/flutter_flip_flap.dart';
