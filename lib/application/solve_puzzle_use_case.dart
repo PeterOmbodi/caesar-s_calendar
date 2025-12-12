@@ -2,7 +2,9 @@ import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/solver_service.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
+import 'package:injectable/injectable.dart';
 
+@injectable
 class SolvePuzzleUseCase {
   SolvePuzzleUseCase(this._solver);
 

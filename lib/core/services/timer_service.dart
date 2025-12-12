@@ -1,3 +1,6 @@
+import 'package:injectable/injectable.dart';
+
+@lazySingleton
 class TimerService {
   Stream<int> elapsedSeconds({
     required final int? startedAt,
