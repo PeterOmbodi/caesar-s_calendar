@@ -1,9 +1,9 @@
 import 'package:caesar_puzzle/core/models/place_zone.dart';
+import 'package:caesar_puzzle/domain/algorithms/dancing_links/models/solver_piece.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/puzzle_solver.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/solver_service.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
-import 'package:caesar_puzzle/infrastructure/dto/puzzle_piece_dto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
@@ -21,7 +21,7 @@ class DancingLinksSolverImpl implements PuzzleSolverService {
     final serializablePieces = pieces.map((final p) {
       final immovablePiece = keepUserMoves ? p.placeZone == PlaceZone.grid : p.isConfigItem;
       final cells = immovablePiece || p.isConfigItem ? p.absoluteCells : p.relativeCells;
-      return PuzzlePieceDto(
+      return SolverPiece(
         id: p.id,
         cells: cells,
         isForbidden: p.isConfigItem,

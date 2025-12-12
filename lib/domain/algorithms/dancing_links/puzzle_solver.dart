@@ -1,9 +1,8 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
-import 'package:caesar_puzzle/core/utils/placement_extrension.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/dancing_links.dart';
+import 'package:caesar_puzzle/domain/algorithms/dancing_links/models/solver_piece.dart';
+import 'package:caesar_puzzle/domain/algorithms/dancing_links/models/solver_placement.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
-import 'package:caesar_puzzle/infrastructure/dto/placement_dto.dart';
-import 'package:caesar_puzzle/infrastructure/dto/puzzle_piece_dto.dart';
 
 /// A solver class for Caesar's calendar puzzle.
 /// This class builds an exact cover matrix based on the configuration:
@@ -17,21 +16,25 @@ class PuzzleSolver {
     required this.pieces,
     required this.date,
   })
-      : forbiddenCells = pieces.where((final e) => e.isForbidden).map((final e) => e.cells).expand((final e) => e),
-        unmovableCells = pieces.where((final e) => e.isImmovable).map((final e) => e.cells).expand((final e) => e);
+      : forbiddenCells =
+            pieces.where((final e) => e.isForbidden).map((final e) => e.cells).expand((final e) => e).toSet(),
+        unmovableCells =
+            pieces.where((final e) => e.isImmovable).map((final e) => e.cells).expand((final e) => e).toSet();
 
   factory PuzzleSolver.fromSerializable(final Map<String, dynamic> map) =>
       PuzzleSolver(
         grid: PuzzleGridEntity.fromSerializable(map['grid']),
-        pieces: (map['pieces'] as List).map((final e) => PuzzlePieceDto.fromMap(e)).toList(),
+        pieces: (map['pieces'] as List)
+            .map((final e) => SolverPiece.fromSerializable(Map<String, dynamic>.from(e as Map)))
+            .toList(),
         date: DateTime.parse(map['currentDate']),
       );
 
   final PuzzleGridEntity grid;
-  final Iterable<PuzzlePieceDto> pieces;
+  final Iterable<SolverPiece> pieces;
   final DateTime date;
-  late Iterable<Cell> forbiddenCells;
-  late Iterable<Cell> unmovableCells;
+  late Set<Cell> forbiddenCells;
+  late Set<Cell> unmovableCells;
 
   /// Build the list of constraints (columns) for the exact cover problem.
   /// Here we assume that each grid cell (except those that must remain free) gets an identifier
@@ -62,9 +65,9 @@ class PuzzleSolver {
   }
 
   /// Generate candidate placements for a given puzzle piece.
-  List<PlacementDto> generatePlacementsForPiece(final PuzzlePieceDto piece) {
-    final placements = <PlacementDto>[];
-    final forbidden = forbiddenCells.toSet();
+  List<SolverPlacement> generatePlacementsForPiece(final SolverPiece piece) {
+    final placements = <SolverPlacement>[];
+    final forbidden = forbiddenCells;
     final dateCells = buildDateCells();
     final placementSignatures = <String>{};
     // debugPrint('generatePlacementsForPiece, forbidden: $forbidden');
@@ -74,7 +77,7 @@ class PuzzleSolver {
       for (final flip in [false, true]) {
         for (var row = 0; row < grid.rows; row++) {
           for (var col = 0; col < grid.columns; col++) {
-            final placement = PlacementDto(piece, row, col, rot, flip);
+            final placement = SolverPlacement(piece: piece, row: row, col: col, rotationSteps: rot, isFlipped: flip);
             if (placement.fitsInBoard(grid) &&
                 placement.doesNotOverlapForbiddenZones(forbidden) &&
                 placement.doesNotCoverFreeCells(dateCells)) {
@@ -126,7 +129,7 @@ class PuzzleSolver {
   Iterable<List<String>> solve() {
     final constraints = buildConstraints();
     final universe = DlxUniverse(constraints);
-    final idToPlacement = <String, PlacementDto>{};
+    final idToPlacement = <String, SolverPlacement>{};
     for (final piece in pieces.where((final item) => !item.isForbidden && !item.isImmovable)) {
       final placements = generatePlacementsForPiece(piece);
       for (final placement in placements) {

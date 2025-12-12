@@ -1,8 +1,25 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_base_entity.dart';
-import 'package:caesar_puzzle/infrastructure/dto/placement_dto.dart';
 
-extension PlacementX on PlacementDto {
+import 'solver_piece.dart';
+
+class SolverPlacement {
+  const SolverPlacement({
+    required this.piece,
+    required this.row,
+    required this.col,
+    required this.rotationSteps,
+    required this.isFlipped,
+  });
+
+  final SolverPiece piece;
+  final int row;
+  final int col;
+  final int rotationSteps;
+  final bool isFlipped;
+
+  String get id => '${piece.id}_r${row}_c${col}_rot$rotationSteps${isFlipped ? "_F" : ""}';
+
   List<Cell> get coveredCells {
     final cells = <Cell>[];
     for (final rel in piece.cells) {

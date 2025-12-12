@@ -24,7 +24,7 @@ sealed class PuzzleEvent with _$PuzzleEvent {
 
   const factory PuzzleEvent.solve({required final bool showResult}) = _Solve;
 
-  const factory PuzzleEvent.setSolvingResults(final Iterable<Map<String, String>> solutions) = _SetSolvingResults;
+  const factory PuzzleEvent.setSolvingResults(final Iterable<Map<String, PlacementParams>> solutions) = _SetSolvingResults;
 
   const factory PuzzleEvent.showSolution(final int index) = _ShowSolution;
 
