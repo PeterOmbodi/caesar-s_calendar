@@ -12,6 +12,7 @@ import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
+import 'package:caesar_puzzle/domain/services/placement_validator.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/services/lifecycle_service.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_board_extension.dart';
@@ -69,6 +70,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   final SettingsQuery _settings;
   final SolvePuzzleUseCase _solvePuzzleUseCase;
   late final LifecycleService _lifecycleService;
+  final PlacementValidator _placementValidator = const PlacementValidator();
 
   Size? _lastViewSize;
 
@@ -463,7 +465,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
       final pieces = _updatePieceInList(pieceToSave);
       final shouldResolve = selectedPiece.isConfigItem;
-      final applicableSolutions = shouldResolve ? <Map<String, PlacementParams>>[] : _combineSolutions(state.solutions, pieces);
+      final applicableSolutions = shouldResolve
+          ? <Map<String, PlacementParams>>[]
+          : _combineSolutions(state.solutions, pieces);
       emit(
         state.copyWith(
           pieces: pieces,
@@ -487,7 +491,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
     final pieces = _updatePieceInList(pieceToSave);
     final shouldResolve = selectedPiece.isConfigItem;
-    final applicableSolutions = shouldResolve ? <Map<String, PlacementParams>>[] : _combineSolutions(state.solutions, pieces);
+    final applicableSolutions = shouldResolve
+        ? <Map<String, PlacementParams>>[]
+        : _combineSolutions(state.solutions, pieces);
     emit(
       state.copyWith(
         pieces: pieces,
@@ -741,62 +747,51 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     required final preventOverlap,
     final Iterable<PuzzlePieceUI>? pieces,
   }) {
-    final testPiece = piece.copyWith(position: newPosition);
-    final testPath = testPiece.getTransformedPath();
-    final testBounds = testPath.getBounds();
-
-    if (preventOverlap) {
-      final piecesToCheck = (pieces ?? state.piecesByZone(zone)).where((final p) => p.id != piece.id);
-      for (final otherPiece in piecesToCheck) {
-        final otherPath = otherPiece.getTransformedPath();
-        final otherBounds = otherPath.getBounds();
-
-        if (!testBounds.overlaps(otherBounds)) {
-          continue;
-        }
-
-        try {
-          final combinedPath = Path.combine(PathOperation.intersect, testPath, otherPath);
-          final intersectionBounds = combinedPath.getBounds();
-
-          if (!intersectionBounds.isEmpty &&
-              intersectionBounds.width > intersectionWidthThreshold &&
-              intersectionBounds.height > collisionTolerance) {
-            return true;
-          }
-        } catch (e) {
-          debugPrint('Checking collision exception: $e');
-          return true;
-        }
-      }
-    }
     switch (zone) {
       case PlaceZone.grid:
-        final gridRect = state.gridConfig.getBounds;
-        // For grid, ensure the piece is mostly inside the grid
-        // This is less strict than requiring all corners to be inside
-        final centerX = testBounds.left + testBounds.width * gridCenterOffset;
-        final centerY = testBounds.top + testBounds.height * gridCenterOffset;
-        final pieceCenter = Offset(centerX, centerY);
-        if (!gridRect.contains(pieceCenter)) {
-          debugPrint('Piece center outside grid');
-          return true;
-        }
-        // Allow some tolerance for pieces at edges
-        final expandedGrid = Rect.fromLTRB(
-          gridRect.left - gridEdgeTolerance,
-          gridRect.top - gridEdgeTolerance,
-          gridRect.right + gridEdgeTolerance,
-          gridRect.bottom + gridEdgeTolerance,
+        final testPiece = piece.copyWith(position: newPosition);
+        final candidate = testPiece.toDomain(state.gridConfig);
+        final others = (pieces ?? state.piecesByZone(zone))
+            .where((final p) => p.id != piece.id)
+            .map(
+              (final other) => other.copyWith(originalPath: generatePathForType(other.type, state.gridConfig.cellSize)),
+            );
+        final otherDomains = others.map((final ui) => ui.toDomain(state.gridConfig));
+        return _placementValidator.hasCollision(
+          candidate: candidate,
+          grid: state.gridConfig,
+          others: otherDomains,
+          preventOverlap: preventOverlap,
         );
-        if (testBounds.left < expandedGrid.left ||
-            testBounds.right > expandedGrid.right ||
-            testBounds.top < expandedGrid.top ||
-            testBounds.bottom > expandedGrid.bottom) {
-          debugPrint('Piece partially outside grid');
-          return true;
-        }
       case PlaceZone.board:
+        final testPiece = piece.copyWith(position: newPosition);
+        final testPath = testPiece.getTransformedPath();
+        final testBounds = testPath.getBounds();
+        if (preventOverlap) {
+          final piecesToCheck = (pieces ?? state.piecesByZone(zone)).where((final p) => p.id != piece.id);
+          for (final otherPiece in piecesToCheck) {
+            final otherPath = otherPiece.getTransformedPath();
+            final otherBounds = otherPath.getBounds();
+
+            if (!testBounds.overlaps(otherBounds)) {
+              continue;
+            }
+
+            try {
+              final combinedPath = Path.combine(PathOperation.intersect, testPath, otherPath);
+              final intersectionBounds = combinedPath.getBounds();
+
+              if (!intersectionBounds.isEmpty &&
+                  intersectionBounds.width > intersectionWidthThreshold &&
+                  intersectionBounds.height > collisionTolerance) {
+                return true;
+              }
+            } catch (e) {
+              debugPrint('Checking collision exception: $e');
+              return true;
+            }
+          }
+        }
         if (!state.boardConfig.getBounds.overlaps(testBounds)) {
           debugPrint('Piece not overlapping with board');
           return true;
