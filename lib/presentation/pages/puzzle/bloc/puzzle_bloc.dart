@@ -410,7 +410,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         final pieces = _updatePieceInList(selectedPiece);
         final shouldResolve = selectedPiece.isConfigItem;
         final applicableSolutions = shouldResolve
-            ? <Map<String, String>>[]
+            ? <Map<String, PlacementParams>>[]
             : _combineSolutions(state.solutions, pieces);
         emit(
           state.copyWith(
@@ -463,7 +463,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
       final pieces = _updatePieceInList(pieceToSave);
       final shouldResolve = selectedPiece.isConfigItem;
-      final applicableSolutions = shouldResolve ? <Map<String, String>>[] : _combineSolutions(state.solutions, pieces);
+      final applicableSolutions = shouldResolve ? <Map<String, PlacementParams>>[] : _combineSolutions(state.solutions, pieces);
       emit(
         state.copyWith(
           pieces: pieces,
@@ -487,7 +487,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
     final pieces = _updatePieceInList(pieceToSave);
     final shouldResolve = selectedPiece.isConfigItem;
-    final applicableSolutions = shouldResolve ? <Map<String, String>>[] : _combineSolutions(state.solutions, pieces);
+    final applicableSolutions = shouldResolve ? <Map<String, PlacementParams>>[] : _combineSolutions(state.solutions, pieces);
     emit(
       state.copyWith(
         pieces: pieces,
@@ -536,14 +536,13 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final applicableSolutions = state.applicableSolutions;
     final solutionIds = applicableSolutions.length > event.index
         ? applicableSolutions[event.index]
-        : <String, String>{};
+        : <String, PlacementParams>{};
     final gridPieces = state.gridPieces
         .where((final e) => e.isConfigItem || e.isUsersItem)
         .map((final p) => p.copyWith(originalPath: generatePathForType(p.type, state.gridConfig.cellSize)))
         .toList();
     for (final solution in solutionIds.entries) {
-      final params = _parsePlacementParams(solution);
-      if (params == null) continue;
+      final params = solution.value;
       final piece = state.pieces.firstWhere((final p) => p.id == params.pieceId);
       if (gridPieces.firstWhereOrNull((final e) => e.id == piece.id) == null) {
         gridPieces.add(_applyPlacementToPiece(piece, params).copyWith(isUsersItem: false));
@@ -568,10 +567,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final onGridIds = state.gridPieces.map((final e) => e.id);
     final encodedPieces = encodedSolution.entries.where((final e) => !onGridIds.contains(e.key)).toList();
     final pececIndex = encodedPieces.length == 1 ? 0 : math.Random().nextInt(encodedPieces.length - 1);
-    final params = _parsePlacementParams(encodedPieces[pececIndex]);
+    final params = encodedPieces[pececIndex].value;
 
-    final sourcePiece = state.pieces.firstWhere((final p) => p.id == params!.pieceId);
-    final targetPiece = _applyPlacementToPiece(sourcePiece, params!).copyWith(isUsersItem: false);
+    final sourcePiece = state.pieces.firstWhere((final p) => p.id == params.pieceId);
+    final targetPiece = _applyPlacementToPiece(sourcePiece, params).copyWith(isUsersItem: false);
     final pieces = _updatePieceInList(targetPiece);
     final applicableSolutions = _combineSolutions(state.solutions, pieces);
 
@@ -713,18 +712,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     return null;
   }
 
-  PlacementParams? _parsePlacementParams(final MapEntry<String, String> encodedPlacement) {
-    final match = RegExp(r'^r(\d+)_c(\d+)_rot(\d+)(_F)?$').firstMatch(encodedPlacement.value);
-    if (match == null) return null;
-
-    final row = int.parse(match.group(1)!);
-    final col = int.parse(match.group(2)!);
-    final rotSteps = int.parse(match.group(3)!);
-    final flipped = match.group(4) != null;
-
-    return PlacementParams(encodedPlacement.key, row, col, rotSteps, flipped);
-  }
-
   //todo draft solution
   // need to check to empty date cells
   // need to change status for unique solutions only
@@ -823,8 +810,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     ..removeWhere((final p) => p.id == piece.id)
     ..add(piece);
 
-  List<Map<String, String>> _combineSolutions(
-    final Iterable<Map<String, String>> solutions,
+  List<Map<String, PlacementParams>> _combineSolutions(
+    final Iterable<Map<String, PlacementParams>> solutions,
     final Iterable<PuzzlePieceUI> pieces,
   ) {
     if (solutions.isEmpty) {
@@ -847,9 +834,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       // For each user-placed piece, check that solution has same occupied cells when applied
       for (final entry in userCellsById.entries) {
         final pieceId = entry.key;
-        final candidateStr = solution[pieceId];
-        if (candidateStr == null) return false;
-        final parsed = _parsePlacementParams(MapEntry(pieceId, candidateStr));
+        final parsed = solution[pieceId];
         if (parsed == null) return false;
         final basePiece = pieces.firstWhereOrNull((final p) => p.id == pieceId);
         if (basePiece == null) return false;
