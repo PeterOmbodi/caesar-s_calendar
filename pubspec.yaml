@@ -3,7 +3,7 @@ description: Caesar’s Calendar Puzzle
 
 publish_to: 'none'
 
-version: 1.1.2+7
+version: 1.2.0+8
 
 environment:
   sdk: ^3.8.0
@@ -29,7 +29,7 @@ dependencies:
   flutter_native_splash: ^2.4.7
   confetti: ^0.8.0
   package_info_plus: ^9.0.0
-  flutter_flip_flap: ^0.2.0
+  flutter_flip_flap: ^0.4.0
 
   flutter_localizations:
     sdk: flutter

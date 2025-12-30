@@ -93,7 +93,7 @@ class InfoDisplay3Cell extends StatelessWidget {
               text: displayMode.label,
               textStyle: FlipFlapTheme.of(context).textStyle.copyWith(fontSize: 16),
               unitConstraints: const BoxConstraints(minWidth: 46, minHeight: 32),
-              cardsInPack: 1,
+              unitsInPack: 1,
               unitType: UnitType.text,
             ),
           ),

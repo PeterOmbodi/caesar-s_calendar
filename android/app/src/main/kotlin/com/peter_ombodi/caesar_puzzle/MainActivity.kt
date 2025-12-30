@@ -1,4 +1,4 @@
-package com.peter.ombodi.caesarcalendar.caesar_puzzle
+package com.peter_ombodi.caesar_puzzle
 
 import io.flutter.embedding.android.FlutterActivity
 

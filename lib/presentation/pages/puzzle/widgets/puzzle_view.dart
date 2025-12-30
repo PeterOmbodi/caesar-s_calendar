@@ -57,7 +57,7 @@ class PuzzleView extends StatelessWidget {
                           constraints: state.gridConfig.cellConstraints(),
                           child: FlipFlapDisplay.fromText(
                             text: '$solutionsCountState'.padLeft(2, '0'),
-                            cardsInPack: 4,
+                            unitsInPack: 4,
                             unitConstraints: BoxConstraints(
                               minWidth: solutionsCountState < 100 ? 20 : 14,
                               minHeight: 32,
@@ -129,7 +129,7 @@ class _SolvabilityMark extends StatelessWidget {
             padding: const EdgeInsets.all(6),
             child: FlipFlapDisplay(
               items: [
-                FlipFlapWidgetItem(
+                FlipFlapWidgetItem.flap(
                   child: Padding(
                     padding: const EdgeInsets.all(4),
                     child: DecoratedBox(
