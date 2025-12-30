@@ -43,6 +43,7 @@ class MyApp extends StatelessWidget {
     child: BlocBuilder<SettingsCubit, SettingsState>(
       buildWhen: (final p, final n) => p.theme != n.theme,
       builder: (final context, final settings) => MaterialApp(
+        debugShowCheckedModeBanner: false,
         onGenerateTitle: (final context) => S.of(context).appTitle,
         theme: AppThemeData.light,
         darkTheme: AppThemeData.dark,
