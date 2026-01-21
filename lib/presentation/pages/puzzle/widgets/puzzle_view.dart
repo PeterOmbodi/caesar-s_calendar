@@ -129,8 +129,11 @@ class _SolvabilityMark extends StatelessWidget {
             padding: const EdgeInsets.all(6),
             child: FlipFlapDisplay(
               items: [
-                FlipFlapWidgetItem.flap(
+                FlipFlapWidgetItem.flip(
+                  flipAxis: Axis.horizontal,
+                  duration: const Duration(milliseconds: 1000),
                   child: Padding(
+                    key: ValueKey(icon.codePoint),
                     padding: const EdgeInsets.all(4),
                     child: DecoratedBox(
                       decoration: BoxDecoration(

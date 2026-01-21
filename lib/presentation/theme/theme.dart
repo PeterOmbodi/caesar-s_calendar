@@ -1,6 +1,6 @@
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_flip_flap/split_flap_theme.dart';
+import 'package:flutter_flip_flap/flutter_flip_flap.dart';
 
 class AppThemeData {
   static final ThemeData light = ThemeData(
