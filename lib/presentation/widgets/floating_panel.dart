@@ -4,6 +4,7 @@ import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_flip_flap/flutter_flip_flap.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 import '../../generated/l10n.dart';
@@ -89,71 +90,80 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
   }
 
   @override
-  Widget build(final BuildContext context) =>
-      GestureDetector(
-        onHorizontalDragEnd: _handleHorizontalDragEnd,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: MediaQuery
-              .of(context)
-              .size
-              .width - FloatingPanel.screenMargin),
-          child: Material(
-            elevation: FloatingPanel.panelElevation,
-            borderRadius: BorderRadius.circular(FloatingPanel.panelBorderRadius),
-            color: AppColors.current.primary.withValues(alpha: FloatingPanel.panelAlpha),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: FloatingPanel.verticalPadding,
-                horizontal: FloatingPanel.horizontalPadding,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: AnimatedSize(
-                      duration: FloatingPanel.switcherDuration,
-                      curve: Curves.easeInOut,
-                      alignment: Alignment.centerLeft,
-                      child: SizedBox(
-                        height: FloatingPanel.itemHeight,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: List.generate(widget.children.length + 1, (final i) {
-                              final isFirst = i == 0;
-                              final isLast = i == widget.children.length;
-                              final item = isFirst
-                                  ? IconButton(icon: const Icon(Icons.info_outline_rounded),
+  Widget build(final BuildContext context) => GestureDetector(
+    onHorizontalDragEnd: _handleHorizontalDragEnd,
+    child: ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - FloatingPanel.screenMargin),
+      child: Material(
+        elevation: FloatingPanel.panelElevation,
+        borderRadius: BorderRadius.circular(FloatingPanel.panelBorderRadius),
+        color: AppColors.current.primary.withValues(alpha: FloatingPanel.panelAlpha),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: FloatingPanel.verticalPadding,
+            horizontal: FloatingPanel.horizontalPadding,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: AnimatedSize(
+                  duration: FloatingPanel.switcherDuration,
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.centerLeft,
+                  child: SizedBox(
+                    height: FloatingPanel.itemHeight,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(widget.children.length + 1, (final i) {
+                          final isFirst = i == 0;
+                          final isLast = i == widget.children.length;
+                          final item = isFirst
+                              ? IconButton(
+                                  icon: const Icon(Icons.info_outline_rounded),
                                   onPressed: _showHowToPlayDialog,
-                                  tooltip: S.current.howToPlayTitle)
-                                  : _AnimatedPanelItem(
-                                index: i,
-                                isVisible: i <= _visibleChildren,
-                                child: widget.children[i - 1],
-                              );
-                              return Padding(
-                                padding: kIsWeb && (isFirst || isLast)
-                                    ? EdgeInsets.only(right: 4)
-                                    : EdgeInsets.symmetric(horizontal: FloatingPanel.widgetSpacing),
-                                child: item,
-                              );
-                            }),
-                          ),
-                        ),
+                                  tooltip: S.current.howToPlayTitle,
+                                )
+                              : _AnimatedPanelItem(
+                                  index: i,
+                                  isVisible: i <= _visibleChildren,
+                                  child: widget.children[i - 1],
+                                );
+                          return Padding(
+                            padding: kIsWeb && (isFirst || isLast)
+                                ? EdgeInsets.only(right: 4)
+                                : EdgeInsets.symmetric(horizontal: FloatingPanel.widgetSpacing),
+                            child: item,
+                          );
+                        }),
                       ),
                     ),
                   ),
-                  IconButton(
-                    icon: AnimatedSwitcher(
-                      duration: FloatingPanel.switcherDuration,
-                      child: Icon(_isPanelOpen ? Icons.close : Icons.menu, key: ValueKey(_isPanelOpen)),
+                ),
+              ),
+              FlipFlapDisplay(
+                items: [
+                  FlipFlapWidgetItem.flip(
+                    flipAxis: Axis.horizontal,
+                    duration: const Duration(milliseconds: 1000),
+                    child: IconButton(
+                      key: ValueKey(_isPanelOpen),
+                      icon: Icon(_isPanelOpen ? Icons.close : Icons.menu),
+                      onPressed: _togglePanel,
+                      tooltip: _isPanelOpen ? S.current.hideControls : S.current.showControls,
                     ),
-                    onPressed: _togglePanel,
-                    tooltip: _isPanelOpen ? S.current.hideControls : S.current.showControls,
                   ),
                 ],
+                unitDecoration: const BoxDecoration(color: Colors.transparent),
+                unitConstraints: BoxConstraints.tightFor(
+                  height: FloatingPanel.itemHeight,
+                  width: FloatingPanel.itemHeight,
+                ),
               ),
+            ],
+          ),
         ),
       ),
     ),
