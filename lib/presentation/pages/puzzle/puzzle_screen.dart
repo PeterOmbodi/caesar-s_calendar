@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
@@ -26,6 +27,7 @@ class PuzzleScreen extends StatelessWidget {
       create: (_) => PuzzleBloc(
         settings: CubitSettingsQuery(context.read<SettingsCubit>()),
         solvePuzzleUseCase: getIt<SolvePuzzleUseCase>(),
+        historyUseCase: getIt<PuzzleHistoryUseCase>(),
       ),
       child: Scaffold(
         body: SafeArea(

@@ -6,17 +6,9 @@ class HowToPlayHint extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-
     final textTheme = Theme.of(context).textTheme;
-    final steps = <String>[
-      S.current.howToPlayStepDrag,
-      S.current.howToPlayStepRotate,
-      S.current.howToPlayStepFlip,
-    ];
-    final viewWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
+    final steps = <String>[S.current.howToPlayStepDrag, S.current.howToPlayStepRotate, S.current.howToPlayStepFlip];
+    final viewWidth = MediaQuery.of(context).size.width;
     return SingleChildScrollView(
       padding: EdgeInsets.all(viewWidth < 600 ? 0 : 16),
       child: Column(
@@ -27,25 +19,24 @@ class HowToPlayHint extends StatelessWidget {
             margin: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.green),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          S.current.howToPlayGoalTitle,
-                          style: textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(S.current.howToPlayGoalDescription),
-                        const SizedBox(height: 4),
-                        Text(S.current.howToPlayGoalDailyChange),
-                      ],
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.green),
+                      const SizedBox(width: 12),
+                      Text(S.current.howToPlayGoalTitle, style: textTheme.titleMedium),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 4),
+                      Text(S.current.howToPlayGoalDescription),
+                      const SizedBox(height: 4),
+                      Text(S.current.howToPlayGoalDailyChange),
+                    ],
                   ),
                 ],
               ),
@@ -58,10 +49,7 @@ class HowToPlayHint extends StatelessWidget {
             steps.length,
             (final index) => Padding(
               padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                '${index + 1}. ${steps[index]}',
-                style: textTheme.bodyMedium,
-              ),
+              child: Text('${index + 1}. ${steps[index]}', style: textTheme.bodyMedium),
             ),
           ),
           const SizedBox(height: 16),
@@ -124,12 +112,7 @@ class HowToPlayHint extends StatelessWidget {
 }
 
 class _ActionRow extends StatelessWidget {
-  const _ActionRow({
-    required this.icon,
-    required this.title,
-    required this.description,
-    this.iconColor,
-  });
+  const _ActionRow({required this.icon, required this.title, required this.description, this.iconColor});
 
   final IconData icon;
   final String title;
