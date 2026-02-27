@@ -31,6 +31,14 @@ abstract class PuzzleHistoryRepository {
     required final DateTime to,
   });
 
+  Stream<List<PuzzleSessionData>> watchSessionsByDate({
+    required final DateTime puzzleDate,
+  });
+
+  Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({
+    required final DateTime puzzleDate,
+  });
+
   Future<PuzzleSessionData?> getLatestUnsolvedSession({
     required final DateTime puzzleDate,
   });

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart';
+import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/models/puzzle_history_input.dart';
 import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
@@ -23,6 +24,20 @@ class PuzzleHistoryUseCase {
     _currentSessionId = null;
     _currentSessionStartedAt = null;
   }
+
+  void activateSession(final PuzzleSessionData session) {
+    _currentSessionId = session.id;
+    _currentSessionStartedAt = session.startedAt;
+  }
+
+  Stream<List<CalendarDayStats>> watchCalendarStats(final DateTime from, final DateTime to) =>
+      _historyRepository.watchCalendarStats(from: from, to: to);
+
+  Stream<List<PuzzleSessionData>> watchSessionsByDate(final DateTime date) =>
+      _historyRepository.watchSessionsByDate(puzzleDate: DateTime(date.year, date.month, date.day));
+
+  Stream<List<PuzzleSessionData>> watchSessionsByMonthDay(final DateTime date) =>
+      _historyRepository.watchSessionsByMonthDay(puzzleDate: DateTime(date.year, date.month, date.day));
 
   void persistAfterChange(final PuzzleHistoryInput input) {
     if (!input.shouldPersist) {

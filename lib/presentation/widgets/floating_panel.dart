@@ -1,9 +1,13 @@
 import 'dart:async';
 
+import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_flap/flutter_flip_flap.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
@@ -12,7 +16,7 @@ import '../../generated/l10n.dart';
 class FloatingPanel extends StatefulWidget {
   const FloatingPanel({super.key, required this.children});
 
-  static const double widgetSpacing = 0.0;
+  static const double widgetSpacing = 0.2;
   static const double panelElevation = 8.0;
   static const double panelBorderRadius = 16.0;
   static const double panelAlpha = 0.5;
@@ -92,6 +96,18 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
   }
 
   Future<void> _showHistory() async {
+    final result = await Navigator.of(context).push<HistoryScreenResult>(
+      MaterialPageRoute<HistoryScreenResult>(builder: (_) => const HistoryScreen()),
+    );
+    if (result == null || !mounted) {
+      return;
+    }
+    switch (result) {
+      case ResumeHistorySessionResult(:final session):
+        context.read<PuzzleBloc>().add(PuzzleEvent.restoreSession(session));
+      case StartPuzzleForDateHistoryResult(:final date):
+        context.read<PuzzleBloc>().add(PuzzleEvent.setPuzzleDate(date));
+    }
   }
 
   @override
@@ -130,17 +146,17 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
                             final item = isFirst
                                 ? Row(
                                   children: [
-                                    IconButton(
-                                        icon: const Icon(Icons.info_outline_rounded),
-                                        onPressed: () => _showHowToPlayDialog(viewWidth),
-                                        tooltip: S.current.howToPlayTitle,
-                                      ),
                                     if (!_isPanelOpen)
                                       IconButton(
                                         icon: const Icon(Icons.history),
                                         onPressed: _showHistory,
-                                        tooltip: S.current.howToPlayTitle,
+                                        tooltip: S.current.historyTitle,
                                       ),
+                                    IconButton(
+                                      icon: const Icon(Icons.info_outline_rounded),
+                                      onPressed: () => _showHowToPlayDialog(viewWidth),
+                                      tooltip: S.current.howToPlayTitle,
+                                    ),
                                   ],
                                 )
                                 : _AnimatedPanelItem(

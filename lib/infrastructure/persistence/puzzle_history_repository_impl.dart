@@ -144,6 +144,17 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
         .map((final rows) => _fillMissingDays(from, to, rows));
 
   @override
+  Stream<List<PuzzleSessionData>> watchSessionsByDate({required final DateTime puzzleDate}) =>
+      _dao.watchSessionsByDate(puzzleDate: _dateKey(puzzleDate)).map(
+        (final rows) => rows.map(_sessionFromRow).toList(),
+      );
+
+  @override
+  Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({required final DateTime puzzleDate}) => _dao
+      .watchSessionsByMonthDay(monthDay: _monthDayKey(puzzleDate))
+      .map((final rows) => rows.map(_sessionFromRow).toList());
+
+  @override
   Future<PuzzleSessionData?> getLatestUnsolvedSession({required final DateTime puzzleDate}) async {
     final row = await _dao.getLatestUnsolvedSession(
       puzzleDate: _dateKey(puzzleDate),
@@ -207,6 +218,9 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
 
   String _dateKey(final DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+  String _monthDayKey(final DateTime date) =>
+      '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
   DateTime _dateFromKey(final String key) {
     final parts = key.split('-');

@@ -79,5 +79,22 @@
   "undo": "Undo",
   "unlockConfig": "Unlock configuration",
   "unlockConfigDescription": "Drag & rotate predefined blocks to build your custom layout",
-  "general": "General"
+  "general": "General",
+  "historyTitle": "History",
+  "historyPickDate": "Choose date",
+  "historyNoSessions": "No sessions for this day",
+  "historySolved": "Solved",
+  "historyInProgress": "In progress",
+  "historyMoves": "Moves",
+  "historyDuration": "Duration",
+  "historyResumeSessionTitle": "Return to session?",
+  "historyResumeSessionContent": "The current game will be restored from the saved state.",
+  "historyOpenSolvedSessionTitle": "Open completed session?",
+  "historyOpenSolvedSessionContent": "The session will be opened for review.",
+  "historySessionDialogCancel": "Cancel",
+  "historySessionDialogResume": "Resume",
+  "historySessionDialogOpen": "Open",
+  "historyStartPuzzleForDay": "Solve puzzle for this day",
+  "historyLegendLess": "Less",
+  "historyLegendMore": "More"
 }
