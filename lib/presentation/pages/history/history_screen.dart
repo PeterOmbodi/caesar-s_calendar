@@ -158,15 +158,21 @@ class _HistoryAppBarIconButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
-  Widget build(final BuildContext context) => IconButton(
-    tooltip: tooltip,
-    onPressed: onPressed,
-    style: IconButton.styleFrom(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-    ),
-    icon: Icon(icon),
-  );
+  Widget build(final BuildContext context) {
+    final theme = Theme.of(context);
+    final foreground =
+        theme.appBarTheme.foregroundColor ?? theme.colorScheme.onSurface;
+    return IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        foregroundColor: foreground,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      icon: Icon(icon),
+    );
+  }
 }
 
 class _DateSelectorHeaderDelegate extends SliverPersistentHeaderDelegate {

@@ -40,6 +40,8 @@ class DateSelector extends StatefulWidget {
 }
 
 class _DateSelectorState extends State<DateSelector> {
+  static const int _calendarYear = 2024; // Leap year to always include Feb 29.
+
   late final ScrollController _horizontalController;
 
   @override
@@ -58,7 +60,7 @@ class _DateSelectorState extends State<DateSelector> {
   Widget build(final BuildContext context) {
     final statsByDate = _aggregateByMonthDay(widget.stats);
 
-    final cells = _buildHeatmapCells(widget.rangeStart, widget.rangeEnd);
+    final cells = _buildHeatmapCells();
     final columns = <List<DateTime?>>[];
     for (var i = 0; i < cells.length; i += 7) {
       columns.add(cells.sublist(i, (i + 7).clamp(0, cells.length)));
@@ -231,11 +233,13 @@ class _DateSelectorState extends State<DateSelector> {
       result.add(
         _HeatmapDayCell(
           day: day,
-          isSelected: day != null && _isSameDate(day, widget.selectedDate),
+          isSelected: day != null && _isSameMonthDay(day, widget.selectedDate),
           stats: day == null ? null : statsByDate[_monthDayKey(day)],
           maxSolved: maxSolved,
           colorScheme: colorScheme,
-          onTap: widget.onDateTap,
+          onTap: (final tappedDay) => widget.onDateTap(
+            DateTime(_calendarYear, tappedDay.month, tappedDay.day),
+          ),
           size: widget.cellSize,
         ),
       );
@@ -246,9 +250,9 @@ class _DateSelectorState extends State<DateSelector> {
     return result;
   }
 
-  List<DateTime?> _buildHeatmapCells(final DateTime start, final DateTime end) {
-    final normalizedStart = DateTime(start.year, start.month, start.day);
-    final normalizedEnd = DateTime(end.year, end.month, end.day);
+  List<DateTime?> _buildHeatmapCells() {
+    final normalizedStart = DateTime(_calendarYear, 1, 1);
+    final normalizedEnd = DateTime(_calendarYear, 12, 31);
     final cells = <DateTime?>[];
 
     var current = normalizedStart;
@@ -301,7 +305,8 @@ class _DateSelectorState extends State<DateSelector> {
     return (a ?? 0) + (b ?? 0);
   }
 
-  bool _isSameDate(final DateTime a, final DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _isSameMonthDay(final DateTime a, final DateTime b) =>
+      a.month == b.month && a.day == b.day;
 
   String _monthDayKey(final DateTime date) =>
       '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';

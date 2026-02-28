@@ -91,7 +91,7 @@ class PuzzleScreen extends StatelessWidget {
       lastResumedAt: state.lastResumedAt,
       activeElapsedMs: state.activeElapsedMs,
       isPaused: state.isPaused,
-      roundUp: true,
+      roundUp: false,
     );
     final secondsText = '${spentSeconds % 60}'.padLeft(2, '0');
     final minutesText = '${spentSeconds ~/ 60}'.padLeft(2, '0');

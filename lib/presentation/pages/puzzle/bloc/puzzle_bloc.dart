@@ -873,15 +873,39 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     required final PuzzleState prevState,
     required final PuzzleState nextState,
   }) {
-    if (prevState.status != GameStatus.paused) {
-      return nextState;
+    final nowMs = DateTime
+        .now()
+        .millisecondsSinceEpoch;
+    var timedState = nextState;
+
+    if (timedState.firstMoveAt == null && timedState.moveIndex > 0) {
+      timedState = timedState.copyWith(
+        firstMoveAt: nowMs,
+        lastResumedAt: nowMs,
+      );
     }
-    if (nextState.firstMoveAt == null || nextState.lastResumedAt != null) {
-      return nextState;
+
+    if (prevState.status == GameStatus.paused &&
+        timedState.firstMoveAt != null &&
+        timedState.lastResumedAt == null) {
+      timedState = timedState.copyWith(lastResumedAt: nowMs);
     }
-    return nextState.copyWith(
-      lastResumedAt: DateTime.now().millisecondsSinceEpoch,
-    );
+
+    if (timedState.status == GameStatus.solvedByUser &&
+        timedState.firstMoveAt != null) {
+      final segmentStartMs =
+          timedState.lastResumedAt ??
+              (timedState.activeElapsedMs == 0 ? timedState.firstMoveAt : null);
+      if (segmentStartMs != null) {
+        final segmentMs = (nowMs - segmentStartMs).clamp(0, 1 << 31).toInt();
+        timedState = timedState.copyWith(
+          activeElapsedMs: timedState.activeElapsedMs + segmentMs,
+          lastResumedAt: null,
+        );
+      }
+    }
+
+    return timedState;
   }
 
   FutureOr<void> _setPuzzleDate(
