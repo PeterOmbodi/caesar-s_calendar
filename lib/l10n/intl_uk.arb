@@ -79,6 +79,23 @@
   "undo": "Скасувати",
   "unlockConfig": "Розблокувати конфігурацію",
   "unlockConfigDescription": "Створюйте власну конфігурацію перетягуючи/обертаючи передвстановленні блоки",
-  "general": "Загальні"
+  "general": "Загальні",
+  "historyTitle": "Історія",
+  "historyPickDate": "Обрати дату",
+  "historyNoSessions": "За цей день сесій немає",
+  "historySolved": "Розв'язано",
+  "historyInProgress": "У процесі",
+  "historyMoves": "Ходи",
+  "historyDuration": "Тривалість",
+  "historyResumeSessionTitle": "Повернутися до сесії?",
+  "historyResumeSessionContent": "Поточну гру буде відновлено зі збереженого стану.",
+  "historyOpenSolvedSessionTitle": "Відкрити завершену сесію?",
+  "historyOpenSolvedSessionContent": "Сесію буде відкрито для перегляду.",
+  "historySessionDialogCancel": "Скасувати",
+  "historySessionDialogResume": "Повернутись",
+  "historySessionDialogOpen": "Відкрити",
+  "historyStartPuzzleForDay": "Зібрати пазл за цей день",
+  "historyLegendLess": "Менше",
+  "historyLegendMore": "Більше"
 
 }

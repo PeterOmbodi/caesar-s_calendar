@@ -1,4 +1,6 @@
+import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
+import 'package:caesar_puzzle/core/services/timer_service.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
@@ -26,6 +28,7 @@ class PuzzleScreen extends StatelessWidget {
       create: (_) => PuzzleBloc(
         settings: CubitSettingsQuery(context.read<SettingsCubit>()),
         solvePuzzleUseCase: getIt<SolvePuzzleUseCase>(),
+        historyUseCase: getIt<PuzzleHistoryUseCase>(),
       ),
       child: Scaffold(
         body: SafeArea(
@@ -83,7 +86,13 @@ class PuzzleScreen extends StatelessWidget {
   }
 
   Future<void> _showSolvedDialog(final BuildContext context, final PuzzleState state) async {
-    final spentSeconds = ((DateTime.now().millisecondsSinceEpoch - state.firstMoveAt!) / 1000).ceil();
+    final spentSeconds = getIt<TimerService>().totalElapsedSeconds(
+      startedAt: state.firstMoveAt,
+      lastResumedAt: state.lastResumedAt,
+      activeElapsedMs: state.activeElapsedMs,
+      isPaused: state.isPaused,
+      roundUp: false,
+    );
     final secondsText = '${spentSeconds % 60}'.padLeft(2, '0');
     final minutesText = '${spentSeconds ~/ 60}'.padLeft(2, '0');
     final spentTime = '$minutesText:$secondsText';

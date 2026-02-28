@@ -40,4 +40,8 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.showHint() = _ShowHint;
 
   const factory PuzzleEvent.setTimer({required final bool running}) = _SetTimer;
+
+  const factory PuzzleEvent.restoreSession(final PuzzleSessionData session) = _RestoreSession;
+
+  const factory PuzzleEvent.setPuzzleDate(final DateTime date) = _SetPuzzleDate;
 }

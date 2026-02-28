@@ -76,6 +76,17 @@ flutter pub global run intl_utils:generate
   ```bash
   flutter run -d chrome --web-port=5000
   ```
+  Drift (SQLite in web) requires these files in `web/`:
+  - `sqlite3.wasm`
+  - `drift_worker.js`
+
+  Build worker script when needed:
+  ```bash
+  dart compile js web/drift_worker.dart -o web/drift_worker.js
+  ```
+
+  Rebuild `drift_worker.js` only when worker entrypoint or Drift web runtime changes (e.g. Drift version upgrade).
+  Database schema changes (tables, DAOs, migrations) do **not** require rebuilding the worker.
 
 - **Windows/macOS/Linux:**  
   ```bash
