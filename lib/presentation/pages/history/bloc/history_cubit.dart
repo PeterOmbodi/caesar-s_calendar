@@ -59,9 +59,13 @@ class HistoryState {
 }
 
 class HistoryCubit extends Cubit<HistoryState> {
+
   HistoryCubit({required final PuzzleHistoryUseCase historyUseCase})
       : _historyUseCase = historyUseCase,
         super(HistoryState.initial(DateTime.now()));
+
+  static final DateTime _calendarRangeStart = DateTime(2020, 1, 1);
+  static final DateTime _calendarRangeEnd = DateTime(2100, 12, 31);
 
   final PuzzleHistoryUseCase _historyUseCase;
 
@@ -70,13 +74,11 @@ class HistoryCubit extends Cubit<HistoryState> {
 
   void initialize({final DateTime? initialDate}) {
     final date = _startOfDay(initialDate ?? DateTime.now());
-    final rangeStart = DateTime(date.year);
-    final rangeEnd = DateTime(date.year, 12, 31);
     emit(
       state.copyWith(
         selectedDate: date,
-        rangeStart: rangeStart,
-        rangeEnd: rangeEnd,
+        rangeStart: _calendarRangeStart,
+        rangeEnd: _calendarRangeEnd,
         isLoading: true,
         clearErrorMessage: true,
       ),
@@ -91,21 +93,13 @@ class HistoryCubit extends Cubit<HistoryState> {
     if (selected == state.selectedDate) {
       return;
     }
-    final rangeStart = DateTime(selected.year, 1, 1);
-    final rangeEnd = DateTime(selected.year, 12, 31);
-    final shouldRefreshCalendar = rangeStart != state.rangeStart || rangeEnd != state.rangeEnd;
     emit(
       state.copyWith(
         selectedDate: selected,
-        rangeStart: rangeStart,
-        rangeEnd: rangeEnd,
         isLoading: true,
         clearErrorMessage: true,
       ),
     );
-    if (shouldRefreshCalendar) {
-      _subscribeCalendar();
-    }
     _subscribeSessions();
   }
 
