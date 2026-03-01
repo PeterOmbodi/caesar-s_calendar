@@ -385,7 +385,9 @@ class _HeatmapDayCell extends StatelessWidget {
   }
 
   static Color colorForLevel(final _HeatLevel level, final ColorScheme colorScheme) {
-    const empty = Color(0xFF2D333B);
+    final empty = colorScheme.brightness == Brightness.dark
+        ? const Color(0xFF2D333B)
+        : colorScheme.surfaceContainerHigh;
     const inProgress = Color(0xFF0E4429);
     const inProgressMany = Color(0xFF006D32);
     const inProgressSolved = Color(0xFF26A641);
