@@ -19,15 +19,26 @@ class PuzzleHistoryUseCase {
 
   String? _currentSessionId;
   int? _currentSessionStartedAt;
+  PuzzleSessionDifficulty? _currentSessionDifficulty;
 
   void resetSession() {
     _currentSessionId = null;
     _currentSessionStartedAt = null;
+    _currentSessionDifficulty = null;
   }
 
   void activateSession(final PuzzleSessionData session) {
     _currentSessionId = session.id;
     _currentSessionStartedAt = session.startedAt;
+    _currentSessionDifficulty = session.difficulty;
+  }
+
+  void setCurrentSessionDifficulty(final PuzzleSessionDifficulty difficulty) {
+    _currentSessionDifficulty = _coalesceDifficulty(_currentSessionDifficulty, difficulty);
+  }
+
+  void markCurrentSessionEasy() {
+    _currentSessionDifficulty = PuzzleSessionDifficulty.easy;
   }
 
   Stream<List<CalendarDayStats>> watchCalendarStats(final DateTime from, final DateTime to) =>
@@ -52,6 +63,7 @@ class PuzzleHistoryUseCase {
         lastResumedAt: input.lastResumedAt,
         activeElapsedMs: input.activeElapsedMs,
         isSolved: input.isSolved,
+        difficulty: input.difficulty,
         configPlacements: input.configPlacements,
         piecesSnapshot: input.piecesSnapshot,
         solutions: input.solutions,
@@ -69,6 +81,7 @@ class PuzzleHistoryUseCase {
     required final int? lastResumedAt,
     required final int activeElapsedMs,
     required final bool isSolved,
+    required final PuzzleSessionDifficulty difficulty,
     required final List<PlacementParams> configPlacements,
     required final List<PuzzlePieceSnapshot> piecesSnapshot,
     required final List<Map<String, PlacementParams>> solutions,
@@ -80,6 +93,8 @@ class PuzzleHistoryUseCase {
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     final startedAt = _currentSessionStartedAt ?? nowMs;
     _currentSessionStartedAt ??= startedAt;
+    final sessionDifficulty = _coalesceDifficulty(_currentSessionDifficulty, difficulty);
+    _currentSessionDifficulty = sessionDifficulty;
 
     final created = _currentSessionId == null;
     final sessionId =
@@ -89,6 +104,7 @@ class PuzzleHistoryUseCase {
             id: '',
             puzzleDate: selectedDate,
             configId: configId,
+            difficulty: sessionDifficulty,
             status: isSolved ? PuzzleSessionStatus.solved : PuzzleSessionStatus.unsolved,
             startedAt: startedAt,
             firstMoveAt: firstMoveAt,
@@ -110,6 +126,7 @@ class PuzzleHistoryUseCase {
           id: sessionId,
           puzzleDate: selectedDate,
           configId: configId,
+          difficulty: sessionDifficulty,
           status: isSolved ? PuzzleSessionStatus.solved : PuzzleSessionStatus.unsolved,
           startedAt: startedAt,
           firstMoveAt: firstMoveAt,
@@ -168,5 +185,15 @@ class PuzzleHistoryUseCase {
               '${entry.key}:${entry.value.row}:${entry.value.col}:${entry.value.rotationSteps}:${entry.value.isFlipped ? 1 : 0}',
         )
         .join('|');
+  }
+
+  PuzzleSessionDifficulty _coalesceDifficulty(
+    final PuzzleSessionDifficulty? previous,
+    final PuzzleSessionDifficulty incoming,
+  ) {
+    if (previous == PuzzleSessionDifficulty.easy || incoming == PuzzleSessionDifficulty.easy) {
+      return PuzzleSessionDifficulty.easy;
+    }
+    return PuzzleSessionDifficulty.hard;
   }
 }

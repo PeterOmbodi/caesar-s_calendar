@@ -21,7 +21,7 @@ class HistoryState {
     final day = DateTime(now.year, now.month, now.day);
     return HistoryState(
       selectedDate: day,
-      rangeStart: DateTime(day.year, 1, 1),
+      rangeStart: DateTime(day.year),
       rangeEnd: DateTime(day.year, 12, 31),
       calendarStats: const [],
       sessions: const [],
@@ -64,7 +64,7 @@ class HistoryCubit extends Cubit<HistoryState> {
       : _historyUseCase = historyUseCase,
         super(HistoryState.initial(DateTime.now()));
 
-  static final DateTime _calendarRangeStart = DateTime(2020, 1, 1);
+  static final DateTime _calendarRangeStart = DateTime(2020);
   static final DateTime _calendarRangeEnd = DateTime(2100, 12, 31);
 
   final PuzzleHistoryUseCase _historyUseCase;

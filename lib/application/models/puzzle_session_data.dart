@@ -2,11 +2,17 @@ import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 
+enum PuzzleSessionDifficulty {
+  easy,
+  hard,
+}
+
 class PuzzleSessionData {
   const PuzzleSessionData({
     required this.id,
     required this.puzzleDate,
     required this.configId,
+    required this.difficulty,
     required this.status,
     required this.startedAt,
     required this.firstMoveAt,
@@ -23,6 +29,7 @@ class PuzzleSessionData {
   final String id;
   final DateTime puzzleDate;
   final String configId;
+  final PuzzleSessionDifficulty difficulty;
   final PuzzleSessionStatus status;
   final int startedAt;
   final int? firstMoveAt;

@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/app_database.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/tables/puzzle_configs.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/tables/puzzle_sessions.dart';
@@ -81,7 +82,7 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> markSessionSolved({
     required final String sessionId,
-    required final int status,
+    required final PuzzleSessionStatus status,
     required final int completedAt,
     required final int updatedAt,
   }) async {
@@ -105,13 +106,13 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
 
   Future<PuzzleSession?> getLatestUnsolvedSession({
     required final String puzzleDate,
-    required final int status,
+    required final PuzzleSessionStatus status,
   }) =>
       (select(puzzleSessions)
         ..where(
               (final row) =>
           row.puzzleDate.equals(puzzleDate) &
-          row.status.equals(status) &
+          row.status.equalsValue(status) &
           row.completedAt.isNull(),
         )
         ..orderBy([(final row) => OrderingTerm.desc(row.updatedAt)])
@@ -140,7 +141,7 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
   Stream<List<CalendarStatsRow>> watchCalendarStats({
     required final String fromDate,
     required final String toDate,
-    required final int unsolvedStatus,
+    required final PuzzleSessionStatus unsolvedStatus,
   }) {
     final totalsStream = _watchTotalSolutionsByDate(
       fromDate: fromDate,
@@ -307,12 +308,12 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
   Stream<Map<String, int>> _watchUnsolvedStartedByDate({
     required final String fromDate,
     required final String toDate,
-    required final int unsolvedStatus,
+    required final PuzzleSessionStatus unsolvedStatus,
   }) {
     final countExpr = puzzleSessions.id.count();
     final query = selectOnly(puzzleSessions)
       ..where(
-        puzzleSessions.status.equals(unsolvedStatus) &
+        puzzleSessions.status.equalsValue(unsolvedStatus) &
         puzzleSessions.firstMoveAt.isNotNull() &
         puzzleSessions.completedAt.isNull() &
         puzzleSessions.puzzleDate.isBiggerOrEqualValue(fromDate) &

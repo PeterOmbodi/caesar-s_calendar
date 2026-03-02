@@ -45,6 +45,14 @@ class PuzzleScreen extends StatelessWidget {
                   }
                 },
               ),
+              BlocListener<SettingsCubit, SettingsState>(
+                listenWhen: (final previous, final current) =>
+                    previous.solutionIndicator == SolutionIndicator.none &&
+                    current.solutionIndicator != SolutionIndicator.none,
+                listener: (final context, final state) {
+                  context.read<PuzzleBloc>().markCurrentSessionEasy();
+                },
+              ),
               BlocListener<PuzzleBloc, PuzzleState>(
                 listenWhen: (final ps, final cs) =>
                     ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser,
@@ -91,7 +99,6 @@ class PuzzleScreen extends StatelessWidget {
       lastResumedAt: state.lastResumedAt,
       activeElapsedMs: state.activeElapsedMs,
       isPaused: state.isPaused,
-      roundUp: false,
     );
     final secondsText = '${spentSeconds % 60}'.padLeft(2, '0');
     final minutesText = '${spentSeconds ~/ 60}'.padLeft(2, '0');
@@ -166,6 +173,7 @@ class _BottomFAB extends StatelessWidget {
             ),
           );
           if (result == true) {
+            puzzleBloc.markCurrentSessionEasy();
             allowedEvent.call();
           }
         }

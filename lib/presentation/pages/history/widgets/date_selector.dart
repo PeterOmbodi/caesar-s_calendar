@@ -251,7 +251,7 @@ class _DateSelectorState extends State<DateSelector> {
   }
 
   List<DateTime?> _buildHeatmapCells() {
-    final normalizedStart = DateTime(_calendarYear, 1, 1);
+    final normalizedStart = DateTime(_calendarYear);
     final normalizedEnd = DateTime(_calendarYear, 12, 31);
     final cells = <DateTime?>[];
 

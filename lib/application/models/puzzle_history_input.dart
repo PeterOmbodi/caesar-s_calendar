@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
+import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
 
@@ -7,6 +8,7 @@ class PuzzleHistoryInput {
     required this.shouldPersist,
     required this.solvedTransition,
     required this.isSolved,
+    required this.difficulty,
     required this.selectedDate,
     required this.moveHistory,
     required this.moveIndex,
@@ -22,6 +24,7 @@ class PuzzleHistoryInput {
   final bool shouldPersist;
   final bool solvedTransition;
   final bool isSolved;
+  final PuzzleSessionDifficulty difficulty;
   final DateTime selectedDate;
   final List<Move> moveHistory;
   final int moveIndex;

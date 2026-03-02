@@ -1,5 +1,6 @@
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
+import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -59,19 +60,33 @@ class SessionList extends StatelessWidget {
 
         final session = sessions[index - 1];
         final start = DateTime.fromMillisecondsSinceEpoch(session.startedAt);
-        final done = session.completedAt == null ? null : DateTime.fromMillisecondsSinceEpoch(session.completedAt!);
         final isSolved = session.status == PuzzleSessionStatus.solved;
         final statusLabel = isSolved ? S.current.historySolved : S.current.historyInProgress;
         final durationMs = _displayDurationMs(session);
+        final usedHints = session.moveHistory.whereType<HintMove>().length;
         final subtitle =
-            '${S.current.historyMoves}: ${session.moveIndex}  |  ${S.current.historyDuration}: ${_formatDuration(durationMs)}';
+            '${S.current.historyMoves}: ${session.moveIndex}  |  ${S.current.hintUsed}: $usedHints  |  ${S.current.historyDuration}: ${_formatDuration(durationMs)}';
         final dateLabel = DateFormat.yMMMd().format(session.puzzleDate);
+        final difficultyLabel = _difficultyLabel(session.difficulty);
+        final difficultyStars = _difficultyStars(session.difficulty);
+        final configLabel = _configLabel(session);
         return Card(
           child: ListTile(
             onTap: () => _confirmResumeSession(context, session),
             leading: Icon(isSolved ? Icons.check_circle : Icons.timelapse, color: isSolved ? Colors.green : Colors.red),
-            title: Text('$statusLabel • $dateLabel • ${DateFormat.Hm().format(start)}'),
-            subtitle: Text(done == null ? subtitle : '$subtitle\n${DateFormat.Hm().format(done)}'),
+            title: Row(
+              children: [
+                Expanded(child: Text('$statusLabel • $difficultyStars $difficultyLabel')),
+                const SizedBox(width: 8),
+                const Icon(Icons.extension, size: 16),
+                const SizedBox(width: 4),
+                Text(configLabel),
+              ],
+            ),
+            subtitle: Text(
+              '$dateLabel • ${DateFormat.Hm().format(start)}\n'
+              '$subtitle',
+            ),
           ),
         );
       },
@@ -97,6 +112,22 @@ class SessionList extends StatelessWidget {
 
     final currentSegmentMs = (segmentEndMs - segmentStartMs).clamp(0, 1 << 31).toInt();
     return session.activeElapsedMs + currentSegmentMs;
+  }
+
+  String _difficultyLabel(final PuzzleSessionDifficulty difficulty) =>
+      difficulty == PuzzleSessionDifficulty.hard
+      ? S.current.historyDifficultyHard
+      : S.current.historyDifficultyEasy;
+
+  String _difficultyStars(final PuzzleSessionDifficulty difficulty) =>
+      difficulty == PuzzleSessionDifficulty.hard ? '★★' : '★';
+
+  String _configLabel(final PuzzleSessionData session) =>
+      _isCustomConfig(session) ? S.current.historyConfigCustom : S.current.historyConfigStandard;
+
+  bool _isCustomConfig(final PuzzleSessionData session) {
+    final configPieceIds = session.pieces.where((final piece) => piece.isConfigItem).map((final piece) => piece.id).toSet();
+    return session.moveHistory.any((final move) => configPieceIds.contains(move.pieceId));
   }
 
   Future<void> _confirmResumeSession(final BuildContext context, final PuzzleSessionData session) async {

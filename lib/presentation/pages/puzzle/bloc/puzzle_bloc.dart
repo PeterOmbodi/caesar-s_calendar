@@ -89,6 +89,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   late final LifecycleService _lifecycleService;
 
   Size? _lastViewSize;
+  PuzzleSessionDifficulty? _currentSessionDifficulty;
 
   @override
   Future<void> close() {
@@ -112,6 +113,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   FutureOr<void> _reset(final _Reset event, final Emitter<PuzzleState> emit) {
     _historyUseCase.resetSession();
+    _currentSessionDifficulty = null;
     add(
       PuzzleEvent.configure(
         toInitial: true,
@@ -389,12 +391,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           nextState: nextState,
         );
         emit(timedState);
-        _historyUseCase.persistAfterChange(
-          timedState.toHistoryInput(
-            prevState: prevState,
-            rotationStep: rotationStep,
-          ),
-        );
+        _persistHistoryChange(prevState: prevState, nextState: timedState);
         if (shouldResolve) {
           add(PuzzleEvent.solve(showResult: false));
         }
@@ -463,12 +460,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         nextState: nextState,
       );
       emit(timedState);
-      _historyUseCase.persistAfterChange(
-        timedState.toHistoryInput(
-          prevState: prevState,
-          rotationStep: rotationStep,
-        ),
-      );
+      _persistHistoryChange(prevState: prevState, nextState: timedState);
       if (shouldResolve) {
         add(PuzzleEvent.solve(showResult: false));
       }
@@ -514,12 +506,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       nextState: nextState,
     );
     emit(timedState);
-    _historyUseCase.persistAfterChange(
-      timedState.toHistoryInput(
-        prevState: prevState,
-        rotationStep: rotationStep,
-      ),
-    );
+    _persistHistoryChange(prevState: prevState, nextState: timedState);
     if (shouldResolve) {
       add(PuzzleEvent.solve(showResult: false));
     }
@@ -675,12 +662,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       nextState: nextState,
     );
     emit(timedState);
-    _historyUseCase.persistAfterChange(
-      timedState.toHistoryInput(
-        prevState: prevState,
-        rotationStep: rotationStep,
-      ),
-    );
+    _persistHistoryChange(prevState: prevState, nextState: timedState);
   }
 
   FutureOr<void> _undoMove(final _Undo event, final Emitter<PuzzleState> emit) {
@@ -711,12 +693,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         nextState: nextState,
       );
       emit(timedState);
-      _historyUseCase.persistAfterChange(
-        timedState.toHistoryInput(
-          prevState: prevState,
-          rotationStep: rotationStep,
-        ),
-      );
+      _persistHistoryChange(prevState: prevState, nextState: timedState);
       if (shouldResolve) {
         add(PuzzleEvent.solve(showResult: false));
       }
@@ -750,12 +727,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       nextState: nextState,
     );
     emit(timedState);
-    _historyUseCase.persistAfterChange(
-      timedState.toHistoryInput(
-        prevState: prevState,
-        rotationStep: rotationStep,
-      ),
-    );
+    _persistHistoryChange(prevState: prevState, nextState: timedState);
     if (shouldResolve) {
       add(PuzzleEvent.solve(showResult: false));
     }
@@ -773,12 +745,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
           lastResumedAt: DateTime.now().millisecondsSinceEpoch,
         );
         emit(nextState);
-        _historyUseCase.persistAfterChange(
-          nextState.toHistoryInput(
-            prevState: prevState,
-            rotationStep: rotationStep,
-          ),
-        );
+        _persistHistoryChange(prevState: prevState, nextState: nextState);
       }
       return Future.value();
     }
@@ -793,22 +760,12 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         lastResumedAt: null,
       );
       emit(nextState);
-      _historyUseCase.persistAfterChange(
-        nextState.toHistoryInput(
-          prevState: prevState,
-          rotationStep: rotationStep,
-        ),
-      );
+      _persistHistoryChange(prevState: prevState, nextState: nextState);
     } else if (state.status == GameStatus.playing) {
       final prevState = state;
       final nextState = state.copyWith(status: GameStatus.paused);
       emit(nextState);
-      _historyUseCase.persistAfterChange(
-        nextState.toHistoryInput(
-          prevState: prevState,
-          rotationStep: rotationStep,
-        ),
-      );
+      _persistHistoryChange(prevState: prevState, nextState: nextState);
     }
   }
 
@@ -818,6 +775,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   ) {
     final session = event.session;
     _historyUseCase.activateSession(session);
+    _currentSessionDifficulty = session.difficulty;
     final restoredPieces = _applySnapshotPieces(session.pieces);
     final restoredElapsedMs = _restoredSessionElapsedMs(session);
 
@@ -918,6 +876,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       event.date.day,
     );
     _historyUseCase.resetSession();
+    _currentSessionDifficulty = null;
     emit(
       state.copyWith(
         selectedDate: nextDate,
@@ -1164,4 +1123,28 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   double _stepRotation(final double value) =>
       (value + rotationStep) % fullRotation;
+
+  void markCurrentSessionEasy() {
+    _currentSessionDifficulty = PuzzleSessionDifficulty.easy;
+    _historyUseCase.markCurrentSessionEasy();
+  }
+
+  void _persistHistoryChange({
+    required final PuzzleState prevState,
+    required final PuzzleState nextState,
+  }) {
+    final difficulty = _currentSessionDifficulty ?? _difficultyFromSettings();
+    _currentSessionDifficulty = difficulty;
+    _historyUseCase.setCurrentSessionDifficulty(difficulty);
+    _historyUseCase.persistAfterChange(
+      nextState.toHistoryInput(
+        prevState: prevState,
+        rotationStep: rotationStep,
+        difficulty: difficulty,
+      ),
+    );
+  }
+
+  PuzzleSessionDifficulty _difficultyFromSettings() =>
+      _settings.requireSolutions ? PuzzleSessionDifficulty.easy : PuzzleSessionDifficulty.hard;
 }

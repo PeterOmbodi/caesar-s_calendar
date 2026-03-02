@@ -1,10 +1,13 @@
+import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
+import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:drift/drift.dart';
 
 class PuzzleSessions extends Table {
   TextColumn get id => text()();
   TextColumn get puzzleDate => text()();
   TextColumn get configId => text()();
-  IntColumn get status => integer()();
+  IntColumn get difficulty => intEnum<PuzzleSessionDifficulty>().withDefault(const Constant(0))();
+  IntColumn get status => intEnum<PuzzleSessionStatus>()();
   IntColumn get startedAt => integer()();
   IntColumn get firstMoveAt => integer().nullable()();
   IntColumn get lastResumedAt => integer().nullable()();

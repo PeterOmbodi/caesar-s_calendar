@@ -128,7 +128,7 @@ class _HistoryView extends StatelessWidget {
     final picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: DateTime(2020, 1, 1),
+      firstDate: DateTime(2020),
       lastDate: DateTime(2100, 12, 31),
     );
     if (picked == null || !context.mounted) {

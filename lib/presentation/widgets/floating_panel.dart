@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
 import 'package:flutter/foundation.dart';
@@ -104,11 +106,64 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
     }
     switch (result) {
       case ResumeHistorySessionResult(:final session):
+        final settingsCubit = context.read<SettingsCubit>();
+        final currentDifficulty = _difficultyFromSettings(settingsCubit.state.solutionIndicator);
+        if (currentDifficulty != session.difficulty) {
+          final shouldContinue = await _showDifficultyMismatchDialog(
+            sessionDifficulty: session.difficulty,
+            currentDifficulty: currentDifficulty,
+          );
+          if (shouldContinue != true || !mounted) {
+            return;
+          }
+          settingsCubit.setSolutionIndicator(
+            session.difficulty == PuzzleSessionDifficulty.easy
+                ? SolutionIndicator.countSolutions
+                : SolutionIndicator.none,
+          );
+        }
+        if (!mounted) {
+          return;
+        }
         context.read<PuzzleBloc>().add(PuzzleEvent.restoreSession(session));
       case StartPuzzleForDateHistoryResult(:final date):
         context.read<PuzzleBloc>().add(PuzzleEvent.setPuzzleDate(date));
     }
   }
+
+  PuzzleSessionDifficulty _difficultyFromSettings(final SolutionIndicator indicator) =>
+      indicator == SolutionIndicator.none ? PuzzleSessionDifficulty.hard : PuzzleSessionDifficulty.easy;
+
+  Future<bool?> _showDifficultyMismatchDialog({
+    required final PuzzleSessionDifficulty sessionDifficulty,
+    required final PuzzleSessionDifficulty currentDifficulty,
+  }) => showDialog<bool>(
+    context: context,
+    builder: (final dialogContext) => PlatformAlertDialog(
+      title: Text(S.current.historyDifficultyMismatchTitle),
+      content: Text(
+        S.current.historyDifficultyMismatchContent(
+          _difficultyLabel(sessionDifficulty),
+          _difficultyLabel(currentDifficulty),
+        ),
+      ),
+      actions: [
+        PlatformDialogAction(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(S.current.historySessionDialogCancel),
+        ),
+        PlatformDialogAction(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(S.current.historyDifficultyMismatchContinue),
+        ),
+      ],
+    ),
+  );
+
+  String _difficultyLabel(final PuzzleSessionDifficulty difficulty) =>
+      difficulty == PuzzleSessionDifficulty.hard
+      ? S.current.historyDifficultyHard
+      : S.current.historyDifficultyEasy;
 
   @override
   Widget build(final BuildContext context) {

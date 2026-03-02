@@ -20,8 +20,6 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
   PuzzleHistoryRepositoryImpl(this._dao);
 
   static const int _moveHistoryVersion = 1;
-  static const int _statusUnsolved = 0;
-  static const int _statusSolved = 1;
 
   final PuzzleHistoryDao _dao;
 
@@ -65,7 +63,8 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
         id: sessionId,
         puzzleDate: _dateKey(session.puzzleDate),
         configId: session.configId,
-        status: _statusToDb(session.status),
+        difficulty: Value(session.difficulty),
+        status: session.status,
         startedAt: session.startedAt,
         firstMoveAt: Value(session.firstMoveAt),
         lastResumedAt: Value(session.lastResumedAt),
@@ -87,7 +86,8 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
     await _dao.updateSession(
       session.id,
       PuzzleSessionsCompanion(
-        status: Value(_statusToDb(session.status)),
+        difficulty: Value(session.difficulty),
+        status: Value(session.status),
         firstMoveAt: Value(session.firstMoveAt),
         lastResumedAt: Value(session.lastResumedAt),
         activeElapsedMs: Value(session.activeElapsedMs),
@@ -113,7 +113,7 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
     final nowMs = now.millisecondsSinceEpoch;
     await _dao.markSessionSolved(
       sessionId: sessionId,
-      status: _statusSolved,
+      status: PuzzleSessionStatus.solved,
       completedAt: (completedAt ?? now).millisecondsSinceEpoch,
       updatedAt: nowMs,
     );
@@ -139,7 +139,7 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
         .watchCalendarStats(
           fromDate: _dateKey(from),
           toDate: _dateKey(to),
-          unsolvedStatus: _statusUnsolved,
+          unsolvedStatus: PuzzleSessionStatus.unsolved,
         )
         .map((final rows) => _fillMissingDays(from, to, rows));
 
@@ -158,7 +158,7 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
   Future<PuzzleSessionData?> getLatestUnsolvedSession({required final DateTime puzzleDate}) async {
     final row = await _dao.getLatestUnsolvedSession(
       puzzleDate: _dateKey(puzzleDate),
-      status: _statusUnsolved,
+      status: PuzzleSessionStatus.unsolved,
     );
     if (row == null) return null;
     return _sessionFromRow(row);
@@ -195,7 +195,8 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
     id: row.id,
     puzzleDate: _dateFromKey(row.puzzleDate),
     configId: row.configId,
-    status: _statusFromDb(row.status),
+    difficulty: row.difficulty,
+    status: row.status,
     startedAt: row.startedAt,
     firstMoveAt: row.firstMoveAt,
     lastResumedAt: row.lastResumedAt,
@@ -207,14 +208,6 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
     pieces: _decodePieces(row.piecesSnapshotJson),
     moveHistory: _decodeMoves(row.moveHistoryJson),
   );
-
-  int _statusToDb(final PuzzleSessionStatus status) => switch (status) {
-        PuzzleSessionStatus.unsolved => _statusUnsolved,
-        PuzzleSessionStatus.solved => _statusSolved,
-      };
-
-  PuzzleSessionStatus _statusFromDb(final int status) =>
-      status == _statusSolved ? PuzzleSessionStatus.solved : PuzzleSessionStatus.unsolved;
 
   String _dateKey(final DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';

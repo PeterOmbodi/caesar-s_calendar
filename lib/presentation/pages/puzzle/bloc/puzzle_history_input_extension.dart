@@ -4,11 +4,13 @@ extension PuzzleHistoryInputX on PuzzleState {
   PuzzleHistoryInput toHistoryInput({
     required final PuzzleState prevState,
     required final double rotationStep,
+    required final PuzzleSessionDifficulty difficulty,
   }) =>
       PuzzleHistoryInput(
         shouldPersist: _shouldPersist(),
         solvedTransition: _isSolvedTransition(prevState),
         isSolved: status == GameStatus.solvedByUser,
+        difficulty: difficulty,
         selectedDate: selectedDate,
         moveHistory: moveHistory,
         moveIndex: moveIndex,
