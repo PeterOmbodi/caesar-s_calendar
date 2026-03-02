@@ -1,3 +1,9 @@
+## 1.4.1+13
+- make floating panel open by default on wide layouts
+- keep History button visible when floating panel is open on wide layouts
+- unify History/Info button paddings with other floating panel controls across web/mobile
+- add History action description to "How to Play" controls section
+
 ## 1.4.0+12
 - add session difficulty tracking (easy/hard) in history and persistence
 - migrate `puzzle_sessions` with `difficulty` and enum-based `status` in Drift

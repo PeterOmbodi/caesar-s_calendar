@@ -61,6 +61,11 @@ class HowToPlayHint extends StatelessWidget {
             description: S.current.howToPlayMenuDescription,
           ),
           _ActionRow(
+            icon: Icons.history,
+            title: S.current.howToPlayHistoryTitle,
+            description: S.current.howToPlayHistoryDescription,
+          ),
+          _ActionRow(
             icon: Icons.lightbulb,
             title: S.current.howToPlaySolveTitle,
             description: S.current.howToPlaySolveDescription,

@@ -4,10 +4,10 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_flap/flutter_flip_flap.dart';
@@ -45,6 +45,19 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
   bool _isPanelOpen = false;
   int _visibleChildren = 0;
   int _animationId = 0;
+  bool _isPanelStateInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isPanelStateInitialized) {
+      return;
+    }
+    final isWideScreen = MediaQuery.of(context).size.width >= PuzzleScreen.wideScreenBreakpoint - PuzzleScreen.sidePanelWidth;
+    _isPanelOpen = isWideScreen;
+    _visibleChildren = isWideScreen ? widget.children.length : 0;
+    _isPanelStateInitialized = true;
+  }
 
   @override
   void didUpdateWidget(final FloatingPanel oldWidget) {
@@ -168,6 +181,8 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
   @override
   Widget build(final BuildContext context) {
     final viewWidth = MediaQuery.of(context).size.width;
+    final isWideScreen = viewWidth >= PuzzleScreen.wideScreenBreakpoint - PuzzleScreen.sidePanelWidth;
+    final showHistoryButton = !_isPanelOpen || isWideScreen;
     return GestureDetector(
       onHorizontalDragEnd: _handleHorizontalDragEnd,
       child: ConstrainedBox(
@@ -197,20 +212,23 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
                           mainAxisSize: MainAxisSize.min,
                           children: List.generate(widget.children.length + 1, (final i) {
                             final isFirst = i == 0;
-                            final isLast = i == widget.children.length;
                             final item = isFirst
                                 ? Row(
                                   children: [
-                                    if (!_isPanelOpen)
-                                      IconButton(
-                                        icon: const Icon(Icons.history),
-                                        onPressed: _showHistory,
-                                        tooltip: S.current.historyTitle,
+                                    if (showHistoryButton)
+                                      _PanelItemShell(
+                                        child: IconButton(
+                                          icon: const Icon(Icons.history),
+                                          onPressed: _showHistory,
+                                          tooltip: S.current.historyTitle,
+                                        ),
                                       ),
-                                    IconButton(
-                                      icon: const Icon(Icons.info_outline_rounded),
-                                      onPressed: () => _showHowToPlayDialog(viewWidth),
-                                      tooltip: S.current.howToPlayTitle,
+                                    _PanelItemShell(
+                                      child: IconButton(
+                                        icon: const Icon(Icons.info_outline_rounded),
+                                        onPressed: () => _showHowToPlayDialog(viewWidth),
+                                        tooltip: S.current.howToPlayTitle,
+                                      ),
                                     ),
                                   ],
                                 )
@@ -220,9 +238,7 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
                                     child: widget.children[i - 1],
                                   );
                             return Padding(
-                              padding: kIsWeb && (isFirst || isLast)
-                                  ? EdgeInsets.only(right: 4)
-                                  : EdgeInsets.symmetric(horizontal: FloatingPanel.widgetSpacing),
+                              padding: EdgeInsets.symmetric(horizontal: FloatingPanel.widgetSpacing),
                               child: item,
                             );
                           }),
@@ -301,6 +317,21 @@ class _AnimatedPanelItem extends StatelessWidget {
               ),
             )
           : SizedBox(key: ValueKey('floating-panel-item-$index-hidden'), width: 0),
+    ),
+  );
+}
+
+class _PanelItemShell extends StatelessWidget {
+  const _PanelItemShell({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(final BuildContext context) => SizedBox(
+    width: FloatingPanel.itemWidth,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: FloatingPanel.itemPadding),
+      child: child,
     ),
   );
 }
