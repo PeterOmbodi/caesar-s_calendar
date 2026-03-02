@@ -15,15 +15,16 @@ import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 import 'bloc/puzzle_bloc.dart';
 
-const _sideWidth = 340.0;
-const _breakpoint = 1124.0;
 
 class PuzzleScreen extends StatelessWidget {
   const PuzzleScreen({super.key});
 
+  static const sidePanelWidth = 340.0;
+  static const wideScreenBreakpoint = 1124.0;
+
   @override
   Widget build(final BuildContext context) {
-    final isWideScreen = MediaQuery.of(context).size.width >= _breakpoint;
+    final isWideScreen = MediaQuery.of(context).size.width >= wideScreenBreakpoint;
     return BlocProvider(
       create: (_) => PuzzleBloc(
         settings: CubitSettingsQuery(context.read<SettingsCubit>()),
@@ -74,7 +75,7 @@ class PuzzleScreen extends StatelessWidget {
                 ),
                 Positioned(
                   bottom: 24,
-                  right: 12 + (isWideScreen ? _sideWidth : 0),
+                  right: 12 + (isWideScreen ? sidePanelWidth : 0),
                   child: _BottomFAB(isSetupVisible: !isWideScreen),
                 ),
                 if (isWideScreen)
@@ -82,13 +83,13 @@ class PuzzleScreen extends StatelessWidget {
                     right: 0,
                     top: 0,
                     bottom: 0,
-                    child: SizedBox(width: _sideWidth, child: SettingsPanel()),
+                    child: SizedBox(width: sidePanelWidth, child: SettingsPanel()),
                   ),
               ],
             ),
           ),
         ),
-        endDrawer: isWideScreen ? null : const SizedBox(width: _sideWidth, child: SettingsPanel()),
+        endDrawer: isWideScreen ? null : const SizedBox(width: sidePanelWidth, child: SettingsPanel()),
       ),
     );
   }

@@ -41,6 +41,8 @@
   "howToPlayGoalDailyChange": "Every day the target cells change, creating a new unique challenge. Move the predefined blocks to reshape the board when you want extra variety.",
   "howToPlayGoalDescription": "Place all puzzle pieces on the board so that exactly two cells remain free - the ones corresponding to the current month and current day.",
   "howToPlayGoalTitle": "Goal",
+  "howToPlayHistoryDescription": "Open puzzle history to resume saved sessions or choose another puzzle date.",
+  "howToPlayHistoryTitle": "History",
   "howToPlayHintDescription": "Reveals one move for a random piece.",
   "howToPlayHintTitle": "Hint",
   "howToPlayMenuDescription": "Open menu panel",
