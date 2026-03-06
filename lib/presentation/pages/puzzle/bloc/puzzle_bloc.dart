@@ -64,6 +64,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_SetTimer>(_timerStateChanged);
     on<_RestoreSession>(_restoreSession);
     on<_SetPuzzleDate>(_setPuzzleDate);
+    on<_MarkSolvedDialogShown>(_markSolvedDialogShown);
   }
 
   static const double collisionTolerance = 2;
@@ -156,6 +157,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       emit(
         newState.copyWith(
           status: GameStatus.initialized,
+          isRestoredSolvedSession: false,
+          hasShownSolvedDialog: false,
           solutionIdx: -1,
           moveHistory: [],
           moveIndex: 0,
@@ -774,6 +777,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final Emitter<PuzzleState> emit,
   ) {
     final session = event.session;
+    final isSolvedSession =
+        session.status == PuzzleSessionStatus.solved || session.completedAt != null;
+    final nowMs = DateTime
+        .now()
+        .millisecondsSinceEpoch;
     _historyUseCase.activateSession(session);
     _currentSessionDifficulty = session.difficulty;
     final restoredPieces = _applySnapshotPieces(session.pieces);
@@ -790,7 +798,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         moveHistory: session.moveHistory,
         moveIndex: session.moveIndex,
         firstMoveAt: session.firstMoveAt,
-        lastResumedAt: null,
+        lastResumedAt: !isSolvedSession && session.firstMoveAt != null
+            ? nowMs
+            : null,
         activeElapsedMs: restoredElapsedMs,
         solutionIdx: -1,
         solutions: const [],
@@ -803,9 +813,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         dragStartZone: null,
         showPreview: false,
         previewCollision: false,
-        status: session.status == PuzzleSessionStatus.solved
-            ? GameStatus.solvedByUser
-            : GameStatus.paused,
+        isRestoredSolvedSession: isSolvedSession,
+        hasShownSolvedDialog: isSolvedSession,
+        status: isSolvedSession ? GameStatus.solvedByUser : GameStatus.playing,
       ),
     );
 
@@ -896,6 +906,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         dragStartZone: null,
         showPreview: false,
         previewCollision: false,
+        isRestoredSolvedSession: false,
+        hasShownSolvedDialog: false,
         status: GameStatus.paused,
       ),
     );
@@ -907,6 +919,14 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
             : state.gridPieces.where((final e) => e.isConfigItem),
       ),
     );
+  }
+
+  FutureOr<void> _markSolvedDialogShown(final _MarkSolvedDialogShown event,
+      final Emitter<PuzzleState> emit,) {
+    if (state.hasShownSolvedDialog) {
+      return Future.value();
+    }
+    emit(state.copyWith(hasShownSolvedDialog: true));
   }
 
   void _onLifecycleChanged(final AppLifecycleState state) {
@@ -1129,10 +1149,16 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     _historyUseCase.markCurrentSessionEasy();
   }
 
+  PuzzleSessionDifficulty get currentSessionDifficulty =>
+      _currentSessionDifficulty ?? _difficultyFromSettings();
+
   void _persistHistoryChange({
     required final PuzzleState prevState,
     required final PuzzleState nextState,
   }) {
+    if (nextState.isRestoredSolvedSession) {
+      return;
+    }
     final difficulty = _currentSessionDifficulty ?? _difficultyFromSettings();
     _currentSessionDifficulty = difficulty;
     _historyUseCase.setCurrentSessionDifficulty(difficulty);
@@ -1146,5 +1172,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   PuzzleSessionDifficulty _difficultyFromSettings() =>
-      _settings.requireSolutions ? PuzzleSessionDifficulty.easy : PuzzleSessionDifficulty.hard;
+      _settings.requireSolutions
+          ? PuzzleSessionDifficulty.easy
+          : PuzzleSessionDifficulty.hard;
+
 }

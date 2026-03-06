@@ -95,6 +95,8 @@
   "solutionsNotFoundDialogMessage": "No solutions found for the given configuration",
   "solvability": "Solvability",
   "solvedAlertSubTitle": "You completed the puzzle!",
+  "solvedAlertLevelLabel": "Level",
+  "solvedAlertConfigLabel": "Config",
   "solvedAlertTitle": "Congrats! 🎉",
   "switchTheme": "Switch theme",
   "system": "System",

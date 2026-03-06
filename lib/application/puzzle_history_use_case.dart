@@ -20,17 +20,21 @@ class PuzzleHistoryUseCase {
   String? _currentSessionId;
   int? _currentSessionStartedAt;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
+  bool _currentSessionLockedAfterSolved = false;
 
   void resetSession() {
     _currentSessionId = null;
     _currentSessionStartedAt = null;
     _currentSessionDifficulty = null;
+    _currentSessionLockedAfterSolved = false;
   }
 
   void activateSession(final PuzzleSessionData session) {
     _currentSessionId = session.id;
     _currentSessionStartedAt = session.startedAt;
     _currentSessionDifficulty = session.difficulty;
+    _currentSessionLockedAfterSolved =
+        session.status == PuzzleSessionStatus.solved || session.completedAt != null;
   }
 
   void setCurrentSessionDifficulty(final PuzzleSessionDifficulty difficulty) {
@@ -51,8 +55,14 @@ class PuzzleHistoryUseCase {
       _historyRepository.watchSessionsByMonthDay(puzzleDate: DateTime(date.year, date.month, date.day));
 
   void persistAfterChange(final PuzzleHistoryInput input) {
+    if (_currentSessionLockedAfterSolved) {
+      return;
+    }
     if (!input.shouldPersist) {
       return;
+    }
+    if (input.isSolved) {
+      _currentSessionLockedAfterSolved = true;
     }
     unawaited(
       _persistSession(
