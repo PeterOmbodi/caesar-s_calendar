@@ -1,4 +1,4 @@
-## Unreleased
+## 1.4.2+14
 - limit `ConfettiView` display to 5 seconds after puzzle completion
 - prevent confetti and solved dialog when opening an already solved session from history
 - show solved dialog only once per session, even after temporary unsolve/re-solve actions
