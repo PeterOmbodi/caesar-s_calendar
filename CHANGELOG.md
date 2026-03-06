@@ -1,3 +1,11 @@
+## 1.4.2+14
+- limit `ConfettiView` display to 5 seconds after puzzle completion
+- prevent confetti and solved dialog when opening an already solved session from history
+- show solved dialog only once per session, even after temporary unsolve/re-solve actions
+- resume timer automatically when restoring an unsolved session
+- keep solved session history immutable after first solve (prevent `solved -> unsolved` rewrites)
+- add solved dialog metadata for level and config, with localized labels (`solvedAlertLevelLabel`, `solvedAlertConfigLabel`)
+
 ## 1.4.1+13
 - make floating panel open by default on wide layouts
 - keep History button visible when floating panel is open on wide layouts

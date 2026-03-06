@@ -95,6 +95,8 @@
   "solutionsNotFoundDialogMessage": "Не знайдено рішень для заданої конфігурації",
   "solvability": "Розв’язуваність",
   "solvedAlertSubTitle": "Цей пазл зібрано!",
+  "solvedAlertLevelLabel": "Рівень",
+  "solvedAlertConfigLabel": "Конфіг",
   "solvedAlertTitle": "Вітаю! 🎉",
   "switchTheme": "Переключити тему",
   "system": "Системна",

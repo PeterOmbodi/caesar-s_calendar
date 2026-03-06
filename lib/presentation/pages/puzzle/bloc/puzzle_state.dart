@@ -32,6 +32,8 @@ abstract class PuzzleState with _$PuzzleState {
     required final List<Move> moveHistory,
     required final int moveIndex,
     required final DateTime selectedDate,
+    required final bool isRestoredSolvedSession,
+    required final bool hasShownSolvedDialog,
     final int? firstMoveAt,
     final int? lastResumedAt,
     required final int activeElapsedMs,
@@ -54,16 +56,21 @@ abstract class PuzzleState with _$PuzzleState {
     moveHistory: [],
     moveIndex: 0,
     selectedDate: DateTime.now(),
+    isRestoredSolvedSession: false,
+    hasShownSolvedDialog: false,
     activeElapsedMs: 0,
   );
 
   bool get isSolving => status == GameStatus.searchingSolutions;
 
-  bool get isPaused => status == GameStatus.paused || (status != GameStatus.playing && status != GameStatus.solutionsReady);
+  bool get isPaused =>
+      status == GameStatus.paused ||
+      (status != GameStatus.playing && status != GameStatus.solutionsReady);
 
   bool get isShowSolutions => status == GameStatus.showingSolution;
 
-  Iterable<PuzzlePieceUI> piecesByZone(final PlaceZone zone) => pieces.where((final p) => p.placeZone == zone);
+  Iterable<PuzzlePieceUI> piecesByZone(final PlaceZone zone) =>
+      pieces.where((final p) => p.placeZone == zone);
 
   Iterable<PuzzlePieceUI> get gridPieces => piecesByZone(PlaceZone.grid);
 
@@ -71,15 +78,16 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isRedoEnabled => !isSolving && moveHistory.length > moveIndex;
 
-  bool get isUndoEnabled => !isSolving && moveHistory.isNotEmpty && moveIndex > 0;
+  bool get isUndoEnabled =>
+      !isSolving && moveHistory.isNotEmpty && moveIndex > 0;
 
-  bool isPieceInGrid(final String pieceId) => gridPieces.any((final e) => !e.isConfigItem && e.id == pieceId);
+  bool isPieceInGrid(final String pieceId) =>
+      gridPieces.any((final e) => !e.isConfigItem && e.id == pieceId);
 
   Iterable<Cell> get sortedConfigCells => pieces
       .where((final e) => e.isConfigItem)
       .expand((final e) => e.cells(gridConfig.origin, gridConfig.cellSize))
       .sortedBy((final e) => e.row * 100 + e.col);
-
 
   Offset cfgCellOffset(final int index) {
     if (index >= sortedConfigCells.length) {

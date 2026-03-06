@@ -44,4 +44,6 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.restoreSession(final PuzzleSessionData session) = _RestoreSession;
 
   const factory PuzzleEvent.setPuzzleDate(final DateTime date) = _SetPuzzleDate;
+
+  const factory PuzzleEvent.markSolvedDialogShown() = _MarkSolvedDialogShown;
 }
