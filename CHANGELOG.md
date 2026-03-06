@@ -1,3 +1,6 @@
+## 1.4.3+15
+- stop new `ConfettiView` particles after 5 seconds while allowing active particles to finish their animation
+
 ## 1.4.2+14
 - limit `ConfettiView` display to 5 seconds after puzzle completion
 - prevent confetti and solved dialog when opening an already solved session from history
