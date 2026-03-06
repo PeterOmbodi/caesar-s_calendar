@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:confetti/confetti.dart';
@@ -13,8 +12,6 @@ class ConfettiView extends StatefulWidget {
 
 class _ConfettiViewState extends State<ConfettiView> {
   late ConfettiController _controllerCenter;
-  Timer? _hideTimer;
-  bool _isVisible = true;
 
   @override
   void initState() {
@@ -22,17 +19,10 @@ class _ConfettiViewState extends State<ConfettiView> {
     _controllerCenter = ConfettiController(
       duration: const Duration(seconds: 5),
     );
-    _hideTimer = Timer(const Duration(seconds: 5), () {
-      if (!mounted) {
-        return;
-      }
-      setState(() => _isVisible = false);
-    });
   }
 
   @override
   void dispose() {
-    _hideTimer?.cancel();
     _controllerCenter.dispose();
     super.dispose();
   }
@@ -817,11 +807,7 @@ class _ConfettiViewState extends State<ConfettiView> {
   }
 
   @override
-  Widget build(final BuildContext context) {
-    if (!_isVisible) {
-      return const SizedBox.shrink();
-    }
-    return ConfettiWidget(
+  Widget build(final BuildContext context) => ConfettiWidget(
       confettiController: _controllerCenter,
       blastDirectionality: BlastDirectionality.explosive,
       colors: const [
@@ -834,5 +820,4 @@ class _ConfettiViewState extends State<ConfettiView> {
       maximumSize: Size(64, 64),
       createParticlePath: drawPuzzle,
     );
-  }
 }
