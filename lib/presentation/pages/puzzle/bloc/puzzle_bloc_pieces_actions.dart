@@ -25,7 +25,21 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         snapMove,
         isFlipped: flippedPiece.isFlipped,
       );
-      final pieces = _updatePieceInList(pieceToSave);
+      final tentativePieces = _updatePieceInList(pieceToSave);
+      if (selectedPiece.isConfigItem &&
+          (_movementHandler.checkCollision(
+                piece: pieceToSave,
+                newPosition: pieceToSave.position,
+                zone: pieceToSave.placeZone,
+                preventOverlap: true,
+                pieces: state.pieces,
+                gridConfig: state.gridConfig,
+                boardConfig: state.boardConfig,
+              ) ||
+              _hasConfigOverlap(tentativePieces))) {
+        return Future.value();
+      }
+      final pieces = tentativePieces;
       final shouldResolve = selectedPiece.isConfigItem;
       final applicableSolutions = shouldResolve
           ? <Map<String, PlacementParams>>[]
@@ -70,7 +84,21 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       snapMove,
       rotation: selectedPiece.rotation,
     );
-    final pieces = _updatePieceInList(pieceToSave);
+    final tentativePieces = _updatePieceInList(pieceToSave);
+    if (selectedPiece.isConfigItem &&
+        (_movementHandler.checkCollision(
+              piece: pieceToSave,
+              newPosition: pieceToSave.position,
+              zone: pieceToSave.placeZone,
+              preventOverlap: true,
+              pieces: state.pieces,
+              gridConfig: state.gridConfig,
+              boardConfig: state.boardConfig,
+            ) ||
+            _hasConfigOverlap(tentativePieces))) {
+      return Future.value();
+    }
+    final pieces = tentativePieces;
     final shouldResolve = selectedPiece.isConfigItem;
     final applicableSolutions = shouldResolve
         ? <Map<String, PlacementParams>>[]
@@ -368,5 +396,20 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         difficulty: difficulty,
       ),
     );
+  }
+
+  bool _hasConfigOverlap(final Iterable<PuzzlePieceUI> pieces) {
+    final occupied = <Cell>{};
+    final configPieces = pieces.where((final p) => p.isConfigItem);
+    for (final piece in configPieces) {
+      final cells =
+          piece.cells(state.gridConfig.origin, state.gridConfig.cellSize);
+      for (final cell in cells) {
+        if (!occupied.add(cell)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

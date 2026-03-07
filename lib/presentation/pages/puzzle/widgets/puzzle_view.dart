@@ -63,6 +63,7 @@ class PuzzleView extends StatelessWidget {
                               minHeight: 32,
                             ),
                             unitType: UnitType.number,
+                            useShortestWay: false,
                           ),
                         ),
                       ),

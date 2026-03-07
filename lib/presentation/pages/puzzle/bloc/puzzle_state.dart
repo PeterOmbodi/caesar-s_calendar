@@ -64,13 +64,11 @@ abstract class PuzzleState with _$PuzzleState {
   bool get isSolving => status == GameStatus.searchingSolutions;
 
   bool get isPaused =>
-      status == GameStatus.paused ||
-      (status != GameStatus.playing && status != GameStatus.solutionsReady);
+      status == GameStatus.paused || (status != GameStatus.playing && status != GameStatus.solutionsReady);
 
   bool get isShowSolutions => status == GameStatus.showingSolution;
 
-  Iterable<PuzzlePieceUI> piecesByZone(final PlaceZone zone) =>
-      pieces.where((final p) => p.placeZone == zone);
+  Iterable<PuzzlePieceUI> piecesByZone(final PlaceZone zone) => pieces.where((final p) => p.placeZone == zone);
 
   Iterable<PuzzlePieceUI> get gridPieces => piecesByZone(PlaceZone.grid);
 
@@ -78,16 +76,31 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isRedoEnabled => !isSolving && moveHistory.length > moveIndex;
 
-  bool get isUndoEnabled =>
-      !isSolving && moveHistory.isNotEmpty && moveIndex > 0;
+  bool get isUndoEnabled => !isSolving && moveHistory.isNotEmpty && moveIndex > 0;
 
-  bool isPieceInGrid(final String pieceId) =>
-      gridPieces.any((final e) => !e.isConfigItem && e.id == pieceId);
+  bool isPieceInGrid(final String pieceId) => gridPieces.any((final e) => !e.isConfigItem && e.id == pieceId);
 
-  Iterable<Cell> get sortedConfigCells => pieces
-      .where((final e) => e.isConfigItem)
-      .expand((final e) => e.cells(gridConfig.origin, gridConfig.cellSize))
-      .sortedBy<num>((final e) => e.row * 100 + e.col);
+  List<Cell> get sortedConfigCells {
+    final configPieces = pieces.where((final e) => e.isConfigItem);
+    final pieceCells =
+        configPieces
+            .map(
+              (final piece) => piece.cells(gridConfig.origin, gridConfig.cellSize).toList()
+                ..sort((final a, final b) {
+                  final byRow = a.row.compareTo(b.row);
+                  return byRow != 0 ? byRow : a.col.compareTo(b.col);
+                }),
+            )
+            .toList()
+          ..sort((final a, final b) {
+            final bySize = a.length.compareTo(b.length);
+            if (bySize != 0) return bySize;
+            if (a.isEmpty || b.isEmpty) return 0;
+            final byRow = a.first.row.compareTo(b.first.row);
+            return byRow != 0 ? byRow : a.first.col.compareTo(b.first.col);
+          });
+    return pieceCells.expand((final cells) => cells).toList();
+  }
 
   Offset cfgCellOffset(final int index) {
     if (index >= sortedConfigCells.length) {

@@ -1,3 +1,14 @@
+## 1.4.5+17
+- prevent overlap between `isConfigItem` pieces during `flip`/`rotate` by adding a cell-overlap guard
+- fix `cfgCellOffset` anchors for config pieces
+- update puzzle info/counter flap behavior:
+  - switch first info cell rendering to `FlipFlapDisplay` widget mode
+  - disable shortest-way number animation for solution count (`useShortestWay: false`)
+- add regression tests for:
+  - config-piece transform overlap prevention (`flip`/`rotate`)
+  - hint-based solved-state transition
+  - config-cell anchor offsets
+
 ## 1.4.4+16
 - refactor `PuzzleBloc`: move drag/layout/actions/solutions/session logic into separate part files
 - extract piece drag/drop and collision calculations into `PuzzlePieceMovementService`
