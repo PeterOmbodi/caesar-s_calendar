@@ -87,7 +87,7 @@ abstract class PuzzleState with _$PuzzleState {
   Iterable<Cell> get sortedConfigCells => pieces
       .where((final e) => e.isConfigItem)
       .expand((final e) => e.cells(gridConfig.origin, gridConfig.cellSize))
-      .sortedBy((final e) => e.row * 100 + e.col);
+      .sortedBy<num>((final e) => e.row * 100 + e.col);
 
   Offset cfgCellOffset(final int index) {
     if (index >= sortedConfigCells.length) {
