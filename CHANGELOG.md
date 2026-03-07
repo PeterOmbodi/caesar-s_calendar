@@ -1,3 +1,9 @@
+## 1.4.4+16
+- refactor `PuzzleBloc`: move drag/layout/actions/solutions/session logic into separate part files
+- extract piece drag/drop and collision calculations into `PuzzlePieceMovementService`
+- fix solved transition when last move is a hint: set status to `solvedByUser`, stop timer correctly, show solved dialog/statistics
+- add tests for movement service, drag flow, and hint-based solved-state regression
+
 ## 1.4.3+15
 - stop new `ConfettiView` particles after 5 seconds while allowing active particles to finish their animation
 
