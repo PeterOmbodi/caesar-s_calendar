@@ -5,23 +5,22 @@ extension PuzzleHistoryInputX on PuzzleState {
     required final PuzzleState prevState,
     required final double rotationStep,
     required final PuzzleSessionDifficulty difficulty,
-  }) =>
-      PuzzleHistoryInput(
-        shouldPersist: _shouldPersist(),
-        solvedTransition: _isSolvedTransition(prevState),
-        isSolved: status == GameStatus.solvedByUser,
-        difficulty: difficulty,
-        selectedDate: selectedDate,
-        moveHistory: moveHistory,
-        moveIndex: moveIndex,
-        firstMoveAt: firstMoveAt,
-        lastResumedAt: lastResumedAt,
-        activeElapsedMs: activeElapsedMs,
-        configPlacements: _configPlacements(rotationStep),
-        piecesSnapshot: _snapshotPieces(),
-        solutions: solutions,
-        applicableSolutions: applicableSolutions,
-      );
+  }) => PuzzleHistoryInput(
+    shouldPersist: _shouldPersist(),
+    solvedTransition: _isSolvedTransition(prevState),
+    isSolved: status == GameStatus.solvedByUser,
+    difficulty: difficulty,
+    selectedDate: selectedDate,
+    moveHistory: moveHistory,
+    moveIndex: moveIndex,
+    firstMoveAt: firstMoveAt,
+    lastResumedAt: lastResumedAt,
+    activeElapsedMs: activeElapsedMs,
+    configPlacements: _configPlacements(rotationStep),
+    piecesSnapshot: _snapshotPieces(),
+    solutions: solutions,
+    applicableSolutions: applicableSolutions,
+  );
 
   bool _shouldPersist() {
     if (status == GameStatus.initializing ||
@@ -31,23 +30,20 @@ extension PuzzleHistoryInputX on PuzzleState {
         status == GameStatus.showingSolution) {
       return false;
     }
-    return moveHistory.isNotEmpty || firstMoveAt != null;
+    return firstMoveAt != null;
   }
 
   bool _isSolvedTransition(final PuzzleState prevState) =>
       prevState.status != GameStatus.solvedByUser && status == GameStatus.solvedByUser;
 
-  List<PlacementParams> _configPlacements(final double rotationStep) => pieces
-      .where((final p) => p.isConfigItem)
-      .map((final piece) {
+  List<PlacementParams> _configPlacements(final double rotationStep) =>
+      pieces.where((final p) => p.isConfigItem).map((final piece) {
         final offset = gridConfig.relativePosition(piece.position);
         final row = offset.dy.round();
         final col = offset.dx.round();
         final rotationSteps = (piece.rotation / rotationStep).round() % 4;
         return PlacementParams(piece.id, row, col, rotationSteps, piece.isFlipped);
-      })
-      .toList()
-    ..sort((final a, final b) => a.pieceId.compareTo(b.pieceId));
+      }).toList()..sort((final a, final b) => a.pieceId.compareTo(b.pieceId));
 
   List<PuzzlePieceSnapshot> _snapshotPieces() => pieces
       .map(
