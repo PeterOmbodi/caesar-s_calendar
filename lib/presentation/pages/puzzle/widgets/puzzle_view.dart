@@ -43,37 +43,13 @@ class PuzzleView extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    if (solvabilityState >= 0 || solutionsCountState >= 0)
-                      Positioned(
-                        left: state.cfgCellOffset(0).dx,
-                        top: state.cfgCellOffset(0).dy,
-                        child: const _SolvabilityMark(),
-                      ),
-                    if (solutionsCountState >= 0)
-                      Positioned(
-                        left: state.cfgCellOffset(1).dx,
-                        top: state.cfgCellOffset(1).dy,
-                        child: ConstrainedBox(
-                          constraints: state.gridConfig.cellConstraints(),
-                          child: FlipFlapDisplay.fromText(
-                            text: '$solutionsCountState'.padLeft(2, '0'),
-                            unitsInPack: 4,
-                            unitConstraints: BoxConstraints(
-                              minWidth: solutionsCountState < 100 ? 20 : 14,
-                              minHeight: 32,
-                            ),
-                            unitType: UnitType.number,
-                            useShortestWay: false,
-                          ),
-                        ),
-                      ),
-                    if (state.isShowSolutions || settings.showTimer) ...[
-                      Positioned(
-                        left: state.cfgCellOffset(3).dx,
-                        top: state.cfgCellOffset(3).dy,
-                        child: InfoDisplay3Cell(),
-                      ),
-                    ],
+                    _PuzzleInfoOverlays(
+                      visible: state.isDragging,
+                      state: state,
+                      solvabilityState: solvabilityState,
+                      solutionsCountState: solutionsCountState,
+                      showInfoDisplay: state.isShowSolutions || settings.showTimer,
+                    ),
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTapDown: (final details) => bloc.add(PuzzleEvent.onTapDown(details.localPosition)),
@@ -103,6 +79,13 @@ class PuzzleView extends StatelessWidget {
                         ),
                       ),
                     ),
+                    _PuzzleInfoOverlays(
+                      visible: !state.isDragging,
+                      state: state,
+                      solvabilityState: solvabilityState,
+                      solutionsCountState: solutionsCountState,
+                      showInfoDisplay: state.isShowSolutions || settings.showTimer,
+                    ),
                   ],
                 ),
               );
@@ -111,56 +94,111 @@ class PuzzleView extends StatelessWidget {
   );
 }
 
+class _PuzzleInfoOverlays extends StatelessWidget {
+  const _PuzzleInfoOverlays({
+    required this.visible,
+    required this.state,
+    required this.solvabilityState,
+    required this.solutionsCountState,
+    required this.showInfoDisplay,
+  });
+
+  final bool visible;
+  final PuzzleState state;
+  final int solvabilityState;
+  final int solutionsCountState;
+  final bool showInfoDisplay;
+
+  @override
+  Widget build(final BuildContext context) {
+    if (!visible) {
+      return const SizedBox.shrink();
+    }
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Stack(
+          children: [
+            if (solvabilityState >= 0 || solutionsCountState >= 0)
+              Positioned(
+                left: state.cfgCellOffset(0).dx,
+                top: state.cfgCellOffset(0).dy,
+                child: const _SolvabilityMark(),
+              ),
+            if (solutionsCountState >= 0)
+              Positioned(
+                left: state.cfgCellOffset(1).dx,
+                top: state.cfgCellOffset(1).dy,
+                child: ConstrainedBox(
+                  constraints: state.gridConfig.cellConstraints(),
+                  child: FlipFlapDisplay.fromText(
+                    text: '$solutionsCountState'.padLeft(2, '0'),
+                    unitsInPack: 4,
+                    unitConstraints: BoxConstraints(minWidth: solutionsCountState < 100 ? 20 : 14, minHeight: 32),
+                    unitType: UnitType.number,
+                    useShortestWay: false,
+                  ),
+                ),
+              ),
+            if (showInfoDisplay)
+              Positioned(
+                left: state.cfgCellOffset(3).dx,
+                top: state.cfgCellOffset(3).dy,
+                child: const InfoDisplay3Cell(),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _SolvabilityMark extends StatelessWidget {
   const _SolvabilityMark();
 
   @override
-  Widget build(final BuildContext context) =>
-      BlocSelector<PuzzleBloc, PuzzleState, bool>(
-        selector: (final s) => s.applicableSolutions.isNotEmpty,
-        builder: (final context, final solvabilable) {
-          final icon = solvabilable ? Icons.check_circle : Icons.cancel;
-          final iconColor = solvabilable ? Colors.green : Colors.red;
-          final cellSize = context
-              .read<PuzzleBloc>()
-              .state
-              .gridConfig
-              .cellSize;
-          return Padding(
-            padding: const EdgeInsets.all(6),
-            child: FlipFlapDisplay(
-              items: [
-                FlipFlapWidgetItem.flip(
-                  flipAxis: Axis.horizontal,
-                  duration: const Duration(milliseconds: 1000),
-                  child: Padding(
-                    key: ValueKey(icon.codePoint),
-                    padding: const EdgeInsets.all(4),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(cellSize / 2), color: Colors.grey.shade200),
-                      child: Center(
-                        child: Baseline(
-                          baseline: 24,
-                          baselineType: TextBaseline.alphabetic,
-                          child: Text(
-                            String.fromCharCode(icon.codePoint),
-                            style: TextStyle(
-                              fontFamily: icon.fontFamily,
-                              package: icon.fontPackage,
-                              fontSize: 26,
-                              color: iconColor,
-                            ),
-                          ),
+  Widget build(final BuildContext context) => BlocSelector<PuzzleBloc, PuzzleState, bool>(
+    selector: (final s) => s.applicableSolutions.isNotEmpty,
+    builder: (final context, final solvabilable) {
+      final icon = solvabilable ? Icons.check_circle : Icons.cancel;
+      final iconColor = solvabilable ? Colors.green : Colors.red;
+      final cellSize = context.read<PuzzleBloc>().state.gridConfig.cellSize;
+      return Padding(
+        padding: const EdgeInsets.all(6),
+        child: FlipFlapDisplay(
+          items: [
+            FlipFlapWidgetItem.flip(
+              flipAxis: Axis.horizontal,
+              duration: const Duration(milliseconds: 1000),
+              child: Padding(
+                key: ValueKey(icon.codePoint),
+                padding: const EdgeInsets.all(4),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(cellSize / 2),
+                    color: Colors.grey.shade200,
+                  ),
+                  child: Center(
+                    child: Baseline(
+                      baseline: 24,
+                      baselineType: TextBaseline.alphabetic,
+                      child: Text(
+                        String.fromCharCode(icon.codePoint),
+                        style: TextStyle(
+                          fontFamily: icon.fontFamily,
+                          package: icon.fontPackage,
+                          fontSize: 26,
+                          color: iconColor,
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-              unitConstraints: BoxConstraints.tightFor(height: cellSize - 12, width: cellSize - 12),
-      ),
-    );
-        },
+              ),
+            ),
+          ],
+          unitConstraints: BoxConstraints.tightFor(height: cellSize - 12, width: cellSize - 12),
+        ),
       );
+    },
+  );
 }

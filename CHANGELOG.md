@@ -1,3 +1,15 @@
+## 1.4.6+18
+- add invalid move feedback for config-piece transforms:
+  - invalid `flip`/`rotate` is shown briefly, then rolled back automatically
+  - selection is cleared after rollback
+- improve config transform safety by blocking overlaps between `isConfigItem` pieces
+- fix drag/drop timer behavior: preserve existing `firstMoveAt` on piece drop
+- rework puzzle overlay layering to keep drag stable and avoid gesture loss while preserving info overlays
+- add regression tests for:
+  - invalid transform feedback + rollback
+  - preserving `firstMoveAt` after drag/drop
+  - config-piece transform overlap scenarios
+
 ## 1.4.5+17
 - prevent overlap between `isConfigItem` pieces during `flip`/`rotate` by adding a cell-overlap guard
 - fix `cfgCellOffset` anchors for config pieces

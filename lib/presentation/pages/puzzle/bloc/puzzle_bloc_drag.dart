@@ -1,32 +1,22 @@
 part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocDragPart on PuzzleBloc {
-  FutureOr<void> _onTapDown(
-    final _OnTapDown event,
-    final Emitter<PuzzleState> emit,
-  ) {
+  FutureOr<void> _onTapDown(final _OnTapDown event, final Emitter<PuzzleState> emit) {
     final piece = _findPieceAtPosition(event.localPosition);
     if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
       emit(state.copyWith(selectedPiece: piece));
     }
   }
 
-  FutureOr<void> _onTapUp(
-    final _OnTapUp event,
-    final Emitter<PuzzleState> emit,
-  ) {
+  FutureOr<void> _onTapUp(final _OnTapUp event, final Emitter<PuzzleState> emit) {
     if (state.selectedPiece != null && !state.isDragging) {
       add(PuzzleEvent.rotatePiece(state.selectedPiece!));
     }
     emit(state.copyWith(selectedPiece: null, isDragging: false));
   }
 
-  FutureOr<void> _onPanStart(
-    final _OnPanStart event,
-    final Emitter<PuzzleState> emit,
-  ) {
-    final piece =
-        _findPieceAtPosition(event.localPosition) ?? state.selectedPiece;
+  FutureOr<void> _onPanStart(final _OnPanStart event, final Emitter<PuzzleState> emit) {
+    final piece = _findPieceAtPosition(event.localPosition) ?? state.selectedPiece;
     if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
       final pieces = List<PuzzlePieceUI>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((final item) => item.id == piece.id);
@@ -42,21 +32,14 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           selectedPiece: piece,
           dragStartOffset: event.localPosition - piece.position,
           pieceStartPosition: piece.position,
-          dragStartZone: _movementHandler.getZoneAtPosition(
-            piece.position,
-            state.gridConfig,
-            state.boardConfig,
-          ),
+          dragStartZone: _movementHandler.getZoneAtPosition(piece.position, state.gridConfig, state.boardConfig),
           isDragging: true,
         ),
       );
     }
   }
 
-  FutureOr<void> _onPanUpdate(
-    final _OnPanUpdate event,
-    final Emitter<PuzzleState> emit,
-  ) {
+  FutureOr<void> _onPanUpdate(final _OnPanUpdate event, final Emitter<PuzzleState> emit) {
     if (state.selectedPiece != null && state.dragStartOffset != null) {
       final newPosition = event.localPosition - state.dragStartOffset!;
       final piece = state.selectedPiece!.copyWith(position: newPosition);
@@ -67,11 +50,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       } else {
         debugPrint('_onPanUpdate, piece not found!');
       }
-      final currentZone = _movementHandler.getZoneAtPosition(
-        newPosition,
-        state.gridConfig,
-        state.boardConfig,
-      );
+      final currentZone = _movementHandler.getZoneAtPosition(newPosition, state.gridConfig, state.boardConfig);
       switch (currentZone) {
         case PlaceZone.grid:
           final previewPosition = state.gridConfig.snapToGrid(newPosition);
@@ -94,22 +73,12 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           );
         case PlaceZone.board:
         case null:
-          emit(
-            state.copyWith(
-              pieces: pieces,
-              selectedPiece: piece,
-              showPreview: false,
-              previewCollision: false,
-            ),
-          );
+          emit(state.copyWith(pieces: pieces, selectedPiece: piece, showPreview: false, previewCollision: false));
       }
     }
   }
 
-  FutureOr<void> _onPanEnd(
-    final _OnPanEnd event,
-    final Emitter<PuzzleState> emit,
-  ) {
+  FutureOr<void> _onPanEnd(final _OnPanEnd event, final Emitter<PuzzleState> emit) {
     if (state.selectedPiece != null) {
       final prevState = state;
       final selectedPiece = state.selectedPiece!;
@@ -124,19 +93,12 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       );
 
       if (dropResult.accepted) {
-        final movedPiece = selectedPiece.copyWith(
-          position: dropResult.snappedPosition!,
-          placeZone: dropResult.zone!,
-        );
+        final movedPiece = selectedPiece.copyWith(position: dropResult.snappedPosition!, placeZone: dropResult.zone!);
         final move = dropResult.move!;
         final moveHistory = List<Move>.from(state.moveHistory);
         if (moveHistory.length > state.moveIndex) {
           moveHistory.removeRange(state.moveIndex, moveHistory.length);
         }
-        final firstMoveAt =
-            state.gridPieces.where((final p) => !p.isConfigItem).isEmpty
-                ? DateTime.now().millisecondsSinceEpoch
-                : null;
         moveHistory.add(move);
         final pieces = _updatePieceInList(movedPiece);
         final shouldResolve = movedPiece.isConfigItem;
@@ -156,12 +118,8 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           moveIndex: moveHistory.length,
           status: _getStatus(pieces),
           applicableSolutions: applicableSolutions,
-          firstMoveAt: firstMoveAt ?? state.firstMoveAt,
         );
-        final timedState = _resumeTimerAfterUserAction(
-          prevState: prevState,
-          nextState: nextState,
-        );
+        final timedState = _resumeTimerAfterUserAction(prevState: prevState, nextState: nextState);
         emit(timedState);
         _persistHistoryChange(prevState: prevState, nextState: timedState);
         if (shouldResolve) {
@@ -171,9 +129,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         debugPrint(
           'Collision detected, returning to original position, pieceStartPosition: ${state.pieceStartPosition}',
         );
-        final resetPiece = state.selectedPiece!.copyWith(
-          position: state.pieceStartPosition,
-        );
+        final resetPiece = state.selectedPiece!.copyWith(position: state.pieceStartPosition);
         emit(
           state.copyWith(
             pieces: _updatePieceInList(resetPiece),
@@ -190,11 +146,10 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     }
   }
 
-  PuzzlePieceUI? _findPieceAtPosition(final Offset position) => state.pieces
-      .lastWhereOrNull((final piece) => piece.containsPoint(position));
+  PuzzlePieceUI? _findPieceAtPosition(final Offset position) =>
+      state.pieces.lastWhereOrNull((final piece) => piece.containsPoint(position));
 
-  List<PuzzlePieceUI> _updatePieceInList(final PuzzlePieceUI piece) =>
-      List<PuzzlePieceUI>.from(state.pieces)
-        ..removeWhere((final p) => p.id == piece.id)
-        ..add(piece);
+  List<PuzzlePieceUI> _updatePieceInList(final PuzzlePieceUI piece) => List<PuzzlePieceUI>.from(state.pieces)
+    ..removeWhere((final p) => p.id == piece.id)
+    ..add(piece);
 }

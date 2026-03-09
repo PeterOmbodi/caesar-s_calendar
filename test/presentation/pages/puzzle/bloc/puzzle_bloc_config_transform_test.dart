@@ -121,11 +121,30 @@ PuzzlePieceUI _configPiece({
       color: () => Colors.blue,
       centerPoint: const Offset(5, 5),
       isConfigItem: true,
-      isUsersItem: true,
+    );
+
+PuzzlePieceUI _piece({
+  required final String id,
+  required final Offset position,
+  required final bool isConfigItem,
+}) =>
+    PuzzlePieceUI(
+      id: id,
+      position: position,
+      placeZone: PlaceZone.grid,
+      type: PieceType.square,
+      originalPath: generatePathForType(PieceType.square, 10),
+      color: () => Colors.blue,
+      centerPoint: const Offset(5, 5),
+      isConfigItem: isConfigItem,
     );
 
 Future<void> _drain() async {
   await Future<void>.delayed(const Duration(milliseconds: 40));
+}
+
+Future<void> _feedbackDelay() async {
+  await Future<void>.delayed(const Duration(milliseconds: 240));
 }
 
 class _TestPuzzleBloc extends PuzzleBloc {
@@ -184,6 +203,12 @@ void main() {
     bloc.add(PuzzleEvent.rotatePiece(a));
     await _drain();
 
+    // Invalid move is shown first.
+    final transformedA = bloc.state.pieces.firstWhere((final p) => p.id == 'A');
+    expect(transformedA.rotation, isNot(a.rotation));
+
+    // Then rolled back.
+    await _feedbackDelay();
     final updatedA = bloc.state.pieces.firstWhere((final p) => p.id == 'A');
     expect(updatedA.rotation, a.rotation);
     expect(bloc.state.moveHistory, isEmpty);
@@ -220,8 +245,63 @@ void main() {
     await _drain();
 
     // onDoubleTapDown selects top-most piece at point (B in this setup)
+    final transformedB = bloc.state.pieces.firstWhere((final p) => p.id == 'B');
+    expect(transformedB.isFlipped, isNot(b.isFlipped));
+
+    // Then rolled back.
+    await _feedbackDelay();
     final updatedB = bloc.state.pieces.firstWhere((final p) => p.id == 'B');
     expect(updatedB.isFlipped, b.isFlipped);
     expect(bloc.state.moveHistory, isEmpty);
+  });
+
+  test('config move resets timer, regular move starts it', () async {
+    const grid = PuzzleGridEntity(
+      cellSize: 10,
+      rows: 7,
+      columns: 7,
+      origin: Position(dx: 0, dy: 0),
+    );
+    const board = PuzzleBoardEntity(
+      cellSize: 10,
+      rows: 7,
+      columns: 7,
+      origin: Position(dx: 100, dy: 0),
+    );
+    final config = _piece(
+      id: 'cfg',
+      position: const Offset(10, 10),
+      isConfigItem: true,
+    );
+    final regular = _piece(
+      id: 'usr',
+      position: const Offset(30, 10),
+      isConfigItem: false,
+    );
+
+    bloc.emitForTest(
+      PuzzleState.initial().copyWith(
+        status: GameStatus.playing,
+        gridConfig: grid,
+        boardConfig: board,
+        pieces: [config, regular],
+        firstMoveAt: DateTime.now().millisecondsSinceEpoch - 2000,
+        lastResumedAt: DateTime.now().millisecondsSinceEpoch - 1000,
+        activeElapsedMs: 1200,
+      ),
+    );
+
+    bloc.add(PuzzleEvent.rotatePiece(config));
+    await _drain();
+
+    expect(bloc.state.firstMoveAt, isNull);
+    expect(bloc.state.lastResumedAt, isNull);
+    expect(bloc.state.activeElapsedMs, 0);
+
+    bloc.add(PuzzleEvent.rotatePiece(regular));
+    await _drain();
+
+    expect(bloc.state.firstMoveAt, isNotNull);
+    expect(bloc.state.lastResumedAt, isNotNull);
   });
 }

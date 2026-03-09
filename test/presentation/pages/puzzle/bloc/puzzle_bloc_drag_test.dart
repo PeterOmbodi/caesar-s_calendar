@@ -178,4 +178,39 @@ void main() {
     expect(updated.placeZone, PlaceZone.board);
     expect(bloc!.state.moveHistory, isEmpty);
   });
+
+  test('onPanEnd keeps existing firstMoveAt instead of resetting timer start',
+      () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    final boardPiece =
+        bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
+    bloc!.add(PuzzleEvent.rotatePiece(boardPiece));
+    await _drain();
+
+    final firstMoveAtBeforeDrop = bloc!.state.firstMoveAt;
+    expect(firstMoveAtBeforeDrop, isNotNull);
+
+    await Future<void>.delayed(const Duration(milliseconds: 30));
+
+    final refreshedPiece =
+        bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
+    final panStartPoint = refreshedPiece.position + refreshedPiece.centerPoint;
+    bloc!.add(PuzzleEvent.onPanStart(panStartPoint));
+    await _drain();
+    expect(bloc!.state.dragStartOffset, isNotNull);
+
+    final targetPosition = Offset(
+      bloc!.state.gridConfig.origin.dx + bloc!.state.gridConfig.cellSize * 2,
+      bloc!.state.gridConfig.origin.dy + bloc!.state.gridConfig.cellSize * 2,
+    );
+    final local = targetPosition + bloc!.state.dragStartOffset!;
+    bloc!.add(PuzzleEvent.onPanUpdate(local));
+    await _drain();
+    bloc!.add(const PuzzleEvent.onPanEnd(Offset.zero));
+    await _drain();
+
+    expect(bloc!.state.firstMoveAt, firstMoveAtBeforeDrop);
+  });
 }
