@@ -89,18 +89,21 @@ class InfoDisplay3Cell extends StatelessWidget {
           ConstrainedBox(
             constraints: state.gridConfig.cellConstraints(),
             child: Padding(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: FlipFlapDisplay(
                 items: [
                   FlipFlapWidgetItem.flip(
                     flipAxis: Axis.horizontal,
                     duration: const Duration(milliseconds: 1000),
-                    child: Center(child: Text(displayMode.label)),
+                    child: Center(
+                      key: ValueKey(displayMode.label),
+                      child: Text(displayMode.label, style: FlipFlapTheme.of(context).textStyle.copyWith(fontSize: 14)),
+                    ),
                   ),
                 ],
                 unitConstraints: BoxConstraints.tightFor(
-                  height: state.gridConfig.cellSize - 12,
-                  width: state.gridConfig.cellSize - 12,
+                  height: state.gridConfig.cellSize - 6,
+                  width: state.gridConfig.cellSize - 4,
                 ),
               ),
             ),

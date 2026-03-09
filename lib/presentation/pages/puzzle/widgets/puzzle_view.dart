@@ -43,13 +43,37 @@ class PuzzleView extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    _PuzzleInfoOverlays(
-                      visible: state.isDragging,
-                      state: state,
-                      solvabilityState: solvabilityState,
-                      solutionsCountState: solutionsCountState,
-                      showInfoDisplay: state.isShowSolutions || settings.showTimer,
-                    ),
+                    if (solvabilityState >= 0 || solutionsCountState >= 0)
+                      Positioned(
+                        left: state.cfgCellOffset(0).dx,
+                        top: state.cfgCellOffset(0).dy,
+                        child: const _SolvabilityMark(),
+                      ),
+                    if (solutionsCountState >= 0)
+                      Positioned(
+                        left: state.cfgCellOffset(1).dx,
+                        top: state.cfgCellOffset(1).dy,
+                        child: ConstrainedBox(
+                          constraints: state.gridConfig.cellConstraints(),
+                          child: FlipFlapDisplay.fromText(
+                            text: '$solutionsCountState'.padLeft(2, '0'),
+                            unitsInPack: 4,
+                            unitConstraints: BoxConstraints(
+                              minWidth: solutionsCountState < 100 ? 20 : 14,
+                              minHeight: 32,
+                            ),
+                            unitType: UnitType.number,
+                            useShortestWay: false,
+                          ),
+                        ),
+                      ),
+                    if (state.isShowSolutions || settings.showTimer) ...[
+                      Positioned(
+                        left: state.cfgCellOffset(3).dx,
+                        top: state.cfgCellOffset(3).dy,
+                        child: InfoDisplay3Cell(),
+                      ),
+                    ],
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTapDown: (final details) => bloc.add(PuzzleEvent.onTapDown(details.localPosition)),
@@ -79,77 +103,12 @@ class PuzzleView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    _PuzzleInfoOverlays(
-                      visible: !state.isDragging,
-                      state: state,
-                      solvabilityState: solvabilityState,
-                      solutionsCountState: solutionsCountState,
-                      showInfoDisplay: state.isShowSolutions || settings.showTimer,
-                    ),
                   ],
                 ),
               );
       },
     ),
   );
-}
-
-class _PuzzleInfoOverlays extends StatelessWidget {
-  const _PuzzleInfoOverlays({
-    required this.visible,
-    required this.state,
-    required this.solvabilityState,
-    required this.solutionsCountState,
-    required this.showInfoDisplay,
-  });
-
-  final bool visible;
-  final PuzzleState state;
-  final int solvabilityState;
-  final int solutionsCountState;
-  final bool showInfoDisplay;
-
-  @override
-  Widget build(final BuildContext context) {
-    if (!visible) {
-      return const SizedBox.shrink();
-    }
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: Stack(
-          children: [
-            if (solvabilityState >= 0 || solutionsCountState >= 0)
-              Positioned(
-                left: state.cfgCellOffset(0).dx,
-                top: state.cfgCellOffset(0).dy,
-                child: const _SolvabilityMark(),
-              ),
-            if (solutionsCountState >= 0)
-              Positioned(
-                left: state.cfgCellOffset(1).dx,
-                top: state.cfgCellOffset(1).dy,
-                child: ConstrainedBox(
-                  constraints: state.gridConfig.cellConstraints(),
-                  child: FlipFlapDisplay.fromText(
-                    text: '$solutionsCountState'.padLeft(2, '0'),
-                    unitsInPack: 4,
-                    unitConstraints: BoxConstraints(minWidth: solutionsCountState < 100 ? 20 : 14, minHeight: 32),
-                    unitType: UnitType.number,
-                    useShortestWay: false,
-                  ),
-                ),
-              ),
-            if (showInfoDisplay)
-              Positioned(
-                left: state.cfgCellOffset(3).dx,
-                top: state.cfgCellOffset(3).dy,
-                child: const InfoDisplay3Cell(),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _SolvabilityMark extends StatelessWidget {
