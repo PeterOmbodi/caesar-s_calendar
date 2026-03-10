@@ -1,3 +1,11 @@
+## 1.4.7+19
+- expand "How to Play" content:
+  - add guidance for drag shadow meaning (green/red)
+  - add indicator explanations for possible solutions counter, timer, and solution index
+  - enhance examples with `FlipFlapDisplay`-based visuals
+- add new localization keys for the updated "How to Play" section in `en` and `uk`
+- fix first info-cell flip label refresh on theme switch by including theme brightness in the widget key
+
 ## 1.4.6+18
 - add invalid move feedback for config-piece transforms:
   - invalid `flip`/`rotate` is shown briefly, then rolled back automatically
