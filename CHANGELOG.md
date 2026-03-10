@@ -1,3 +1,7 @@
+## 1.4.8+20
+-mass upgrade dependencies
+-migrate drift to 2.32/sqlite3 v3, refresh web wasm assets
+
 ## 1.4.7+19
 - expand "How to Play" content:
   - add guidance for drag shadow meaning (green/red)
