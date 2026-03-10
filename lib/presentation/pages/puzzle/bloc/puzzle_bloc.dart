@@ -44,10 +44,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     required final SettingsQuery settings,
     required final SolvePuzzleUseCase solvePuzzleUseCase,
     required final PuzzleHistoryUseCase historyUseCase,
-  })  : _settings = settings,
-        _solvePuzzleUseCase = solvePuzzleUseCase,
-        _historyUseCase = historyUseCase,
-        super(PuzzleState.initial()) {
+  }) : _settings = settings,
+       _solvePuzzleUseCase = solvePuzzleUseCase,
+       _historyUseCase = historyUseCase,
+       super(PuzzleState.initial()) {
     _lifecycleService = LifecycleService(_onLifecycleChanged);
 
     on<_SetViewSize>((final event, final emit) => _onViewSize(event, emit));
@@ -62,18 +62,22 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_RotatePiece>((final event, final emit) => _rotatePiece(event, emit));
     on<_Solve>((final event, final emit) => _solve(event, emit));
     on<_SetSolvingResults>(
-        (final event, final emit) => _setSolvingResults(event, emit));
+      (final event, final emit) => _setSolvingResults(event, emit),
+    );
     on<_ShowSolution>((final event, final emit) => _showSolution(event, emit));
     on<_ShowHint>((final event, final emit) => _showHint(event, emit));
     on<_Undo>((final event, final emit) => _undoMove(event, emit));
     on<_Redo>((final event, final emit) => _redoMove(event, emit));
     on<_SetTimer>((final event, final emit) => _timerStateChanged(event, emit));
     on<_RestoreSession>(
-        (final event, final emit) => _restoreSession(event, emit));
+      (final event, final emit) => _restoreSession(event, emit),
+    );
     on<_SetPuzzleDate>(
-        (final event, final emit) => _setPuzzleDate(event, emit));
+      (final event, final emit) => _setPuzzleDate(event, emit),
+    );
     on<_MarkSolvedDialogShown>(
-        (final event, final emit) => _markSolvedDialogShown(event, emit));
+      (final event, final emit) => _markSolvedDialogShown(event, emit),
+    );
   }
 
   static const double maxCellSize = 50;

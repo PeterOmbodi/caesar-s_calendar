@@ -83,6 +83,8 @@ class InfoDisplay3Cell extends StatelessWidget {
           ? 14.0
           : 20.0;
 
+      final brightness = Theme.of(context).brightness;
+
       return Flex(
         direction: state.cfgCellOffset(3).dx == state.cfgCellOffset(4).dx ? Axis.vertical : Axis.horizontal,
         children: [
@@ -96,7 +98,7 @@ class InfoDisplay3Cell extends StatelessWidget {
                     flipAxis: Axis.horizontal,
                     duration: const Duration(milliseconds: 1000),
                     child: Center(
-                      key: ValueKey(displayMode.label),
+                      key: ValueKey('${displayMode.label}_$brightness'),
                       child: Text(displayMode.label, style: FlipFlapTheme.of(context).textStyle.copyWith(fontSize: 14)),
                     ),
                   ),
