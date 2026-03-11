@@ -1,3 +1,30 @@
+## 1.4.10+22
+- add 24 new locale bundles
+  bg — Bulgarian (български)
+  cs — Czech (čeština)
+  da — Danish (dansk)
+  de — German (Deutsch)
+  es — Spanish (español)
+  et — Estonian (eesti)
+  fi — Finnish (suomi)
+  fr — French (français)
+  hr — Croatian (hrvatski)
+  hu — Hungarian (magyar)
+  is — Icelandic (íslenska)
+  it — Italian (italiano)
+  lt — Lithuanian (lietuvių)
+  lv — Latvian (latviešu)
+  mk — Macedonian (македонски)
+  nb — Norwegian Bokmål (norsk bokmål)
+  nl — Dutch (Nederlands)
+  pl — Polish (polski)
+  pt — Portuguese (português)
+  ro — Romanian (română)
+  sk — Slovak (slovenčina)
+  sl — Slovenian (slovenščina)
+  sq — Albanian (shqip)
+  sv — Swedish (svenska)
+
 ## 1.4.9+21
 -detect custom config by actual layout
 -highlight custom sessions
