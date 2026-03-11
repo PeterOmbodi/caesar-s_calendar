@@ -1,3 +1,7 @@
+## 1.4.9+21
+-detect custom config by actual layout
+-highlight custom sessions
+
 ## 1.4.8+20
 -mass upgrade dependencies
 -migrate drift to 2.32/sqlite3 v3, refresh web wasm assets

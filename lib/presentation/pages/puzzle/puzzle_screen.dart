@@ -9,6 +9,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
+import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/floating_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,7 +31,7 @@ class PuzzleScreen extends StatelessWidget {
             .size
             .width >= wideScreenBreakpoint;
     return BlocProvider(
-      create: (_) => PuzzleBloc(
+      create: (final _) => PuzzleBloc(
         settings: CubitSettingsQuery(context.read<SettingsCubit>()),
         solvePuzzleUseCase: getIt<SolvePuzzleUseCase>(),
         historyUseCase: getIt<PuzzleHistoryUseCase>(),
@@ -129,6 +130,8 @@ class PuzzleScreen extends StatelessWidget {
     final difficultyLabel = _difficultyLabel(context, difficulty);
     final difficultyStars = _difficultyStars(difficulty);
     final configLabel = _configLabel(context, state);
+    final configColor =
+        state.isCustomConfig ? AppColors.current.customConfigAccent : null;
     final secondsText = '${spentSeconds % 60}'.padLeft(2, '0');
     final minutesText = '${spentSeconds ~/ 60}'.padLeft(2, '0');
     final spentTime = '$minutesText:$secondsText';
@@ -144,7 +147,15 @@ class PuzzleScreen extends StatelessWidget {
           children: [
             Text(S.current.solvedAlertSubTitle),
             Text('${S.current.solvedAlertLevelLabel}: $difficultyStars $difficultyLabel'),
-            Text('${S.current.solvedAlertConfigLabel}:  $configLabel'),
+            Text(
+              '${S.current.solvedAlertConfigLabel}:  $configLabel',
+              style: state.isCustomConfig
+                  ? TextStyle(
+                      color: configColor,
+                      fontWeight: FontWeight.w600,
+                    )
+                  : null,
+            ),
             Text('${S.current.timeSpent}: $spentTime'),
             Text('${S.current.hintUsed}: $usedHints'),
           ],
@@ -173,17 +184,9 @@ class PuzzleScreen extends StatelessWidget {
       difficulty == PuzzleSessionDifficulty.hard ? '★★' : '★';
 
   String _configLabel(final BuildContext context, final PuzzleState state) =>
-      _isCustomConfig(state)
+      state.isCustomConfig
       ? S.of(context).historyConfigCustom
       : S.of(context).historyConfigStandard;
-
-  bool _isCustomConfig(final PuzzleState state) {
-    final configPieceIds = state.pieces
-        .where((final piece) => piece.isConfigItem)
-        .map((final piece) => piece.id)
-        .toSet();
-    return state.moveHistory.any((final move) => configPieceIds.contains(move.pieceId));
-  }
 }
 
 class _BottomFAB extends StatelessWidget {

@@ -1,7 +1,9 @@
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
+import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:intl/intl.dart';
@@ -48,7 +50,7 @@ class SessionList extends StatelessWidget {
       shrinkWrap: !primaryScroll,
       physics: primaryScroll ? null : const NeverScrollableScrollPhysics(),
       itemCount: sessions.length + 1,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      separatorBuilder: (final _, final __) => const SizedBox(height: 8),
       itemBuilder: (final context, final index) {
         if (index == 0) {
           return FilledButton.icon(
@@ -69,7 +71,10 @@ class SessionList extends StatelessWidget {
         final dateLabel = DateFormat.yMMMd().format(session.puzzleDate);
         final difficultyLabel = _difficultyLabel(session.difficulty);
         final difficultyStars = _difficultyStars(session.difficulty);
+        final isCustomConfig = _isCustomConfig(session);
         final configLabel = _configLabel(session);
+        final configColor =
+            isCustomConfig ? AppColors.current.customConfigAccent : null;
         return Card(
           child: ListTile(
             onTap: () => _confirmResumeSession(context, session),
@@ -78,9 +83,17 @@ class SessionList extends StatelessWidget {
               children: [
                 Expanded(child: Text('$statusLabel • $difficultyStars $difficultyLabel')),
                 const SizedBox(width: 8),
-                const Icon(Icons.extension, size: 16),
+                Icon(Icons.extension, size: 16, color: configColor),
                 const SizedBox(width: 4),
-                Text(configLabel),
+                Text(
+                  configLabel,
+                  style: isCustomConfig
+                      ? TextStyle(
+                          color: configColor,
+                          fontWeight: FontWeight.w600,
+                        )
+                      : null,
+                ),
               ],
             ),
             subtitle: Text(
@@ -125,10 +138,7 @@ class SessionList extends StatelessWidget {
   String _configLabel(final PuzzleSessionData session) =>
       _isCustomConfig(session) ? S.current.historyConfigCustom : S.current.historyConfigStandard;
 
-  bool _isCustomConfig(final PuzzleSessionData session) {
-    final configPieceIds = session.pieces.where((final piece) => piece.isConfigItem).map((final piece) => piece.id).toSet();
-    return session.moveHistory.any((final move) => configPieceIds.contains(move.pieceId));
-  }
+  bool _isCustomConfig(final PuzzleSessionData session) => session.configId != StandardPuzzleConfig.id;
 
   Future<void> _confirmResumeSession(final BuildContext context, final PuzzleSessionData session) async {
     final isSolved = session.status == PuzzleSessionStatus.solved;
