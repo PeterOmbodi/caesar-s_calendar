@@ -78,6 +78,11 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isUndoEnabled => !isSolving && moveHistory.isNotEmpty && moveIndex > 0;
 
+  bool get isCustomConfig => PuzzleConfigClassifier.isCustomConfig(
+    pieces: pieces,
+    gridConfig: gridConfig,
+  );
+
   bool isPieceInGrid(final String pieceId) => gridPieces.any((final e) => !e.isConfigItem && e.id == pieceId);
 
   List<Cell> get sortedConfigCells {

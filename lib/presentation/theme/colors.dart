@@ -34,6 +34,8 @@ abstract class ThemeColors {
   Color get todayLabel;
 
   Color get cellLabel;
+
+  Color get customConfigAccent;
 }
 
 class AppColors {
@@ -102,6 +104,9 @@ class Light implements ThemeColors {
 
   @override
   Color get cellLabel => Colors.black;
+
+  @override
+  Color get customConfigAccent => Colors.amber.shade800;
 }
 
 class Dark implements ThemeColors {
@@ -157,4 +162,7 @@ class Dark implements ThemeColors {
 
   @override
   Color get cellLabel => Colors.white;
+
+  @override
+  Color get customConfigAccent => Colors.amber.shade300;
 }
