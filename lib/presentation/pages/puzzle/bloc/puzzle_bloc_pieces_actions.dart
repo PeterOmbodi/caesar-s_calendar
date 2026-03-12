@@ -38,7 +38,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         pieces: pieces,
         moveHistory: [...state.moveHistory, move],
         moveIndex: state.moveIndex + 1,
-        status: _getStatus(pieces),
+        status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
         applicableSolutions: applicableSolutions,
       );
       final timedState = _resumeTimerAfterUserAction(prevState: prevState, nextState: nextState);
@@ -83,7 +83,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       pieces: pieces,
       moveHistory: [...state.moveHistory, move],
       moveIndex: state.moveIndex + 1,
-      status: _getStatus(pieces),
+      status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
       applicableSolutions: applicableSolutions,
     );
     final timedState = _resumeTimerAfterUserAction(prevState: prevState, nextState: nextState);
@@ -134,7 +134,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       applicableSolutions: applicableSolutions,
       moveHistory: [...state.moveHistory.take(state.moveIndex), move],
       moveIndex: state.moveIndex + 1,
-      status: _getStatus(pieces),
+      status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
     );
     final timedState = _resumeTimerAfterUserAction(prevState: prevState, nextState: nextState);
     emit(timedState);
@@ -199,26 +199,15 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     }
   }
 
-  // todo draft solution:
-  // need to check empty date cells
-  // need to change status for unique solutions only
-  GameStatus _getStatus(final Iterable<PuzzlePieceUI> pieces) {
+  GameStatus _getStatus({
+    required final Iterable<PuzzlePieceUI> pieces,
+    required final List<Map<String, PlacementParams>> applicableSolutions,
+  }) {
     if (state.selectedPiece?.isUsersItem == false) {
       return state.status;
     }
-    return pieces.where((final p) => p.placeZone == PlaceZone.board).isEmpty &&
-            !pieces.any(
-              (final piece) => _movementHandler.checkCollision(
-                piece: piece,
-                newPosition: piece.position,
-                zone: PlaceZone.grid,
-                preventOverlap: true,
-                pieces: pieces,
-                gridConfig: state.gridConfig,
-                boardConfig: state.boardConfig,
-              ),
-            )
-        ? GameStatus.solvedByUser
+    final boardHasPieces = pieces.any((final p) => p.placeZone == PlaceZone.board);
+    return !boardHasPieces && applicableSolutions.isNotEmpty ? GameStatus.solvedByUser
         : GameStatus.playing;
   }
 
