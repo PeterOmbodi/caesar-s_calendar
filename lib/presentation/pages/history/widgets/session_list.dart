@@ -26,6 +26,8 @@ class SessionList extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
+    final dateFormatter = DateFormat.yMMMd();
+    final timeFormatter = DateFormat.Hm();
     if (sessions.isEmpty) {
       return Center(
         child: Column(
@@ -68,13 +70,12 @@ class SessionList extends StatelessWidget {
         final usedHints = session.moveHistory.whereType<HintMove>().length;
         final subtitle =
             '${S.current.historyMoves}: ${session.moveIndex}  |  ${S.current.hintUsed}: $usedHints  |  ${S.current.historyDuration}: ${_formatDuration(durationMs)}';
-        final dateLabel = DateFormat.yMMMd().format(session.puzzleDate);
+        final dateLabel = dateFormatter.format(session.puzzleDate);
         final difficultyLabel = _difficultyLabel(session.difficulty);
         final difficultyStars = _difficultyStars(session.difficulty);
         final isCustomConfig = _isCustomConfig(session);
         final configLabel = _configLabel(session);
-        final configColor =
-            isCustomConfig ? AppColors.current.customConfigAccent : null;
+        final configColor = isCustomConfig ? AppColors.current.customConfigAccent : null;
         return Card(
           child: ListTile(
             onTap: () => _confirmResumeSession(context, session),
@@ -87,17 +88,12 @@ class SessionList extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   configLabel,
-                  style: isCustomConfig
-                      ? TextStyle(
-                          color: configColor,
-                          fontWeight: FontWeight.w600,
-                        )
-                      : null,
+                  style: isCustomConfig ? TextStyle(color: configColor, fontWeight: FontWeight.w600) : null,
                 ),
               ],
             ),
             subtitle: Text(
-              '$dateLabel • ${DateFormat.Hm().format(start)}\n'
+              '$dateLabel • ${timeFormatter.format(start)}\n'
               '$subtitle',
             ),
           ),
@@ -117,8 +113,7 @@ class SessionList extends StatelessWidget {
 
   int _displayDurationMs(final PuzzleSessionData session) {
     final segmentEndMs = session.completedAt ?? session.updatedAt;
-    final segmentStartMs =
-        session.lastResumedAt ?? (session.activeElapsedMs == 0 ? session.firstMoveAt : null);
+    final segmentStartMs = session.lastResumedAt ?? (session.activeElapsedMs == 0 ? session.firstMoveAt : null);
     if (segmentStartMs == null) {
       return session.activeElapsedMs;
     }
@@ -128,9 +123,7 @@ class SessionList extends StatelessWidget {
   }
 
   String _difficultyLabel(final PuzzleSessionDifficulty difficulty) =>
-      difficulty == PuzzleSessionDifficulty.hard
-      ? S.current.historyDifficultyHard
-      : S.current.historyDifficultyEasy;
+      difficulty == PuzzleSessionDifficulty.hard ? S.current.historyDifficultyHard : S.current.historyDifficultyEasy;
 
   String _difficultyStars(final PuzzleSessionDifficulty difficulty) =>
       difficulty == PuzzleSessionDifficulty.hard ? '★★' : '★';
