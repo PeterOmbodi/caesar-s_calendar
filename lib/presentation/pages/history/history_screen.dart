@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
-import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
@@ -48,110 +47,110 @@ class _HistoryView extends StatelessWidget {
             ),
           ],
         ),
-        body: SafeArea(
-          child: isLandscape
-              ? _buildLandscapeBody(context, state)
-              : _buildPortraitBody(context, state),
-        ),
+        body: SafeArea(child: isLandscape ? const _HistoryLandscapeBody() : const _HistoryPortraitBody()),
       );
     },
   );
 
-  Widget _buildPortraitBody(final BuildContext context, final HistoryState state) => Column(
-    children: [
-      const SizedBox(height: 8),
-      DateSelector(
-        selectedDate: state.selectedDate,
-        rangeStart: state.rangeStart,
-        rangeEnd: state.rangeEnd,
-        stats: state.calendarStats,
-        onDateTap: context.read<HistoryCubit>().selectDate,
-      ),
-      const SizedBox(height: 8),
-      if (state.errorMessage != null)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-        ),
-      Expanded(
-        child: state.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SessionList(
-                sessions: state.sessions,
-                selectedDate: state.selectedDate,
-                onStartPuzzleForDay: (final date) => _startPuzzleForDate(context, date),
-                onResumeSession: (final session) => _resumeSession(context, session),
-              ),
-      ),
-    ],
-  );
-
-  Widget _buildLandscapeBody(final BuildContext context, final HistoryState state) => CustomScrollView(
-    slivers: [
-      const SliverToBoxAdapter(child: SizedBox(height: 8)),
-      SliverPersistentHeader(
-        pinned: true,
-        delegate: _DateSelectorHeaderDelegate(
-          selectedDate: state.selectedDate,
-          rangeStart: state.rangeStart,
-          rangeEnd: state.rangeEnd,
-          stats: state.calendarStats,
-          onDateTap: context.read<HistoryCubit>().selectDate,
-        ),
-      ),
-      if (state.errorMessage != null)
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ),
-        ),
-      if (state.isLoading)
-        const SliverFillRemaining(
-          hasScrollBody: false,
-          child: Center(child: CircularProgressIndicator()),
-        )
-      else
-        SliverToBoxAdapter(
-          child: SessionList(
-            sessions: state.sessions,
-            selectedDate: state.selectedDate,
-            onStartPuzzleForDay: (final date) => _startPuzzleForDate(context, date),
-            onResumeSession: (final session) => _resumeSession(context, session),
-            primaryScroll: false,
-          ),
-        ),
-    ],
-  );
-
   Future<void> _pickDate(final BuildContext context, final DateTime selectedDate) async {
+    final historyCubit = context.read<HistoryCubit>();
     final picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2100, 12, 31),
     );
-    if (picked == null || !context.mounted) {
+    if (picked == null) {
       return;
     }
-    context.read<HistoryCubit>().selectDate(picked);
-  }
-
-  void _startPuzzleForDate(final BuildContext context, final DateTime date) {
-    Navigator.of(context).pop(HistoryScreenResult.startPuzzleForDate(date));
-  }
-
-  void _resumeSession(final BuildContext context, final PuzzleSessionData session) {
-    Navigator.of(context).pop(HistoryScreenResult.resumeSession(session));
+    historyCubit.selectDate(picked);
   }
 }
 
+class _HistoryPortraitBody extends StatelessWidget {
+  const _HistoryPortraitBody();
+
+  @override
+  Widget build(final BuildContext context) => BlocBuilder<HistoryCubit, HistoryState>(
+    builder: (final context, final state) => Column(
+      children: [
+        const SizedBox(height: 8),
+        DateSelector(
+          selectedDate: state.selectedDate,
+          rangeStart: state.rangeStart,
+          rangeEnd: state.rangeEnd,
+          stats: state.calendarStats,
+          onDateTap: context.read<HistoryCubit>().selectDate,
+        ),
+        const SizedBox(height: 8),
+        if (state.errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          ),
+        Expanded(
+          child: state.isSessionsLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SessionList(
+                  sessions: state.sessions,
+                  selectedDate: state.selectedDate,
+                  onStartPuzzleForDay: (final date) =>
+                      Navigator.of(context).pop(HistoryScreenResult.startPuzzleForDate(date)),
+                  onResumeSession: (final session) =>
+                      Navigator.of(context).pop(HistoryScreenResult.resumeSession(session)),
+                ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _HistoryLandscapeBody extends StatelessWidget {
+  const _HistoryLandscapeBody();
+
+  @override
+  Widget build(final BuildContext context) => BlocBuilder<HistoryCubit, HistoryState>(
+    builder: (final context, final state) => CustomScrollView(
+      slivers: [
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: _DateSelectorHeaderDelegate(
+            selectedDate: state.selectedDate,
+            rangeStart: state.rangeStart,
+            rangeEnd: state.rangeEnd,
+            stats: state.calendarStats,
+            isCalendarLoading: state.isCalendarLoading,
+            onDateTap: context.read<HistoryCubit>().selectDate,
+          ),
+        ),
+        if (state.errorMessage != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            ),
+          ),
+        if (state.isSessionsLoading)
+          const SliverFillRemaining(hasScrollBody: false, child: Center(child: CircularProgressIndicator()))
+        else
+          SliverToBoxAdapter(
+            child: SessionList(
+              sessions: state.sessions,
+              selectedDate: state.selectedDate,
+              onStartPuzzleForDay: (final date) =>
+                  Navigator.of(context).pop(HistoryScreenResult.startPuzzleForDate(date)),
+              onResumeSession: (final session) => Navigator.of(context).pop(HistoryScreenResult.resumeSession(session)),
+              primaryScroll: false,
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
 class _HistoryAppBarIconButton extends StatelessWidget {
-  const _HistoryAppBarIconButton({
-    required this.tooltip,
-    required this.icon,
-    required this.onPressed,
-  });
+  const _HistoryAppBarIconButton({required this.tooltip, required this.icon, required this.onPressed});
 
   final String tooltip;
   final IconData icon;
@@ -160,16 +159,11 @@ class _HistoryAppBarIconButton extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final theme = Theme.of(context);
-    final foreground =
-        theme.appBarTheme.foregroundColor ?? theme.colorScheme.onSurface;
+    final foreground = theme.appBarTheme.foregroundColor ?? theme.colorScheme.onSurface;
     return IconButton(
       tooltip: tooltip,
       onPressed: onPressed,
-      style: IconButton.styleFrom(
-        foregroundColor: foreground,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      style: IconButton.styleFrom(foregroundColor: foreground, backgroundColor: Colors.transparent, elevation: 0),
       icon: Icon(icon),
     );
   }
@@ -181,6 +175,7 @@ class _DateSelectorHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.rangeStart,
     required this.rangeEnd,
     required this.stats,
+    required this.isCalendarLoading,
     required this.onDateTap,
   });
 
@@ -188,6 +183,7 @@ class _DateSelectorHeaderDelegate extends SliverPersistentHeaderDelegate {
   final DateTime rangeStart;
   final DateTime rangeEnd;
   final List<CalendarDayStats> stats;
+  final bool isCalendarLoading;
   final ValueChanged<DateTime> onDateTap;
 
   @override
@@ -197,11 +193,7 @@ class _DateSelectorHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => 246;
 
   @override
-  Widget build(
-    final BuildContext context,
-    final double shrinkOffset,
-    final bool overlapsContent,
-  ) {
+  Widget build(final BuildContext context, final double shrinkOffset, final bool overlapsContent) {
     final total = (maxExtent - minExtent).clamp(1.0, double.infinity);
     final t = (shrinkOffset / total).clamp(0.0, 1.0);
     final currentExtent = (maxExtent - shrinkOffset).clamp(minExtent, maxExtent);
@@ -232,5 +224,6 @@ class _DateSelectorHeaderDelegate extends SliverPersistentHeaderDelegate {
       selectedDate != oldDelegate.selectedDate ||
       rangeStart != oldDelegate.rangeStart ||
       rangeEnd != oldDelegate.rangeEnd ||
+      isCalendarLoading != oldDelegate.isCalendarLoading ||
       stats != oldDelegate.stats;
 }

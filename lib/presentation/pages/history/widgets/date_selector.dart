@@ -73,7 +73,6 @@ class _DateSelectorState extends State<DateSelector> {
     );
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -154,9 +153,7 @@ class _DateSelectorState extends State<DateSelector> {
     final children = <Widget>[];
 
     if (widget.showMonthLabels) {
-      children.add(
-        Row(children: _buildMonthLabelWidgets(columns, monthLabels, textTheme)),
-      );
+      children.add(Row(children: _buildMonthLabelWidgets(columns, monthLabels, textTheme)));
       children.add(SizedBox(height: widget.monthsToGridGap));
     }
 
@@ -166,7 +163,6 @@ class _DateSelectorState extends State<DateSelector> {
         children: _buildGridColumns(columns, statsByDate, colorScheme, maxSolved),
       ),
     );
-
     return children;
   }
 
@@ -237,9 +233,7 @@ class _DateSelectorState extends State<DateSelector> {
           stats: day == null ? null : statsByDate[_monthDayKey(day)],
           maxSolved: maxSolved,
           colorScheme: colorScheme,
-          onTap: (final tappedDay) => widget.onDateTap(
-            DateTime(_calendarYear, tappedDay.month, tappedDay.day),
-          ),
+          onTap: (final tappedDay) => widget.onDateTap(DateTime(_calendarYear, tappedDay.month, tappedDay.day)),
           size: widget.cellSize,
         ),
       );
@@ -305,8 +299,7 @@ class _DateSelectorState extends State<DateSelector> {
     return (a ?? 0) + (b ?? 0);
   }
 
-  bool _isSameMonthDay(final DateTime a, final DateTime b) =>
-      a.month == b.month && a.day == b.day;
+  bool _isSameMonthDay(final DateTime a, final DateTime b) => a.month == b.month && a.day == b.day;
 
   String _monthDayKey(final DateTime date) =>
       '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -337,21 +330,18 @@ class _HeatmapDayCell extends StatelessWidget {
       return SizedBox(width: size, height: size);
     }
 
-    return Tooltip(
-      message: _tooltipText(context),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(3),
-        onTap: () => onTap(day!),
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            color: _fillColor(),
-            borderRadius: BorderRadius.circular(3),
-            border: Border.all(
-              color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
-              width: isSelected ? 1.5 : 0.6,
-            ),
+    return InkWell(
+      borderRadius: BorderRadius.circular(3),
+      onTap: () => onTap(day!),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: _fillColor(),
+          borderRadius: BorderRadius.circular(3),
+          border: Border.all(
+            color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+            width: isSelected ? 1.5 : 0.6,
           ),
         ),
       ),
@@ -409,23 +399,9 @@ class _HeatmapDayCell extends StatelessWidget {
         return solvedHigh;
     }
   }
-
-  String _tooltipText(final BuildContext context) {
-    final dateText = DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()).format(day!);
-    final solved = stats?.solvedVariants ?? 0;
-    final unsolved = stats?.unsolvedStarted ?? 0;
-    return '$dateText • solved: $solved • in progress: $unsolved';
-  }
 }
 
-enum _HeatLevel {
-  empty,
-  inProgress,
-  inProgressMany,
-  inProgressSolved,
-  solvedMany,
-  solvedHigh,
-}
+enum _HeatLevel { empty, inProgress, inProgressMany, inProgressSolved, solvedMany, solvedHigh }
 
 class _HeatScaleLegend extends StatelessWidget {
   const _HeatScaleLegend({required this.colorScheme});
