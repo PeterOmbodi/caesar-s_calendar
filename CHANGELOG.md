@@ -1,3 +1,8 @@
+## 1.4.11+23
+- add History page transition
+- fix solvability mark size
+- Use applicableSolutions to determine solved status
+
 ## 1.4.10+22
 - add 24 new locale bundles
   bg — Bulgarian (български)
