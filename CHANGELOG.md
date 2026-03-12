@@ -1,3 +1,7 @@
+## 1.4.12+24
+- fix(android): Remove deprecated display cutout flag from Android launch themes
+- refactor(history): HistoryScreen UI composition and reduce initial render overhead
+
 ## 1.4.11+23
 - add History page transition
 - fix solvability mark size
@@ -31,12 +35,12 @@
   sv — Swedish (svenska)
 
 ## 1.4.9+21
--detect custom config by actual layout
--highlight custom sessions
+- detect custom config by actual layout
+- highlight custom sessions
 
 ## 1.4.8+20
--mass upgrade dependencies
--migrate drift to 2.32/sqlite3 v3, refresh web wasm assets
+- mass upgrade dependencies
+- migrate drift to 2.32/sqlite3 v3, refresh web wasm assets
 
 ## 1.4.7+19
 - expand "How to Play" content:
