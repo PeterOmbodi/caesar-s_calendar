@@ -116,7 +116,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           isDragging: false,
           moveHistory: moveHistory,
           moveIndex: moveHistory.length,
-          status: _getStatus(pieces),
+          status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
           applicableSolutions: applicableSolutions,
         );
         final timedState = _resumeTimerAfterUserAction(prevState: prevState, nextState: nextState);

@@ -112,7 +112,15 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
 
   Future<void> _showHistory() async {
     final result = await Navigator.of(context).push<HistoryScreenResult>(
-      MaterialPageRoute<HistoryScreenResult>(builder: (_) => const HistoryScreen()),
+      PageRouteBuilder<HistoryScreenResult>(
+        pageBuilder: (final context, final animation, final secondaryAnimation) => const HistoryScreen(),
+        transitionsBuilder: (final context, final animation, final secondaryAnimation, final child) {
+          final offsetAnimation = animation.drive(
+            Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).chain(CurveTween(curve: Curves.easeOutCubic)),
+          );
+          return SlideTransition(position: offsetAnimation, child: child);
+        },
+      ),
     );
     if (result == null || !mounted) {
       return;

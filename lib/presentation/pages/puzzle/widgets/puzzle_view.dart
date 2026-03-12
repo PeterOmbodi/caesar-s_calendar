@@ -137,18 +137,10 @@ class _SolvabilityMark extends StatelessWidget {
                     color: Colors.grey.shade200,
                   ),
                   child: Center(
-                    child: Baseline(
-                      baseline: 24,
-                      baselineType: TextBaseline.alphabetic,
-                      child: Text(
-                        String.fromCharCode(icon.codePoint),
-                        style: TextStyle(
-                          fontFamily: icon.fontFamily,
-                          package: icon.fontPackage,
-                          fontSize: 26,
-                          color: iconColor,
-                        ),
-                      ),
+                    child: Icon(
+                      icon,
+                      size: cellSize / 2,
+                      color: iconColor,
                     ),
                   ),
                 ),
