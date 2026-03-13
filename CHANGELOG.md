@@ -1,3 +1,6 @@
+## 1.4.13+25
+- adjust how-to-play dialog spacing on iOS
+
 ## 1.4.12+24
 - fix(android): Remove deprecated display cutout flag from Android launch themes
 - refactor(history): HistoryScreen UI composition and reduce initial render overhead
