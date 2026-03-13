@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
@@ -8,6 +9,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_flap/flutter_flip_flap.dart';
@@ -53,7 +55,8 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
     if (_isPanelStateInitialized) {
       return;
     }
-    final isWideScreen = MediaQuery.of(context).size.width >= PuzzleScreen.wideScreenBreakpoint - PuzzleScreen.sidePanelWidth;
+    final isWideScreen =
+        MediaQuery.of(context).size.width >= PuzzleScreen.wideScreenBreakpoint - PuzzleScreen.sidePanelWidth;
     _isPanelOpen = isWideScreen;
     _visibleChildren = isWideScreen ? widget.children.length : 0;
     _isPanelStateInitialized = true;
@@ -98,14 +101,26 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
   }
 
   Future<void> _showHowToPlayDialog(final double viewWidth) async {
-    await showDialog(
+    final horizontalInset = viewWidth < 600 ? 12.0 : 40.0;
+    await showPlatformDialog(
       context: context,
-      builder: (final context) => PlatformAlertDialog(
-        material: (final context, final platform) =>
-            MaterialAlertDialogData(insetPadding: EdgeInsets.symmetric(horizontal: viewWidth < 600 ? 12 : 40)),
-        title: Text(S.current.howToPlayTitle),
-        content: const HowToPlayHint(),
-        actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
+      material: MaterialDialogData(
+        builder: (final context) => PlatformAlertDialog(
+          material: (final context, final platform) =>
+              MaterialAlertDialogData(insetPadding: EdgeInsets.symmetric(horizontal: horizontalInset)),
+          title: Text(S.current.howToPlayTitle),
+          content: const HowToPlayHint(),
+          actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
+        ),
+      ),
+      cupertino: CupertinoDialogData(
+        builder: (final dialogContext) => _InsetCupertinoAlertDialog(
+          insetPadding: EdgeInsets.symmetric(horizontal: horizontalInset, vertical: 24),
+          title: Text(S.current.howToPlayTitle),
+          content: const HowToPlayHint(),
+          actionLabel: S.current.ok,
+          onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
+        ),
       ),
     );
   }
@@ -182,9 +197,7 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
   );
 
   String _difficultyLabel(final PuzzleSessionDifficulty difficulty) =>
-      difficulty == PuzzleSessionDifficulty.hard
-      ? S.current.historyDifficultyHard
-      : S.current.historyDifficultyEasy;
+      difficulty == PuzzleSessionDifficulty.hard ? S.current.historyDifficultyHard : S.current.historyDifficultyEasy;
 
   @override
   Widget build(final BuildContext context) {
@@ -222,24 +235,24 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
                             final isFirst = i == 0;
                             final item = isFirst
                                 ? Row(
-                                  children: [
-                                    if (showHistoryButton)
+                                    children: [
+                                      if (showHistoryButton)
+                                        _PanelItemShell(
+                                          child: IconButton(
+                                            icon: const Icon(Icons.history),
+                                            onPressed: _showHistory,
+                                            tooltip: S.current.historyTitle,
+                                          ),
+                                        ),
                                       _PanelItemShell(
                                         child: IconButton(
-                                          icon: const Icon(Icons.history),
-                                          onPressed: _showHistory,
-                                          tooltip: S.current.historyTitle,
+                                          icon: const Icon(Icons.info_outline_rounded),
+                                          onPressed: () => _showHowToPlayDialog(viewWidth),
+                                          tooltip: S.current.howToPlayTitle,
                                         ),
                                       ),
-                                    _PanelItemShell(
-                                      child: IconButton(
-                                        icon: const Icon(Icons.info_outline_rounded),
-                                        onPressed: () => _showHowToPlayDialog(viewWidth),
-                                        tooltip: S.current.howToPlayTitle,
-                                      ),
-                                    ),
-                                  ],
-                                )
+                                    ],
+                                  )
                                 : _AnimatedPanelItem(
                                     index: i,
                                     isVisible: i <= _visibleChildren,
@@ -342,4 +355,121 @@ class _PanelItemShell extends StatelessWidget {
       child: child,
     ),
   );
+}
+
+class _InsetCupertinoAlertDialog extends StatelessWidget {
+  const _InsetCupertinoAlertDialog({
+    required this.insetPadding,
+    required this.title,
+    required this.content,
+    required this.actionLabel,
+    required this.onPressed,
+  });
+
+  final EdgeInsets insetPadding;
+  final Widget title;
+  final Widget content;
+  final String actionLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(final BuildContext context) {
+    final resolvedDividerColor = CupertinoDynamicColor.resolve(CupertinoColors.separator, context);
+    final resolvedBackgroundColor = CupertinoDynamicColor.resolve(
+      const CupertinoDynamicColor.withBrightness(color: Color(0xCCF2F2F2), darkColor: Color(0xCC2D2D2D)),
+      context,
+    );
+
+    final titleStyle = const TextStyle(
+      fontFamily: 'CupertinoSystemText',
+      inherit: false,
+      fontSize: 17,
+      fontWeight: FontWeight.w600,
+      height: 1.3,
+      letterSpacing: -0.5,
+      textBaseline: TextBaseline.alphabetic,
+    ).copyWith(color: CupertinoDynamicColor.resolve(CupertinoColors.label, context));
+
+    final contentStyle = const TextStyle(
+      fontFamily: 'CupertinoSystemText',
+      inherit: false,
+      fontSize: 13,
+      fontWeight: FontWeight.w400,
+      height: 1.35,
+      letterSpacing: -0.2,
+      textBaseline: TextBaseline.alphabetic,
+    ).copyWith(color: CupertinoDynamicColor.resolve(CupertinoColors.label, context));
+
+    return LayoutBuilder(
+      builder: (final context, final constraints) {
+        final maxHeight = constraints.maxHeight.isFinite ? constraints.maxHeight : MediaQuery.sizeOf(context).height;
+        final availableWidth = constraints.maxWidth - insetPadding.horizontal;
+        final dialogWidth = math.min(availableWidth, 560.0);
+        return AnimatedPadding(
+          padding: MediaQuery.viewInsetsOf(context) + insetPadding,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.decelerate,
+          child: MediaQuery.removeViewInsets(
+            removeLeft: true,
+            removeTop: true,
+            removeRight: true,
+            removeBottom: true,
+            context: context,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: dialogWidth, maxHeight: maxHeight - insetPadding.vertical),
+                  child: CupertinoPopupSurface(
+                    isSurfacePainted: false,
+                    child: ColoredBox(
+                      color: resolvedBackgroundColor,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: DefaultTextStyle(
+                                style: contentStyle,
+                                textAlign: TextAlign.center,
+                                child: SingleChildScrollView(
+                                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      DefaultTextStyle(style: titleStyle, textAlign: TextAlign.center, child: title),
+                                      const SizedBox(height: 8),
+                                      content,
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            DecoratedBox(
+                              decoration: BoxDecoration(
+                                border: Border(top: BorderSide(color: resolvedDividerColor)),
+                              ),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  onPressed: onPressed,
+                                  child: Text(actionLabel),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
