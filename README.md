@@ -6,11 +6,19 @@ Live demo: [peterombodi.github.io/caesar-s_calendar](https://peterombodi.github.
 
 ## Screenshots
 
-<img width="778" height="578" alt="Main puzzle screen" src="https://github.com/user-attachments/assets/141bc5b8-748e-4ba5-b483-02e0d3ea1bfa" />
+| Main screen | Main screen - session started |
+| --- | --- |
+| <img width="360" alt="Main screen" src="https://github.com/user-attachments/assets/e03011a0-8f18-46a3-a637-e05742c5274e" /> | <img width="360" alt="Main screen - session started" src="https://github.com/user-attachments/assets/9451eff9-9ede-4ee8-bd2f-d8d8270d9c53" /> |
 
-<img width="778" height="578" alt="Settings and puzzle UI" src="https://github.com/user-attachments/assets/f2960475-b98b-42e2-846a-459a3bebfea8" />
+| History | Settings |
+| --- | --- |
+| <img width="360" alt="History" src="https://github.com/user-attachments/assets/dff6ec58-7be7-4bcd-b663-00d54eeec5ae" /> | <img width="360" alt="Settings" src="https://github.com/user-attachments/assets/7676f64b-082e-4576-bb9a-114c1115e60f" /> |
 
-## Video
+| Result | Custom configuration |
+| --- | --- |
+| <img width="360" alt="Result" src="https://github.com/user-attachments/assets/8d199a9f-4eef-4b6f-84f2-6bf105689e52" /> | <img width="360" alt="Custom configuration" src="https://github.com/user-attachments/assets/40850fd9-c0a1-48e2-80ae-6b00e1f26191" /> |
+
+## Video!
 
 https://github.com/user-attachments/assets/91496d97-04af-49c6-9fc9-181f21d011be
 
