@@ -18,9 +18,15 @@ Live demo: [peterombodi.github.io/caesar-s_calendar](https://peterombodi.github.
 | --- | --- |
 | <img width="360" alt="Result" src="https://github.com/user-attachments/assets/8d199a9f-4eef-4b6f-84f2-6bf105689e52" /> | <img width="360" alt="Custom configuration" src="https://github.com/user-attachments/assets/40850fd9-c0a1-48e2-80ae-6b00e1f26191" /> |
 
-## Video!
+## Video
 
-https://github.com/user-attachments/assets/91496d97-04af-49c6-9fc9-181f21d011be
+Gameplay
+
+https://github.com/user-attachments/assets/5ee9eb2f-bec3-4dd3-becf-91759006862a
+
+Solutions overview
+
+https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 
 ## Features
 
