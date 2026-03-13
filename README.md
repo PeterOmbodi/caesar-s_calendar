@@ -1,43 +1,74 @@
----
+# Caesar's Puzzle
 
-## Caesar's Puzzle 
+Caesar's Puzzle is a cross-platform Flutter puzzle game inspired by calendar puzzles, tangrams, and polyomino placement games. The goal is to place all pieces so that exactly two cells remain uncovered: the current month and the current day.
 
-Caesar's Puzzle is a cross-platform puzzle game built with Flutter, where players assemble pieces on a board in a style reminiscent of Tetris or Tangram. The project supports Android, iOS, Windows, macOS, Linux, and Web.
-
----
-You can try it **here**: [Live demo][demo]
-
-[demo]: https://peterombodi.github.io/caesar-s_calendar/
-
----
+Live demo: [peterombodi.github.io/caesar-s_calendar](https://peterombodi.github.io/caesar-s_calendar/)
 
 ## Screenshots
 
-<img width="778" height="578" alt="image" src="https://github.com/user-attachments/assets/141bc5b8-748e-4ba5-b483-02e0d3ea1bfa" />
+<img width="778" height="578" alt="Main puzzle screen" src="https://github.com/user-attachments/assets/141bc5b8-748e-4ba5-b483-02e0d3ea1bfa" />
 
-<img width="778" height="578" alt="image" src="https://github.com/user-attachments/assets/f2960475-b98b-42e2-846a-459a3bebfea8" />
-
----
+<img width="778" height="578" alt="Settings and puzzle UI" src="https://github.com/user-attachments/assets/f2960475-b98b-42e2-846a-459a3bebfea8" />
 
 ## Video
 
 https://github.com/user-attachments/assets/91496d97-04af-49c6-9fc9-181f21d011be
 
----
-
 ## Features
 
-- Intuitive drag-and-drop interface for placing puzzle pieces
-- Rotate pieces with a single tap or click
-- Flip pieces with a double tap/click
-- Automatic puzzle solver powered by the Dancing Links algorithm
-- Move history with undo and redo functionality
-- Supports screen rotation and dynamic resizing
-- Light and dark themes with manual override
-- Multi-platform support: Android, iOS, Windows, macOS, Linux, Web
-- Modern UI built with Flutter
+- Daily calendar puzzle based on the selected date
+- Drag-and-drop piece placement with support for touch and mouse
+- Single tap/click to rotate a piece
+- Double tap/click to flip a piece
+- Automatic solving powered by the Dancing Links algorithm
+- Hint system and full solution preview
+- Undo and redo for move history
+- Puzzle history with resume support for in-progress sessions
+- Calendar history view with per-day activity stats
+- Configurable puzzle layout by unlocking fixed board blocks
+- Theme switching: system, light, and dark
+- Solving timer and solution indicators
+- Localized UI with 26 language files in `lib/l10n`
+- Support for Android, iOS, Windows, macOS, Linux, and Web
 
----
+## How to Play
+
+Goal:
+Place all puzzle pieces on the board so that exactly two cells remain free: the cells for the selected month and day.
+
+The current date can be changed through the history screen, and the board layout can also be customized by unlocking the predefined blocked cells.
+
+Controls:
+
+1. Drag pieces from the tray onto the board.
+2. Tap or click a piece to rotate it.
+3. Double tap or double click a piece to flip it.
+4. Open `Info` to view the in-app how-to-play guide.
+5. Open `History` to resume saved sessions or switch to another puzzle date.
+6. Use `Solve` to display an automatic solution for the current layout.
+7. Use `Hint` to reveal one valid move.
+8. Use `Undo` and `Redo` to navigate move history.
+9. Use `Reset` to restart the current puzzle.
+10. Open `Settings` to change gameplay and UI behavior.
+
+Settings currently include:
+
+- theme mode
+- unlock/lock board configuration
+- automatic re-locking of board configuration
+- overlap prevention
+- snap-to-grid on transform
+- separate move colors
+- solution indicator mode: hidden, solvability, or solution count
+- solving timer visibility
+
+## Persistence
+
+The app persists user settings and gameplay state locally:
+
+- `hydrated_bloc` stores UI settings and active state
+- `drift` stores puzzle history and session data
+- Web builds use `sqlite3.wasm` and `drift_worker.js` for Drift persistence
 
 ## Getting Started
 
@@ -54,106 +85,94 @@ cd CaesarPuzzle
 flutter pub get
 ```
 
-### 3. Run code generation for libraries like freezed, injectable etc:
-```
-flutter pub run build_runner build --delete-conflicting-outputs
+### 3. Generate code
+
+Run this after changing `freezed`, `json_serializable`, `injectable`, or Drift-related sources:
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
 ```
 
-### 4. Run code generation for internationalized strings:
-```
+### 4. Generate localization files when ARB files change
+
+```bash
 flutter pub global run intl_utils:generate
 ```
 
-### 5. Run on your desired platform
+### 5. Run the app
 
-- **Android/iOS:**  
-  Open the project in Android Studio or VS Code and run on an emulator/device.
-- **Web:**  
-  ```bash
-  flutter run -d chrome
-  ```
-  Use a fixed port to ensure persistent `SharedPreferences` in development:
-  ```bash
-  flutter run -d chrome --web-port=5000
-  ```
-  Drift (SQLite in web) requires these files in `web/`:
-  - `sqlite3.wasm`
-  - `drift_worker.js`
+- Android or iOS:
 
-  Build worker script when needed:
-  ```bash
-  dart compile js web/drift_worker.dart -o web/drift_worker.js
-  ```
+```bash
+flutter run
+```
 
-  Rebuild `drift_worker.js` only when worker entrypoint or Drift web runtime changes (e.g. Drift version upgrade).
-  Database schema changes (tables, DAOs, migrations) do **not** require rebuilding the worker.
+- Web:
 
-- **Windows/macOS/Linux:**  
-  ```bash
-  flutter run -d windows   # or macos, linux
-  ```
+```bash
+flutter run -d chrome
+```
 
----
+To keep `SharedPreferences` stable during local web development, use a fixed port:
+
+```bash
+flutter run -d chrome --web-port=5000
+```
+
+- Windows, macOS, or Linux:
+
+```bash
+flutter run -d windows
+flutter run -d macos
+flutter run -d linux
+```
+
+## Web Notes
+
+The web app depends on these runtime files in `web/`:
+
+- `sqlite3.wasm`
+- `drift_worker.js`
+
+Rebuild the worker only when the worker entrypoint or the Drift web runtime changes:
+
+```bash
+dart compile js web/drift_worker.dart -o web/drift_worker.js
+```
+
+Database schema changes alone do not require rebuilding `drift_worker.js`.
 
 ## Project Structure
 
-```
+```text
 lib/
-  application/         // Business logic (use cases)
-  core/                // Models and utilities
-  domain/              // Entities and algorithms
-  infrastructure/      // Algorithm implementations and DTOs
-  presentation/        // UI, BLoC, pages, widgets
+  application/      business logic and use cases
+  core/             shared constants, helpers, and foundational types
+  domain/           puzzle entities and solving algorithms
+  infrastructure/   persistence, repositories, and external integrations
+  presentation/     UI, blocs/cubits, pages, themes, and widgets
+  l10n/             ARB localization sources
+  generated/        generated localization output
 ```
 
----
+## Solver
 
-## How to Play
+The automatic solver is based on Dancing Links. The core implementation lives under:
 
-**Goal:**
-Place all puzzle pieces on the board so that _exactly two cells remain free_ - the ones corresponding to the current month and current day.
-Every day the target cells change, creating a new unique challenge.
-For even more variety, you can modify the layout by moving the predefined blocks.
+`lib/domain/algorithms/dancing_links/`
 
-1. **Drag & Drop** pieces onto the board.
-2. **Rotate** pieces with a single tap/click.
-3. **Flip** pieces with a double tap/click.
-4. Use the **Solve** button to see the automatic solution.
-5. Press **Hint** to reveal one move for a random piece.
-6. Use **Undo** / **Redo** to revert or repeat your last actions.
-7. Press **Reset** to return to the initial puzzle state.
-8. Open **Settings** to:
-    - switch theme
-    - lock/unlock configuration (move predefined blocks to create your own layout)
-    - enable/disable overlapping and snapping to grid
-    - highlight pieces when using a hint
-    - display solvability status
-    - show the number of possible solutions for the current configuration and already placed pieces
-    - track the time spent on solving the puzzle
+## Tech Stack
 
----
-
-## Automatic Solver
-
-The project features a Dancing Links algorithm for solving the puzzle.  
-You can find the implementation in `lib/domain/algorithms/dancing_links/`.
-
----
-
-## Contributing
-
-Pull requests and suggestions are welcome!  
-Please open issues for bugs and feature ideas.
-
----
+- Flutter
+- BLoC / Cubit
+- Hydrated BLoC
+- Drift
+- Freezed
+- Injectable / GetIt
+- Intl / ARB localization
 
 ## License
 
 [MIT License](LICENSE)
 
----
-
-**Author:** Peter Ombodi
-
----
-
+Author: Peter Ombodi
