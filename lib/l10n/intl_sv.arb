@@ -1,6 +1,7 @@
 {
   "@@locale": "sv",
   "additional": "Ytterligare",
+  "auto": "Auto",
   "appTitle": "Caesars kalender",
   "autoLockConfig": "Lås konfiguration automatiskt",
   "autoLockConfigDescription": "Lås konfigurationen efter första draget",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Lösning",
   "howToPlaySolutionNumbDescription": "Lösningsnumret i förhandsvisningsläget för möjliga lösningar.",
   "howToPlayShadow": "En grön skugga under dragning betyder att en ledig plats hittats och att du kan släppa biten. En röd skugga betyder konflikt med andra bitar eller brädets gränser.",
+  "language": "Språk",
   "light": "Ljus",
   "lockConfig": "Lås konfiguration",
   "nextSolution": "Nästa lösning",
@@ -116,3 +118,5 @@
   "unlockConfig": "Lås upp konfiguration",
   "unlockConfigDescription": "Dra och rotera fördefinierade block för att skapa en egen layout"
 }
+
+

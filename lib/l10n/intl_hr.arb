@@ -1,6 +1,7 @@
 {
   "@@locale": "hr",
   "additional": "Dodatno",
+  "auto": "Auto",
   "appTitle": "Cezarov kalendar",
   "autoLockConfig": "Automatsko zaključavanje konfiguracije",
   "autoLockConfigDescription": "Zaključaj konfiguraciju nakon prvog poteza",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Rješenje",
   "howToPlaySolutionNumbDescription": "Broj rješenja u načinu pregleda mogućih rješenja.",
   "howToPlayShadow": "Zelena sjena tijekom povlačenja znači da je pronađeno slobodno mjesto i možeš pustiti dio. Crvena sjena znači sukob s drugim dijelovima ili granicama ploče.",
+  "language": "Jezik",
   "light": "Svijetla",
   "lockConfig": "Zaključaj konfiguraciju",
   "nextSolution": "Sljedeće rješenje",
@@ -116,3 +118,5 @@
   "unlockConfig": "Otključaj konfiguraciju",
   "unlockConfigDescription": "Povlači i rotiraj zadane blokove kako bi izradio vlastiti raspored"
 }
+
+

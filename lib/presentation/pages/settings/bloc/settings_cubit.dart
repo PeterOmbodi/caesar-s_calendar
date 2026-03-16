@@ -19,6 +19,8 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     debugPrint('setTheme: $theme');
     emit(state.copyWith(theme: theme));
   }
+
+  void setLocaleCode(final String? localeCode) => emit(state.copyWith(localeCode: localeCode));
   void toggleUnlockConfig(final bool v) => emit(state.copyWith(unlockConfig: v));
   void togglePreventOverlap(final bool v) => emit(state.copyWith(preventOverlap: v));
   void toggleAutoLockConfig(final bool v) => emit(state.copyWith(autoLockConfig: v));

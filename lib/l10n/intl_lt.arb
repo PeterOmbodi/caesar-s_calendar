@@ -1,6 +1,7 @@
 {
   "@@locale": "lt",
   "additional": "Papildoma",
+  "auto": "Auto",
   "appTitle": "Cezario kalendorius",
   "autoLockConfig": "Automatinis konfigūracijos užrakinimas",
   "autoLockConfigDescription": "Užrakinti konfigūraciją po pirmo ėjimo",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Sprendimas",
   "howToPlaySolutionNumbDescription": "Sprendimo numeris galimų sprendimų peržiūros režime.",
   "howToPlayShadow": "Žalias šešėlis tempimo metu reiškia, kad rasta laisva vieta. Raudonas šešėlis reiškia konfliktą su kitomis detalėmis arba lentos ribomis.",
+  "language": "Kalba",
   "light": "Šviesi",
   "lockConfig": "Užrakinti konfigūraciją",
   "nextSolution": "Kitas sprendimas",
@@ -116,3 +118,5 @@
   "unlockConfig": "Atrakinti konfigūraciją",
   "unlockConfigDescription": "Tempk ir suk iš anksto nustatytus blokus, kad sukurtum savo išdėstymą"
 }
+
+

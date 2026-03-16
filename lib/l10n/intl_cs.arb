@@ -1,6 +1,7 @@
 {
   "@@locale": "cs",
   "additional": "Další",
+  "auto": "Auto",
   "appTitle": "Caesarův kalendář",
   "autoLockConfig": "Automaticky uzamknout konfiguraci",
   "autoLockConfigDescription": "Uzamknout konfiguraci po prvním tahu",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Řešení",
   "howToPlaySolutionNumbDescription": "Číslo řešení v režimu náhledu možných řešení.",
   "howToPlayShadow": "Zelený stín při přetahování znamená, že bylo nalezeno volné místo a dílek můžete pustit. Červený stín znamená konflikt s jinými dílky nebo hranicemi plochy.",
+  "language": "Jazyk",
   "light": "Světlý",
   "lockConfig": "Uzamknout konfiguraci",
   "nextSolution": "Další řešení",
@@ -116,3 +118,5 @@
   "unlockConfig": "Odemknout konfiguraci",
   "unlockConfigDescription": "Přetahujte a otáčejte předdefinované bloky a vytvořte vlastní rozložení"
 }
+
+

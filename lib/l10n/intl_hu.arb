@@ -1,6 +1,7 @@
 {
   "@@locale": "hu",
   "additional": "További",
+  "auto": "Auto",
   "appTitle": "Caesar naptára",
   "autoLockConfig": "Automatikus konfiguráció-zárolás",
   "autoLockConfigDescription": "Az első lépés után zárolja a konfigurációt",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Megoldás",
   "howToPlaySolutionNumbDescription": "A megoldás sorszáma az előnézeti módban.",
   "howToPlayShadow": "A zöld árnyék húzás közben azt jelzi, hogy a darab lerakható. A piros árnyék ütközést jelez más elemekkel vagy a pálya szélével.",
+  "language": "Nyelv",
   "light": "Világos",
   "lockConfig": "Konfiguráció zárolása",
   "nextSolution": "Következő megoldás",
@@ -116,3 +118,5 @@
   "unlockConfig": "Konfiguráció feloldása",
   "unlockConfigDescription": "Húzd és forgasd a fix blokkokat saját elrendezés létrehozásához"
 }
+
+

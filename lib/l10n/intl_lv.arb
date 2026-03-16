@@ -1,6 +1,7 @@
 {
   "@@locale": "lv",
   "additional": "Papildus",
+  "auto": "Auto",
   "appTitle": "Cēzara kalendārs",
   "autoLockConfig": "Automātiska konfigurācijas bloķēšana",
   "autoLockConfigDescription": "Bloķēt konfigurāciju pēc pirmā gājiena",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Risinājums",
   "howToPlaySolutionNumbDescription": "Risinājuma numurs iespējamo risinājumu priekšskatījuma režīmā.",
   "howToPlayShadow": "Zaļa ēna vilkšanas laikā nozīmē, ka atrasta brīva vieta. Sarkana ēna nozīmē konfliktu ar citām detaļām vai laukuma robežām.",
+  "language": "Valoda",
   "light": "Gaiša",
   "lockConfig": "Bloķēt konfigurāciju",
   "nextSolution": "Nākamais risinājums",
@@ -116,3 +118,5 @@
   "unlockConfig": "Atbloķēt konfigurāciju",
   "unlockConfigDescription": "Velc un pagriez iepriekš noteiktos blokus, lai izveidotu savu izkārtojumu"
 }
+
+

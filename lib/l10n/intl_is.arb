@@ -1,6 +1,7 @@
 {
   "@@locale": "is",
   "additional": "Viðbót",
+  "auto": "Auto",
   "appTitle": "Dagatal Sesars",
   "autoLockConfig": "Læsa uppsetningu sjálfkrafa",
   "autoLockConfigDescription": "Læsa uppsetningu eftir fyrsta leik",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Lausn",
   "howToPlaySolutionNumbDescription": "Númer lausnar í forskoðunarham mögulegra lausna.",
   "howToPlayShadow": "Grænn skuggi við drátt þýðir að laus staða fannst og þú getur sleppt bitanum. Rauður skuggi þýðir árekstur við aðra bita eða mörk borðsins.",
+  "language": "Tungumál",
   "light": "Ljóst",
   "lockConfig": "Læsa uppsetningu",
   "nextSolution": "Næsta lausn",
@@ -116,3 +118,5 @@
   "unlockConfig": "Opna uppsetningu",
   "unlockConfigDescription": "Dragðu og snúðu fyrirfram skilgreindum kubbum til að búa til eigið skipulag"
 }
+
+

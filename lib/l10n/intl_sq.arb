@@ -1,6 +1,7 @@
 {
   "@@locale": "sq",
   "additional": "Shtesë",
+  "auto": "Auto",
   "appTitle": "Kalendari i Cezarit",
   "autoLockConfig": "Bllokim automatik i konfigurimit",
   "autoLockConfigDescription": "Blloko konfigurimin pas lëvizjes së parë",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Zgjidhje",
   "howToPlaySolutionNumbDescription": "Numri i zgjidhjes në mënyrën e parashikimit të zgjidhjeve të mundshme.",
   "howToPlayShadow": "Hija e gjelbër gjatë tërheqjes do të thotë se u gjet vend i lirë. Hija e kuqe do të thotë konflikt me pjesë të tjera ose kufijtë e tabelës.",
+  "language": "Gjuha",
   "light": "E çelët",
   "lockConfig": "Blloko konfigurimin",
   "nextSolution": "Zgjidhja tjetër",
@@ -116,3 +118,5 @@
   "unlockConfig": "Zhblloko konfigurimin",
   "unlockConfigDescription": "Tërhiq dhe rrotullo blloqet e paracaktuara për të krijuar paraqitjen tënde"
 }
+
+

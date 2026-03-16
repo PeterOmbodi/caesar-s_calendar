@@ -1,6 +1,7 @@
 {
   "@@locale": "pl",
   "additional": "Dodatkowe",
+  "auto": "Auto",
   "appTitle": "Kalendarz Cezara",
   "autoLockConfig": "Automatyczna blokada konfiguracji",
   "autoLockConfigDescription": "Zablokuj konfigurację po pierwszym ruchu",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Rozwiązanie",
   "howToPlaySolutionNumbDescription": "Numer rozwiązania w trybie podglądu możliwych rozwiązań.",
   "howToPlayShadow": "Zielony cień podczas przeciągania oznacza, że znaleziono wolne miejsce i możesz puścić element. Czerwony cień oznacza konflikt z innymi elementami lub granicami planszy.",
+  "language": "Język",
   "light": "Jasny",
   "lockConfig": "Zablokuj konfigurację",
   "nextSolution": "Następne rozwiązanie",
@@ -116,3 +118,5 @@
   "unlockConfig": "Odblokuj konfigurację",
   "unlockConfigDescription": "Przeciągaj i obracaj predefiniowane bloki, aby zbudować własny układ"
 }
+
+

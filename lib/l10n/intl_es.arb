@@ -1,6 +1,7 @@
 {
   "@@locale": "es",
   "additional": "Adicional",
+  "auto": "Auto",
   "appTitle": "Calendario de César",
   "autoLockConfig": "Bloqueo automático de configuración",
   "autoLockConfigDescription": "Bloquear la configuración tras el primer movimiento",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Solución",
   "howToPlaySolutionNumbDescription": "Número de solución en el modo de vista previa de soluciones posibles.",
   "howToPlayShadow": "Una sombra verde al arrastrar significa que se encontró un lugar libre para la pieza y puedes soltarla. Una sombra roja significa conflicto con otras piezas o con los límites del tablero.",
+  "language": "Idioma",
   "light": "Claro",
   "lockConfig": "Bloquear configuración",
   "nextSolution": "Siguiente solución",
@@ -116,3 +118,5 @@
   "unlockConfig": "Desbloquear configuración",
   "unlockConfigDescription": "Arrastra y rota bloques predefinidos para crear tu propio diseño"
 }
+
+

@@ -1,6 +1,7 @@
 {
   "@@locale": "nl",
   "additional": "Extra",
+  "auto": "Auto",
   "appTitle": "Caesars kalender",
   "autoLockConfig": "Configuratie automatisch vergrendelen",
   "autoLockConfigDescription": "Vergrendel de configuratie na de eerste zet",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Oplossing",
   "howToPlaySolutionNumbDescription": "Het oplossingsnummer in de voorbeeldmodus voor mogelijke oplossingen.",
   "howToPlayShadow": "Een groene schaduw tijdens slepen betekent dat er een vrije plek is gevonden en je kunt loslaten. Een rode schaduw betekent een conflict met andere stukken of bordgrenzen.",
+  "language": "Taal",
   "light": "Licht",
   "lockConfig": "Configuratie vergrendelen",
   "nextSolution": "Volgende oplossing",
@@ -116,3 +118,5 @@
   "unlockConfig": "Configuratie ontgrendelen",
   "unlockConfigDescription": "Sleep en draai vooraf ingestelde blokken om je eigen lay-out te maken"
 }
+
+
