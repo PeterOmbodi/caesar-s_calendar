@@ -1,6 +1,7 @@
 {
   "@@locale": "fr",
   "additional": "Supplémentaire",
+  "auto": "Auto",
   "appTitle": "Calendrier de César",
   "autoLockConfig": "Verrouillage auto de la configuration",
   "autoLockConfigDescription": "Verrouiller la configuration au premier coup",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Numéro de solution",
   "howToPlaySolutionNumbDescription": "Le numéro de solution en mode aperçu des solutions possibles.",
   "howToPlayShadow": "Une ombre verte pendant le déplacement signifie qu'un emplacement libre a été trouvé pour la pièce et que vous pouvez la relâcher. Une ombre rouge signifie un conflit avec d'autres pièces ou les limites du plateau.",
+  "language": "Langue",
   "light": "Clair",
   "lockConfig": "Verrouiller la configuration",
   "nextSolution": "Solution suivante",
@@ -116,3 +118,5 @@
   "unlockConfig": "Déverrouiller la configuration",
   "unlockConfigDescription": "Faites glisser et pivoter les blocs prédéfinis pour créer votre propre disposition"
 }
+
+

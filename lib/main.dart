@@ -41,13 +41,14 @@ class MyApp extends StatelessWidget {
   Widget build(final BuildContext context) => BlocProvider(
     create: (final context) => SettingsCubit(),
     child: BlocBuilder<SettingsCubit, SettingsState>(
-      buildWhen: (final p, final n) => p.theme != n.theme,
+      buildWhen: (final p, final n) => p.theme != n.theme || p.localeCode != n.localeCode,
       builder: (final context, final settings) => MaterialApp(
         debugShowCheckedModeBanner: false,
         onGenerateTitle: (final context) => S.of(context).appTitle,
         theme: AppThemeData.light,
         darkTheme: AppThemeData.dark,
         themeMode: settings.theme.toThemeMode(),
+        locale: settings.locale,
         builder: (final context, final child) {
           final brightness = Theme.of(context).brightness;
           AppColors.update(brightness);

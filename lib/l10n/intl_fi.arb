@@ -1,6 +1,7 @@
 {
   "@@locale": "fi",
   "additional": "Lisä",
+  "auto": "Auto",
   "appTitle": "Caesarin kalenteri",
   "autoLockConfig": "Lukitse asettelu automaattisesti",
   "autoLockConfigDescription": "Lukitse asettelu ensimmäisen siirron jälkeen",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Ratkaisu",
   "howToPlaySolutionNumbDescription": "Ratkaisun numero mahdollisten ratkaisujen esikatselutilassa.",
   "howToPlayShadow": "Vihreä varjo vetämisen aikana tarkoittaa, että palalle löytyi vapaa paikka. Punainen varjo tarkoittaa ristiriitaa muiden palojen tai laudan rajojen kanssa.",
+  "language": "Kieli",
   "light": "Vaalea",
   "lockConfig": "Lukitse asettelu",
   "nextSolution": "Seuraava ratkaisu",
@@ -116,3 +118,5 @@
   "unlockConfig": "Avaa asettelu",
   "unlockConfigDescription": "Vedä ja kierrä ennalta määritettyjä lohkoja luodaksesi oman asettelun"
 }
+
+

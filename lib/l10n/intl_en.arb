@@ -1,6 +1,7 @@
 {
   "@@locale": "en",
   "additional": "Additional",
+  "auto": "Auto",
   "appTitle": "Caesar's calendar",
   "autoLockConfig": "Auto lock config",
   "autoLockConfigDescription": "Lock configuration on first move",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Solution",
   "howToPlaySolutionNumbDescription": "The solution number in possible-solutions preview mode.",
   "howToPlayShadow": "A green shadow while dragging means a free spot was found for the piece and you can release it. A red shadow means there is a conflict with other pieces or board boundaries.",
+  "language": "Language",
   "light": "Light",
   "lockConfig": "Lock configuration",
   "nextSolution": "Next solution",
@@ -116,3 +118,5 @@
   "unlockConfig": "Unlock configuration",
   "unlockConfigDescription": "Drag & rotate predefined blocks to build your custom layout"
 }
+
+

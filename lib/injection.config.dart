@@ -46,11 +46,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i947.PuzzleHistoryDao>(
       () => driftModule.puzzleHistoryDao(gh<_i616.AppDatabase>()),
     );
-    gh.factory<_i470.SolvePuzzleUseCase>(
-      () => _i470.SolvePuzzleUseCase(gh<_i138.PuzzleSolverService>()),
-    );
     gh.lazySingleton<_i735.PuzzleHistoryRepository>(
       () => _i388.PuzzleHistoryRepositoryImpl(gh<_i947.PuzzleHistoryDao>()),
+    );
+    gh.factory<_i470.SolvePuzzleUseCase>(
+      () => _i470.SolvePuzzleUseCase(gh<_i138.PuzzleSolverService>()),
     );
     gh.lazySingleton<_i196.PuzzleHistoryUseCase>(
       () => _i196.PuzzleHistoryUseCase(gh<_i735.PuzzleHistoryRepository>()),

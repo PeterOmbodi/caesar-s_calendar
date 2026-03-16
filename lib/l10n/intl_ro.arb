@@ -1,6 +1,7 @@
 {
   "@@locale": "ro",
   "additional": "Suplimentar",
+  "auto": "Auto",
   "appTitle": "Calendarul lui Caesar",
   "autoLockConfig": "Blocare automată a configurației",
   "autoLockConfigDescription": "Blochează configurația după prima mutare",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Soluție",
   "howToPlaySolutionNumbDescription": "Numărul soluției în modul de previzualizare a soluțiilor posibile.",
   "howToPlayShadow": "O umbră verde în timpul tragerii înseamnă că a fost găsit un loc liber pentru piesă și o poți elibera. O umbră roșie înseamnă conflict cu alte piese sau cu marginile tablei.",
+  "language": "Limba",
   "light": "Deschis",
   "lockConfig": "Blochează configurația",
   "nextSolution": "Soluția următoare",
@@ -116,3 +118,5 @@
   "unlockConfig": "Deblochează configurația",
   "unlockConfigDescription": "Trage și rotește blocurile predefinite pentru a crea propriul aspect"
 }
+
+

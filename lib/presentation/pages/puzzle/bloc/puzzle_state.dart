@@ -63,6 +63,8 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isSolving => status == GameStatus.searchingSolutions;
 
+  bool get isSolved => status == GameStatus.solvedByUser;
+
   bool get isPaused =>
       status == GameStatus.paused || (status != GameStatus.playing && status != GameStatus.solutionsReady);
 

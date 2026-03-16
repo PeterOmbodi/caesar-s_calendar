@@ -4,9 +4,9 @@ enum AppTheme { system, light, dark }
 
 @freezed
 abstract class SettingsState with _$SettingsState {
-
   const factory SettingsState({
     @Default(AppTheme.system) final AppTheme theme,
+    final String? localeCode,
     @Default(false) final bool unlockConfig,
     @Default(true) final bool preventOverlap,
     @Default(true) final bool autoLockConfig,
@@ -18,10 +18,8 @@ abstract class SettingsState with _$SettingsState {
 
   const SettingsState._();
 
-
   factory SettingsState.fromJson(final Map<String, dynamic> json) =>
       _$SettingsStateFromJson(json);
-
 }
 
 extension AppThemeX on AppTheme {
@@ -46,4 +44,8 @@ extension AppThemeX on AppTheme {
         return AppTheme.system;
     }
   }
+}
+
+extension SettingsStateLocaleX on SettingsState {
+  Locale? get locale => localeCode == null ? null : Locale(localeCode!);
 }

@@ -1,6 +1,7 @@
 {
   "@@locale": "nb",
   "additional": "Ekstra",
+  "auto": "Auto",
   "appTitle": "Cæsars kalender",
   "autoLockConfig": "Lås konfigurasjon automatisk",
   "autoLockConfigDescription": "Lås konfigurasjonen etter første trekk",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Løsning",
   "howToPlaySolutionNumbDescription": "Løsningsnummer i forhåndsvisning av mulige løsninger.",
   "howToPlayShadow": "En grønn skygge under dragging betyr at en ledig plass er funnet og du kan slippe brikken. En rød skygge betyr konflikt med andre brikker eller brettets grenser.",
+  "language": "Språk",
   "light": "Lys",
   "lockConfig": "Lås konfigurasjon",
   "nextSolution": "Neste løsning",
@@ -116,3 +118,5 @@
   "unlockConfig": "Lås opp konfigurasjon",
   "unlockConfigDescription": "Dra og roter forhåndsdefinerte blokker for å lage ditt eget oppsett"
 }
+
+

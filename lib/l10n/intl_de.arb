@@ -1,6 +1,7 @@
 {
   "@@locale": "de",
   "additional": "Zusätzlich",
+  "auto": "Auto",
   "appTitle": "Caesars Kalender",
   "autoLockConfig": "Konfiguration automatisch sperren",
   "autoLockConfigDescription": "Konfiguration nach dem ersten Zug sperren",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Lösung",
   "howToPlaySolutionNumbDescription": "Die Lösungsnummer im Vorschau-Modus für mögliche Lösungen.",
   "howToPlayShadow": "Ein grüner Schatten beim Ziehen bedeutet, dass ein freier Platz gefunden wurde und du loslassen kannst. Ein roter Schatten bedeutet einen Konflikt mit anderen Teilen oder den Brettgrenzen.",
+  "language": "Sprache",
   "light": "Hell",
   "lockConfig": "Konfiguration sperren",
   "nextSolution": "Nächste Lösung",
@@ -116,3 +118,5 @@
   "unlockConfig": "Konfiguration entsperren",
   "unlockConfigDescription": "Vorgegebene Blöcke ziehen und drehen, um ein eigenes Layout zu erstellen"
 }
+
+

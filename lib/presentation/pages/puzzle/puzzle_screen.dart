@@ -211,7 +211,7 @@ class _BottomFAB extends StatelessWidget {
                   (isSolvabilityInfoVisible && solutionsCount == 0) ||
                   state.isShowSolutions;
           final isHintDisabled =
-              state.isSolving || isSolveDisabled || state.isShowSolutions;
+              state.isSolving || isSolveDisabled || state.isShowSolutions || state.isSolved;
 
           Future<void> onAssistPressed(final VoidCallback allowedEvent) async {
             if (solutionsCount == 0) {

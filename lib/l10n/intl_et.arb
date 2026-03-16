@@ -1,6 +1,7 @@
 {
   "@@locale": "et",
   "additional": "Lisad",
+  "auto": "Auto",
   "appTitle": "Caesari kalender",
   "autoLockConfig": "Paigutuse automaatlukustus",
   "autoLockConfigDescription": "Lukusta paigutus pärast esimest käiku",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Lahendus",
   "howToPlaySolutionNumbDescription": "Lahenduse number võimalike lahenduste eelvaates.",
   "howToPlayShadow": "Roheline vari lohistamisel tähendab, et tüki jaoks leiti vaba koht. Punane vari tähendab konflikti teiste tükkide või laua piiridega.",
+  "language": "Keel",
   "light": "Hele",
   "lockConfig": "Lukusta konfiguratsioon",
   "nextSolution": "Järgmine lahendus",
@@ -116,3 +118,5 @@
   "unlockConfig": "Ava konfiguratsioon",
   "unlockConfigDescription": "Lohista ja pööra etteantud plokke, et luua oma paigutus"
 }
+
+

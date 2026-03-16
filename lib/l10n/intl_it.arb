@@ -1,6 +1,7 @@
 {
   "@@locale": "it",
   "additional": "Aggiuntivo",
+  "auto": "Auto",
   "appTitle": "Calendario di Cesare",
   "autoLockConfig": "Blocco automatico configurazione",
   "autoLockConfigDescription": "Blocca la configurazione alla prima mossa",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Soluzione",
   "howToPlaySolutionNumbDescription": "Numero della soluzione nella modalità anteprima soluzioni possibili.",
   "howToPlayShadow": "Un'ombra verde durante il trascinamento significa che è stato trovato uno spazio libero per il pezzo e puoi rilasciarlo. Un'ombra rossa indica un conflitto con altri pezzi o con i limiti del tabellone.",
+  "language": "Lingua",
   "light": "Chiaro",
   "lockConfig": "Blocca configurazione",
   "nextSolution": "Soluzione successiva",
@@ -116,3 +118,5 @@
   "unlockConfig": "Sblocca configurazione",
   "unlockConfigDescription": "Trascina e ruota i blocchi predefiniti per creare la tua disposizione"
 }
+
+

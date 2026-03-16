@@ -1,6 +1,7 @@
 {
   "@@locale": "sk",
   "additional": "Dodatočné",
+  "auto": "Auto",
   "appTitle": "Caesarov kalendár",
   "autoLockConfig": "Automatické uzamknutie konfigurácie",
   "autoLockConfigDescription": "Uzamkni konfiguráciu po prvom ťahu",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Riešenie",
   "howToPlaySolutionNumbDescription": "Číslo riešenia v režime náhľadu možných riešení.",
   "howToPlayShadow": "Zelený tieň pri ťahaní znamená, že bolo nájdené voľné miesto a môžeš diel pustiť. Červený tieň znamená konflikt s inými dielmi alebo hranicami plochy.",
+  "language": "Jazyk",
   "light": "Svetlá",
   "lockConfig": "Uzamknúť konfiguráciu",
   "nextSolution": "Ďalšie riešenie",
@@ -116,3 +118,5 @@
   "unlockConfig": "Odomknúť konfiguráciu",
   "unlockConfigDescription": "Ťahaj a otáčaj preddefinované bloky a vytvor vlastné rozloženie"
 }
+
+

@@ -1,6 +1,7 @@
 {
   "@@locale": "sl",
   "additional": "Dodatno",
+  "auto": "Auto",
   "appTitle": "Cezarjev koledar",
   "autoLockConfig": "Samodejno zakleni konfiguracijo",
   "autoLockConfigDescription": "Zakleni konfiguracijo po prvi potezi",
@@ -73,6 +74,7 @@
   "howToPlaySolutionNumbTitle": "Rešitev",
   "howToPlaySolutionNumbDescription": "Številka rešitve v načinu predogleda možnih rešitev.",
   "howToPlayShadow": "Zelena senca med vlečenjem pomeni, da je najdeno prosto mesto in lahko kos spustiš. Rdeča senca pomeni konflikt z drugimi kosi ali robovi plošče.",
+  "language": "Jezik",
   "light": "Svetla",
   "lockConfig": "Zakleni konfiguracijo",
   "nextSolution": "Naslednja rešitev",
@@ -116,3 +118,5 @@
   "unlockConfig": "Odkleni konfiguracijo",
   "unlockConfigDescription": "Povleci in zavrti vnaprej določene bloke, da ustvariš svojo postavitev"
 }
+
+
