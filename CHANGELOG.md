@@ -1,6 +1,7 @@
 ## 1.5.0+26
 - add manual locale selection in settings panel
 - disable hint for solved puzzle
+- ios, fix distribution settings
  
 ## 1.4.13+25
 - adjust how-to-play dialog spacing on iOS
