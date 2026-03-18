@@ -42,4 +42,6 @@ abstract class PuzzleHistoryRepository {
   Future<PuzzleSessionData?> getLatestUnsolvedSession({
     required final DateTime puzzleDate,
   });
+
+  Future<void> clearLocalData();
 }

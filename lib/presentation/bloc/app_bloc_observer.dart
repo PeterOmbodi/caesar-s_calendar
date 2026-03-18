@@ -10,7 +10,7 @@ class AppBlocObserver extends BlocObserver {
   void onChange(final BlocBase<dynamic> bloc, final Change<dynamic> change) {
     super.onChange(bloc, change);
     if (bloc is Cubit && change.nextState != change.currentState) {
-      debugPrint('AppBlocObserver, ${bloc.runtimeType} state changed: ${change.nextState}');
+      debugPrint('${DateTime.now()}, AppBlocObserver, ${bloc.runtimeType} state changed: ${change.nextState}');
     }
   }
 

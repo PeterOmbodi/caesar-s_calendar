@@ -3,6 +3,7 @@ import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/services/timer_service.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
@@ -285,6 +286,11 @@ class _BottomFAB extends StatelessWidget {
                   onPressed: () => Scaffold.of(context).openEndDrawer(),
                   tooltip: S.current.settings,
                 ),
+              IconButton(
+                icon: const Icon(Icons.cloud_sync),
+                onPressed: () => getIt<SyncRunner>().requestSync(),
+                tooltip: 'Sync now',
+              ),
               IconButton(
                 icon: Icon(Icons.lightbulb),
                 onPressed: isSolveDisabled

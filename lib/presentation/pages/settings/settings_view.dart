@@ -1,5 +1,8 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -220,6 +223,19 @@ class SettingsPanel extends StatelessWidget {
                     onChanged: cubit.setLocaleCode,
                   ),
                 ],
+              ),
+              const SizedBox(height: 12),
+              const Divider(),
+              const SizedBox(height: 12),
+              BlocBuilder<AuthCubit, AuthState>(
+                buildWhen: (final p, final n) =>
+                    p.isAvailable != n.isAvailable ||
+                    p.user?.uid != n.user?.uid ||
+                    p.user?.isAnonymous != n.user?.isAnonymous ||
+                    p.isLoading != n.isLoading ||
+                    p.errorMessage != n.errorMessage ||
+                    p.pendingAccountSwitch != n.pendingAccountSwitch,
+                builder: (final context, final auth) => AccountSection(auth: auth),
               ),
               const SizedBox(height: 12),
               const Divider(),

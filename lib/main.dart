@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/presentation/bloc/app_bloc_observer.dart';
+import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
@@ -12,12 +13,16 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'generated/l10n.dart';
+import 'infrastructure/firebase/firebase_bootstrap.dart';
+import 'infrastructure/sync/sync_runner.dart';
 import 'injection.dart';
 
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  await FirebaseBootstrap.ensureInitialized();
   configureInjection();
+  getIt<SyncRunner>().start();
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
         ? HydratedStorageDirectory.web
@@ -38,8 +43,11 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(final BuildContext context) => BlocProvider(
-    create: (final context) => SettingsCubit(),
+  Widget build(final BuildContext context) => MultiBlocProvider(
+    providers: [
+      BlocProvider(create: (_) => SettingsCubit()),
+      BlocProvider(create: (_) => getIt<AuthCubit>()),
+    ],
     child: BlocBuilder<SettingsCubit, SettingsState>(
       buildWhen: (final p, final n) => p.theme != n.theme || p.localeCode != n.localeCode,
       builder: (final context, final settings) => MaterialApp(
