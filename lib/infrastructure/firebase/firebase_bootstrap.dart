@@ -1,3 +1,4 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
@@ -11,6 +12,8 @@ class FirebaseBootstrapResult {
 }
 
 class FirebaseBootstrap {
+  static const _webAppCheckSiteKey = String.fromEnvironment('FIREBASE_APPCHECK_WEB_SITE_KEY');
+
   static bool _initialized = false;
   static FirebaseBootstrapResult? _result;
 
@@ -21,9 +24,8 @@ class FirebaseBootstrap {
     _initialized = true;
 
     try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      await _activateAppCheck();
       _result = const FirebaseBootstrapResult(enabled: true);
       return _result!;
     } catch (e) {
@@ -33,5 +35,30 @@ class FirebaseBootstrap {
       return _result!;
     }
   }
-}
 
+  static Future<void> _activateAppCheck() async {
+    if (kIsWeb) {
+      if (_webAppCheckSiteKey.isEmpty) {
+        debugPrint('Firebase App Check skipped on web: FIREBASE_APPCHECK_WEB_SITE_KEY is not set.');
+        return;
+      }
+      await FirebaseAppCheck.instance.activate(providerWeb: ReCaptchaEnterpriseProvider(_webAppCheckSiteKey));
+      return;
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        await FirebaseAppCheck.instance.activate();
+        return;
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        await FirebaseAppCheck.instance.activate(providerApple: const AppleAppAttestWithDeviceCheckFallbackProvider());
+        return;
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        debugPrint('Firebase App Check is not configured for this platform.');
+        return;
+    }
+  }
+}
