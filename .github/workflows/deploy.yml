@@ -1,3 +1,6 @@
+env:
+  FIREBASE_APPCHECK_WEB_SITE_KEY: ${{ vars.FIREBASE_APPCHECK_WEB_SITE_KEY }}
+
 name: Deploy Flutter Web to GH Pages
 on:
   push:
@@ -16,7 +19,7 @@ jobs:
       - run: flutter pub get
       - run: dart run build_runner build -d
       - run: dart run intl_utils:generate
-      - run: flutter build web --release --base-href /caesar-s_calendar/
+      - run: flutter build web --release --base-href /caesar-s_calendar/ --dart-define=FIREBASE_APPCHECK_WEB_SITE_KEY=$FIREBASE_APPCHECK_WEB_SITE_KEY
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
