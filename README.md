@@ -38,6 +38,7 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 - Hint system and full solution preview
 - Undo and redo for move history
 - Puzzle history with resume support for in-progress sessions
+- Cross-device puzzle session sync for signed-in users on Android, iOS, and Web
 - Calendar history view with per-day activity stats
 - Configurable puzzle layout by unlocking fixed board blocks
 - Theme switching: system, light, and dark
