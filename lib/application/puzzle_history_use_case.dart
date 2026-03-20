@@ -9,6 +9,8 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
+import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
+import 'package:caesar_puzzle/injection.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton()
@@ -161,6 +163,9 @@ class PuzzleHistoryUseCase {
         solutionSignatures: signatures,
         completedAt: DateTime.now(),
       );
+      getIt<SyncRunner>()
+        ..requestSync()
+        ..publishProfileNow();
     }
   }
 

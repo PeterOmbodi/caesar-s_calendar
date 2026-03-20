@@ -84,6 +84,16 @@ The app persists user settings and gameplay state locally:
 - `drift` stores puzzle history and session data
 - Web builds use `sqlite3.wasm` and `drift_worker.js` for Drift persistence
 
+## Cloud Sync
+
+The project uses Firebase Auth and Firestore for cloud-backed data.
+
+- Guest mode is local-only by default.
+- Google sign-in and Apple sign-in enable a cloud-backed account.
+- Cloud data is keyed by Firebase Auth `uid`.
+
+The intended account and sync behavior is documented in [docs/account_sync_model.md](/c:/Users/Admin/StudioProjects/caesar-s_calendar2/docs/account_sync_model.md).
+
 ## Getting Started
 
 ### 1. Clone the repository
@@ -126,6 +136,14 @@ flutter run
 ```bash
 flutter run -d chrome
 ```
+
+For Google sign-in on Web, set the OAuth Web Client ID in [web/index.html](/c:/Users/Admin/StudioProjects/caesar-s_calendar2/web/index.html):
+
+```bash
+<meta name="google-signin-client_id" content="YOUR_WEB_CLIENT_ID.apps.googleusercontent.com">
+```
+
+`--dart-define=GOOGLE_WEB_CLIENT_ID=...` is still supported as an optional override.
 
 To keep `SharedPreferences` stable during local web development, use a fixed port:
 

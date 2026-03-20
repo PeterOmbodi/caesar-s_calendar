@@ -52,7 +52,7 @@ class SessionList extends StatelessWidget {
       shrinkWrap: !primaryScroll,
       physics: primaryScroll ? null : const NeverScrollableScrollPhysics(),
       itemCount: sessions.length + 1,
-      separatorBuilder: (final _, final __) => const SizedBox(height: 8),
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (final context, final index) {
         if (index == 0) {
           return FilledButton.icon(

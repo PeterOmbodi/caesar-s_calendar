@@ -34,6 +34,42 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     with _$PuzzleHistoryDaoMixin {
   PuzzleHistoryDao(super.db);
 
+  Future<void> markSessionDirty(final String sessionId, final int updatedAt) async {
+    await (update(puzzleSessions)..where((final row) => row.id.equals(sessionId))).write(
+      PuzzleSessionsCompanion(
+        syncState: const Value(1),
+        updatedAt: Value(updatedAt),
+      ),
+    );
+  }
+
+  Future<void> markConfigDirty(final String configId, final int updatedAt) async {
+    await (update(puzzleConfigs)..where((final row) => row.id.equals(configId))).write(
+      PuzzleConfigsCompanion(
+        syncState: const Value(1),
+        updatedAt: Value(updatedAt),
+      ),
+    );
+  }
+
+  Future<void> markSolutionCountDirty({
+    required final String puzzleDate,
+    required final String configId,
+    required final int updatedAt,
+  }) async {
+    await (update(puzzleSolutionCounts)
+          ..where(
+                (final row) =>
+            row.puzzleDate.equals(puzzleDate) & row.configId.equals(configId),
+          ))
+        .write(
+      PuzzleSolutionCountsCompanion(
+        syncState: const Value(1),
+        updatedAt: Value(updatedAt),
+      ),
+    );
+  }
+
   Future<void> upsertConfig({
     required final String id,
     required final String configJson,
@@ -49,6 +85,9 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
       ),
     );
   }
+
+  Future<PuzzleConfig?> getConfigById(final String id) =>
+      (select(puzzleConfigs)..where((final row) => row.id.equals(id))).getSingleOrNull();
 
   Future<void> upsertSolutionCount({
     required final String puzzleDate,
@@ -102,6 +141,22 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     await batch((final batch) {
       batch.insertAllOnConflictUpdate(puzzleSolvedSolutions, entries);
     });
+  }
+
+  Future<void> clearAllData() async {
+    await batch((final batch) {
+      batch.deleteAll(puzzleSolvedSolutions);
+      batch.deleteAll(puzzleSolutionCounts);
+      batch.deleteAll(puzzleSessions);
+      batch.deleteAll(puzzleConfigs);
+    });
+  }
+
+  Future<bool> hasAnySessions() async {
+    final row = await (selectOnly(puzzleSessions)
+          ..addColumns([puzzleSessions.id.count()]))
+        .getSingle();
+    return (row.read(puzzleSessions.id.count()) ?? 0) > 0;
   }
 
   Future<PuzzleSession?> getLatestUnsolvedSession({

@@ -11,6 +11,7 @@ import 'package:caesar_puzzle/infrastructure/dto/move_history_dto.dart';
 import 'package:caesar_puzzle/infrastructure/dto/puzzle_piece_snapshot_dto.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/app_database.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/daos/puzzle_history_dao.dart';
+import 'package:caesar_puzzle/infrastructure/sync/sync_state.dart';
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
@@ -27,6 +28,10 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
   Future<String> upsertConfig({required final String configJson, final DateTime? createdAt}) async {
     final now = createdAt ?? DateTime.now();
     final configId = _hash(configJson);
+    final existing = await _dao.getConfigById(configId);
+    if (existing != null) {
+      return configId;
+    }
     final nowMs = now.millisecondsSinceEpoch;
     await _dao.upsertConfig(
       id: configId,
@@ -34,6 +39,7 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
       createdAt: nowMs,
       updatedAt: nowMs,
     );
+    await _dao.markConfigDirty(configId, nowMs);
     return configId;
   }
 
@@ -45,13 +51,15 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
     final DateTime? computedAt,
   }) async {
     final now = DateTime.now();
+    final nowMs = now.millisecondsSinceEpoch;
     await _dao.upsertSolutionCount(
       puzzleDate: _dateKey(puzzleDate),
       configId: configId,
       totalSolutions: totalSolutions,
       computedAt: (computedAt ?? now).millisecondsSinceEpoch,
-      updatedAt: now.millisecondsSinceEpoch,
+      updatedAt: nowMs,
     );
+    await _dao.markSolutionCountDirty(puzzleDate: _dateKey(puzzleDate), configId: configId, updatedAt: nowMs);
   }
 
   @override
@@ -75,6 +83,7 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
         moveHistoryJson: _encodeMoves(session.moveHistory),
         moveIndex: session.moveIndex,
         moveHistoryVersion: session.moveHistoryVersion == 0 ? _moveHistoryVersion : session.moveHistoryVersion,
+        syncState: Value(SyncState.dirty.code),
       ),
     );
     return sessionId;
@@ -97,6 +106,7 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
         moveHistoryJson: Value(_encodeMoves(session.moveHistory)),
         moveIndex: Value(session.moveIndex),
         moveHistoryVersion: Value(session.moveHistoryVersion == 0 ? _moveHistoryVersion : session.moveHistoryVersion),
+        syncState: Value(SyncState.dirty.code),
       ),
     );
   }
@@ -117,6 +127,7 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
       completedAt: (completedAt ?? now).millisecondsSinceEpoch,
       updatedAt: nowMs,
     );
+    await _dao.markSessionDirty(sessionId, nowMs);
     final entries = solutionSignatures
         .map(
           (final signature) => PuzzleSolvedSolutionsCompanion.insert(
@@ -126,6 +137,7 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
             solvedAt: nowMs,
             sessionId: sessionId,
             updatedAt: nowMs,
+            syncState: Value(SyncState.dirty.code),
           ),
         )
         .toList();
@@ -163,6 +175,12 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
     if (row == null) return null;
     return _sessionFromRow(row);
   }
+
+  @override
+  Future<bool> hasAnyLocalSessions() => _dao.hasAnySessions();
+
+  @override
+  Future<void> clearLocalData() => _dao.clearAllData();
 
   List<CalendarDayStats> _fillMissingDays(
     final DateTime from,

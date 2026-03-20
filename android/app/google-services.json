@@ -1,0 +1,70 @@
+{
+  "project_info": {
+    "project_number": "991187302399",
+    "project_id": "caesar-puzzle-673a2",
+    "storage_bucket": "caesar-puzzle-673a2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:991187302399:android:e4bff8f133fd0e07f7d9ca",
+        "android_client_info": {
+          "package_name": "com.peter_ombodi.caesar_puzzle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "991187302399-8vdnieg3478kc686cuolojdip1c4ilkj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.peter_ombodi.caesar_puzzle",
+            "certificate_hash": "8bc4baefde7609de03987feef8ae5d87d53b59d5"
+          }
+        },
+        {
+          "client_id": "991187302399-n9535mbr4kj8ee45taeg1no5tdkk4288.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.peter_ombodi.caesar_puzzle",
+            "certificate_hash": "5084d886deeb48caa23a251416799339b0e44c40"
+          }
+        },
+        {
+          "client_id": "991187302399-plkgn3dtrt6h147194g60g1k8rs8qpmj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.peter_ombodi.caesar_puzzle",
+            "certificate_hash": "73e2b1c11d5186325bbe6916c6b78ea77854b8c4"
+          }
+        },
+        {
+          "client_id": "991187302399-n05fk79nvobtk8benjskjrlkrbrvdeol.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbafpxAg0lYmPNkHGPaQL2VwGKPER-JCU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "991187302399-n05fk79nvobtk8benjskjrlkrbrvdeol.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "991187302399-eog16l2d8gjmfijaucoiu9ukamldtuu6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.peter.ombodi.caesarcalendar.caesarPuzzle"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

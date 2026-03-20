@@ -1,3 +1,13 @@
+## 1.6.0+27
+- add Google sign-in and Apple sign-in
+- add cross-device puzzle session sync for signed-in users 
+- add Firebase App Check support with web debug flow for localhost
+- add account and sync management section in Settings:
+  - public profile toggle
+  - sync status
+  - manual sync action
+  - sign-out and delete-account actions
+
 ## 1.5.0+26
 - add manual locale selection in settings panel
 - disable hint for solved puzzle
