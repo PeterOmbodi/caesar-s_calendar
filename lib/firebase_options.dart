@@ -60,11 +60,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDa9y9Cp5Ud_qgy7OUh1HrAAIP4Ec3u1ng',
-    appId: '1:991187302399:ios:49442449fc98abb6f7d9ca',
+    appId: '1:991187302399:ios:71efe756d7b7385af7d9ca',
     messagingSenderId: '991187302399',
     projectId: 'caesar-puzzle-673a2',
     storageBucket: 'caesar-puzzle-673a2.firebasestorage.app',
-    iosBundleId: 'com.peter.ombodi.caesarcalendar.caesarPuzzle',
+    iosBundleId: 'com.peter.ombodi.caesarPuzzle',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

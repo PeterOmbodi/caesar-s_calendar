@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>991187302399-edq0109kdpona4kspi0t4d5uv95ragjt.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.991187302399-edq0109kdpona4kspi0t4d5uv95ragjt</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>991187302399-8vdnieg3478kc686cuolojdip1c4ilkj.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCG0a7dOaM7U0CP3azfw_3q5WIIYGECp4Q</string>
+	<key>GCM_SENDER_ID</key>
+	<string>991187302399</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.peter.ombodi.caesarPuzzle</string>
+	<key>PROJECT_ID</key>
+	<string>caesar-puzzle-673a2</string>
+	<key>STORAGE_BUCKET</key>
+	<string>caesar-puzzle-673a2.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:991187302399:ios:71efe756d7b7385af7d9ca</string>
+</dict>
+</plist>
