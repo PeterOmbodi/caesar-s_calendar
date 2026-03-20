@@ -82,6 +82,63 @@ class _AccountSectionState extends State<AccountSection> {
     cubit.cancelAccountSwitch();
   }
 
+  Future<void> _showDeleteAccountDialog() async {
+    final cubit = context.read<AuthCubit>();
+    final providerLabel = _deleteConfirmationProviderLabel(widget.auth.user);
+    var confirmed = false;
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (final context) => StatefulBuilder(
+        builder: (final context, final setState) => AlertDialog(
+          title: const Text('Delete account?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'This permanently deletes your cloud account and synced data from this app. '
+                'You will be signed out and switched to a fresh guest profile on this device.',
+              ),
+              if (providerLabel != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Next, $providerLabel will ask you to confirm your identity. '
+                  'Although it may look like sign-in, that step is only used to authorize account deletion.',
+                ),
+              ],
+              const SizedBox(height: 12),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: confirmed,
+                controlAffinity: ListTileControlAffinity.leading,
+                title: const Text('I understand this cannot be undone.'),
+                onChanged: (final value) => setState(() => confirmed = value ?? false),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: confirmed ? () => Navigator.of(context).pop(true) : null,
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
+              ),
+              child: Text(
+                providerLabel == null ? 'Delete account' : 'Continue to $providerLabel',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || shouldDelete != true) return;
+    await cubit.deleteAccount();
+  }
+
   @override
   Widget build(final BuildContext context) {
     final auth = widget.auth;
@@ -212,6 +269,13 @@ class _AccountSectionState extends State<AccountSection> {
                 onPressed: auth.isLoading || user == null || isAnonymous ? null : cubit.signOut,
                 child: const Text('Sign out'),
               ),
+              OutlinedButton(
+                onPressed: auth.isLoading || user == null || isAnonymous ? null : _showDeleteAccountDialog,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: const Text('Delete account'),
+              ),
             ],
           ),
         ],
@@ -223,6 +287,18 @@ class _AccountSectionState extends State<AccountSection> {
     if (kIsWeb) return false;
     final platform = Theme.of(context).platform;
     return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
+
+  String? _deleteConfirmationProviderLabel(final dynamic user) {
+    for (final profile in user?.providerData ?? const []) {
+      switch (profile.providerId) {
+        case 'google.com':
+          return 'Google';
+        case 'apple.com':
+          return 'Apple';
+      }
+    }
+    return null;
   }
 
   String? _bestDisplayName(final dynamic user) {

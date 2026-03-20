@@ -111,6 +111,25 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> deleteAccount() async {
+    emit(
+      state.copyWith(
+        isLoading: true,
+        errorMessage: null,
+        pendingAccountSwitch: null,
+      ),
+    );
+    try {
+      await _runWithSyncPaused(() async {
+        await _auth.deleteCurrentAccount();
+        await _resetLocalProfile();
+        await _ensureGuestSession();
+      });
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
   Future<void> _runWithSyncPaused(final Future<void> Function() action) async {
     await _syncRunner.pause();
     try {

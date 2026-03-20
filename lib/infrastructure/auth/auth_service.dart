@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:caesar_puzzle/infrastructure/auth/auth_failure.dart';
 import 'package:caesar_puzzle/infrastructure/firebase/firebase_bootstrap.dart';
+import 'package:caesar_puzzle/infrastructure/firebase/firestore_paths.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -273,6 +274,26 @@ class AuthService {
     }
   }
 
+  Future<void> deleteCurrentAccount() async {
+    if (!isAvailable) {
+      throw const AuthUnavailableFailure();
+    }
+
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw const AuthUnavailableFailure('No signed-in user to delete');
+    }
+
+    final providerKind = _providerKindForUser(user);
+    if (providerKind != null && !user.isAnonymous) {
+      await _reauthenticate(user, providerKind);
+    }
+
+    await _deleteCloudData(user.uid);
+    await user.delete();
+    await _signOutProviderSessions();
+  }
+
   Future<void> _ensureUserDoc() async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -318,6 +339,85 @@ class AuthService {
     }
     return null;
   }
+
+  AuthProviderKind? _providerKindForUser(final User user) {
+    for (final profile in user.providerData) {
+      switch (profile.providerId) {
+        case 'apple.com':
+          return AuthProviderKind.apple;
+        case 'google.com':
+          return AuthProviderKind.google;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _reauthenticate(final User user, final AuthProviderKind providerKind) async {
+    final credential = switch (providerKind) {
+      AuthProviderKind.google => await _reauthenticateWithGoogle(),
+      AuthProviderKind.apple => await _reauthenticateWithApple(),
+    };
+    await user.reauthenticateWithCredential(credential);
+  }
+
+  Future<AuthCredential> _reauthenticateWithGoogle() async {
+    await _google.initialize(
+      clientId: _googleWebClientId.isNotEmpty ? _googleWebClientId : null,
+    );
+    if (!_google.supportsAuthenticate()) {
+      throw const AuthUnavailableFailure('Google re-authentication is not supported on this platform');
+    }
+
+    final account = await _google.authenticate(scopeHint: const ['email']);
+    final auth = account.authentication;
+    return GoogleAuthProvider.credential(idToken: auth.idToken);
+  }
+
+  Future<AuthCredential> _reauthenticateWithApple() async {
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+    );
+    return OAuthProvider('apple.com').credential(
+      idToken: appleCredential.identityToken,
+      accessToken: appleCredential.authorizationCode,
+    );
+  }
+
+  Future<void> _deleteCloudData(final String uid) async {
+    await _deleteCollection(FirestorePaths.userSessions(uid));
+    await _deleteCollection(FirestorePaths.userConfigs(uid));
+    await _deleteCollection(FirestorePaths.userSolvedSolutions(uid));
+    await _deleteCollection('${FirestorePaths.userDoc(uid)}/solutionCounts');
+    await _firestore.doc(FirestorePaths.publicUserDoc(uid)).delete().catchError((_) {});
+    await _firestore.doc(FirestorePaths.userDoc(uid)).delete().catchError((_) {});
+  }
+
+  Future<void> _deleteCollection(final String path) async {
+    while (true) {
+      final snapshot = await _firestore.collection(path).limit(200).get();
+      if (snapshot.docs.isEmpty) return;
+
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
+  }
+
+  Future<void> _signOutProviderSessions() async {
+    if (kIsWeb || defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.linux) {
+      return;
+    }
+    try {
+      await _google.signOut();
+    } catch (_) {
+      // Provider session cleanup should not hide account deletion success.
+    }
+  }
 }
 
 // Minimal Either to avoid extra dependency.
@@ -339,4 +439,3 @@ final class Right<L, R> extends Either<L, R> {
   @override
   T fold<T>(final T Function(L) left, final T Function(R) right) => right(value);
 }
-

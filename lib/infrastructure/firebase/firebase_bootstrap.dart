@@ -25,11 +25,8 @@ class FirebaseBootstrap {
 
     try {
       if (Firebase.apps.isEmpty) {
-        if (defaultTargetPlatform == TargetPlatform.iOS) {
-          await Firebase.initializeApp();
-        } else {
-          await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-        }
+        final options = defaultTargetPlatform == TargetPlatform.iOS ? null : DefaultFirebaseOptions.currentPlatform;
+        await Firebase.initializeApp(options: options);
       }
       await _activateAppCheck();
       _result = const FirebaseBootstrapResult(enabled: true);
