@@ -37,6 +37,8 @@ import 'package:caesar_puzzle/infrastructure/sync/sync_service.dart' as _i265;
 import 'package:caesar_puzzle/infrastructure/sync/sync_status_service.dart'
     as _i578;
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart' as _i116;
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart'
+    as _i783;
 import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
 import 'package:firebase_auth/firebase_auth.dart' as _i59;
 import 'package:get_it/get_it.dart' as _i174;
@@ -96,6 +98,14 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i990.AuthService>(),
         gh<_i265.SyncService>(),
         gh<_i641.PublicProfileService>(),
+        gh<_i578.SyncStatusService>(),
+      ),
+    );
+    gh.factory<_i783.PublicProfileCubit>(
+      () => _i783.PublicProfileCubit(
+        gh<_i641.PublicProfileService>(),
+        gh<_i990.AuthService>(),
+        gh<_i187.SyncRunner>(),
         gh<_i578.SyncStatusService>(),
       ),
     );

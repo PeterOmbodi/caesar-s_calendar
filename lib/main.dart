@@ -1,6 +1,7 @@
-import 'package:caesar_puzzle/presentation/bloc/app_bloc_observer.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
+import 'package:caesar_puzzle/presentation/bloc/app_bloc_observer.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
@@ -47,6 +48,7 @@ class MyApp extends StatelessWidget {
     providers: [
       BlocProvider(create: (_) => SettingsCubit()),
       BlocProvider(create: (_) => getIt<AuthCubit>()),
+      BlocProvider(create: (_) => getIt<PublicProfileCubit>()),
     ],
     child: BlocBuilder<SettingsCubit, SettingsState>(
       buildWhen: (final p, final n) => p.theme != n.theme || p.localeCode != n.localeCode,

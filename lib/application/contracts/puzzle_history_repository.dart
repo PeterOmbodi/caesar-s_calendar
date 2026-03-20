@@ -43,5 +43,7 @@ abstract class PuzzleHistoryRepository {
     required final DateTime puzzleDate,
   });
 
+  Future<bool> hasAnyLocalSessions();
+
   Future<void> clearLocalData();
 }

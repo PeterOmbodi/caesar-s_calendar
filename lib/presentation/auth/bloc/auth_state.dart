@@ -1,11 +1,10 @@
 part of 'auth_cubit.dart';
 
 @freezed
-abstract class AccountSwitchRequest with _$AccountSwitchRequest {
-  const factory AccountSwitchRequest({
-    required final AuthProviderKind providerKind,
-    final AuthCredential? credential,
-  }) = _AccountSwitchRequest;
+abstract class PendingCloudReplaceRequest with _$PendingCloudReplaceRequest {
+  const factory PendingCloudReplaceRequest({
+    required final String uid,
+  }) = _PendingCloudReplaceRequest;
 }
 
 @freezed
@@ -15,7 +14,7 @@ abstract class AuthState with _$AuthState {
     final User? user,
     required final bool isLoading,
     final String? errorMessage,
-    final AccountSwitchRequest? pendingAccountSwitch,
+    final PendingCloudReplaceRequest? pendingCloudReplace,
   }) = _AuthState;
 
   const AuthState._();

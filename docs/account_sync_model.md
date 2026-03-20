@@ -1,72 +1,93 @@
 # Account and Cloud Sync Model
 
-This document describes the intended behavior of anonymous accounts, provider sign-in, cloud sync, and logout flows.
+This document describes the intended behavior of local guest mode, provider sign-in, cloud sync, and logout flows.
 
 ## Goals
 
-- Keep the app usable without requiring sign-in.
-- Allow a player to upgrade an anonymous profile to a provider-backed account.
-- Preserve cloud data under a stable Firebase Auth `uid`.
+- Keep the app fully usable without requiring sign-in.
+- Treat guest progress as purely local device data.
+- Use cloud sync only for provider-backed accounts such as Google or Apple.
 - Avoid silent merges that can corrupt or confuse session history.
+- Keep the migration rule simple and intentionally lossy outside the first-login case.
 
 ## Terms
 
-- Anonymous account: a temporary Firebase Auth user created with `signInAnonymously()`.
-- Provider account: a Firebase Auth user linked to or signed in with an identity provider such as Google or Apple.
-- Local data: session and history data stored on the current device.
+- Guest profile: local-only session and history data stored on the current device. No Firebase Auth user is required.
+- Provider account: a Firebase Auth user signed in with an identity provider such as Google or Apple.
+- Local data: session and history data stored in the local database on the current device.
 - Cloud data: data stored in Firestore under `users/{uid}/...`.
 
 ## Core Rules
 
-1. Every device can start in anonymous mode.
-2. Cloud data is always keyed by Firebase Auth `uid`.
-3. Linking an anonymous user to Google is preferred over creating a second account.
-4. Automatic merging of two existing profiles is not supported.
-5. If a provider-backed account already exists, switching to it may replace the current device-local anonymous profile.
+1. The app starts in local guest mode by default.
+2. Guest data is stored only on the device.
+3. Cloud data exists only for provider-backed accounts.
+4. Cloud data is always keyed by Firebase Auth `uid`.
+5. Automatic merging of two existing profiles is not supported.
+6. Guest sessions are uploaded to cloud only in one case: the first sign-in of a new provider-backed account.
+7. All other account transitions may discard current local sessions.
 
 ## Expected Flows
 
-### 1. Anonymous user on first device upgrades to a provider account
+### 1. First launch in guest mode
 
 Initial state:
 
-- Device A starts with anonymous `uid = A`.
-- Local and cloud data are stored under `A`.
-
-Upgrade:
-
-- The user signs in with Google or Apple.
-- The app links the current anonymous user with that provider credential.
+- The app starts without a signed-in Firebase user.
+- Sessions and history are stored only in the local database.
+- No cloud sync runs.
 
 Result:
 
-- The Firebase Auth user keeps the same `uid = A`.
-- `isAnonymous` becomes `false`.
-- Existing data under `users/A/...` remains valid.
+- The user can play normally as a guest.
+- If the app is removed or the device is changed before sign-in, guest data is lost.
 
-### 2. The same provider account is used on a second device
+### 2. Guest upgrades to a new provider-backed account
 
 Initial state:
 
-- Device B starts with a new anonymous `uid = B`.
-- The same human user signs in with the provider account already linked to `uid = A`.
-
-Important constraint:
-
-- That provider credential is already attached to `uid = A`.
-- It cannot be linked to anonymous `uid = B` as a second permanent provider-backed account.
+- The device has local guest data.
+- The user signs in with Google or Apple.
+- The provider credential is not yet linked to any existing Firebase Auth user.
 
 Expected behavior:
 
-- The app warns the user that this provider account already exists.
-- The app explains that switching to this account may discard or replace current local anonymous data on Device B.
-- If the user confirms, the app signs in to the existing provider-backed account `uid = A`.
+- The app signs in to a new provider-backed Firebase Auth account.
+- The app checks whether cloud data already exists under the new `uid`.
+- If the cloud profile is empty, local guest data is uploaded to the cloud.
 
 Result:
 
-- The user ends up on the existing cloud profile `uid = A`.
-- The temporary anonymous account `uid = B` is not treated as the user's long-term identity.
-- Local anonymous-only data on Device B may be cleared or archived instead of merged.
+- Local guest data becomes the initial cloud profile for that provider-backed account.
+- Future sync uses the provider-backed `uid`.
+
+### 3. Guest signs in to an existing provider-backed account
+
+Initial state:
+
+- The device has local guest data.
+- The user signs in to a provider-backed account whose cloud profile already has data.
+
+Expected behavior:
+
+- The app signs in successfully.
+- The app detects that cloud data already exists for the signed-in `uid`.
+- The app clears current local data and replaces it with cloud data.
+
+Result:
+
+- The user ends up on the existing cloud profile.
+- Current local guest data on the device is discarded instead of merged.
+
+## Required Check After Sign-In
+
+After successful provider sign-in, the app must determine whether the signed-in `uid` already has cloud data.
+
+Expected behavior:
+
+- If the signed-in `uid` has no cloud data, treat it as a new cloud account.
+- If this is also the device's first provider sign-in, upload current local guest data.
+- If the signed-in `uid` already has cloud data, clear local data and replace it with cloud data.
 
 ## Why automatic merge is avoided
 
@@ -77,42 +98,34 @@ Automatic merge sounds convenient, but it is risky for this app:
 - duplicate solved sessions can be created
 - users may not understand which state won
 
-Because of this, the safer product decision is:
+Because of this, the chosen product decision is:
 
-- keep linking simple when the provider account is new
-- require explicit confirmation when the provider account already exists elsewhere
-- prefer replacing the current local anonymous profile over hidden merge logic
+- upload local guest data only when the cloud profile is new or empty
+- do not merge local guest data into an existing cloud profile
+- accept that non-first-login transitions may lose current local sessions
 
 ## Logout Model
 
-Logout should be treated as leaving the current cloud-backed identity on this device.
+Logout should be treated as leaving the current provider-backed cloud identity on this device.
 
-Recommended behavior:
+Intended behavior:
 
-1. Sign out from the provider-backed user.
-2. Start a fresh anonymous session on the current device.
-3. Do not restore the previous anonymous `uid` that existed before Google sign-in.
+1. Sign out from the current provider-backed Firebase user.
+2. Keep the local database unchanged.
+3. Store the last signed-in cloud `uid` on the device.
+4. Return the app to local guest mode.
 
-Example:
+On the next provider sign-in:
 
-- Device A signs in as provider-backed `uid = A`.
-- The user logs out.
-- The app creates a new anonymous account, for example `uid = C`.
+- if the new signed-in `uid` differs from the stored last cloud `uid`, clear the local database before sync
+- if the signed-in `uid` already has cloud data, clear the local database before sync
+- only the first sign-in of a new cloud account may upload current local guest data
 
-This keeps the model simple:
-
-- `uid = A` remains the cloud profile
-- `uid = C` is just a new local anonymous profile on this device
-
-The same rule applies on any other device.
+This intentionally allows local session loss in exchange for a simpler and safer model.
 
 ## User-Facing Messaging
 
-When a provider account already exists and the current device is using a different anonymous profile, the confirmation dialog should explain:
-
-- this account is already linked to another profile
-- switching to it will load that cloud profile on this device
-- current local anonymous data on this device may be lost if it was not synced elsewhere
+When a user signs in, the app may replace current local sessions with cloud data if the account already has a cloud profile.
 
 Recommended tone:
 
@@ -122,16 +135,21 @@ Recommended tone:
 
 ## Implementation Guidance
 
-- Anonymous sign-in is acceptable as the default app entry.
-- Linking should be attempted only when the current user is anonymous and the selected provider credential is not already in use.
-- If the credential is already in use, the app should offer a controlled account switch instead of a merge.
-- Logout should create a new anonymous profile instead of trying to resurrect an older anonymous identity.
+- Do not create Firebase anonymous users by default.
+- Guest mode should work with `FirebaseAuth.currentUser == null`.
+- Provider sign-in should be the point where cloud identity begins.
+- After successful sign-in, check whether the signed-in `uid` already has cloud data.
+- Persist the last signed-in cloud `uid` on the device.
+- Clear local data before sync when switching between different cloud accounts.
+- Upload local guest data only on the first sign-in of a new cloud account.
 
 ## Summary
 
 The intended mental model is:
 
-- anonymous profile = temporary local identity
+- guest profile = local-only device data
 - provider-backed profile = primary cloud identity
-- switching to an existing provider-backed profile replaces the current anonymous device context
-- logout starts a new anonymous context
+- sign-in with a new provider account uploads local guest data into cloud
+- sign-in with an existing provider account replaces local data with cloud data
+- logout returns to guest mode without creating a new Firebase anonymous user
+- switching between cloud accounts may discard current local sessions

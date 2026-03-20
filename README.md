@@ -88,8 +88,8 @@ The app persists user settings and gameplay state locally:
 
 The project uses Firebase Auth and Firestore for cloud-backed data.
 
-- Anonymous sign-in is used as the default temporary identity.
-- Google sign-in and Apple sign-in upgrade or switch the current identity to a cloud-backed account.
+- Guest mode is local-only by default.
+- Google sign-in and Apple sign-in enable a cloud-backed account.
 - Cloud data is keyed by Firebase Auth `uid`.
 
 The intended account and sync behavior is documented in [docs/account_sync_model.md](/c:/Users/Admin/StudioProjects/caesar-s_calendar2/docs/account_sync_model.md).

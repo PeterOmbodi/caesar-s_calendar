@@ -4,7 +4,6 @@ import 'package:caesar_puzzle/infrastructure/persistence/drift/app_database.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 @lazySingleton
 class PublicProfileService {
@@ -20,42 +19,17 @@ class PublicProfileService {
   final FirebaseFirestore _firestore;
   final AuthService _auth;
 
-  static const _prefKey = 'public_profile_enabled';
-
-  String _prefKeyForUid(final String uid) => '$_prefKey::$uid';
-
   Future<bool> isEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
     final uid = _auth.currentUser?.uid;
     if (!_auth.isAvailable || uid == null) {
       return false;
     }
-
-    final scopedKey = _prefKeyForUid(uid);
-    final scopedValue = prefs.getBool(scopedKey);
-    if (scopedValue != null) {
-      return scopedValue;
-    }
-
-    // One-time fallback from the legacy global flag.
-    final legacyValue = prefs.getBool(_prefKey);
-    if (legacyValue != null) {
-      await prefs.setBool(scopedKey, legacyValue);
-      await prefs.remove(_prefKey);
-      return legacyValue;
-    }
-
-    final remoteEnabled = (await _firestore.doc(FirestorePaths.publicUserDoc(uid)).get()).exists;
-    await prefs.setBool(scopedKey, remoteEnabled);
-    return remoteEnabled;
+    return (await _firestore.doc(FirestorePaths.publicUserDoc(uid)).get()).exists;
   }
 
   Future<void> setEnabled(final bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-
     final uid = _auth.currentUser?.uid;
     if (!_auth.isAvailable || uid == null) return;
-    await prefs.setBool(_prefKeyForUid(uid), enabled);
 
     if (!enabled) {
       await _firestore.doc(FirestorePaths.publicUserDoc(uid)).delete();

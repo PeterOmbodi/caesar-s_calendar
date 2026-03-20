@@ -9,9 +9,9 @@ import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'auth_cubit.freezed.dart';
 part 'auth_state.dart';
@@ -36,6 +36,8 @@ class AuthCubit extends Cubit<AuthState> {
   final SyncRunner _syncRunner;
   final PublicProfileService _publicProfileService;
 
+  static const _lastCloudUidKey = 'last_cloud_uid';
+
   StreamSubscription<User?>? _sub;
 
   Future<void> _init() async {
@@ -48,39 +50,31 @@ class AuthCubit extends Cubit<AuthState> {
       _onUserChanged,
       onError: (final e, _) => emit(state.copyWith(isLoading: false, errorMessage: e.toString())),
     );
-    emit(state.copyWith(isLoading: true, errorMessage: null));
-    await _ensureGuestSession();
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      emit(state.copyWith(user: null, isLoading: false, errorMessage: null));
+      return;
+    }
+
+    emit(state.copyWith(user: currentUser, isLoading: true, errorMessage: null));
+    try {
+      await _runWithSyncPaused(() async {
+        await _prepareLocalDataForSignedInUser(currentUser.uid);
+        await _syncService.syncOnce();
+        await _publicProfileService.publishNow();
+      });
+      await _setLastCloudUid(currentUser.uid);
+      emit(state.copyWith(user: currentUser, isLoading: false, errorMessage: null));
+    } catch (e) {
+      emit(state.copyWith(user: currentUser, isLoading: false, errorMessage: e.toString()));
+    }
   }
 
   Future<void> signInWithGoogle() async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
-    final result = await _auth.signInWithGoogle(linkIfAnonymous: true);
-    await _handleAuthResult(result);
-  }
-
-  Future<void> signInWithApple() async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
-    final result = await _auth.signInWithApple(linkIfAnonymous: true);
-    await _handleAuthResult(result);
-  }
-
-  Future<void> confirmAccountSwitch() async {
-    final request = state.pendingAccountSwitch;
-    if (request == null) return;
-    emit(
-      state.copyWith(
-        isLoading: true,
-        errorMessage: null,
-        pendingAccountSwitch: null,
-      ),
-    );
     try {
       await _runWithSyncPaused(() async {
-        await _resetLocalProfile();
-        final result = await _auth.switchToExistingProviderAccount(
-          providerKind: request.providerKind,
-          credential: request.credential,
-        );
+        final result = await _auth.signInWithGoogle();
         await _handleAuthResult(result);
       });
     } catch (e) {
@@ -88,43 +82,68 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  void cancelAccountSwitch() {
-    emit(state.copyWith(isLoading: false, pendingAccountSwitch: null));
-  }
-
-  Future<void> signOut() async {
-    emit(
-      state.copyWith(
-        isLoading: true,
-        errorMessage: null,
-        pendingAccountSwitch: null,
-      ),
-    );
+  Future<void> signInWithApple() async {
+    emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       await _runWithSyncPaused(() async {
-        await _resetLocalProfile();
-        await _auth.signOut();
-        await _ensureGuestSession();
+        final result = await _auth.signInWithApple();
+        await _handleAuthResult(result);
       });
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
     }
   }
 
+  Future<void> signOut() async {
+    final previousUid = _auth.currentUser?.uid;
+    emit(state.copyWith(isLoading: true, errorMessage: null, pendingCloudReplace: null));
+    try {
+      await _runWithSyncPaused(() async {
+        if (previousUid != null) {
+          await _setLastCloudUid(previousUid);
+        }
+        await _auth.signOut();
+      });
+      emit(state.copyWith(user: null, isLoading: false, errorMessage: null));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> confirmCloudReplace() async {
+    final request = state.pendingCloudReplace;
+    if (request == null) return;
+    emit(state.copyWith(isLoading: true, errorMessage: null, pendingCloudReplace: null));
+    try {
+      await _runWithSyncPaused(() async {
+        await _completeSignedInUserTransition(request.uid);
+      });
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> cancelCloudReplace() async {
+    emit(state.copyWith(isLoading: true, errorMessage: null, pendingCloudReplace: null));
+    try {
+      await _runWithSyncPaused(() async {
+        await _auth.signOut();
+      });
+      emit(state.copyWith(user: null, isLoading: false, errorMessage: null));
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+    }
+  }
+
   Future<void> deleteAccount() async {
-    emit(
-      state.copyWith(
-        isLoading: true,
-        errorMessage: null,
-        pendingAccountSwitch: null,
-      ),
-    );
+    emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       await _runWithSyncPaused(() async {
         await _auth.deleteCurrentAccount();
+        await _clearLastCloudUid();
         await _resetLocalProfile();
-        await _ensureGuestSession();
       });
+      emit(state.copyWith(user: null, isLoading: false, errorMessage: null));
     } catch (e) {
       emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
     }
@@ -135,19 +154,8 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       await action();
     } finally {
-      _syncRunner.resume();
+      _syncRunner.resume(requestImmediateSync: false);
     }
-  }
-
-  Future<void> _ensureGuestSession() async {
-    final user = await _auth.ensureSignedIn();
-    emit(
-      state.copyWith(
-        user: user,
-        isLoading: false,
-        errorMessage: user == null ? 'Unable to sign in as guest.' : null,
-      ),
-    );
   }
 
   void _onUserChanged(final User? user) {
@@ -155,38 +163,73 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> _handleAuthResult(final Either<AuthFailure, UserCredential> result) async {
-    await result.fold((final failure) async {
-      if (failure case final AuthAccountSwitchRequiredFailure switchFailure) {
-        emit(
-          state.copyWith(
-            isLoading: false,
-            pendingAccountSwitch: AccountSwitchRequest(
-              providerKind: switchFailure.providerKind,
-              credential: switchFailure.credential,
+    await result.fold(
+      (final failure) async {
+        emit(state.copyWith(isLoading: false, errorMessage: failure.message));
+      },
+      (_) async {
+        final uid = _auth.currentUser?.uid;
+        if (uid == null) {
+          emit(state.copyWith(isLoading: false, errorMessage: 'Signed-in user is missing.'));
+          return;
+        }
+        final hasCloudData = await _syncService.hasCloudData(uid);
+        final hasLocalSessions = await _historyRepository.hasAnyLocalSessions();
+        if (hasCloudData && hasLocalSessions) {
+          emit(
+            state.copyWith(
+              isLoading: false,
+              errorMessage: null,
+              pendingCloudReplace: PendingCloudReplaceRequest(uid: uid),
             ),
-            errorMessage: failure.message,
-          ),
-        );
-        return;
-      }
-      emit(state.copyWith(isLoading: false, errorMessage: failure.message));
-    }, (_) async {
-      _syncRunner.requestSync();
-      await _publicProfileService.publishNow();
-      emit(
-        state.copyWith(
-          isLoading: false,
-          errorMessage: null,
-          pendingAccountSwitch: null,
-        ),
-      );
-    });
+          );
+          return;
+        }
+        await _completeSignedInUserTransition(uid);
+      },
+    );
+  }
+
+  Future<void> _completeSignedInUserTransition(final String uid) async {
+    await _prepareLocalDataForSignedInUser(uid);
+    await _syncService.syncOnce();
+    await _publicProfileService.publishNow();
+    await _setLastCloudUid(uid);
+    emit(state.copyWith(isLoading: false, errorMessage: null, pendingCloudReplace: null));
+  }
+
+  Future<void> _prepareLocalDataForSignedInUser(final String uid) async {
+    final lastCloudUid = await _getLastCloudUid();
+    final hasCloudData = await _syncService.hasCloudData(uid);
+
+    final shouldClearLocalData = lastCloudUid != null || hasCloudData;
+    if (shouldClearLocalData) {
+      await _resetLocalProfile();
+      return;
+    }
+
+    await _syncService.clearAllSyncCheckpoints();
   }
 
   Future<void> _resetLocalProfile() async {
     await _historyRepository.clearLocalData();
     await _syncService.clearAllSyncCheckpoints();
     _puzzleHistoryUseCase.resetSession();
+  }
+
+  Future<String?> _getLastCloudUid() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_lastCloudUidKey);
+  }
+
+  Future<void> _setLastCloudUid(final String uid) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastCloudUidKey, uid);
+  }
+
+  Future<void> _clearLastCloudUid() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_lastCloudUidKey);
   }
 
   @override

@@ -16,7 +16,6 @@ class SyncRunner {
   final PublicProfileService _publicProfile;
   final SyncStatusService _status;
 
-  StreamSubscription<Object?>? _authSub;
   AppLifecycleListener? _lifecycleListener;
   bool _running = false;
   bool _suspended = false;
@@ -24,7 +23,6 @@ class SyncRunner {
   bool _pendingProfilePublish = false;
 
   void start() {
-    _authSub ??= _auth.authStateChanges().listen((final _) => requestSync());
     _lifecycleListener ??= AppLifecycleListener(onStateChange: _onLifecycleChanged);
     requestSync();
   }
@@ -97,8 +95,6 @@ class SyncRunner {
 
   Future<void> dispose() async {
     stop();
-    await _authSub?.cancel();
-    _authSub = null;
   }
 }
 

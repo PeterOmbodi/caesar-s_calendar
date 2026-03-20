@@ -177,6 +177,9 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
   }
 
   @override
+  Future<bool> hasAnyLocalSessions() => _dao.hasAnySessions();
+
+  @override
   Future<void> clearLocalData() => _dao.clearAllData();
 
   List<CalendarDayStats> _fillMissingDays(

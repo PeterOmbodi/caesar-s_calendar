@@ -152,6 +152,13 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
+  Future<bool> hasAnySessions() async {
+    final row = await (selectOnly(puzzleSessions)
+          ..addColumns([puzzleSessions.id.count()]))
+        .getSingle();
+    return (row.read(puzzleSessions.id.count()) ?? 0) > 0;
+  }
+
   Future<PuzzleSession?> getLatestUnsolvedSession({
     required final String puzzleDate,
     required final PuzzleSessionStatus status,

@@ -28,6 +28,15 @@ class SyncService {
 
   static const _prefsKeyPrefix = 'sync_last_ms_';
 
+  Future<bool> hasCloudData(final String uid) async {
+    if (!_auth.isAvailable) return false;
+    if (await _collectionHasDocs(FirestorePaths.userSessions(uid))) return true;
+    if (await _collectionHasDocs(FirestorePaths.userConfigs(uid))) return true;
+    if (await _collectionHasDocs(FirestorePaths.userSolvedSolutions(uid))) return true;
+    if (await _collectionHasDocs('${FirestorePaths.userDoc(uid)}/solutionCounts')) return true;
+    return false;
+  }
+
   Future<void> clearAllSyncCheckpoints() async {
     final prefs = await SharedPreferences.getInstance();
     final keysToRemove = prefs.getKeys().where((final key) => key.startsWith(_prefsKeyPrefix)).toList();
@@ -328,6 +337,11 @@ class SyncService {
         ),
       );
     }
+  }
+
+  Future<bool> _collectionHasDocs(final String path) async {
+    final snap = await _firestore.collection(path).limit(1).get();
+    return snap.docs.isNotEmpty;
   }
 
   String _solvedDocId({

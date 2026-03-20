@@ -42,177 +42,16 @@ class AuthService {
   String? get currentDisplayName => _bestDisplayName(_auth.currentUser);
   String? get currentPhotoUrl => _bestPhotoUrl(_auth.currentUser);
 
-  Future<User?> ensureSignedIn() async {
-    if (!isAvailable) return null;
-    if (_auth.currentUser != null) return _auth.currentUser;
-    final credential = await _auth.signInAnonymously();
-    await _ensureUserDoc();
-    return credential.user ?? _auth.currentUser;
-  }
-
-  Future<Either<AuthFailure, UserCredential>> signInWithGoogle({required final bool linkIfAnonymous}) async {
+  Future<Either<AuthFailure, UserCredential>> signInWithGoogle() async {
     if (!isAvailable) return Left(const AuthUnavailableFailure());
     if (kIsWeb) {
-      return _signInWithGoogleOnWeb(linkIfAnonymous: linkIfAnonymous);
+      return _signInWithGoogleOnWeb();
     }
     if (defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.linux) {
       return Left(const AuthUnavailableFailure('Google sign-in is not supported on this platform'));
     }
     try {
-      await _google.initialize(
-        clientId: _googleWebClientId.isNotEmpty ? _googleWebClientId : null,
-      );
-      if (!_google.supportsAuthenticate()) {
-        return Left(const AuthUnavailableFailure('Google sign-in is not supported on this platform'));
-      }
-      final account = await _google.authenticate(scopeHint: const ['email']);
-      final auth = account.authentication;
-      final credential = GoogleAuthProvider.credential(
-        idToken: auth.idToken,
-      );
-
-      final current = _auth.currentUser;
-      if (linkIfAnonymous && current != null && current.isAnonymous) {
-        try {
-          final result = await current.linkWithCredential(credential);
-          await _ensureUserDoc();
-          return Right(result);
-        } on FirebaseAuthException catch (e) {
-          final failure = _mapLinkConflict(e, AuthProviderKind.google);
-          if (failure != null) {
-            return Left(failure);
-          }
-          rethrow;
-        }
-      }
-      final result = await _auth.signInWithCredential(credential);
-      await _ensureUserDoc();
-      return Right(result);
-    } on FirebaseAuthException catch (e) {
-      debugPrint('Google sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.message ?? e.code));
-    } catch (e) {
-      debugPrint('Google sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.toString()));
-    }
-  }
-
-  Future<Either<AuthFailure, UserCredential>> _signInWithGoogleOnWeb({required final bool linkIfAnonymous}) async {
-    try {
-      final provider = GoogleAuthProvider()..setCustomParameters({'prompt': 'select_account'});
-      final current = _auth.currentUser;
-      if (linkIfAnonymous && current != null && current.isAnonymous) {
-        try {
-          final result = await current.linkWithPopup(provider);
-          await _ensureUserDoc();
-          return Right(result);
-        } on FirebaseAuthException catch (e) {
-          final failure = _mapLinkConflict(e, AuthProviderKind.google);
-          if (failure != null) {
-            return Left(failure);
-          }
-          rethrow;
-        }
-      }
-      final result = await _auth.signInWithPopup(provider);
-      await _ensureUserDoc();
-      return Right(result);
-    } on FirebaseAuthException catch (e) {
-      debugPrint('Google sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.message ?? e.code));
-    } catch (e) {
-      debugPrint('Google sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.toString()));
-    }
-  }
-
-  Future<Either<AuthFailure, UserCredential>> signInWithApple({required final bool linkIfAnonymous}) async {
-    if (!isAvailable) return Left(const AuthUnavailableFailure());
-    try {
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
-
-      final oauthCredential = OAuthProvider('apple.com').credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
-
-      final current = _auth.currentUser;
-      if (linkIfAnonymous && current != null && current.isAnonymous) {
-        try {
-          final result = await current.linkWithCredential(oauthCredential);
-          await _ensureUserDoc();
-          return Right(result);
-        } on FirebaseAuthException catch (e) {
-          final failure = _mapLinkConflict(e, AuthProviderKind.apple);
-          if (failure != null) {
-            return Left(failure);
-          }
-          rethrow;
-        }
-      }
-      final result = await _auth.signInWithCredential(oauthCredential);
-      await _ensureUserDoc();
-      return Right(result);
-    } on FirebaseAuthException catch (e) {
-      debugPrint('Apple sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.message ?? e.code));
-    } on SignInWithAppleAuthorizationException catch (e) {
-      if (e.code == AuthorizationErrorCode.canceled) {
-        return Left(const AuthCanceledFailure());
-      }
-      debugPrint('Apple sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.toString()));
-    } catch (e) {
-      debugPrint('Apple sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.toString()));
-    }
-  }
-
-  Future<Either<AuthFailure, UserCredential>> switchToExistingProviderAccount({
-    required final AuthProviderKind providerKind,
-    final AuthCredential? credential,
-  }) {
-    if (credential != null) {
-      return _signInWithExistingCredential(credential);
-    }
-    switch (providerKind) {
-      case AuthProviderKind.google:
-        return _switchToExistingGoogleAccount();
-      case AuthProviderKind.apple:
-        return _switchToExistingAppleAccount();
-    }
-  }
-
-  Future<Either<AuthFailure, UserCredential>> _signInWithExistingCredential(final AuthCredential credential) async {
-    try {
-      final result = await _auth.signInWithCredential(credential);
-      await _ensureUserDoc();
-      return Right(result);
-    } on FirebaseAuthException catch (e) {
-      debugPrint('Provider sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.message ?? e.code));
-    } catch (e) {
-      debugPrint('Provider sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.toString()));
-    }
-  }
-
-  Future<Either<AuthFailure, UserCredential>> _switchToExistingGoogleAccount() async {
-    if (kIsWeb) {
-      return _signInWithGoogleOnWeb(linkIfAnonymous: false);
-    }
-    if (defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.linux) {
-      return Left(const AuthUnavailableFailure('Google sign-in is not supported on this platform'));
-    }
-    try {
-      await _google.initialize(
-        clientId: _googleWebClientId.isNotEmpty ? _googleWebClientId : null,
-      );
+      await _google.initialize(clientId: _googleWebClientId.isNotEmpty ? _googleWebClientId : null);
       if (!_google.supportsAuthenticate()) {
         return Left(const AuthUnavailableFailure('Google sign-in is not supported on this platform'));
       }
@@ -231,18 +70,37 @@ class AuthService {
     }
   }
 
-  Future<Either<AuthFailure, UserCredential>> _switchToExistingAppleAccount() async {
+  Future<Either<AuthFailure, UserCredential>> _signInWithGoogleOnWeb() async {
+    try {
+      final provider = GoogleAuthProvider()..setCustomParameters({'prompt': 'select_account'});
+      final result = await _auth.signInWithPopup(provider);
+      await _ensureUserDoc();
+      return Right(result);
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Google sign-in failed: $e');
+      return Left(AuthUnknownFailure(e.message ?? e.code));
+    } catch (e) {
+      debugPrint('Google sign-in failed: $e');
+      return Left(AuthUnknownFailure(e.toString()));
+    }
+  }
+
+  Future<Either<AuthFailure, UserCredential>> signInWithApple() async {
+    if (!isAvailable) return Left(const AuthUnavailableFailure());
+    if (kIsWeb) {
+      return _signInWithAppleOnWeb();
+    }
+    if (defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.linux) {
+      return Left(const AuthUnavailableFailure('Apple sign-in is not supported on this platform'));
+    }
     try {
       final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
+        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
       );
-      final oauthCredential = OAuthProvider('apple.com').credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
+
+      final oauthCredential = OAuthProvider(
+        'apple.com',
+      ).credential(idToken: appleCredential.identityToken, accessToken: appleCredential.authorizationCode);
       final result = await _auth.signInWithCredential(oauthCredential);
       await _ensureUserDoc();
       return Right(result);
@@ -255,6 +113,21 @@ class AuthService {
       }
       debugPrint('Apple sign-in failed: $e');
       return Left(AuthUnknownFailure(e.toString()));
+    } catch (e) {
+      debugPrint('Apple sign-in failed: $e');
+      return Left(AuthUnknownFailure(e.toString()));
+    }
+  }
+
+  Future<Either<AuthFailure, UserCredential>> _signInWithAppleOnWeb() async {
+    try {
+      final provider = AppleAuthProvider();
+      final result = await _auth.signInWithPopup(provider);
+      await _ensureUserDoc();
+      return Right(result);
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Apple sign-in failed: $e');
+      return Left(AuthUnknownFailure(e.message ?? e.code));
     } catch (e) {
       debugPrint('Apple sign-in failed: $e');
       return Left(AuthUnknownFailure(e.toString()));
@@ -289,8 +162,13 @@ class AuthService {
       await _reauthenticate(user, providerKind);
     }
 
-    await _deleteCloudData(user.uid);
+    final uid = user.uid;
     await user.delete();
+    try {
+      await _deleteCloudData(uid);
+    } catch (e) {
+      debugPrint('Cloud cleanup after account deletion failed: $e');
+    }
     await _signOutProviderSessions();
   }
 
@@ -298,26 +176,12 @@ class AuthService {
     final user = _auth.currentUser;
     if (user == null) return;
     final now = FieldValue.serverTimestamp();
-    await _firestore.collection('users').doc(user.uid).set(
-      {
-        'uid': user.uid,
-        'createdAt': now,
-        'updatedAt': now,
-        'isAnonymous': user.isAnonymous,
-      },
-      SetOptions(merge: true),
-    );
-  }
-
-  AuthFailure? _mapLinkConflict(final FirebaseAuthException error, final AuthProviderKind providerKind) {
-    switch (error.code) {
-      case 'credential-already-in-use':
-      case 'email-already-in-use':
-      case 'account-exists-with-different-credential':
-        return AuthAccountSwitchRequiredFailure(providerKind, credential: error.credential);
-      default:
-        return null;
-    }
+    await _firestore.collection('users').doc(user.uid).set({
+      'uid': user.uid,
+      'createdAt': now,
+      'updatedAt': now,
+      'isAnonymous': user.isAnonymous,
+    }, SetOptions(merge: true));
   }
 
   String? _bestDisplayName(final User? user) {
@@ -353,6 +217,10 @@ class AuthService {
   }
 
   Future<void> _reauthenticate(final User user, final AuthProviderKind providerKind) async {
+    if (kIsWeb) {
+      await _reauthenticateOnWeb(user, providerKind);
+      return;
+    }
     final credential = switch (providerKind) {
       AuthProviderKind.google => await _reauthenticateWithGoogle(),
       AuthProviderKind.apple => await _reauthenticateWithApple(),
@@ -360,10 +228,16 @@ class AuthService {
     await user.reauthenticateWithCredential(credential);
   }
 
+  Future<void> _reauthenticateOnWeb(final User user, final AuthProviderKind providerKind) async {
+    final provider = switch (providerKind) {
+      AuthProviderKind.google => GoogleAuthProvider()..setCustomParameters({'prompt': 'select_account'}),
+      AuthProviderKind.apple => AppleAuthProvider(),
+    };
+    await user.reauthenticateWithPopup(provider);
+  }
+
   Future<AuthCredential> _reauthenticateWithGoogle() async {
-    await _google.initialize(
-      clientId: _googleWebClientId.isNotEmpty ? _googleWebClientId : null,
-    );
+    await _google.initialize(clientId: _googleWebClientId.isNotEmpty ? _googleWebClientId : null);
     if (!_google.supportsAuthenticate()) {
       throw const AuthUnavailableFailure('Google re-authentication is not supported on this platform');
     }
@@ -375,15 +249,11 @@ class AuthService {
 
   Future<AuthCredential> _reauthenticateWithApple() async {
     final appleCredential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
+      scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
     );
-    return OAuthProvider('apple.com').credential(
-      idToken: appleCredential.identityToken,
-      accessToken: appleCredential.authorizationCode,
-    );
+    return OAuthProvider(
+      'apple.com',
+    ).credential(idToken: appleCredential.identityToken, accessToken: appleCredential.authorizationCode);
   }
 
   Future<void> _deleteCloudData(final String uid) async {

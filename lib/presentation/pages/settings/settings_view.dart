@@ -231,10 +231,9 @@ class SettingsPanel extends StatelessWidget {
                 buildWhen: (final p, final n) =>
                     p.isAvailable != n.isAvailable ||
                     p.user?.uid != n.user?.uid ||
-                    p.user?.isAnonymous != n.user?.isAnonymous ||
                     p.isLoading != n.isLoading ||
                     p.errorMessage != n.errorMessage ||
-                    p.pendingAccountSwitch != n.pendingAccountSwitch,
+                    p.pendingCloudReplace != n.pendingCloudReplace,
                 builder: (final context, final auth) => AccountSection(auth: auth),
               ),
               const SizedBox(height: 12),
