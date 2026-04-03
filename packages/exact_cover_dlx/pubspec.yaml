@@ -1,6 +1,6 @@
 name: exact_cover_dlx
 description: Generic exact cover solver based on Dancing Links (DLX).
-version: 0.8.0
+version: 0.1.0
 homepage: https://github.com/PeterOmbodi/caesar-s_calendar
 repository: https://github.com/PeterOmbodi/caesar-s_calendar
 issue_tracker: https://github.com/PeterOmbodi/caesar-s_calendar/issues
