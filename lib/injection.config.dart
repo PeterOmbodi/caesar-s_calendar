@@ -20,8 +20,8 @@ import 'package:caesar_puzzle/domain/algorithms/dancing_links/solver_service.dar
 import 'package:caesar_puzzle/infrastructure/achievements/public_profile_service.dart'
     as _i641;
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart' as _i990;
-import 'package:caesar_puzzle/infrastructure/dancing_links/dancing_links_solver_impl.dart'
-    as _i1051;
+import 'package:caesar_puzzle/infrastructure/exact_cover/exact_cover_dlx_solver_impl.dart'
+    as _i362;
 import 'package:caesar_puzzle/infrastructure/firebase/firebase_module.dart'
     as _i905;
 import 'package:caesar_puzzle/infrastructure/persistence/drift/app_database.dart'
@@ -61,7 +61,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i616.AppDatabase>(() => driftModule.database);
     gh.lazySingleton<_i578.SyncStatusService>(() => _i578.SyncStatusService());
     gh.factory<_i138.PuzzleSolverService>(
-      () => _i1051.DancingLinksSolverImpl(),
+      () => _i362.ExactCoverDlxSolverImpl(),
     );
     gh.lazySingleton<_i947.PuzzleHistoryDao>(
       () => driftModule.puzzleHistoryDao(gh<_i616.AppDatabase>()),

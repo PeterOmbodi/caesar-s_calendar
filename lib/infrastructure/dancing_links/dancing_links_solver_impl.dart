@@ -5,9 +5,8 @@ import 'package:caesar_puzzle/domain/algorithms/dancing_links/solver_service.dar
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
 import 'package:flutter/foundation.dart';
-import 'package:injectable/injectable.dart';
 
-@Injectable(as: PuzzleSolverService)
+//@Injectable(as: PuzzleSolverService)
 class DancingLinksSolverImpl implements PuzzleSolverService {
   DancingLinksSolverImpl();
 
