@@ -34,7 +34,7 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 - Drag-and-drop piece placement with support for touch and mouse
 - Single tap/click to rotate a piece
 - Double tap/click to flip a piece
-- Automatic solving powered by the Dancing Links algorithm
+- Automatic solving powered by a reusable exact-cover solver based on Dancing Links
 - Hint system and full solution preview
 - Undo and redo for move history
 - Puzzle history with resume support for in-progress sessions
@@ -186,11 +186,21 @@ lib/
   presentation/     UI, blocs/cubits, pages, themes, and widgets
   l10n/             ARB localization sources
   generated/        generated localization output
+packages/
+  exact_cover_dlx/  reusable exact-cover package based on Dancing Links
 ```
 
 ## Solver
 
-The automatic solver is based on Dancing Links. The core implementation lives under:
+The app now uses a reusable exact-cover package based on Dancing Links. The generic solver package lives under:
+
+`packages/exact_cover_dlx/`
+
+The Caesar's Puzzle mapping from board state to exact-cover constraints lives under:
+
+`lib/domain/algorithms/exact_cover/`
+
+The legacy in-app Dancing Links implementation is still kept under:
 
 `lib/domain/algorithms/dancing_links/`
 

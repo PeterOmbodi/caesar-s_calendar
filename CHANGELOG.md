@@ -1,3 +1,7 @@
+## 1.7.0+28
+- extract generic `exact_cover_dlx` package under `packages/exact_cover_dlx`
+- switch app DI to the new package-based solver while keeping the legacy in-app DLX implementation as fallback code
+
 ## 1.6.0+27
 - add Google sign-in and Apple sign-in
 - add cross-device puzzle session sync for signed-in users 

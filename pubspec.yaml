@@ -3,7 +3,7 @@ description: Caesar’s Calendar Puzzle
 
 publish_to: 'none'
 
-version: 1.6.0+27
+version: 1.7.0+28
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -34,6 +34,8 @@ dependencies:
   drift: ^2.32.0
   path: ^1.9.1
   crypto: ^3.0.7
+  exact_cover_dlx:
+    path: packages/exact_cover_dlx
   firebase_core: ^4.2.0
   firebase_app_check: ^0.4.1+2
   firebase_auth: ^6.0.2
