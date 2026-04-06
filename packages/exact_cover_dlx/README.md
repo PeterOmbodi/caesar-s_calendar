@@ -28,6 +28,8 @@ Typical examples:
 - exact cover variants of placement puzzles
 - configuration and scheduling problems that map cleanly to exact cover
 
+See [Used in](#used-in) for an example from a real project
+
 ## Installation
 
 ```yaml
@@ -237,6 +239,14 @@ A complete runnable Sudoku example is included in:
 - The solver is currently synchronous.
 - Solution ordering depends on the row and column iteration order in the input data.
 - Large search spaces can still be expensive even with DLX.
+
+## Used in
+
+This package is used in the open-source puzzle project
+[Caesar Calendar](https://github.com/PeterOmbodi/caesar-s_calendar).
+
+You can also try the web version here:
+[Caesar Calendar Web](https://peterombodi.github.io/caesar-s_calendar/).
 
 ## License
 
