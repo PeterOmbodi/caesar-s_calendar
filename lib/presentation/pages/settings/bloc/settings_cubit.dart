@@ -28,6 +28,13 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
   void toggleSeparateColors(final bool v) => emit(state.copyWith(separateMoveColors: v));
   void setSolutionIndicator(final SolutionIndicator? v) => emit(state.copyWith(solutionIndicator: v ?? SolutionIndicator.none));
   void toggleShowTimer(final bool v) => emit(state.copyWith(showTimer: v));
+  void markOnboardingOffered(final int version) => emit(state.copyWith(offeredOnboardingVersion: version));
+  void completeOnboarding(final int version) => emit(
+    state.copyWith(
+      completedOnboardingVersion: version,
+      offeredOnboardingVersion: version,
+    ),
+  );
 
   @override
   SettingsState? fromJson(final Map<String, dynamic> json) {

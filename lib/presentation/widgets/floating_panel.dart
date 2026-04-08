@@ -2,6 +2,11 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
+import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
+import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_event.dart';
+import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dart';
+import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
 import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
@@ -14,8 +19,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_flap/flutter_flip_flap.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
-
-import '../../generated/l10n.dart';
 
 class FloatingPanel extends StatefulWidget {
   const FloatingPanel({super.key, required this.children});
@@ -102,6 +105,12 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
 
   Future<void> _showHowToPlayDialog(final double viewWidth) async {
     final horizontalInset = viewWidth < 600 ? 12.0 : 40.0;
+    void replayOnboarding() {
+      Navigator.of(context, rootNavigator: true).pop();
+      context.read<SettingsCubit>().markOnboardingOffered(currentOnboardingVersion);
+      context.read<OnboardingBloc>().add(const StartOnboarding(OnboardingMode.short));
+    }
+
     await showPlatformDialog(
       context: context,
       material: MaterialDialogData(
@@ -109,7 +118,7 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
           material: (final context, final platform) =>
               MaterialAlertDialogData(insetPadding: EdgeInsets.symmetric(horizontal: horizontalInset)),
           title: Text(S.current.howToPlayTitle),
-          content: const HowToPlayHint(),
+          content: HowToPlayHint(onReplayOnboarding: replayOnboarding),
           actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
         ),
       ),
@@ -117,7 +126,7 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
         builder: (final dialogContext) => _InsetCupertinoAlertDialog(
           insetPadding: EdgeInsets.symmetric(horizontal: horizontalInset, vertical: 24),
           title: Text(S.current.howToPlayTitle),
-          content: const HowToPlayHint(),
+          content: HowToPlayHint(onReplayOnboarding: replayOnboarding),
           actionLabel: S.current.ok,
           onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
         ),

@@ -145,6 +145,39 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     );
   }
 
+  FutureOr<void> _restoreLocalSnapshot(
+    final _RestoreLocalSnapshot event,
+    final Emitter<PuzzleState> emit,
+  ) {
+    final snapshot = event.snapshot;
+    emit(
+      state.copyWith(
+        selectedDate: snapshot.selectedDate,
+        pieces: _applySnapshotPieces(snapshot.pieces),
+        moveHistory: snapshot.moveHistory,
+        moveIndex: snapshot.moveIndex,
+        firstMoveAt: snapshot.firstMoveAt,
+        lastResumedAt: snapshot.lastResumedAt,
+        activeElapsedMs: snapshot.activeElapsedMs,
+        solutionIdx: -1,
+        solutions: const [],
+        applicableSolutions: const [],
+        selectedPiece: null,
+        isDragging: false,
+        dragStartOffset: null,
+        pieceStartPosition: null,
+        previewPosition: null,
+        dragStartZone: null,
+        showPreview: false,
+        previewCollision: false,
+        isRestoredSolvedSession: snapshot.isRestoredSolvedSession,
+        hasShownSolvedDialog: snapshot.hasShownSolvedDialog,
+        status: snapshot.status,
+      ),
+    );
+    add(const PuzzleEvent.solve(showResult: false));
+  }
+
   FutureOr<void> _markSolvedDialogShown(
     final _MarkSolvedDialogShown event,
     final Emitter<PuzzleState> emit,

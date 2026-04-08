@@ -1,0 +1,4 @@
+enum OnboardingMode {
+  short,
+  full,
+}
