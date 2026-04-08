@@ -108,7 +108,7 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
     void replayOnboarding() {
       Navigator.of(context, rootNavigator: true).pop();
       context.read<SettingsCubit>().markOnboardingOffered(currentOnboardingVersion);
-      context.read<OnboardingBloc>().add(const StartOnboarding(OnboardingMode.short));
+      context.read<OnboardingBloc>().add(const StartOnboarding(OnboardingMode.short, isReplay: true));
     }
 
     await showPlatformDialog(

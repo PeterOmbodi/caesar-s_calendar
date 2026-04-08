@@ -65,6 +65,7 @@ void main() {
     testWidgets('shows Try and disables Next for incomplete action step', (final tester) async {
       final state = OnboardingState(
         isVisible: true,
+        isReplay: false,
         mode: OnboardingMode.short,
         currentStepIndex: 1,
         steps: steps,
@@ -86,6 +87,7 @@ void main() {
     testWidgets('hides Try and shows success message for completed drag step', (final tester) async {
       final state = OnboardingState(
         isVisible: true,
+        isReplay: false,
         mode: OnboardingMode.short,
         currentStepIndex: 1,
         steps: steps,

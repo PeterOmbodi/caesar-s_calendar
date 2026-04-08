@@ -4,6 +4,7 @@ import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dar
 class OnboardingState {
   const OnboardingState({
     required this.isVisible,
+    required this.isReplay,
     required this.mode,
     required this.currentStepIndex,
     required this.steps,
@@ -14,6 +15,7 @@ class OnboardingState {
 
   const OnboardingState.hidden()
     : isVisible = false,
+      isReplay = false,
       mode = OnboardingMode.short,
       currentStepIndex = 0,
       steps = const [],
@@ -22,6 +24,7 @@ class OnboardingState {
       completedStepIds = const {};
 
   final bool isVisible;
+  final bool isReplay;
   final OnboardingMode mode;
   final int currentStepIndex;
   final List<OnboardingStep> steps;
@@ -38,9 +41,11 @@ class OnboardingState {
       currentStep != null && completedStepIds.contains(currentStep!.id);
 
   bool get canGoNext => currentStep?.requiresUserAction != true || isCurrentStepComplete || isCurrentStepPreviouslyCompleted;
+  bool get canSkipActionStep => isReplay || canGoNext;
 
   OnboardingState copyWith({
     final bool? isVisible,
+    final bool? isReplay,
     final OnboardingMode? mode,
     final int? currentStepIndex,
     final List<OnboardingStep>? steps,
@@ -49,6 +54,7 @@ class OnboardingState {
     final Set<OnboardingStepId>? completedStepIds,
   }) => OnboardingState(
     isVisible: isVisible ?? this.isVisible,
+    isReplay: isReplay ?? this.isReplay,
     mode: mode ?? this.mode,
     currentStepIndex: currentStepIndex ?? this.currentStepIndex,
     steps: steps ?? this.steps,

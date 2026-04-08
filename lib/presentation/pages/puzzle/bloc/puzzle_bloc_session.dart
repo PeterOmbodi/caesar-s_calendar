@@ -109,8 +109,11 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
       event.date.month,
       event.date.day,
     );
-    _historyUseCase.resetSession();
-    _currentSessionDifficulty = null;
+    _isOnboardingSession = event.onboarding;
+    if (!event.onboarding) {
+      _historyUseCase.resetSession();
+      _currentSessionDifficulty = null;
+    }
     emit(
       state.copyWith(
         selectedDate: nextDate,
@@ -138,6 +141,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     add(
       PuzzleEvent.configure(
         toInitial: true,
+        skipSolve: event.onboarding,
         configurationPieces: _settings.unlockConfig
             ? []
             : state.gridPieces.where((final e) => e.isConfigItem),
@@ -150,6 +154,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     final Emitter<PuzzleState> emit,
   ) {
     final snapshot = event.snapshot;
+    _isOnboardingSession = event.onboarding;
     emit(
       state.copyWith(
         selectedDate: snapshot.selectedDate,
@@ -175,7 +180,9 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         status: snapshot.status,
       ),
     );
-    add(const PuzzleEvent.solve(showResult: false));
+    if (!event.onboarding) {
+      add(const PuzzleEvent.solve(showResult: false));
+    }
   }
 
   FutureOr<void> _markSolvedDialogShown(

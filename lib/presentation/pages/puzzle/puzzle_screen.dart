@@ -149,7 +149,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     _tutorialBaseSnapshot = null;
                     _tutorialPShapeId = null;
                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    _puzzleBloc.add(PuzzleEvent.setPuzzleDate(_tutorialDate));
+                    _puzzleBloc.add(PuzzleEvent.setPuzzleDate(_tutorialDate, onboarding: true));
                   } else if (previous.isVisible && !state.isVisible) {
                     if (_didFinishOnboarding(previous)) {
                       context.read<SettingsCubit>().completeOnboarding(currentOnboardingVersion);
@@ -348,8 +348,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
       return piece.type == PieceType.pShape &&
           !piece.isConfigItem &&
-          move.from.zone == PlaceZone.board &&
           move.to.zone == PlaceZone.grid &&
+          piece.placeZone == PlaceZone.grid &&
           move.to.position.dx == targetRelativePosition.dx &&
           move.to.position.dy == targetRelativePosition.dy;
     }
@@ -469,6 +469,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
           hasShownSolvedDialog: false,
           isRestoredSolvedSession: false,
         ),
+        onboarding: true,
       ),
     );
   }
@@ -500,7 +501,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   void _startOnboardingReplay() {
     context.read<SettingsCubit>().markOnboardingOffered(currentOnboardingVersion);
-    _onboardingBloc.add(const StartOnboarding(OnboardingMode.short));
+    _onboardingBloc.add(const StartOnboarding(OnboardingMode.short, isReplay: true));
   }
 
 }

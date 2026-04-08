@@ -52,7 +52,7 @@ class OnboardingCard extends StatelessWidget {
                     const Spacer(),
                   ],
                   FilledButton(
-                    onPressed: step.requiresUserAction && !state.canGoNext
+                    onPressed: step.requiresUserAction && !state.canSkipActionStep
                         ? null
                         : () => context.read<OnboardingBloc>().add(const NextOnboardingStep()),
                     child: Text(

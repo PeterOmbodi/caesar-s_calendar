@@ -48,6 +48,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(
       OnboardingState(
         isVisible: true,
+        isReplay: event.isReplay,
         mode: event.mode,
         currentStepIndex: 0,
         steps: _stepsForMode(event.mode),
@@ -73,7 +74,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     if (step == null) {
       return;
     }
-    if (step.requiresUserAction && !state.canGoNext) {
+    if (step.requiresUserAction && !state.canSkipActionStep) {
       return;
     }
 

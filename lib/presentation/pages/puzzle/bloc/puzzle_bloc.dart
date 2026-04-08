@@ -106,6 +106,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   Size? _lastViewSize;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
+  bool _isOnboardingSession = false;
 
   @override
   Future<void> close() {

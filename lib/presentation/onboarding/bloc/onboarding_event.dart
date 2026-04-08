@@ -5,9 +5,10 @@ sealed class OnboardingEvent {
 }
 
 class StartOnboarding extends OnboardingEvent {
-  const StartOnboarding(this.mode);
+  const StartOnboarding(this.mode, {this.isReplay = false});
 
   final OnboardingMode mode;
+  final bool isReplay;
 }
 
 class DismissOnboarding extends OnboardingEvent {

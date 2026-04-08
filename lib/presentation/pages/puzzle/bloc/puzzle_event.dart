@@ -31,6 +31,7 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.configure({
     @Default(false) final bool toInitial,
     @Default(<PuzzlePieceUI>[]) final Iterable<PuzzlePieceUI> configurationPieces,
+    @Default(false) final bool skipSolve,
   }) = _Configure;
 
   const factory PuzzleEvent.undo() = _Undo;
@@ -43,9 +44,15 @@ sealed class PuzzleEvent with _$PuzzleEvent {
 
   const factory PuzzleEvent.restoreSession(final PuzzleSessionData session) = _RestoreSession;
 
-  const factory PuzzleEvent.restoreLocalSnapshot(final PuzzleLocalSnapshot snapshot) = _RestoreLocalSnapshot;
+  const factory PuzzleEvent.restoreLocalSnapshot(
+    final PuzzleLocalSnapshot snapshot, {
+    @Default(false) final bool onboarding,
+  }) = _RestoreLocalSnapshot;
 
-  const factory PuzzleEvent.setPuzzleDate(final DateTime date) = _SetPuzzleDate;
+  const factory PuzzleEvent.setPuzzleDate(
+    final DateTime date, {
+    @Default(false) final bool onboarding,
+  }) = _SetPuzzleDate;
 
   const factory PuzzleEvent.markSolvedDialogShown() = _MarkSolvedDialogShown;
 }
