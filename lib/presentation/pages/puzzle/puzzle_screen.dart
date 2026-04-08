@@ -186,7 +186,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     current.selectedDate.month == _tutorialDate.month &&
                     current.selectedDate.day == _tutorialDate.day &&
                     current.moveIndex == 0 &&
-                    !current.isDragging,
+                    !current.isDragging &&
+                    _isTutorialBaseLayoutReady(current),
                 listener: (final context, final state) {
                   _captureTutorialBaseSnapshot(state);
                   _applyTutorialStepSnapshot();
@@ -407,6 +408,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   }
 
   void _captureTutorialBaseSnapshot(final PuzzleState state) {
+    if (!_isTutorialBaseLayoutReady(state)) {
+      return;
+    }
     _tutorialBaseSnapshot ??= buildPuzzleLocalSnapshot(state);
     _tutorialPShapeId ??= state.pieces
         .where((final piece) => piece.type == PieceType.pShape && !piece.isConfigItem)
@@ -414,6 +418,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         .cast<String?>()
         .firstWhere((final id) => id != null, orElse: () => null);
   }
+
+  bool _isTutorialBaseLayoutReady(final PuzzleState state) =>
+      state.status == GameStatus.initialized &&
+      !state.gridPieces.any((final piece) => !piece.isConfigItem) &&
+      state.boardPieces.any((final piece) => piece.type == PieceType.pShape && !piece.isConfigItem);
 
   void _applyTutorialStepSnapshot() {
     final baseSnapshot = _tutorialBaseSnapshot;
