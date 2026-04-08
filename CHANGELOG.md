@@ -1,3 +1,8 @@
+## 1.8.0+29
+- interactive onboarding flow for first launch
+- onboarding replay support
+- version-aware onboarding replay prompts
+
 ## 1.7.0+28
 - extract generic `exact_cover_dlx` package under `packages/exact_cover_dlx`
 - switch app DI to the new package-based solver while keeping the legacy in-app DLX implementation as fallback code
@@ -27,7 +32,7 @@
 ## 1.4.11+23
 - add History page transition
 - fix solvability mark size
-- Use applicableSolutions to determine solved status
+- use applicableSolutions to determine solved status
 
 ## 1.4.10+22
 - add 24 new locale bundles
