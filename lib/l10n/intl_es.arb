@@ -116,7 +116,30 @@
   "timeSpent": "Tiempo empleado",
   "undo": "Deshacer",
   "unlockConfig": "Desbloquear configuración",
-  "unlockConfigDescription": "Arrastra y rota bloques predefinidos para crear tu propio diseño"
+  "unlockConfigDescription": "Arrastra y rota bloques predefinidos para crear tu propio diseño",
+  "onboardingBack": "Atrás",
+  "onboardingClose": "Cerrar",
+  "onboardingDragDescription": "Arrastra la pieza P resaltada hasta la posición objetivo resaltada.",
+  "onboardingDragDetected": "Genial. Se detectó el arrastre.",
+  "onboardingDragPrompt": "Intenta repetir el movimiento de la pieza P mostrado en el ejemplo.",
+  "onboardingDragTitle": "Arrastra la pieza P",
+  "onboardingDragTryNow": "Pruébalo ahora: arrastra la pieza P hasta el objetivo resaltado.",
+  "onboardingFlipDescription": "Un doble toque sobre una pieza la voltea horizontalmente.",
+  "onboardingFlipDetected": "Genial. Se detectó el volteo.",
+  "onboardingFlipPrompt": "Pulsa Probar y luego haz doble toque sobre la pieza resaltada.",
+  "onboardingFlipTitle": "Voltear una pieza",
+  "onboardingFlipTryNow": "Pruébalo ahora: haz doble toque sobre la pieza resaltada.",
+  "onboardingGoalDescription": "Estas dos celdas deben permanecer libres para la fecha objetivo.",
+  "onboardingGoalTitle": "Objetivo",
+  "onboardingNext": "Siguiente",
+  "onboardingRotateDescription": "Toca una pieza una vez para girarla 90 grados en el sentido de las agujas del reloj.",
+  "onboardingRotateDetected": "Genial. Se detectó la rotación.",
+  "onboardingRotatePrompt": "Pulsa Probar y luego toca una vez la pieza resaltada.",
+  "onboardingRotateTitle": "Girar una pieza",
+  "onboardingRotateTryNow": "Pruébalo ahora: toca una vez la pieza resaltada.",
+  "onboardingReplayAction": "Repetir",
+  "onboardingReplayButton": "Repetir onboarding",
+  "onboardingReplayPrompt": "Hay disponible un onboarding actualizado.",
+  "onboardingTry": "Probar",
+  "onboardingWaitingForAction": "Esperando un arrastre real desde la bandeja al tablero."
 }
-
-

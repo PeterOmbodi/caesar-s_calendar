@@ -116,7 +116,30 @@
   "timeSpent": "Sugaištas laikas",
   "undo": "Atšaukti",
   "unlockConfig": "Atrakinti konfigūraciją",
-  "unlockConfigDescription": "Tempk ir suk iš anksto nustatytus blokus, kad sukurtum savo išdėstymą"
+  "unlockConfigDescription": "Tempk ir suk iš anksto nustatytus blokus, kad sukurtum savo išdėstymą",
+  "onboardingBack": "Atgal",
+  "onboardingClose": "Uždaryti",
+  "onboardingDragDescription": "Nuvilk paryškintą P formos detalę į paryškintą tikslinę poziciją.",
+  "onboardingDragDetected": "Puiku. Vilkimas aptiktas.",
+  "onboardingDragPrompt": "Pabandyk pakartoti pavyzdyje parodytą P formos detalės judesį.",
+  "onboardingDragTitle": "Nuvilk P formos detalę",
+  "onboardingDragTryNow": "Bandyk dabar: nuvilk P formos detalę į paryškintą tikslą.",
+  "onboardingFlipDescription": "Dvigubas bakstelėjimas detalę apverčia horizontaliai.",
+  "onboardingFlipDetected": "Puiku. Apvertimas aptiktas.",
+  "onboardingFlipPrompt": "Paspausk Bandyti, tada dukart bakstelėk paryškintą detalę.",
+  "onboardingFlipTitle": "Apversti detalę",
+  "onboardingFlipTryNow": "Bandyk dabar: dukart bakstelėk paryškintą detalę.",
+  "onboardingGoalDescription": "Šie du langeliai turi likti laisvi tikslinei datai.",
+  "onboardingGoalTitle": "Tikslas",
+  "onboardingNext": "Toliau",
+  "onboardingRotateDescription": "Vienas bakstelėjimas pasuka detalę 90 laipsnių pagal laikrodžio rodyklę.",
+  "onboardingRotateDetected": "Puiku. Pasukimas aptiktas.",
+  "onboardingRotatePrompt": "Paspausk Bandyti, tada vieną kartą bakstelėk paryškintą detalę.",
+  "onboardingRotateTitle": "Pasukti detalę",
+  "onboardingRotateTryNow": "Bandyk dabar: vieną kartą bakstelėk paryškintą detalę.",
+  "onboardingReplayAction": "Kartoti",
+  "onboardingReplayButton": "Kartoti onboarding",
+  "onboardingReplayPrompt": "Yra atnaujintas onboarding turas.",
+  "onboardingTry": "Bandyti",
+  "onboardingWaitingForAction": "Laukiama tikro vilkimo iš dėklo į lentą."
 }
-
-

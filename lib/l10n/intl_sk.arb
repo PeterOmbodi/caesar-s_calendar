@@ -116,7 +116,30 @@
   "timeSpent": "Strávený čas",
   "undo": "Späť",
   "unlockConfig": "Odomknúť konfiguráciu",
-  "unlockConfigDescription": "Ťahaj a otáčaj preddefinované bloky a vytvor vlastné rozloženie"
+  "unlockConfigDescription": "Ťahaj a otáčaj preddefinované bloky a vytvor vlastné rozloženie",
+  "onboardingBack": "Späť",
+  "onboardingClose": "Zavrieť",
+  "onboardingDragDescription": "Potiahni zvýraznený diel P na zvýraznenú cieľovú pozíciu.",
+  "onboardingDragDetected": "Skvelé. Potiahnutie bolo rozpoznané.",
+  "onboardingDragPrompt": "Skús zopakovať pohyb dielu P z príkladu.",
+  "onboardingDragTitle": "Potiahni diel P",
+  "onboardingDragTryNow": "Skús to teraz: potiahni diel P na zvýraznený cieľ.",
+  "onboardingFlipDescription": "Dvojité ťuknutie na diel ho preklopí horizontálne.",
+  "onboardingFlipDetected": "Skvelé. Preklopenie bolo rozpoznané.",
+  "onboardingFlipPrompt": "Stlač Skúsiť a potom dvakrát ťukni na zvýraznený diel.",
+  "onboardingFlipTitle": "Preklopiť diel",
+  "onboardingFlipTryNow": "Skús to teraz: dvakrát ťukni na zvýraznený diel.",
+  "onboardingGoalDescription": "Tieto dve bunky musia zostať voľné pre cieľový dátum.",
+  "onboardingGoalTitle": "Cieľ",
+  "onboardingNext": "Ďalej",
+  "onboardingRotateDescription": "Jedno ťuknutie na diel ho otočí o 90 stupňov v smere hodinových ručičiek.",
+  "onboardingRotateDetected": "Skvelé. Otočenie bolo rozpoznané.",
+  "onboardingRotatePrompt": "Stlač Skúsiť a potom raz ťukni na zvýraznený diel.",
+  "onboardingRotateTitle": "Otočiť diel",
+  "onboardingRotateTryNow": "Skús to teraz: raz ťukni na zvýraznený diel.",
+  "onboardingReplayAction": "Zopakovať",
+  "onboardingReplayButton": "Zopakovať onboarding",
+  "onboardingReplayPrompt": "K dispozícii je aktualizovaný onboarding.",
+  "onboardingTry": "Skúsiť",
+  "onboardingWaitingForAction": "Čaká sa na skutočné potiahnutie z panelu na hraciu plochu."
 }
-
-

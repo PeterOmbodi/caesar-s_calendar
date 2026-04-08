@@ -116,7 +116,30 @@
   "timeSpent": "Eltelt idő",
   "undo": "Visszavonás",
   "unlockConfig": "Konfiguráció feloldása",
-  "unlockConfigDescription": "Húzd és forgasd a fix blokkokat saját elrendezés létrehozásához"
+  "unlockConfigDescription": "Húzd és forgasd a fix blokkokat saját elrendezés létrehozásához",
+  "onboardingBack": "Vissza",
+  "onboardingClose": "Bezárás",
+  "onboardingDragDescription": "Húzd a kiemelt P-alakú elemet a kiemelt célhelyre.",
+  "onboardingDragDetected": "Nagyszerű. A húzást észleltük.",
+  "onboardingDragPrompt": "Próbáld megismételni a példában látható P-alakú elem mozgását.",
+  "onboardingDragTitle": "Húzd a P-alakú elemet",
+  "onboardingDragTryNow": "Próbáld ki most: húzd a P-alakú elemet a kiemelt célra.",
+  "onboardingFlipDescription": "Egy elem dupla koppintásra vízszintesen tükröződik.",
+  "onboardingFlipDetected": "Nagyszerű. A tükrözést észleltük.",
+  "onboardingFlipPrompt": "Nyomd meg a Kipróbálom gombot, majd koppints duplán a kiemelt elemre.",
+  "onboardingFlipTitle": "Elem tükrözése",
+  "onboardingFlipTryNow": "Próbáld ki most: koppints duplán a kiemelt elemre.",
+  "onboardingGoalDescription": "Ennek a két mezőnek szabadon kell maradnia a céldátum számára.",
+  "onboardingGoalTitle": "Cél",
+  "onboardingNext": "Tovább",
+  "onboardingRotateDescription": "Egy elem egyszeri koppintásra 90 fokkal elfordul az óramutató járásával megegyezően.",
+  "onboardingRotateDetected": "Nagyszerű. A forgatást észleltük.",
+  "onboardingRotatePrompt": "Nyomd meg a Kipróbálom gombot, majd koppints egyszer a kiemelt elemre.",
+  "onboardingRotateTitle": "Elem forgatása",
+  "onboardingRotateTryNow": "Próbáld ki most: koppints egyszer a kiemelt elemre.",
+  "onboardingReplayAction": "Újra",
+  "onboardingReplayButton": "Onboarding újrajátszása",
+  "onboardingReplayPrompt": "Frissített onboarding útmutató érhető el.",
+  "onboardingTry": "Kipróbálom",
+  "onboardingWaitingForAction": "Valódi húzásra várunk a tálcáról a táblára."
 }
-
-

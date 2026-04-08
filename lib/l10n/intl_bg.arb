@@ -116,7 +116,30 @@
   "timeSpent": "Изразходвано време",
   "undo": "Отмени",
   "unlockConfig": "Отключи конфигурацията",
-  "unlockConfigDescription": "Плъзгай и върти предварително зададените блокове, за да създадеш собствено оформление"
+  "unlockConfigDescription": "Плъзгай и върти предварително зададените блокове, за да създадеш собствено оформление",
+  "onboardingBack": "Назад",
+  "onboardingClose": "Затвори",
+  "onboardingDragDescription": "Плъзни подчертаната P-фигура до подчертаната целева позиция.",
+  "onboardingDragDetected": "Чудесно. Плъзгането беше засечено.",
+  "onboardingDragPrompt": "Опитай да повториш движението на P-фигурата от примера.",
+  "onboardingDragTitle": "Плъзни P-фигурата",
+  "onboardingDragTryNow": "Опитай сега: плъзни P-фигурата до подчертаната цел.",
+  "onboardingFlipDescription": "Двойното докосване на фигура я обръща хоризонтално.",
+  "onboardingFlipDetected": "Чудесно. Обръщането беше засечено.",
+  "onboardingFlipPrompt": "Натисни Спробуй, после докосни два пъти подчертаната фигура.",
+  "onboardingFlipTitle": "Обръщане на фигура",
+  "onboardingFlipTryNow": "Опитай сега: докосни два пъти подчертаната фигура.",
+  "onboardingGoalDescription": "Тези две клетки трябва да останат свободни за целевата дата.",
+  "onboardingGoalTitle": "Цел",
+  "onboardingNext": "Напред",
+  "onboardingRotateDescription": "Едно докосване на фигура я завърта с 90 градуса по часовниковата стрелка.",
+  "onboardingRotateDetected": "Чудесно. Завъртането беше засечено.",
+  "onboardingRotatePrompt": "Натисни Спробуй, после докосни подчертаната фигура веднъж.",
+  "onboardingRotateTitle": "Завъртане на фигура",
+  "onboardingRotateTryNow": "Опитай сега: докосни подчертаната фигура веднъж.",
+  "onboardingReplayAction": "Повтори",
+  "onboardingReplayButton": "Повтори онбординга",
+  "onboardingReplayPrompt": "Наличен е обновен онбординг тур.",
+  "onboardingTry": "Спробуй",
+  "onboardingWaitingForAction": "Очаква се реално плъзгане от лентата към дъската."
 }
-
-

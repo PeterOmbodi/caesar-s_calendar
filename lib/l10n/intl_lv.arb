@@ -116,7 +116,30 @@
   "timeSpent": "Patērētais laiks",
   "undo": "Atsaukt",
   "unlockConfig": "Atbloķēt konfigurāciju",
-  "unlockConfigDescription": "Velc un pagriez iepriekš noteiktos blokus, lai izveidotu savu izkārtojumu"
+  "unlockConfigDescription": "Velc un pagriez iepriekš noteiktos blokus, lai izveidotu savu izkārtojumu",
+  "onboardingBack": "Atpakaļ",
+  "onboardingClose": "Aizvērt",
+  "onboardingDragDescription": "Pārvelc izcelto P formas gabalu uz izcelto mērķa pozīciju.",
+  "onboardingDragDetected": "Lieliski. Vilkšana tika noteikta.",
+  "onboardingDragPrompt": "Mēģini atkārtot piemērā parādīto P formas gabala kustību.",
+  "onboardingDragTitle": "Pārvelc P formas gabalu",
+  "onboardingDragTryNow": "Pamēģini tagad: pārvelc P formas gabalu uz izcelto mērķi.",
+  "onboardingFlipDescription": "Dubultpieskāriens gabalam to horizontāli apgriež.",
+  "onboardingFlipDetected": "Lieliski. Apgriešana tika noteikta.",
+  "onboardingFlipPrompt": "Nospied Mēģināt, tad divreiz pieskaries izceltajam gabalam.",
+  "onboardingFlipTitle": "Apgriezt gabalu",
+  "onboardingFlipTryNow": "Pamēģini tagad: divreiz pieskaries izceltajam gabalam.",
+  "onboardingGoalDescription": "Šīm divām šūnām jāpaliek brīvām mērķa datumam.",
+  "onboardingGoalTitle": "Mērķis",
+  "onboardingNext": "Tālāk",
+  "onboardingRotateDescription": "Viens pieskāriens pagriež gabalu par 90 grādiem pulksteņrādītāja virzienā.",
+  "onboardingRotateDetected": "Lieliski. Pagriešana tika noteikta.",
+  "onboardingRotatePrompt": "Nospied Mēģināt, tad vienreiz pieskaries izceltajam gabalam.",
+  "onboardingRotateTitle": "Pagriezt gabalu",
+  "onboardingRotateTryNow": "Pamēģini tagad: vienreiz pieskaries izceltajam gabalam.",
+  "onboardingReplayAction": "Atkārtot",
+  "onboardingReplayButton": "Atkārtot onboarding",
+  "onboardingReplayPrompt": "Ir pieejama atjaunināta onboarding pamācība.",
+  "onboardingTry": "Mēģināt",
+  "onboardingWaitingForAction": "Tiek gaidīta īsta vilkšana no paplātes uz laukumu."
 }
-
-

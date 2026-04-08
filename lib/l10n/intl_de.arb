@@ -116,7 +116,30 @@
   "timeSpent": "Benötigte Zeit",
   "undo": "Rückgängig",
   "unlockConfig": "Konfiguration entsperren",
-  "unlockConfigDescription": "Vorgegebene Blöcke ziehen und drehen, um ein eigenes Layout zu erstellen"
+  "unlockConfigDescription": "Vorgegebene Blöcke ziehen und drehen, um ein eigenes Layout zu erstellen",
+  "onboardingBack": "Zurück",
+  "onboardingClose": "Schließen",
+  "onboardingDragDescription": "Ziehe das hervorgehobene P-Teil in die hervorgehobene Zielposition.",
+  "onboardingDragDetected": "Gut. Das Ziehen wurde erkannt.",
+  "onboardingDragPrompt": "Versuche, die Bewegung des P-Teils aus dem Beispiel nachzumachen.",
+  "onboardingDragTitle": "Ziehe das P-Teil",
+  "onboardingDragTryNow": "Versuche es jetzt: Ziehe das P-Teil in das hervorgehobene Ziel.",
+  "onboardingFlipDescription": "Ein Doppeltipp auf ein Teil spiegelt es horizontal.",
+  "onboardingFlipDetected": "Gut. Das Spiegeln wurde erkannt.",
+  "onboardingFlipPrompt": "Drücke auf Ausprobieren und tippe dann doppelt auf das hervorgehobene Teil.",
+  "onboardingFlipTitle": "Ein Teil spiegeln",
+  "onboardingFlipTryNow": "Versuche es jetzt: Tippe doppelt auf das hervorgehobene Teil.",
+  "onboardingGoalDescription": "Diese beiden Felder müssen für das Zieldatum frei bleiben.",
+  "onboardingGoalTitle": "Ziel",
+  "onboardingNext": "Weiter",
+  "onboardingRotateDescription": "Ein einzelner Tipp auf ein Teil dreht es um 90 Grad im Uhrzeigersinn.",
+  "onboardingRotateDetected": "Gut. Die Drehung wurde erkannt.",
+  "onboardingRotatePrompt": "Drücke auf Ausprobieren und tippe dann einmal auf das hervorgehobene Teil.",
+  "onboardingRotateTitle": "Ein Teil drehen",
+  "onboardingRotateTryNow": "Versuche es jetzt: Tippe einmal auf das hervorgehobene Teil.",
+  "onboardingReplayAction": "Wiederholen",
+  "onboardingReplayButton": "Onboarding wiederholen",
+  "onboardingReplayPrompt": "Eine aktualisierte Onboarding-Tour ist verfügbar.",
+  "onboardingTry": "Ausprobieren",
+  "onboardingWaitingForAction": "Warte auf ein echtes Ziehen von der Ablage auf das Brett."
 }
-
-

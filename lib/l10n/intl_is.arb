@@ -116,7 +116,30 @@
   "timeSpent": "Notaður tími",
   "undo": "Afturkalla",
   "unlockConfig": "Opna uppsetningu",
-  "unlockConfigDescription": "Dragðu og snúðu fyrirfram skilgreindum kubbum til að búa til eigið skipulag"
+  "unlockConfigDescription": "Dragðu og snúðu fyrirfram skilgreindum kubbum til að búa til eigið skipulag",
+  "onboardingBack": "Til baka",
+  "onboardingClose": "Loka",
+  "onboardingDragDescription": "Dragðu auðkennda P-lagið í auðkennda markstöðuna.",
+  "onboardingDragDetected": "Frábært. Drátturinn var skráður.",
+  "onboardingDragPrompt": "Reyndu að endurtaka hreyfingu P-lagsins eins og sýnt er í dæminu.",
+  "onboardingDragTitle": "Dragðu P-lagið",
+  "onboardingDragTryNow": "Prófaðu núna: dragðu P-lagið í auðkennda markið.",
+  "onboardingFlipDescription": "Tvítapp á stykki speglar það lárétt.",
+  "onboardingFlipDetected": "Frábært. Speglunin var skráð.",
+  "onboardingFlipPrompt": "Ýttu á Prófa og tvítappaðu síðan á auðkennda stykkið.",
+  "onboardingFlipTitle": "Spegla stykki",
+  "onboardingFlipTryNow": "Prófaðu núna: tvítappaðu á auðkennda stykkið.",
+  "onboardingGoalDescription": "Þessir tveir reitir verða að vera auðir fyrir markdagsetninguna.",
+  "onboardingGoalTitle": "Markmið",
+  "onboardingNext": "Næsta",
+  "onboardingRotateDescription": "Eitt tapp á stykki snýr því 90 gráður réttsælis.",
+  "onboardingRotateDetected": "Frábært. Snúningurinn var skráður.",
+  "onboardingRotatePrompt": "Ýttu á Prófa og tappaðu síðan einu sinni á auðkennda stykkið.",
+  "onboardingRotateTitle": "Snúa stykki",
+  "onboardingRotateTryNow": "Prófaðu núna: tappaðu einu sinni á auðkennda stykkið.",
+  "onboardingReplayAction": "Endurtaka",
+  "onboardingReplayButton": "Endurtaka onboarding",
+  "onboardingReplayPrompt": "Uppfærð onboarding leiðsögn er tiltæk.",
+  "onboardingTry": "Prófa",
+  "onboardingWaitingForAction": "Beðið er eftir raunverulegum drætti af bakkanum yfir á borðið."
 }
-
-

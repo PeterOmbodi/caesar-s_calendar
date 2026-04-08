@@ -116,7 +116,30 @@
   "timeSpent": "Käytetty aika",
   "undo": "Kumoa",
   "unlockConfig": "Avaa asettelu",
-  "unlockConfigDescription": "Vedä ja kierrä ennalta määritettyjä lohkoja luodaksesi oman asettelun"
+  "unlockConfigDescription": "Vedä ja kierrä ennalta määritettyjä lohkoja luodaksesi oman asettelun",
+  "onboardingBack": "Takaisin",
+  "onboardingClose": "Sulje",
+  "onboardingDragDescription": "Vedä korostettu P-pala korostettuun kohdepaikkaan.",
+  "onboardingDragDetected": "Hienoa. Veto tunnistettiin.",
+  "onboardingDragPrompt": "Yritä toistaa esimerkissä näytetty P-palan liike.",
+  "onboardingDragTitle": "Vedä P-palaa",
+  "onboardingDragTryNow": "Kokeile nyt: vedä P-pala korostettuun kohteeseen.",
+  "onboardingFlipDescription": "Kaksoisnapautus peilaa palan vaakasuunnassa.",
+  "onboardingFlipDetected": "Hienoa. Peilaus tunnistettiin.",
+  "onboardingFlipPrompt": "Paina Kokeile ja kaksoisnapauta sitten korostettua palaa.",
+  "onboardingFlipTitle": "Peilaa pala",
+  "onboardingFlipTryNow": "Kokeile nyt: kaksoisnapauta korostettua palaa.",
+  "onboardingGoalDescription": "Näiden kahden ruudun on jäätävä vapaiksi kohdepäivää varten.",
+  "onboardingGoalTitle": "Tavoite",
+  "onboardingNext": "Seuraava",
+  "onboardingRotateDescription": "Yksi napautus kääntää palaa 90 astetta myötäpäivään.",
+  "onboardingRotateDetected": "Hienoa. Kierto tunnistettiin.",
+  "onboardingRotatePrompt": "Paina Kokeile ja napauta sitten korostettua palaa kerran.",
+  "onboardingRotateTitle": "Käännä palaa",
+  "onboardingRotateTryNow": "Kokeile nyt: napauta korostettua palaa kerran.",
+  "onboardingReplayAction": "Toista",
+  "onboardingReplayButton": "Toista onboarding",
+  "onboardingReplayPrompt": "Päivitetty onboarding-opastus on saatavilla.",
+  "onboardingTry": "Kokeile",
+  "onboardingWaitingForAction": "Odotetaan oikeaa vetoa tarjottimelta laudalle."
 }
-
-

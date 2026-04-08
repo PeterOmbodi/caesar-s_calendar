@@ -116,7 +116,30 @@
   "timeSpent": "Kulunud aeg",
   "undo": "Võta tagasi",
   "unlockConfig": "Ava konfiguratsioon",
-  "unlockConfigDescription": "Lohista ja pööra etteantud plokke, et luua oma paigutus"
+  "unlockConfigDescription": "Lohista ja pööra etteantud plokke, et luua oma paigutus",
+  "onboardingBack": "Tagasi",
+  "onboardingClose": "Sulge",
+  "onboardingDragDescription": "Lohista esiletõstetud P-kujuline tükk esiletõstetud sihtasendisse.",
+  "onboardingDragDetected": "Suurepärane. Lohistamine tuvastati.",
+  "onboardingDragPrompt": "Proovi korrata näites näidatud P-kujulise tüki liikumist.",
+  "onboardingDragTitle": "Lohista P-kujulist tükki",
+  "onboardingDragTryNow": "Proovi nüüd: lohista P-kujuline tükk esiletõstetud sihtkohta.",
+  "onboardingFlipDescription": "Topeltpuudutus tükil peegeldab selle horisontaalselt.",
+  "onboardingFlipDetected": "Suurepärane. Peegeldamine tuvastati.",
+  "onboardingFlipPrompt": "Vajuta Proovi ja seejärel topeltpuuduta esiletõstetud tükki.",
+  "onboardingFlipTitle": "Peegelda tükki",
+  "onboardingFlipTryNow": "Proovi nüüd: topeltpuuduta esiletõstetud tükki.",
+  "onboardingGoalDescription": "Need kaks lahtrit peavad sihtkuupäeva jaoks vabaks jääma.",
+  "onboardingGoalTitle": "Eesmärk",
+  "onboardingNext": "Järgmine",
+  "onboardingRotateDescription": "Üks puudutus tükil pöörab selle 90 kraadi päripäeva.",
+  "onboardingRotateDetected": "Suurepärane. Pööre tuvastati.",
+  "onboardingRotatePrompt": "Vajuta Proovi ja seejärel puuduta esiletõstetud tükki üks kord.",
+  "onboardingRotateTitle": "Pööra tükki",
+  "onboardingRotateTryNow": "Proovi nüüd: puuduta esiletõstetud tükki üks kord.",
+  "onboardingReplayAction": "Korda",
+  "onboardingReplayButton": "Korda onboardingut",
+  "onboardingReplayPrompt": "Saadaval on uuendatud onboarding.",
+  "onboardingTry": "Proovi",
+  "onboardingWaitingForAction": "Ootab päris lohistamist alalt mängulauale."
 }
-
-
