@@ -116,7 +116,30 @@
   "timeSpent": "Koha e shpenzuar",
   "undo": "Zhbëj",
   "unlockConfig": "Zhblloko konfigurimin",
-  "unlockConfigDescription": "Tërhiq dhe rrotullo blloqet e paracaktuara për të krijuar paraqitjen tënde"
+  "unlockConfigDescription": "Tërhiq dhe rrotullo blloqet e paracaktuara për të krijuar paraqitjen tënde",
+  "onboardingBack": "Prapa",
+  "onboardingClose": "Mbyll",
+  "onboardingDragDescription": "Tërhiq pjesën P të theksuar në pozicionin e synuar të theksuar.",
+  "onboardingDragDetected": "Shkëlqyeshëm. Tërheqja u dallua.",
+  "onboardingDragPrompt": "Përpiqu të përsërisësh lëvizjen e pjesës P si në shembull.",
+  "onboardingDragTitle": "Tërhiq pjesën P",
+  "onboardingDragTryNow": "Provoje tani: tërhiq pjesën P në objektivin e theksuar.",
+  "onboardingFlipDescription": "Prekja e dyfishtë e një pjese e pasqyron horizontalisht.",
+  "onboardingFlipDetected": "Shkëlqyeshëm. Pasqyrimi u dallua.",
+  "onboardingFlipPrompt": "Shtyp Provo, pastaj prek dy herë pjesën e theksuar.",
+  "onboardingFlipTitle": "Pasqyro një pjesë",
+  "onboardingFlipTryNow": "Provoje tani: prek dy herë pjesën e theksuar.",
+  "onboardingGoalDescription": "Këto dy qeliza duhet të mbeten të lira për datën objektiv.",
+  "onboardingGoalTitle": "Qëllimi",
+  "onboardingNext": "Tjetra",
+  "onboardingRotateDescription": "Një prekje e vetme e rrotullon pjesën 90 gradë në drejtim të akrepave të orës.",
+  "onboardingRotateDetected": "Shkëlqyeshëm. Rrotullimi u dallua.",
+  "onboardingRotatePrompt": "Shtyp Provo, pastaj prek një herë pjesën e theksuar.",
+  "onboardingRotateTitle": "Rrotullo një pjesë",
+  "onboardingRotateTryNow": "Provoje tani: prek një herë pjesën e theksuar.",
+  "onboardingReplayAction": "Përsërite",
+  "onboardingReplayButton": "Përsërite onboarding-un",
+  "onboardingReplayPrompt": "Ka një onboarding të përditësuar.",
+  "onboardingTry": "Provo",
+  "onboardingWaitingForAction": "Po pritet një tërheqje reale nga tabakaja në tabelë."
 }
-
-

@@ -5,7 +5,12 @@ import 'package:flutter_flip_flap/split_flap_theme.dart';
 import 'package:flutter_flip_flap/widgets/flip_flap_display.dart';
 
 class HowToPlayHint extends StatelessWidget {
-  const HowToPlayHint({super.key});
+  const HowToPlayHint({
+    super.key,
+    this.onReplayOnboarding,
+  });
+
+  final VoidCallback? onReplayOnboarding;
 
   @override
   Widget build(final BuildContext context) {
@@ -179,6 +184,14 @@ class HowToPlayHint extends StatelessWidget {
             title: S.current.howToPlaySolutionNumbTitle,
             description: S.current.howToPlaySolutionNumbDescription,
           ),
+          if (onReplayOnboarding != null) ...[
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: onReplayOnboarding,
+              icon: const Icon(Icons.play_circle_outline),
+              label: Text(S.current.onboardingReplayButton),
+            ),
+          ],
         ],
       ),
     );

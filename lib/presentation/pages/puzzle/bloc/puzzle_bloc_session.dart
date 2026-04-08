@@ -109,8 +109,11 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
       event.date.month,
       event.date.day,
     );
-    _historyUseCase.resetSession();
-    _currentSessionDifficulty = null;
+    _isOnboardingSession = event.onboarding;
+    if (!event.onboarding) {
+      _historyUseCase.resetSession();
+      _currentSessionDifficulty = null;
+    }
     emit(
       state.copyWith(
         selectedDate: nextDate,
@@ -138,11 +141,48 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     add(
       PuzzleEvent.configure(
         toInitial: true,
+        skipSolve: event.onboarding,
         configurationPieces: _settings.unlockConfig
             ? []
             : state.gridPieces.where((final e) => e.isConfigItem),
       ),
     );
+  }
+
+  FutureOr<void> _restoreLocalSnapshot(
+    final _RestoreLocalSnapshot event,
+    final Emitter<PuzzleState> emit,
+  ) {
+    final snapshot = event.snapshot;
+    _isOnboardingSession = event.onboarding;
+    emit(
+      state.copyWith(
+        selectedDate: snapshot.selectedDate,
+        pieces: _applySnapshotPieces(snapshot.pieces),
+        moveHistory: snapshot.moveHistory,
+        moveIndex: snapshot.moveIndex,
+        firstMoveAt: snapshot.firstMoveAt,
+        lastResumedAt: snapshot.lastResumedAt,
+        activeElapsedMs: snapshot.activeElapsedMs,
+        solutionIdx: -1,
+        solutions: const [],
+        applicableSolutions: const [],
+        selectedPiece: null,
+        isDragging: false,
+        dragStartOffset: null,
+        pieceStartPosition: null,
+        previewPosition: null,
+        dragStartZone: null,
+        showPreview: false,
+        previewCollision: false,
+        isRestoredSolvedSession: snapshot.isRestoredSolvedSession,
+        hasShownSolvedDialog: snapshot.hasShownSolvedDialog,
+        status: snapshot.status,
+      ),
+    );
+    if (!event.onboarding) {
+      add(const PuzzleEvent.solve(showResult: false));
+    }
   }
 
   FutureOr<void> _markSolvedDialogShown(

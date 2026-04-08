@@ -116,7 +116,30 @@
   "timeSpent": "Poświęcony czas",
   "undo": "Cofnij",
   "unlockConfig": "Odblokuj konfigurację",
-  "unlockConfigDescription": "Przeciągaj i obracaj predefiniowane bloki, aby zbudować własny układ"
+  "unlockConfigDescription": "Przeciągaj i obracaj predefiniowane bloki, aby zbudować własny układ",
+  "onboardingBack": "Wstecz",
+  "onboardingClose": "Zamknij",
+  "onboardingDragDescription": "Przeciągnij podświetlony element w kształcie P na podświetloną pozycję docelową.",
+  "onboardingDragDetected": "Świetnie. Przeciągnięcie zostało wykryte.",
+  "onboardingDragPrompt": "Spróbuj powtórzyć ruch elementu P pokazany w przykładzie.",
+  "onboardingDragTitle": "Przeciągnij element P",
+  "onboardingDragTryNow": "Spróbuj teraz: przeciągnij element P na podświetlony cel.",
+  "onboardingFlipDescription": "Dwukrotne stuknięcie elementu odbija go poziomo.",
+  "onboardingFlipDetected": "Świetnie. Odbicie zostało wykryte.",
+  "onboardingFlipPrompt": "Naciśnij Spróbuj, a potem stuknij dwukrotnie podświetlony element.",
+  "onboardingFlipTitle": "Odbij element",
+  "onboardingFlipTryNow": "Spróbuj teraz: stuknij dwukrotnie podświetlony element.",
+  "onboardingGoalDescription": "Te dwa pola muszą pozostać wolne dla docelowej daty.",
+  "onboardingGoalTitle": "Cel",
+  "onboardingNext": "Dalej",
+  "onboardingRotateDescription": "Jedno stuknięcie elementu obraca go o 90 stopni zgodnie z ruchem wskazówek zegara.",
+  "onboardingRotateDetected": "Świetnie. Obrót został wykryty.",
+  "onboardingRotatePrompt": "Naciśnij Spróbuj, a potem stuknij raz podświetlony element.",
+  "onboardingRotateTitle": "Obróć element",
+  "onboardingRotateTryNow": "Spróbuj teraz: stuknij raz podświetlony element.",
+  "onboardingReplayAction": "Powtórz",
+  "onboardingReplayButton": "Powtórz onboarding",
+  "onboardingReplayPrompt": "Dostępny jest odświeżony onboarding.",
+  "onboardingTry": "Spróbuj",
+  "onboardingWaitingForAction": "Oczekiwanie na rzeczywiste przeciągnięcie z zasobnika na planszę."
 }
-
-

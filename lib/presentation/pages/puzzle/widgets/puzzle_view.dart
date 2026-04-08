@@ -1,9 +1,14 @@
+import 'package:caesar_puzzle/core/models/piece_type.dart';
+import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
+import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dart';
+import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/info_display_3_cell.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_flap/flutter_flip_flap.dart';
@@ -16,6 +21,7 @@ class PuzzleView extends StatelessWidget {
     builder: (final BuildContext context, final PuzzleState state) => LayoutBuilder(
       builder: (final context, final constraints) {
         final bloc = context.read<PuzzleBloc>();
+        final onboardingState = context.watch<OnboardingBloc>().state;
         bloc.add(PuzzleEvent.setViewSize(constraints.biggest));
         final borderColorMode = context.watch<SettingsCubit>().state.separateMoveColors;
 
@@ -23,16 +29,49 @@ class PuzzleView extends StatelessWidget {
 
         final settings = context.watch<SettingsCubit>().state;
         final applicableCount = state.applicableSolutions.length;
+        final isOnboardingVisible = onboardingState.isVisible;
 
         final solvabilityState = _showOrHide(
-          settings.solutionIndicator == SolutionIndicator.solvability,
+          !isOnboardingVisible && settings.solutionIndicator == SolutionIndicator.solvability,
           applicableCount,
         );
 
         final solutionsCountState = _showOrHide(
-          settings.solutionIndicator == SolutionIndicator.countSolutions || state.isShowSolutions,
+          !isOnboardingVisible && (settings.solutionIndicator == SolutionIndicator.countSolutions || state.isShowSolutions),
           applicableCount,
         );
+
+        bool isInteractionAllowed(
+          final Offset position, {
+          required final OnboardingInputAction action,
+        }) {
+          final step = onboardingState.currentStep;
+          if (!onboardingState.isVisible) {
+            return true;
+          }
+          final stepId = step?.id;
+          if (stepId == null) {
+            return true;
+          }
+          if (stepId.allowedInputAction == null) {
+            return false;
+          }
+          if (!onboardingState.isCurrentStepInteractionEnabled || stepId.allowedInputAction != action) {
+            return false;
+          }
+
+          final selectedPiece = state.selectedPiece;
+          if (action == OnboardingInputAction.drag && state.isDragging && selectedPiece != null) {
+            return selectedPiece.type == PieceType.pShape && !selectedPiece.isConfigItem;
+          }
+          final tappedPiece = state.pieces.lastWhere(
+            (final piece) => piece.containsPoint(position),
+            orElse: () => state.pieces.first,
+          );
+          return tappedPiece.type == PieceType.pShape &&
+              !tappedPiece.isConfigItem &&
+              tappedPiece.containsPoint(position);
+        }
 
         return state.status == GameStatus.initializing
             ? Center(child: CircularProgressIndicator())
@@ -67,7 +106,7 @@ class PuzzleView extends StatelessWidget {
                           ),
                         ),
                       ),
-                    if (state.isShowSolutions || settings.showTimer) ...[
+                    if (!isOnboardingVisible && (state.isShowSolutions || settings.showTimer)) ...[
                       Positioned(
                         left: state.cfgCellOffset(3).dx,
                         top: state.cfgCellOffset(3).dy,
@@ -76,12 +115,46 @@ class PuzzleView extends StatelessWidget {
                     ],
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTapDown: (final details) => bloc.add(PuzzleEvent.onTapDown(details.localPosition)),
-                      onTapUp: (final details) => bloc.add(PuzzleEvent.onTapUp(details.localPosition)),
-                      onPanStart: (final details) => bloc.add(PuzzleEvent.onPanStart(details.localPosition)),
-                      onPanUpdate: (final details) => bloc.add(PuzzleEvent.onPanUpdate(details.localPosition)),
-                      onPanEnd: (final details) => bloc.add(PuzzleEvent.onPanEnd(details.localPosition)),
-                      onDoubleTapDown: (final details) => bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition)),
+                      onTapDown: (final details) {
+                        if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.tap)) {
+                          return;
+                        }
+                        bloc.add(PuzzleEvent.onTapDown(details.localPosition));
+                      },
+                      onTapUp: (final details) {
+                        if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.tap)) {
+                          return;
+                        }
+                        bloc.add(PuzzleEvent.onTapUp(details.localPosition));
+                      },
+                      onPanStart: (final details) {
+                        if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.drag)) {
+                          return;
+                        }
+                        bloc.add(PuzzleEvent.onPanStart(details.localPosition));
+                      },
+                      onPanUpdate: (final details) {
+                        if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.drag)) {
+                          return;
+                        }
+                        bloc.add(PuzzleEvent.onPanUpdate(details.localPosition));
+                      },
+                      onPanEnd: (final details) {
+                        if (onboardingState.isVisible &&
+                            onboardingState.currentStep?.id == OnboardingStepId.dragPiece &&
+                            onboardingState.isCurrentStepInteractionEnabled &&
+                            state.isDragging &&
+                            state.selectedPiece?.type != PieceType.pShape) {
+                          return;
+                        }
+                        bloc.add(PuzzleEvent.onPanEnd(details.localPosition));
+                      },
+                      onDoubleTapDown: (final details) {
+                        if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.doubleTap)) {
+                          return;
+                        }
+                        bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition));
+                      },
                       child: AnimatedPiecesOverlay(
                         pieces: state.pieces,
                         duration: const Duration(milliseconds: 220),

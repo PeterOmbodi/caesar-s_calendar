@@ -313,7 +313,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   }
 
   void _persistHistoryChange({required final PuzzleState prevState, required final PuzzleState nextState}) {
-    if (nextState.isRestoredSolvedSession) {
+    if (_isOnboardingSession || nextState.isRestoredSolvedSession) {
       return;
     }
     final difficulty = _currentSessionDifficulty ?? _difficultyFromSettings();

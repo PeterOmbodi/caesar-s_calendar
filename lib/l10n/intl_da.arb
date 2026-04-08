@@ -116,7 +116,30 @@
   "timeSpent": "Brugt tid",
   "undo": "Fortryd",
   "unlockConfig": "Lås konfiguration op",
-  "unlockConfigDescription": "Træk og drej foruddefinerede blokke for at skabe dit eget layout"
+  "unlockConfigDescription": "Træk og drej foruddefinerede blokke for at skabe dit eget layout",
+  "onboardingBack": "Tilbage",
+  "onboardingClose": "Luk",
+  "onboardingDragDescription": "Træk den fremhævede P-brik til den fremhævede målposition.",
+  "onboardingDragDetected": "Godt. Trækket blev registreret.",
+  "onboardingDragPrompt": "Prøv at gentage P-brikkens bevægelse fra eksemplet.",
+  "onboardingDragTitle": "Træk P-brikken",
+  "onboardingDragTryNow": "Prøv nu: træk P-brikken til det fremhævede mål.",
+  "onboardingFlipDescription": "Dobbelttryk på en brik for at spejlvende den vandret.",
+  "onboardingFlipDetected": "Godt. Spejlvendingen blev registreret.",
+  "onboardingFlipPrompt": "Tryk på Prøv, og dobbelttryk derefter på den fremhævede brik.",
+  "onboardingFlipTitle": "Spejlvend en brik",
+  "onboardingFlipTryNow": "Prøv nu: dobbelttryk på den fremhævede brik.",
+  "onboardingGoalDescription": "Disse to felter skal forblive frie for måldatoen.",
+  "onboardingGoalTitle": "Mål",
+  "onboardingNext": "Næste",
+  "onboardingRotateDescription": "Tryk én gang på en brik for at rotere den 90 grader med uret.",
+  "onboardingRotateDetected": "Godt. Rotation blev registreret.",
+  "onboardingRotatePrompt": "Tryk på Prøv, og tryk derefter én gang på den fremhævede brik.",
+  "onboardingRotateTitle": "Roter en brik",
+  "onboardingRotateTryNow": "Prøv nu: tryk én gang på den fremhævede brik.",
+  "onboardingReplayAction": "Gentag",
+  "onboardingReplayButton": "Gentag onboarding",
+  "onboardingReplayPrompt": "En opdateret onboarding-guide er tilgængelig.",
+  "onboardingTry": "Prøv",
+  "onboardingWaitingForAction": "Venter på et rigtigt træk fra bakken til brættet."
 }
-
-

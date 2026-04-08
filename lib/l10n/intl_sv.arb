@@ -116,7 +116,30 @@
   "timeSpent": "Förbrukad tid",
   "undo": "Ångra",
   "unlockConfig": "Lås upp konfiguration",
-  "unlockConfigDescription": "Dra och rotera fördefinierade block för att skapa en egen layout"
+  "unlockConfigDescription": "Dra och rotera fördefinierade block för att skapa en egen layout",
+  "onboardingBack": "Tillbaka",
+  "onboardingClose": "Stäng",
+  "onboardingDragDescription": "Dra den markerade P-biten till den markerade målpositionen.",
+  "onboardingDragDetected": "Bra. Dragningen registrerades.",
+  "onboardingDragPrompt": "Försök att upprepa P-bitens rörelse som visas i exemplet.",
+  "onboardingDragTitle": "Dra P-biten",
+  "onboardingDragTryNow": "Prova nu: dra P-biten till det markerade målet.",
+  "onboardingFlipDescription": "Dubbeltryck på en bit spegelvänder den horisontellt.",
+  "onboardingFlipDetected": "Bra. Spegelvändningen registrerades.",
+  "onboardingFlipPrompt": "Tryck på Prova och dubbeltryck sedan på den markerade biten.",
+  "onboardingFlipTitle": "Spegelvänd en bit",
+  "onboardingFlipTryNow": "Prova nu: dubbeltryck på den markerade biten.",
+  "onboardingGoalDescription": "Dessa två rutor måste förbli fria för måldatumet.",
+  "onboardingGoalTitle": "Mål",
+  "onboardingNext": "Nästa",
+  "onboardingRotateDescription": "Tryck en gång på en bit för att rotera den 90 grader medurs.",
+  "onboardingRotateDetected": "Bra. Rotationen registrerades.",
+  "onboardingRotatePrompt": "Tryck på Prova och tryck sedan en gång på den markerade biten.",
+  "onboardingRotateTitle": "Rotera en bit",
+  "onboardingRotateTryNow": "Prova nu: tryck en gång på den markerade biten.",
+  "onboardingReplayAction": "Upprepa",
+  "onboardingReplayButton": "Upprepa onboarding",
+  "onboardingReplayPrompt": "En uppdaterad onboarding-guide finns tillgänglig.",
+  "onboardingTry": "Prova",
+  "onboardingWaitingForAction": "Väntar på en riktig dragning från brickan till brädet."
 }
-
-

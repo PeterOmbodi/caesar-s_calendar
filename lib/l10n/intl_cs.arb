@@ -116,7 +116,30 @@
   "timeSpent": "Strávený čas",
   "undo": "Zpět",
   "unlockConfig": "Odemknout konfiguraci",
-  "unlockConfigDescription": "Přetahujte a otáčejte předdefinované bloky a vytvořte vlastní rozložení"
+  "unlockConfigDescription": "Přetahujte a otáčejte předdefinované bloky a vytvořte vlastní rozložení",
+  "onboardingBack": "Zpět",
+  "onboardingClose": "Zavřít",
+  "onboardingDragDescription": "Přetáhni zvýrazněný dílek P do zvýrazněné cílové pozice.",
+  "onboardingDragDetected": "Skvělé. Přetažení bylo rozpoznáno.",
+  "onboardingDragPrompt": "Zkus zopakovat pohyb dílku P z ukázky.",
+  "onboardingDragTitle": "Přetáhni dílek P",
+  "onboardingDragTryNow": "Zkus to teď: přetáhni dílek P do zvýrazněného cíle.",
+  "onboardingFlipDescription": "Dvojité klepnutí na dílek ho vodorovně převrátí.",
+  "onboardingFlipDetected": "Skvělé. Překlopení bylo rozpoznáno.",
+  "onboardingFlipPrompt": "Stiskni Zkusit a potom dvakrát klepni na zvýrazněný dílek.",
+  "onboardingFlipTitle": "Překlopení dílku",
+  "onboardingFlipTryNow": "Zkus to teď: dvakrát klepni na zvýrazněný dílek.",
+  "onboardingGoalDescription": "Tyto dvě buňky musí zůstat volné pro cílové datum.",
+  "onboardingGoalTitle": "Cíl",
+  "onboardingNext": "Další",
+  "onboardingRotateDescription": "Jedno klepnutí na dílek ho otočí o 90 stupňů po směru hodinových ručiček.",
+  "onboardingRotateDetected": "Skvělé. Otočení bylo rozpoznáno.",
+  "onboardingRotatePrompt": "Stiskni Zkusit a potom jednou klepni na zvýrazněný dílek.",
+  "onboardingRotateTitle": "Otočení dílku",
+  "onboardingRotateTryNow": "Zkus to teď: jednou klepni na zvýrazněný dílek.",
+  "onboardingReplayAction": "Zopakovat",
+  "onboardingReplayButton": "Zopakovat onboarding",
+  "onboardingReplayPrompt": "Je k dispozici aktualizovaný onboarding.",
+  "onboardingTry": "Zkusit",
+  "onboardingWaitingForAction": "Čeká se na skutečné přetažení z panelu na hrací plochu."
 }
-
-

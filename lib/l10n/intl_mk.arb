@@ -116,7 +116,30 @@
   "timeSpent": "Потрошено време",
   "undo": "Поништи",
   "unlockConfig": "Отклучи конфигурација",
-  "unlockConfigDescription": "Влечи и ротирај предодредени блокови за да создадеш сопствен распоред"
+  "unlockConfigDescription": "Влечи и ротирај предодредени блокови за да создадеш сопствен распоред",
+  "onboardingBack": "Назад",
+  "onboardingClose": "Затвори",
+  "onboardingDragDescription": "Повлечи ја означената P-форма до означената целна позиција.",
+  "onboardingDragDetected": "Одлично. Влечењето е препознаено.",
+  "onboardingDragPrompt": "Обиди се да го повториш движењето на P-формата од примерот.",
+  "onboardingDragTitle": "Повлечи ја P-формата",
+  "onboardingDragTryNow": "Обиди се сега: повлечи ја P-формата до означената цел.",
+  "onboardingFlipDescription": "Двоен тап на фигура ја превртува хоризонтално.",
+  "onboardingFlipDetected": "Одлично. Превртувањето е препознаено.",
+  "onboardingFlipPrompt": "Притисни Пробај, потоа направи двоен тап на означената фигура.",
+  "onboardingFlipTitle": "Преврти фигура",
+  "onboardingFlipTryNow": "Обиди се сега: направи двоен тап на означената фигура.",
+  "onboardingGoalDescription": "Овие две полиња мора да останат слободни за целниот датум.",
+  "onboardingGoalTitle": "Цел",
+  "onboardingNext": "Следно",
+  "onboardingRotateDescription": "Еден тап на фигура ја ротира за 90 степени по насока на стрелките на часовникот.",
+  "onboardingRotateDetected": "Одлично. Ротацијата е препознаена.",
+  "onboardingRotatePrompt": "Притисни Пробај, потоа тапни еднаш на означената фигура.",
+  "onboardingRotateTitle": "Ротирај фигура",
+  "onboardingRotateTryNow": "Обиди се сега: тапни еднаш на означената фигура.",
+  "onboardingReplayAction": "Повтори",
+  "onboardingReplayButton": "Повтори онбординг",
+  "onboardingReplayPrompt": "Достапен е обновен онбординг водич.",
+  "onboardingTry": "Пробај",
+  "onboardingWaitingForAction": "Се чека вистинско влечење од лентата кон таблата."
 }
-
-

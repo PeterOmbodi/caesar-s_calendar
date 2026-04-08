@@ -116,7 +116,30 @@
   "timeSpent": "Bestede tijd",
   "undo": "Ongedaan maken",
   "unlockConfig": "Configuratie ontgrendelen",
-  "unlockConfigDescription": "Sleep en draai vooraf ingestelde blokken om je eigen lay-out te maken"
+  "unlockConfigDescription": "Sleep en draai vooraf ingestelde blokken om je eigen lay-out te maken",
+  "onboardingBack": "Terug",
+  "onboardingClose": "Sluiten",
+  "onboardingDragDescription": "Sleep de gemarkeerde P-vorm naar de gemarkeerde doelpositie.",
+  "onboardingDragDetected": "Prima. Het slepen is gedetecteerd.",
+  "onboardingDragPrompt": "Probeer de beweging van de P-vorm uit het voorbeeld te herhalen.",
+  "onboardingDragTitle": "Sleep de P-vorm",
+  "onboardingDragTryNow": "Probeer het nu: sleep de P-vorm naar het gemarkeerde doel.",
+  "onboardingFlipDescription": "Dubbeltik op een stuk om het horizontaal te spiegelen.",
+  "onboardingFlipDetected": "Prima. Het spiegelen is gedetecteerd.",
+  "onboardingFlipPrompt": "Druk op Proberen en dubbeltik daarna op het gemarkeerde stuk.",
+  "onboardingFlipTitle": "Een stuk spiegelen",
+  "onboardingFlipTryNow": "Probeer het nu: dubbeltik op het gemarkeerde stuk.",
+  "onboardingGoalDescription": "Deze twee vakken moeten vrij blijven voor de doeldatum.",
+  "onboardingGoalTitle": "Doel",
+  "onboardingNext": "Volgende",
+  "onboardingRotateDescription": "Tik één keer op een stuk om het 90 graden met de klok mee te draaien.",
+  "onboardingRotateDetected": "Prima. De rotatie is gedetecteerd.",
+  "onboardingRotatePrompt": "Druk op Proberen en tik daarna één keer op het gemarkeerde stuk.",
+  "onboardingRotateTitle": "Een stuk draaien",
+  "onboardingRotateTryNow": "Probeer het nu: tik één keer op het gemarkeerde stuk.",
+  "onboardingReplayAction": "Opnieuw",
+  "onboardingReplayButton": "Onboarding herhalen",
+  "onboardingReplayPrompt": "Er is een bijgewerkte onboarding beschikbaar.",
+  "onboardingTry": "Proberen",
+  "onboardingWaitingForAction": "Wachten op een echte sleepbeweging van de balk naar het bord."
 }
-
-

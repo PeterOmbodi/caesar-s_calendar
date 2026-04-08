@@ -116,7 +116,30 @@
   "timeSpent": "Timp petrecut",
   "undo": "Anulează",
   "unlockConfig": "Deblochează configurația",
-  "unlockConfigDescription": "Trage și rotește blocurile predefinite pentru a crea propriul aspect"
+  "unlockConfigDescription": "Trage și rotește blocurile predefinite pentru a crea propriul aspect",
+  "onboardingBack": "Înapoi",
+  "onboardingClose": "Închide",
+  "onboardingDragDescription": "Trage piesa P evidențiată în poziția țintă evidențiată.",
+  "onboardingDragDetected": "Excelent. Tragerea a fost detectată.",
+  "onboardingDragPrompt": "Încearcă să repeți mișcarea piesei P arătată în exemplu.",
+  "onboardingDragTitle": "Trage piesa P",
+  "onboardingDragTryNow": "Încearcă acum: trage piesa P în ținta evidențiată.",
+  "onboardingFlipDescription": "O dublă atingere pe o piesă o oglindește pe orizontală.",
+  "onboardingFlipDetected": "Excelent. Oglindirea a fost detectată.",
+  "onboardingFlipPrompt": "Apasă Încearcă, apoi atinge de două ori piesa evidențiată.",
+  "onboardingFlipTitle": "Oglindește o piesă",
+  "onboardingFlipTryNow": "Încearcă acum: atinge de două ori piesa evidențiată.",
+  "onboardingGoalDescription": "Aceste două celule trebuie să rămână libere pentru data țintă.",
+  "onboardingGoalTitle": "Obiectiv",
+  "onboardingNext": "Înainte",
+  "onboardingRotateDescription": "O singură atingere pe o piesă o rotește cu 90 de grade în sensul acelor de ceasornic.",
+  "onboardingRotateDetected": "Excelent. Rotirea a fost detectată.",
+  "onboardingRotatePrompt": "Apasă Încearcă, apoi atinge o dată piesa evidențiată.",
+  "onboardingRotateTitle": "Rotește o piesă",
+  "onboardingRotateTryNow": "Încearcă acum: atinge o dată piesa evidențiată.",
+  "onboardingReplayAction": "Repetă",
+  "onboardingReplayButton": "Repetă onboarding-ul",
+  "onboardingReplayPrompt": "Este disponibil un tur onboarding actualizat.",
+  "onboardingTry": "Încearcă",
+  "onboardingWaitingForAction": "Se așteaptă o tragere reală din tavă pe tablă."
 }
-
-

@@ -116,7 +116,30 @@
   "timeSpent": "Tempo impiegato",
   "undo": "Annulla",
   "unlockConfig": "Sblocca configurazione",
-  "unlockConfigDescription": "Trascina e ruota i blocchi predefiniti per creare la tua disposizione"
+  "unlockConfigDescription": "Trascina e ruota i blocchi predefiniti per creare la tua disposizione",
+  "onboardingBack": "Indietro",
+  "onboardingClose": "Chiudi",
+  "onboardingDragDescription": "Trascina il pezzo P evidenziato nella posizione obiettivo evidenziata.",
+  "onboardingDragDetected": "Perfetto. Il trascinamento è stato rilevato.",
+  "onboardingDragPrompt": "Prova a ripetere il movimento del pezzo P mostrato nell’esempio.",
+  "onboardingDragTitle": "Trascina il pezzo P",
+  "onboardingDragTryNow": "Prova ora: trascina il pezzo P nell’obiettivo evidenziato.",
+  "onboardingFlipDescription": "Un doppio tocco su un pezzo lo ribalta orizzontalmente.",
+  "onboardingFlipDetected": "Perfetto. Il ribaltamento è stato rilevato.",
+  "onboardingFlipPrompt": "Premi Prova, poi tocca due volte il pezzo evidenziato.",
+  "onboardingFlipTitle": "Ribalta un pezzo",
+  "onboardingFlipTryNow": "Prova ora: tocca due volte il pezzo evidenziato.",
+  "onboardingGoalDescription": "Queste due celle devono restare libere per la data obiettivo.",
+  "onboardingGoalTitle": "Obiettivo",
+  "onboardingNext": "Avanti",
+  "onboardingRotateDescription": "Un singolo tocco su un pezzo lo ruota di 90 gradi in senso orario.",
+  "onboardingRotateDetected": "Perfetto. La rotazione è stata rilevata.",
+  "onboardingRotatePrompt": "Premi Prova, poi tocca una volta il pezzo evidenziato.",
+  "onboardingRotateTitle": "Ruota un pezzo",
+  "onboardingRotateTryNow": "Prova ora: tocca una volta il pezzo evidenziato.",
+  "onboardingReplayAction": "Ripeti",
+  "onboardingReplayButton": "Ripeti onboarding",
+  "onboardingReplayPrompt": "È disponibile un onboarding aggiornato.",
+  "onboardingTry": "Prova",
+  "onboardingWaitingForAction": "In attesa di un trascinamento reale dal vassoio alla griglia."
 }
-
-

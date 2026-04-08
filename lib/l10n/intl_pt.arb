@@ -116,7 +116,30 @@
   "timeSpent": "Tempo gasto",
   "undo": "Desfazer",
   "unlockConfig": "Desbloquear configuração",
-  "unlockConfigDescription": "Arraste e gire blocos predefinidos para criar seu próprio layout"
+  "unlockConfigDescription": "Arraste e gire blocos predefinidos para criar seu próprio layout",
+  "onboardingBack": "Voltar",
+  "onboardingClose": "Fechar",
+  "onboardingDragDescription": "Arraste a peça em forma de P destacada para a posição-alvo destacada.",
+  "onboardingDragDetected": "Ótimo. O arrasto foi detectado.",
+  "onboardingDragPrompt": "Tente repetir o movimento da peça em forma de P mostrado no exemplo.",
+  "onboardingDragTitle": "Arraste a peça P",
+  "onboardingDragTryNow": "Tente agora: arraste a peça P para o alvo destacado.",
+  "onboardingFlipDescription": "Um toque duplo numa peça vira-a horizontalmente.",
+  "onboardingFlipDetected": "Ótimo. O espelhamento foi detectado.",
+  "onboardingFlipPrompt": "Prima Experimentar e depois toque duas vezes na peça destacada.",
+  "onboardingFlipTitle": "Virar uma peça",
+  "onboardingFlipTryNow": "Tente agora: toque duas vezes na peça destacada.",
+  "onboardingGoalDescription": "Estas duas células devem permanecer livres para a data-alvo.",
+  "onboardingGoalTitle": "Objetivo",
+  "onboardingNext": "Seguinte",
+  "onboardingRotateDescription": "Um toque numa peça roda-a 90 graus no sentido horário.",
+  "onboardingRotateDetected": "Ótimo. A rotação foi detectada.",
+  "onboardingRotatePrompt": "Prima Experimentar e depois toque uma vez na peça destacada.",
+  "onboardingRotateTitle": "Rodar uma peça",
+  "onboardingRotateTryNow": "Tente agora: toque uma vez na peça destacada.",
+  "onboardingReplayAction": "Repetir",
+  "onboardingReplayButton": "Repetir onboarding",
+  "onboardingReplayPrompt": "Está disponível um onboarding atualizado.",
+  "onboardingTry": "Experimentar",
+  "onboardingWaitingForAction": "À espera de um arrasto real da bandeja para o tabuleiro."
 }
-
-

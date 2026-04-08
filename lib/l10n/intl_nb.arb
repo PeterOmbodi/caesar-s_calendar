@@ -116,7 +116,30 @@
   "timeSpent": "Brukt tid",
   "undo": "Angre",
   "unlockConfig": "Lås opp konfigurasjon",
-  "unlockConfigDescription": "Dra og roter forhåndsdefinerte blokker for å lage ditt eget oppsett"
+  "unlockConfigDescription": "Dra og roter forhåndsdefinerte blokker for å lage ditt eget oppsett",
+  "onboardingBack": "Tilbake",
+  "onboardingClose": "Lukk",
+  "onboardingDragDescription": "Dra den uthevede P-brikken til den uthevede målposisjonen.",
+  "onboardingDragDetected": "Flott. Drahandlingen ble registrert.",
+  "onboardingDragPrompt": "Prøv å gjenta bevegelsen til P-brikken som vises i eksemplet.",
+  "onboardingDragTitle": "Dra P-brikken",
+  "onboardingDragTryNow": "Prøv nå: dra P-brikken til det uthevede målet.",
+  "onboardingFlipDescription": "Dobbelttrykk på en brikke for å speilvende den horisontalt.",
+  "onboardingFlipDetected": "Flott. Speilvendingen ble registrert.",
+  "onboardingFlipPrompt": "Trykk på Prøv, og dobbelttrykk deretter på den uthevede brikken.",
+  "onboardingFlipTitle": "Speilvend en brikke",
+  "onboardingFlipTryNow": "Prøv nå: dobbelttrykk på den uthevede brikken.",
+  "onboardingGoalDescription": "Disse to rutene må forbli ledige for måldatoen.",
+  "onboardingGoalTitle": "Mål",
+  "onboardingNext": "Neste",
+  "onboardingRotateDescription": "Trykk én gang på en brikke for å rotere den 90 grader med klokken.",
+  "onboardingRotateDetected": "Flott. Rotasjonen ble registrert.",
+  "onboardingRotatePrompt": "Trykk på Prøv, og trykk deretter én gang på den uthevede brikken.",
+  "onboardingRotateTitle": "Roter en brikke",
+  "onboardingRotateTryNow": "Prøv nå: trykk én gang på den uthevede brikken.",
+  "onboardingReplayAction": "Gjenta",
+  "onboardingReplayButton": "Gjenta onboarding",
+  "onboardingReplayPrompt": "En oppdatert onboarding-omvisning er tilgjengelig.",
+  "onboardingTry": "Prøv",
+  "onboardingWaitingForAction": "Venter på en ekte drahandling fra brettet med brikker til spillbrettet."
 }
-
-

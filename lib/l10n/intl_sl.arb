@@ -116,7 +116,30 @@
   "timeSpent": "Porabljen čas",
   "undo": "Razveljavi",
   "unlockConfig": "Odkleni konfiguracijo",
-  "unlockConfigDescription": "Povleci in zavrti vnaprej določene bloke, da ustvariš svojo postavitev"
+  "unlockConfigDescription": "Povleci in zavrti vnaprej določene bloke, da ustvariš svojo postavitev",
+  "onboardingBack": "Nazaj",
+  "onboardingClose": "Zapri",
+  "onboardingDragDescription": "Povleci označeni kos v obliki P na označen ciljni položaj.",
+  "onboardingDragDetected": "Odlično. Povlek je bil zaznan.",
+  "onboardingDragPrompt": "Poskusi ponoviti premik kosa v obliki P, prikazan v primeru.",
+  "onboardingDragTitle": "Povleci kos P",
+  "onboardingDragTryNow": "Poskusi zdaj: povleci kos P na označen cilj.",
+  "onboardingFlipDescription": "Dvojni dotik kosa ga vodoravno zrcali.",
+  "onboardingFlipDetected": "Odlično. Zrcaljenje je bilo zaznano.",
+  "onboardingFlipPrompt": "Pritisni Poskusi, nato dvakrat tapni označeni kos.",
+  "onboardingFlipTitle": "Zrcali kos",
+  "onboardingFlipTryNow": "Poskusi zdaj: dvakrat tapni označeni kos.",
+  "onboardingGoalDescription": "Ti dve celici morata ostati prosti za ciljni datum.",
+  "onboardingGoalTitle": "Cilj",
+  "onboardingNext": "Naprej",
+  "onboardingRotateDescription": "En dotik kosa ga zavrti za 90 stopinj v smeri urinega kazalca.",
+  "onboardingRotateDetected": "Odlično. Vrtenje je bilo zaznano.",
+  "onboardingRotatePrompt": "Pritisni Poskusi, nato enkrat tapni označeni kos.",
+  "onboardingRotateTitle": "Zavrti kos",
+  "onboardingRotateTryNow": "Poskusi zdaj: enkrat tapni označeni kos.",
+  "onboardingReplayAction": "Ponovi",
+  "onboardingReplayButton": "Ponovi onboarding",
+  "onboardingReplayPrompt": "Na voljo je posodobljen onboarding vodič.",
+  "onboardingTry": "Poskusi",
+  "onboardingWaitingForAction": "Čaka se na pravi povlek iz pladnja na ploščo."
 }
-
-

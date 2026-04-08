@@ -116,7 +116,30 @@
   "timeSpent": "Temps écoulé",
   "undo": "Annuler",
   "unlockConfig": "Déverrouiller la configuration",
-  "unlockConfigDescription": "Faites glisser et pivoter les blocs prédéfinis pour créer votre propre disposition"
+  "unlockConfigDescription": "Faites glisser et pivoter les blocs prédéfinis pour créer votre propre disposition",
+  "onboardingBack": "Retour",
+  "onboardingClose": "Fermer",
+  "onboardingDragDescription": "Faites glisser la pièce P mise en évidence jusqu’à la position cible mise en évidence.",
+  "onboardingDragDetected": "Parfait. Le glisser-déposer a été détecté.",
+  "onboardingDragPrompt": "Essayez de reproduire le déplacement de la pièce P montré dans l’exemple.",
+  "onboardingDragTitle": "Faire glisser la pièce P",
+  "onboardingDragTryNow": "Essayez maintenant : faites glisser la pièce P jusqu’à la cible mise en évidence.",
+  "onboardingFlipDescription": "Un double appui sur une pièce la retourne horizontalement.",
+  "onboardingFlipDetected": "Parfait. Le retournement a été détecté.",
+  "onboardingFlipPrompt": "Appuyez sur Essayer, puis faites un double appui sur la pièce mise en évidence.",
+  "onboardingFlipTitle": "Retourner une pièce",
+  "onboardingFlipTryNow": "Essayez maintenant : faites un double appui sur la pièce mise en évidence.",
+  "onboardingGoalDescription": "Ces deux cases doivent rester libres pour la date cible.",
+  "onboardingGoalTitle": "Objectif",
+  "onboardingNext": "Suivant",
+  "onboardingRotateDescription": "Un appui simple sur une pièce la fait pivoter de 90 degrés dans le sens horaire.",
+  "onboardingRotateDetected": "Parfait. La rotation a été détectée.",
+  "onboardingRotatePrompt": "Appuyez sur Essayer, puis appuyez une fois sur la pièce mise en évidence.",
+  "onboardingRotateTitle": "Faire pivoter une pièce",
+  "onboardingRotateTryNow": "Essayez maintenant : appuyez une fois sur la pièce mise en évidence.",
+  "onboardingReplayAction": "Rejouer",
+  "onboardingReplayButton": "Rejouer l’onboarding",
+  "onboardingReplayPrompt": "Un onboarding mis à jour est disponible.",
+  "onboardingTry": "Essayer",
+  "onboardingWaitingForAction": "En attente d’un vrai glisser-déposer depuis le plateau de pièces vers le plateau."
 }
-
-

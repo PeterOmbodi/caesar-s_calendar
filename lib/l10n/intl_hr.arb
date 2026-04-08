@@ -116,7 +116,30 @@
   "timeSpent": "Utrošeno vrijeme",
   "undo": "Poništi",
   "unlockConfig": "Otključaj konfiguraciju",
-  "unlockConfigDescription": "Povlači i rotiraj zadane blokove kako bi izradio vlastiti raspored"
+  "unlockConfigDescription": "Povlači i rotiraj zadane blokove kako bi izradio vlastiti raspored",
+  "onboardingBack": "Natrag",
+  "onboardingClose": "Zatvori",
+  "onboardingDragDescription": "Povuci istaknuti P-oblik na istaknutu ciljnu poziciju.",
+  "onboardingDragDetected": "Odlično. Povlačenje je prepoznato.",
+  "onboardingDragPrompt": "Pokušaj ponoviti pomak P-oblika prikazan u primjeru.",
+  "onboardingDragTitle": "Povuci P-oblik",
+  "onboardingDragTryNow": "Pokušaj sada: povuci P-oblik na istaknuti cilj.",
+  "onboardingFlipDescription": "Dvostruki dodir na figuru horizontalno je zrcali.",
+  "onboardingFlipDetected": "Odlično. Zrcaljenje je prepoznato.",
+  "onboardingFlipPrompt": "Pritisni Isprobaj, zatim dvaput dodirni istaknutu figuru.",
+  "onboardingFlipTitle": "Zrcali figuru",
+  "onboardingFlipTryNow": "Pokušaj sada: dvaput dodirni istaknutu figuru.",
+  "onboardingGoalDescription": "Ove dvije ćelije moraju ostati slobodne za ciljni datum.",
+  "onboardingGoalTitle": "Cilj",
+  "onboardingNext": "Dalje",
+  "onboardingRotateDescription": "Jedan dodir na figuru zakreće je za 90 stupnjeva u smjeru kazaljke na satu.",
+  "onboardingRotateDetected": "Odlično. Rotacija je prepoznata.",
+  "onboardingRotatePrompt": "Pritisni Isprobaj, zatim jednom dodirni istaknutu figuru.",
+  "onboardingRotateTitle": "Rotiraj figuru",
+  "onboardingRotateTryNow": "Pokušaj sada: jednom dodirni istaknutu figuru.",
+  "onboardingReplayAction": "Ponovi",
+  "onboardingReplayButton": "Ponovi onboarding",
+  "onboardingReplayPrompt": "Dostupan je osvježeni onboarding vodič.",
+  "onboardingTry": "Isprobaj",
+  "onboardingWaitingForAction": "Čeka se pravo povlačenje iz trake na ploču."
 }
-
-
