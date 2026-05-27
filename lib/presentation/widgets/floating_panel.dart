@@ -1,24 +1,10 @@
 import 'dart:async';
-import 'dart:math' as math;
 
-import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_event.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
-import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
-import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
-import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
-import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_flip_flap/flutter_flip_flap.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class FloatingPanel extends StatefulWidget {
   const FloatingPanel({super.key, required this.children});
@@ -103,116 +89,9 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
     }
   }
 
-  Future<void> _showHowToPlayDialog(final double viewWidth) async {
-    final horizontalInset = viewWidth < 600 ? 12.0 : 40.0;
-    void replayOnboarding() {
-      Navigator.of(context, rootNavigator: true).pop();
-      context.read<SettingsCubit>().markOnboardingOffered(currentOnboardingVersion);
-      context.read<OnboardingBloc>().add(const StartOnboarding(OnboardingMode.short, isReplay: true));
-    }
-
-    await showPlatformDialog(
-      context: context,
-      material: MaterialDialogData(
-        builder: (final context) => PlatformAlertDialog(
-          material: (final context, final platform) =>
-              MaterialAlertDialogData(insetPadding: EdgeInsets.symmetric(horizontal: horizontalInset)),
-          title: Text(S.current.howToPlayTitle),
-          content: HowToPlayHint(onReplayOnboarding: replayOnboarding),
-          actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
-        ),
-      ),
-      cupertino: CupertinoDialogData(
-        builder: (final dialogContext) => _InsetCupertinoAlertDialog(
-          insetPadding: EdgeInsets.symmetric(horizontal: horizontalInset, vertical: 24),
-          title: Text(S.current.howToPlayTitle),
-          content: HowToPlayHint(onReplayOnboarding: replayOnboarding),
-          actionLabel: S.current.ok,
-          onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showHistory() async {
-    final result = await Navigator.of(context).push<HistoryScreenResult>(
-      PageRouteBuilder<HistoryScreenResult>(
-        pageBuilder: (final context, final animation, final secondaryAnimation) => const HistoryScreen(),
-        transitionsBuilder: (final context, final animation, final secondaryAnimation, final child) {
-          final offsetAnimation = animation.drive(
-            Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).chain(CurveTween(curve: Curves.easeOutCubic)),
-          );
-          return SlideTransition(position: offsetAnimation, child: child);
-        },
-      ),
-    );
-    if (result == null || !mounted) {
-      return;
-    }
-    switch (result) {
-      case ResumeHistorySessionResult(:final session):
-        final settingsCubit = context.read<SettingsCubit>();
-        final currentDifficulty = _difficultyFromSettings(settingsCubit.state.solutionIndicator);
-        if (currentDifficulty != session.difficulty) {
-          final shouldContinue = await _showDifficultyMismatchDialog(
-            sessionDifficulty: session.difficulty,
-            currentDifficulty: currentDifficulty,
-          );
-          if (shouldContinue != true || !mounted) {
-            return;
-          }
-          settingsCubit.setSolutionIndicator(
-            session.difficulty == PuzzleSessionDifficulty.easy
-                ? SolutionIndicator.countSolutions
-                : SolutionIndicator.none,
-          );
-        }
-        if (!mounted) {
-          return;
-        }
-        context.read<PuzzleBloc>().add(PuzzleEvent.restoreSession(session));
-      case StartPuzzleForDateHistoryResult(:final date):
-        context.read<PuzzleBloc>().add(PuzzleEvent.setPuzzleDate(date));
-    }
-  }
-
-  PuzzleSessionDifficulty _difficultyFromSettings(final SolutionIndicator indicator) =>
-      indicator == SolutionIndicator.none ? PuzzleSessionDifficulty.hard : PuzzleSessionDifficulty.easy;
-
-  Future<bool?> _showDifficultyMismatchDialog({
-    required final PuzzleSessionDifficulty sessionDifficulty,
-    required final PuzzleSessionDifficulty currentDifficulty,
-  }) => showDialog<bool>(
-    context: context,
-    builder: (final dialogContext) => PlatformAlertDialog(
-      title: Text(S.current.historyDifficultyMismatchTitle),
-      content: Text(
-        S.current.historyDifficultyMismatchContent(
-          _difficultyLabel(sessionDifficulty),
-          _difficultyLabel(currentDifficulty),
-        ),
-      ),
-      actions: [
-        PlatformDialogAction(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(S.current.historySessionDialogCancel),
-        ),
-        PlatformDialogAction(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text(S.current.historyDifficultyMismatchContinue),
-        ),
-      ],
-    ),
-  );
-
-  String _difficultyLabel(final PuzzleSessionDifficulty difficulty) =>
-      difficulty == PuzzleSessionDifficulty.hard ? S.current.historyDifficultyHard : S.current.historyDifficultyEasy;
-
   @override
   Widget build(final BuildContext context) {
     final viewWidth = MediaQuery.of(context).size.width;
-    final isWideScreen = viewWidth >= PuzzleScreen.wideScreenBreakpoint - PuzzleScreen.sidePanelWidth;
-    final showHistoryButton = !_isPanelOpen || isWideScreen;
     return GestureDetector(
       onHorizontalDragEnd: _handleHorizontalDragEnd,
       child: ConstrainedBox(
@@ -240,33 +119,12 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: List.generate(widget.children.length + 1, (final i) {
-                            final isFirst = i == 0;
-                            final item = isFirst
-                                ? Row(
-                                    children: [
-                                      if (showHistoryButton)
-                                        _PanelItemShell(
-                                          child: IconButton(
-                                            icon: const Icon(Icons.history),
-                                            onPressed: _showHistory,
-                                            tooltip: S.current.historyTitle,
-                                          ),
-                                        ),
-                                      _PanelItemShell(
-                                        child: IconButton(
-                                          icon: const Icon(Icons.info_outline_rounded),
-                                          onPressed: () => _showHowToPlayDialog(viewWidth),
-                                          tooltip: S.current.howToPlayTitle,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : _AnimatedPanelItem(
-                                    index: i,
-                                    isVisible: i <= _visibleChildren,
-                                    child: widget.children[i - 1],
-                                  );
+                          children: List.generate(widget.children.length, (final i) {
+                            final item = _AnimatedPanelItem(
+                              index: i + 1,
+                              isVisible: i < _visibleChildren,
+                              child: widget.children[i],
+                            );
                             return Padding(
                               padding: EdgeInsets.symmetric(horizontal: FloatingPanel.widgetSpacing),
                               child: item,
@@ -349,136 +207,4 @@ class _AnimatedPanelItem extends StatelessWidget {
           : SizedBox(key: ValueKey('floating-panel-item-$index-hidden'), width: 0),
     ),
   );
-}
-
-class _PanelItemShell extends StatelessWidget {
-  const _PanelItemShell({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(final BuildContext context) => SizedBox(
-    width: FloatingPanel.itemWidth,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: FloatingPanel.itemPadding),
-      child: child,
-    ),
-  );
-}
-
-class _InsetCupertinoAlertDialog extends StatelessWidget {
-  const _InsetCupertinoAlertDialog({
-    required this.insetPadding,
-    required this.title,
-    required this.content,
-    required this.actionLabel,
-    required this.onPressed,
-  });
-
-  final EdgeInsets insetPadding;
-  final Widget title;
-  final Widget content;
-  final String actionLabel;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(final BuildContext context) {
-    final resolvedDividerColor = CupertinoDynamicColor.resolve(CupertinoColors.separator, context);
-    final resolvedBackgroundColor = CupertinoDynamicColor.resolve(
-      const CupertinoDynamicColor.withBrightness(color: Color(0xCCF2F2F2), darkColor: Color(0xCC2D2D2D)),
-      context,
-    );
-
-    final titleStyle = const TextStyle(
-      fontFamily: 'CupertinoSystemText',
-      inherit: false,
-      fontSize: 17,
-      fontWeight: FontWeight.w600,
-      height: 1.3,
-      letterSpacing: -0.5,
-      textBaseline: TextBaseline.alphabetic,
-    ).copyWith(color: CupertinoDynamicColor.resolve(CupertinoColors.label, context));
-
-    final contentStyle = const TextStyle(
-      fontFamily: 'CupertinoSystemText',
-      inherit: false,
-      fontSize: 13,
-      fontWeight: FontWeight.w400,
-      height: 1.35,
-      letterSpacing: -0.2,
-      textBaseline: TextBaseline.alphabetic,
-    ).copyWith(color: CupertinoDynamicColor.resolve(CupertinoColors.label, context));
-
-    return LayoutBuilder(
-      builder: (final context, final constraints) {
-        final maxHeight = constraints.maxHeight.isFinite ? constraints.maxHeight : MediaQuery.sizeOf(context).height;
-        final availableWidth = constraints.maxWidth - insetPadding.horizontal;
-        final dialogWidth = math.min(availableWidth, 560.0);
-        return AnimatedPadding(
-          padding: MediaQuery.viewInsetsOf(context) + insetPadding,
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.decelerate,
-          child: MediaQuery.removeViewInsets(
-            removeLeft: true,
-            removeTop: true,
-            removeRight: true,
-            removeBottom: true,
-            context: context,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: dialogWidth, maxHeight: maxHeight - insetPadding.vertical),
-                  child: CupertinoPopupSurface(
-                    isSurfacePainted: false,
-                    child: ColoredBox(
-                      color: resolvedBackgroundColor,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: DefaultTextStyle(
-                                style: contentStyle,
-                                textAlign: TextAlign.center,
-                                child: SingleChildScrollView(
-                                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      DefaultTextStyle(style: titleStyle, textAlign: TextAlign.center, child: title),
-                                      const SizedBox(height: 8),
-                                      content,
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            DecoratedBox(
-                              decoration: BoxDecoration(
-                                border: Border(top: BorderSide(color: resolvedDividerColor)),
-                              ),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: CupertinoButton(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  onPressed: onPressed,
-                                  child: Text(actionLabel),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 }

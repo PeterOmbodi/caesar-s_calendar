@@ -20,13 +20,13 @@ import 'package:caesar_puzzle/presentation/onboarding/utils/onboarding_target_re
 import 'package:caesar_puzzle/presentation/onboarding/utils/puzzle_local_snapshot_mapper.dart';
 import 'package:caesar_puzzle/presentation/onboarding/widgets/onboarding_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_bottom_controls.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
-import 'package:caesar_puzzle/presentation/widgets/floating_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -88,11 +88,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   @override
   Widget build(final BuildContext context) {
-    final isWideScreen =
-        MediaQuery
-            .of(context)
-            .size
-            .width >= PuzzleScreen.wideScreenBreakpoint;
+    final isWideScreen = MediaQuery.of(context).size.width >= PuzzleScreen.wideScreenBreakpoint;
     return MultiBlocProvider(
       providers: [
         BlocProvider<PuzzleBloc>.value(value: _puzzleBloc),
@@ -104,8 +100,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             listeners: [
               BlocListener<PuzzleBloc, PuzzleState>(
                 listenWhen: (final ps, final cs) =>
-                cs.moveIndex == ps.moveIndex + 1 &&
-                    cs.isPieceInGrid(cs.moveHistory.last.pieceId),
+                    cs.moveIndex == ps.moveIndex + 1 && cs.isPieceInGrid(cs.moveHistory.last.pieceId),
                 listener: (final context, final state) {
                   final settingsCubit = context.read<SettingsCubit>();
                   final settings = settingsCubit.state;
@@ -195,7 +190,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
               ),
               BlocListener<PuzzleBloc, PuzzleState>(
                 listenWhen: (final ps, final cs) =>
-                !cs.isRestoredSolvedSession &&
+                    !cs.isRestoredSolvedSession &&
                     !cs.hasShownSolvedDialog &&
                     ps.status == GameStatus.playing &&
                     cs.status == GameStatus.solvedByUser,
@@ -212,15 +207,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   alignment: Alignment.topCenter,
                   child: BlocBuilder<PuzzleBloc, PuzzleState>(
                     buildWhen: (final ps, final cs) =>
-                    !cs.isRestoredSolvedSession &&
-                        (ps.status == GameStatus.playing &&
-                            cs.status == GameStatus.solvedByUser ||
-                            ps.status == GameStatus.solvedByUser &&
-                                ps.status != cs.status),
-                    builder:
-                        (final BuildContext context, final PuzzleState state) =>
-                    !state.isRestoredSolvedSession &&
-                        state.status == GameStatus.solvedByUser
+                        !cs.isRestoredSolvedSession &&
+                        (ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser ||
+                            ps.status == GameStatus.solvedByUser && ps.status != cs.status),
+                    builder: (final BuildContext context, final PuzzleState state) =>
+                        !state.isRestoredSolvedSession && state.status == GameStatus.solvedByUser
                         ? const ConfettiView()
                         : SizedBox.shrink(),
                   ),
@@ -228,32 +219,26 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 Positioned(
                   bottom: 24,
                   right: 12 + (isWideScreen ? PuzzleScreen.sidePanelWidth : 0),
-                  child: _BottomFAB(isSetupVisible: !isWideScreen),
+                  child: PuzzleBottomControls(isSetupVisible: !isWideScreen),
                 ),
                 if (isWideScreen)
                   const Positioned(
                     right: 0,
                     top: 0,
                     bottom: 0,
-                    child: SizedBox(
-                      width: PuzzleScreen.sidePanelWidth,
-                      child: SettingsPanel(),
-                    ),
+                    child: SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
                   ),
                 const OnboardingOverlay(),
               ],
             ),
           ),
         ),
-        endDrawer: isWideScreen
-            ? null
-            : const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
+        endDrawer: isWideScreen ? null : const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
       ),
     );
   }
 
-  Future<void> _showSolvedDialog(final BuildContext context,
-      final PuzzleState state,) async {
+  Future<void> _showSolvedDialog(final BuildContext context, final PuzzleState state) async {
     final spentSeconds = getIt<TimerService>().totalElapsedSeconds(
       startedAt: state.firstMoveAt,
       lastResumedAt: state.lastResumedAt,
@@ -264,14 +249,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     final difficultyLabel = _difficultyLabel(context, difficulty);
     final difficultyStars = _difficultyStars(difficulty);
     final configLabel = _configLabel(context, state);
-    final configColor =
-        state.isCustomConfig ? AppColors.current.customConfigAccent : null;
+    final configColor = state.isCustomConfig ? AppColors.current.customConfigAccent : null;
     final secondsText = '${spentSeconds % 60}'.padLeft(2, '0');
     final minutesText = '${spentSeconds ~/ 60}'.padLeft(2, '0');
     final spentTime = '$minutesText:$secondsText';
-    final usedHints = state.gridPieces
-        .where((final e) => !e.isUsersItem)
-        .length;
+    final usedHints = state.gridPieces.where((final e) => !e.isUsersItem).length;
     await showDialog(
       context: context,
       builder: (final context) => PlatformAlertDialog(
@@ -283,33 +265,18 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             Text('${S.current.solvedAlertLevelLabel}: $difficultyStars $difficultyLabel'),
             Text(
               '${S.current.solvedAlertConfigLabel}:  $configLabel',
-              style: state.isCustomConfig
-                  ? TextStyle(
-                      color: configColor,
-                      fontWeight: FontWeight.w600,
-                    )
-                  : null,
+              style: state.isCustomConfig ? TextStyle(color: configColor, fontWeight: FontWeight.w600) : null,
             ),
             Text('${S.current.timeSpent}: $spentTime'),
             Text('${S.current.hintUsed}: $usedHints'),
           ],
         ),
-        actions: [
-          PlatformDialogAction(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(S
-                .of(context)
-                .ok),
-          ),
-        ],
+        actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
       ),
     );
   }
 
-  String _difficultyLabel(
-    final BuildContext context,
-    final PuzzleSessionDifficulty difficulty,
-  ) =>
+  String _difficultyLabel(final BuildContext context, final PuzzleSessionDifficulty difficulty) =>
       difficulty == PuzzleSessionDifficulty.hard
       ? S.of(context).historyDifficultyHard
       : S.of(context).historyDifficultyEasy;
@@ -318,14 +285,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       difficulty == PuzzleSessionDifficulty.hard ? '★★' : '★';
 
   String _configLabel(final BuildContext context, final PuzzleState state) =>
-      state.isCustomConfig
-      ? S.of(context).historyConfigCustom
-      : S.of(context).historyConfigStandard;
+      state.isCustomConfig ? S.of(context).historyConfigCustom : S.of(context).historyConfigStandard;
 
-  bool _didCompleteDragOnboardingStep(
-    final PuzzleState previous,
-    final PuzzleState current,
-  ) {
+  bool _didCompleteDragOnboardingStep(final PuzzleState previous, final PuzzleState current) {
     final onboardingState = _onboardingBloc.state;
     if (!onboardingState.isVisible ||
         onboardingState.currentStep?.id != OnboardingStepId.dragPiece ||
@@ -337,28 +299,25 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     }
 
     final move = current.moveHistory.last;
-      if (move is! MovePiece) {
-        return false;
-      }
-      final targetTopLeft = resolvePTargetTopLeft(current);
-      final targetRelativePosition = current.gridConfig.relativePosition(targetTopLeft);
-      final piece = current.pieces.firstWhere(
-        (final candidate) => candidate.id == move.pieceId,
-        orElse: () => current.pieces.first,
-      );
-
-      return piece.type == PieceType.pShape &&
-          !piece.isConfigItem &&
-          move.to.zone == PlaceZone.grid &&
-          piece.placeZone == PlaceZone.grid &&
-          move.to.position.dx == targetRelativePosition.dx &&
-          move.to.position.dy == targetRelativePosition.dy;
+    if (move is! MovePiece) {
+      return false;
     }
+    final targetTopLeft = resolvePTargetTopLeft(current);
+    final targetRelativePosition = current.gridConfig.relativePosition(targetTopLeft);
+    final piece = current.pieces.firstWhere(
+      (final candidate) => candidate.id == move.pieceId,
+      orElse: () => current.pieces.first,
+    );
 
-  bool _didCompleteRotateOnboardingStep(
-    final PuzzleState previous,
-    final PuzzleState current,
-  ) {
+    return piece.type == PieceType.pShape &&
+        !piece.isConfigItem &&
+        move.to.zone == PlaceZone.grid &&
+        piece.placeZone == PlaceZone.grid &&
+        move.to.position.dx == targetRelativePosition.dx &&
+        move.to.position.dy == targetRelativePosition.dy;
+  }
+
+  bool _didCompleteRotateOnboardingStep(final PuzzleState previous, final PuzzleState current) {
     final onboardingState = _onboardingBloc.state;
     if (!onboardingState.isVisible ||
         onboardingState.currentStep?.id != OnboardingStepId.rotatePiece ||
@@ -381,10 +340,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     return piece.type == PieceType.pShape && !piece.isConfigItem;
   }
 
-  bool _didCompleteFlipOnboardingStep(
-    final PuzzleState previous,
-    final PuzzleState current,
-  ) {
+  bool _didCompleteFlipOnboardingStep(final PuzzleState previous, final PuzzleState current) {
     final onboardingState = _onboardingBloc.state;
     if (!onboardingState.isVisible ||
         onboardingState.currentStep?.id != OnboardingStepId.flipPiece ||
@@ -436,33 +392,35 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     final targetTopLeft = resolvePTargetTopLeft(currentState);
     final targetPosition = Position(dx: targetTopLeft.dx, dy: targetTopLeft.dy);
 
-    final pieces = baseSnapshot.pieces.map((final piece) {
-      if (piece.id != pShapeId) {
-        return piece;
-      }
+    final pieces = baseSnapshot.pieces
+        .map((final piece) {
+          if (piece.id != pShapeId) {
+            return piece;
+          }
 
-      return switch (stepId.pShapeSetup) {
-        OnboardingPShapeSetup.board => piece,
-        OnboardingPShapeSetup.target => PuzzlePieceSnapshot(
-            id: piece.id,
-            placeZone: PlaceZone.grid,
-            position: targetPosition,
-            rotation: 0,
-            isFlipped: false,
-            isUsersItem: piece.isUsersItem,
-            isConfigItem: piece.isConfigItem,
-          ),
-        OnboardingPShapeSetup.targetRotated90 => PuzzlePieceSnapshot(
-            id: piece.id,
-            placeZone: PlaceZone.grid,
-            position: targetPosition,
-            rotation: PuzzleBloc.rotationStep,
-            isFlipped: false,
-            isUsersItem: piece.isUsersItem,
-            isConfigItem: piece.isConfigItem,
-          ),
-      };
-    }).toList(growable: false);
+          return switch (stepId.pShapeSetup) {
+            OnboardingPShapeSetup.board => piece,
+            OnboardingPShapeSetup.target => PuzzlePieceSnapshot(
+              id: piece.id,
+              placeZone: PlaceZone.grid,
+              position: targetPosition,
+              rotation: 0,
+              isFlipped: false,
+              isUsersItem: piece.isUsersItem,
+              isConfigItem: piece.isConfigItem,
+            ),
+            OnboardingPShapeSetup.targetRotated90 => PuzzlePieceSnapshot(
+              id: piece.id,
+              placeZone: PlaceZone.grid,
+              position: targetPosition,
+              rotation: PuzzleBloc.rotationStep,
+              isFlipped: false,
+              isUsersItem: piece.isUsersItem,
+              isConfigItem: piece.isConfigItem,
+            ),
+          };
+        })
+        .toList(growable: false);
 
     _puzzleBloc.add(
       PuzzleEvent.restoreLocalSnapshot(
@@ -496,10 +454,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(S.current.onboardingReplayPrompt),
-          action: SnackBarAction(
-            label: S.current.onboardingReplayAction,
-            onPressed: _startOnboardingReplay,
-          ),
+          action: SnackBarAction(label: S.current.onboardingReplayAction, onPressed: _startOnboardingReplay),
         ),
       );
     }
@@ -512,185 +467,4 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     context.read<SettingsCubit>().markOnboardingOffered(currentOnboardingVersion);
     _onboardingBloc.add(const StartOnboarding(OnboardingMode.short, isReplay: true));
   }
-
-}
-
-class _BottomFAB extends StatelessWidget {
-  const _BottomFAB({required this.isSetupVisible});
-
-  final bool isSetupVisible;
-
-  @override
-  Widget build(final BuildContext context) =>
-      BlocBuilder<PuzzleBloc, PuzzleState>(
-        builder: (final context, final state) {
-          final solutionsCount = state.applicableSolutions.length;
-          final puzzleBloc = context.read<PuzzleBloc>();
-          final solutionIndicator = context
-              .watch<SettingsCubit>()
-              .state
-              .solutionIndicator;
-          final isSolvabilityInfoVisible =
-              solutionIndicator != SolutionIndicator.none;
-          final isSolveDisabled =
-              state.isSolving ||
-                  (isSolvabilityInfoVisible && solutionsCount == 0) ||
-                  state.isShowSolutions;
-          final isHintDisabled =
-              state.isSolving || isSolveDisabled || state.isShowSolutions || state.isSolved;
-
-          Future<void> onAssistPressed(final VoidCallback allowedEvent) async {
-            if (solutionsCount == 0) {
-              await showDialog(
-                context: context,
-                builder: (final context) =>
-                    PlatformAlertDialog(
-                      title: Text(S
-                          .of(context)
-                          .searchCompletedDialogTitle),
-                      content: Text(S
-                          .of(context)
-                          .solutionsNotFoundDialogMessage),
-                      actions: [
-                        PlatformDialogAction(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(S
-                              .of(context)
-                              .ok),
-                        ),
-                      ],
-                    ),
-              );
-              return;
-            }
-            if (isSolvabilityInfoVisible) {
-              allowedEvent.call();
-            } else {
-              final result = await showDialog<bool>(
-                context: context,
-                builder: (final context) =>
-                    PlatformAlertDialog(
-                      title: Text(S
-                          .of(context)
-                          .searchCompletedDialogTitle),
-                      content: Text(
-                        S
-                            .of(context)
-                            .solutionsFoundDialogMessage(
-                          state.applicableSolutions.length,
-                        ),
-                      ),
-                      actions: [
-                        PlatformDialogAction(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: Text(S
-                              .of(context)
-                              .solutionsFoundDialogCancel),
-                        ),
-                        PlatformDialogAction(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: Text(S
-                              .of(context)
-                              .solutionsFoundDialogOk),
-                        ),
-                      ],
-                    ),
-              );
-              if (result == true) {
-                puzzleBloc.markCurrentSessionEasy();
-                allowedEvent.call();
-              }
-            }
-          }
-
-          return FloatingPanel(
-            children: [
-              if (isSetupVisible)
-                IconButton(
-                  icon: Icon(Icons.settings),
-                  onPressed: () => Scaffold.of(context).openEndDrawer(),
-                  tooltip: S.current.settings,
-                ),
-              IconButton(
-                icon: Icon(Icons.lightbulb),
-                onPressed: isSolveDisabled
-                    ? null
-                    : () =>
-                    onAssistPressed(
-                          () => puzzleBloc.add(PuzzleEvent.showSolution(0)),
-                    ),
-                tooltip: S.current.searchSolution,
-              ),
-              IconButton(
-                icon: Icon(Icons.tips_and_updates_outlined),
-                onPressed: isHintDisabled
-                    ? null
-                    : () =>
-                    onAssistPressed(
-                          () => puzzleBloc.add(PuzzleEvent.showHint()),
-                    ),
-                tooltip: S.current.hint,
-              ),
-              if (state.isShowSolutions) ...[
-                IconButton(
-                  icon: Icon(Icons.arrow_left),
-                  onPressed: () =>
-                      puzzleBloc.add(
-                        PuzzleEvent.showSolution(
-                          (state.solutionIdx > 0
-                              ? state.solutionIdx
-                              : solutionsCount) -
-                              1,
-                        ),
-                      ),
-                  tooltip: S.current.prevSolution,
-                ),
-                IconButton(
-                  icon: Icon(Icons.arrow_right),
-                  onPressed: () =>
-                      puzzleBloc.add(
-                        PuzzleEvent.showSolution(
-                          state.solutionIdx < solutionsCount - 1
-                              ? state.solutionIdx + 1
-                              : 0,
-                        ),
-                      ),
-                  tooltip: S.current.nextSolution,
-                ),
-              ] else
-                ...[
-                  IconButton(
-                    icon: Icon(Icons.undo),
-                    onPressed: state.isUndoEnabled
-                        ? () => puzzleBloc.add(PuzzleEvent.undo())
-                        : null,
-                    tooltip: S.current.undo,
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.redo),
-                    onPressed: state.isRedoEnabled
-                        ? () => puzzleBloc.add(PuzzleEvent.redo())
-                        : null,
-                    tooltip: S.current.redo,
-                  ),
-                ],
-              state.isSolving
-                  ? SizedBox(
-                width: 48,
-                height: 48,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-                  : IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () =>
-                    context.read<PuzzleBloc>().add(PuzzleEvent.reset()),
-                tooltip: S.current.reset,
-              ),
-            ],
-          );
-        },
-      );
 }

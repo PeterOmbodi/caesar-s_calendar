@@ -1,12 +1,15 @@
 import 'package:caesar_puzzle/core/models/piece_type.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/info_display_3_cell.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_action_button_strip.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
@@ -37,14 +40,12 @@ class PuzzleView extends StatelessWidget {
         );
 
         final solutionsCountState = _showOrHide(
-          !isOnboardingVisible && (settings.solutionIndicator == SolutionIndicator.countSolutions || state.isShowSolutions),
+          !isOnboardingVisible &&
+              (settings.solutionIndicator == SolutionIndicator.countSolutions || state.isShowSolutions),
           applicableCount,
         );
 
-        bool isInteractionAllowed(
-          final Offset position, {
-          required final OnboardingInputAction action,
-        }) {
+        bool isInteractionAllowed(final Offset position, {required final OnboardingInputAction action}) {
           final step = onboardingState.currentStep;
           if (!onboardingState.isVisible) {
             return true;
@@ -106,13 +107,6 @@ class PuzzleView extends StatelessWidget {
                           ),
                         ),
                       ),
-                    if (!isOnboardingVisible && (state.isShowSolutions || settings.showTimer)) ...[
-                      Positioned(
-                        left: state.cfgCellOffset(3).dx,
-                        top: state.cfgCellOffset(3).dy,
-                        child: InfoDisplay3Cell(),
-                      ),
-                    ],
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTapDown: (final details) {
@@ -163,7 +157,11 @@ class PuzzleView extends StatelessWidget {
                         selectedPiece: state.selectedPiece,
                         childBuilder: (final hiddenIds) => CustomPaint(
                           painter: PuzzleBoardPainter(
-                            pieces: state.pieces.where((final p) => !hiddenIds.contains(p.id) || p.isConfigItem),
+                            pieces: state.pieces.where(
+                              (final p) =>
+                                  (!hiddenIds.contains(p.id) || p.isConfigItem) &&
+                                  (!state.isDragging || p.id != state.selectedPiece?.id),
+                            ),
                             grid: state.gridConfig,
                             board: state.boardConfig,
                             selectedPiece: state.selectedPiece,
@@ -176,12 +174,44 @@ class PuzzleView extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (!isOnboardingVisible)
+                      Positioned(
+                        left: state.cfgCellOffset(2).dx,
+                        top: state.cfgCellOffset(2).dy,
+                        child: const PuzzleActionButtonStrip(),
+                      ),
+                    if (state.isDragging && state.selectedPiece != null)
+                      IgnorePointer(
+                        child: CustomPaint(
+                          painter: _DraggedPiecePainter(piece: state.selectedPiece!, borderColorMode: borderColorMode),
+                        ),
+                      ),
                   ],
                 ),
               );
       },
     ),
   );
+}
+
+class _DraggedPiecePainter extends CustomPainter {
+  const _DraggedPiecePainter({required this.piece, required this.borderColorMode});
+
+  final PuzzlePieceUI piece;
+  final bool borderColorMode;
+
+  @override
+  void paint(final Canvas canvas, final Size size) {
+    PiecePaintHelper.drawPiece(canvas, piece, true, borderColorMode);
+    final centerPaint = Paint()
+      ..color = AppColors.current.pieceCenterDot
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(piece.position + piece.centerPoint, 5.0, centerPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant final _DraggedPiecePainter oldDelegate) =>
+      oldDelegate.piece != piece || oldDelegate.borderColorMode != borderColorMode;
 }
 
 class _SolvabilityMark extends StatelessWidget {
@@ -210,11 +240,7 @@ class _SolvabilityMark extends StatelessWidget {
                     color: Colors.grey.shade200,
                   ),
                   child: Center(
-                    child: Icon(
-                      icon,
-                      size: cellSize / 2,
-                      color: iconColor,
-                    ),
+                    child: Icon(icon, size: cellSize / 2, color: iconColor),
                   ),
                 ),
               ),
