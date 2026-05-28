@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_pol
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_account_chip.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_action_button_strip.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
@@ -28,21 +29,13 @@ class PuzzleView extends StatelessWidget {
         bloc.add(PuzzleEvent.setViewSize(constraints.biggest));
         final borderColorMode = context.watch<SettingsCubit>().state.separateMoveColors;
 
-        int _showOrHide(final bool show, final int value) => show ? value : -1;
-
         final settings = context.watch<SettingsCubit>().state;
         final applicableCount = state.applicableSolutions.length;
         final isOnboardingVisible = onboardingState.isVisible;
-
-        final solvabilityState = _showOrHide(
-          !isOnboardingVisible && settings.solutionIndicator == SolutionIndicator.solvability,
-          applicableCount,
-        );
-
-        final solutionsCountState = _showOrHide(
-          !isOnboardingVisible &&
-              (settings.solutionIndicator == SolutionIndicator.countSolutions || state.isShowSolutions),
-          applicableCount,
+        final indicatorMode = _PuzzleIndicatorMode.resolve(
+          isOnboardingVisible: isOnboardingVisible,
+          solutionIndicator: settings.solutionIndicator,
+          isShowSolutions: state.isShowSolutions,
         );
 
         bool isInteractionAllowed(final Offset position, {required final OnboardingInputAction action}) {
@@ -83,28 +76,13 @@ class PuzzleView extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    if (solvabilityState >= 0 || solutionsCountState >= 0)
-                      Positioned(
-                        left: state.cfgCellOffset(0).dx,
-                        top: state.cfgCellOffset(0).dy,
-                        child: const _SolvabilityMark(),
-                      ),
-                    if (solutionsCountState >= 0)
+                    if (indicatorMode != _PuzzleIndicatorMode.hidden)
                       Positioned(
                         left: state.cfgCellOffset(1).dx,
                         top: state.cfgCellOffset(1).dy,
-                        child: ConstrainedBox(
-                          constraints: state.gridConfig.cellConstraints(),
-                          child: FlipFlapDisplay.fromText(
-                            text: '$solutionsCountState'.padLeft(2, '0'),
-                            unitsInPack: 4,
-                            unitConstraints: BoxConstraints(
-                              minWidth: solutionsCountState < 100 ? 20 : 14,
-                              minHeight: 32,
-                            ),
-                            unitType: UnitType.number,
-                            useShortestWay: false,
-                          ),
+                        child: _PuzzleIndicatorCell(
+                          mode: indicatorMode,
+                          solutionsCount: applicableCount,
                         ),
                       ),
                     GestureDetector(
@@ -176,6 +154,12 @@ class PuzzleView extends StatelessWidget {
                     ),
                     if (!isOnboardingVisible)
                       Positioned(
+                        left: state.cfgCellOffset(0).dx,
+                        top: state.cfgCellOffset(0).dy,
+                        child: const PuzzleAccountChip(),
+                      ),
+                    if (!isOnboardingVisible)
+                      Positioned(
                         left: state.cfgCellOffset(2).dx,
                         top: state.cfgCellOffset(2).dy,
                         child: const PuzzleActionButtonStrip(),
@@ -212,6 +196,58 @@ class _DraggedPiecePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant final _DraggedPiecePainter oldDelegate) =>
       oldDelegate.piece != piece || oldDelegate.borderColorMode != borderColorMode;
+}
+
+enum _PuzzleIndicatorMode {
+  hidden,
+  solvability,
+  solutionsCount;
+
+  static _PuzzleIndicatorMode resolve({
+    required final bool isOnboardingVisible,
+    required final SolutionIndicator solutionIndicator,
+    required final bool isShowSolutions,
+  }) {
+    if (isOnboardingVisible) {
+      return _PuzzleIndicatorMode.hidden;
+    }
+    if (solutionIndicator == SolutionIndicator.solvability) {
+      return _PuzzleIndicatorMode.solvability;
+    }
+    if (solutionIndicator == SolutionIndicator.countSolutions || isShowSolutions) {
+      return _PuzzleIndicatorMode.solutionsCount;
+    }
+    return _PuzzleIndicatorMode.hidden;
+  }
+}
+
+class _PuzzleIndicatorCell extends StatelessWidget {
+  const _PuzzleIndicatorCell({
+    required this.mode,
+    required this.solutionsCount,
+  });
+
+  final _PuzzleIndicatorMode mode;
+  final int solutionsCount;
+
+  @override
+  Widget build(final BuildContext context) => switch (mode) {
+    _PuzzleIndicatorMode.hidden => const SizedBox.shrink(),
+    _PuzzleIndicatorMode.solvability => const _SolvabilityMark(),
+    _PuzzleIndicatorMode.solutionsCount => ConstrainedBox(
+      constraints: context.read<PuzzleBloc>().state.gridConfig.cellConstraints(),
+      child: FlipFlapDisplay.fromText(
+        text: '$solutionsCount'.padLeft(2, '0'),
+        unitsInPack: 4,
+        unitConstraints: BoxConstraints(
+          minWidth: solutionsCount < 100 ? 20 : 14,
+          minHeight: 32,
+        ),
+        unitType: UnitType.number,
+        useShortestWay: false,
+      ),
+    ),
+  };
 }
 
 class _SolvabilityMark extends StatelessWidget {
