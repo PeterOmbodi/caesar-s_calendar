@@ -129,6 +129,69 @@ class PuzzleBottomControls extends StatelessWidget {
   String _historyDifficultyLabel(final PuzzleSessionDifficulty difficulty) =>
       difficulty == PuzzleSessionDifficulty.hard ? S.current.historyDifficultyHard : S.current.historyDifficultyEasy;
 
+  List<Widget> _buildMoreControls(final BuildContext context, final PuzzleState state) => [
+    IconButton(
+      icon: const Icon(Icons.info_outline_rounded),
+      onPressed: () => _showHowToPlayDialog(context),
+      tooltip: S.current.howToPlayTitle,
+    ),
+    if (isSetupVisible)
+      IconButton(
+        icon: Icon(Icons.settings),
+        onPressed: () => Scaffold.of(context).openEndDrawer(),
+        tooltip: S.current.settings,
+      ),
+    state.isSolving
+        ? const SizedBox(
+            width: FloatingPanel.buttonSize,
+            height: FloatingPanel.buttonSize,
+            child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()),
+          )
+        : IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset()),
+            tooltip: S.current.reset,
+          ),
+  ];
+
+  ToolbarControlGroup _buildSolutionControls({
+    required final PuzzleState state,
+    required final int solutionsCount,
+    required final PuzzleBloc puzzleBloc,
+    required final Widget showSolutionButton,
+  }) {
+    final isShowingSolutions = state.isShowSolutions && solutionsCount > 0;
+    return ToolbarControlGroup(
+      showOutline: isShowingSolutions,
+      children: [
+        showSolutionButton,
+        if (isShowingSolutions) ...[
+          IconButton(
+            icon: const Icon(Icons.arrow_left),
+            onPressed: () => puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx - 1)),
+            tooltip: S.current.prevSolution,
+          ),
+          IconButton(
+            icon: const Icon(Icons.arrow_right),
+            onPressed: () => puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx + 1)),
+            tooltip: S.current.nextSolution,
+          ),
+        ] else ...[
+          IconButton(
+            icon: Icon(Icons.undo),
+            onPressed: state.isUndoEnabled ? () => puzzleBloc.add(PuzzleEvent.undo()) : null,
+            tooltip: S.current.undo,
+          ),
+          IconButton(
+            icon: Icon(Icons.redo),
+            onPressed: state.isRedoEnabled ? () => puzzleBloc.add(PuzzleEvent.redo()) : null,
+            tooltip: S.current.redo,
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
     builder: (final context, final state) {
@@ -136,8 +199,9 @@ class PuzzleBottomControls extends StatelessWidget {
       final puzzleBloc = context.read<PuzzleBloc>();
       final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
       final isSolvabilityInfoVisible = solutionIndicator != SolutionIndicator.none;
-      final isSolveDisabled =
+      final isSolutionSearchDisabled =
           state.isSolving || (isSolvabilityInfoVisible && solutionsCount == 0) || state.isShowSolutions;
+      final isHintDisabled = isSolutionSearchDisabled || state.isSolved;
 
       Future<void> onAssistPressed(final VoidCallback allowedEvent) async {
         if (solutionsCount == 0) {
@@ -180,31 +244,41 @@ class PuzzleBottomControls extends StatelessWidget {
         }
       }
 
+      final showSolutionButton = IconButton(
+        icon: Icon(Icons.lightbulb),
+        style: state.isShowSolutions ? selectedToolbarIconButtonStyle(context) : null,
+        onPressed: state.isShowSolutions
+            ? () => puzzleBloc.add(PuzzleEvent.reset())
+            : isSolutionSearchDisabled
+            ? null
+            : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
+        tooltip: S.current.searchSolution,
+      );
+      final solutionControls = _buildSolutionControls(
+        state: state,
+        solutionsCount: solutionsCount,
+        puzzleBloc: puzzleBloc,
+        showSolutionButton: showSolutionButton,
+      );
+
       return FloatingPanel(
+        morePanel: FloatingVerticalMoreToolbar(
+          moreTooltip: S.current.showControls,
+          closeTooltip: S.current.hideControls,
+          children: _buildMoreControls(context, state),
+        ),
         children: [
-          IconButton(
-            icon: const Icon(Icons.info_outline_rounded),
-            onPressed: () => _showHowToPlayDialog(context),
-            tooltip: S.current.howToPlayTitle,
-          ),
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () => _showHistory(context),
             tooltip: S.current.historyTitle,
           ),
+          solutionControls,
           IconButton(
-            icon: Icon(Icons.lightbulb),
-            onPressed: isSolveDisabled
-                ? null
-                : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
-            tooltip: S.current.searchSolution,
+            icon: Icon(Icons.tips_and_updates_outlined),
+            onPressed: isHintDisabled ? null : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showHint())),
+            tooltip: S.current.hint,
           ),
-          if (isSetupVisible)
-            IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-              tooltip: S.current.settings,
-            ),
         ],
       );
     },

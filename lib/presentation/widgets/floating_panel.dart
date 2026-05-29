@@ -1,66 +1,170 @@
-import 'dart:async';
-
-import 'package:caesar_puzzle/generated/l10n.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
-import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_flip_flap/flutter_flip_flap.dart';
 
-class FloatingPanel extends StatefulWidget {
-  const FloatingPanel({super.key, required this.children});
+class FloatingPanel extends StatelessWidget {
+  const FloatingPanel({super.key, required this.children, required this.morePanel});
 
-  static const double widgetSpacing = 0.2;
-  static const double panelElevation = 8.0;
-  static const double panelBorderRadius = 16.0;
-  static const double panelAlpha = 0.5;
-  static const double itemWidth = 48.0;
-  static const double itemHeight = 40.0;
-  static const double itemPadding = 4.0;
-  static const double verticalPadding = 8.0;
-  static const double horizontalPadding = 4.0;
+  static const double panelRadius = 28.0;
+  static const double compactPanelRadius = 16.0;
+  static const double buttonSize = 40.0;
+  static const double itemPadding = 2.0;
+  static const double itemExtent = buttonSize + itemPadding * 2;
+  static const double verticalPadding = 6.0;
+  static const double horizontalPadding = 12.0;
+  static const double verticalItemSpacing = 12.0;
   static const double screenMargin = 24.0;
+  static const double panelGap = 8.0;
+  static const double morePanelWidth = 56.0;
+  static const Duration itemDelay = Duration(milliseconds: 80);
+  static const Duration itemAnimationDuration = Duration(milliseconds: 100);
+  static const Duration surfaceAnimationDuration = Duration(milliseconds: 300);
 
-  static const Duration openAnimationDelay = Duration(milliseconds: 80);
-  static const Duration closeAnimationDelay = Duration(milliseconds: 80);
-  static const Duration animationDuration = Duration(milliseconds: 100);
-  static const Duration switcherDuration = Duration(milliseconds: 300);
-  static const double swipeVelocityThreshold = 300;
+  final List<Widget> children;
+  final Widget morePanel;
+
+  @override
+  Widget build(final BuildContext context) {
+    final viewWidth = MediaQuery.of(context).size.width;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: viewWidth - screenMargin),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Flexible(child: FloatingHorizontalToolbar(children: children)),
+          const SizedBox(width: panelGap),
+          SizedBox(width: morePanelWidth, child: morePanel),
+        ],
+      ),
+    );
+  }
+}
+
+class FloatingHorizontalToolbar extends StatefulWidget {
+  const FloatingHorizontalToolbar({super.key, required this.children});
 
   final List<Widget> children;
 
   @override
-  FloatingPanelState createState() => FloatingPanelState();
+  State<FloatingHorizontalToolbar> createState() => _FloatingHorizontalToolbarState();
 }
 
-class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMixin {
-  bool _isPanelOpen = false;
-  int _visibleChildren = 0;
-  int _animationId = 0;
-  bool _isPanelStateInitialized = false;
+class _FloatingHorizontalToolbarState extends State<FloatingHorizontalToolbar>
+    with _ToolbarExpansionState<FloatingHorizontalToolbar> {
+  @override
+  List<Widget> get items => widget.children;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_isPanelStateInitialized) {
-      return;
-    }
-    final isWideScreen =
-        MediaQuery.of(context).size.width >= PuzzleScreen.wideScreenBreakpoint - PuzzleScreen.sidePanelWidth;
-    _isPanelOpen = isWideScreen;
-    _visibleChildren = isWideScreen ? widget.children.length : 0;
-    _isPanelStateInitialized = true;
+  bool get initiallyOpen => true;
+
+  @override
+  Widget build(final BuildContext context) => _ToolbarSurface(
+    isOpen: _isOpen,
+    child: SizedBox(
+      height: FloatingPanel.itemExtent,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        reverse: true,
+        child: AnimatedSize(
+          duration: FloatingPanel.surfaceAnimationDuration,
+          curve: Curves.easeInOut,
+          alignment: Alignment.centerRight,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ...List.generate(itemCount, (final index) {
+                final child = items[index];
+                return _AnimatedHorizontalToolbarItem(
+                  isVisible: index < _visibleItems,
+                  width: _horizontalItemWidth(child),
+                  child: _asHorizontalToolbarItem(child),
+                );
+              }),
+              _HorizontalToolbarItem(
+                child: IconButton(icon: Icon(_isOpen ? Icons.chevron_right : Icons.chevron_left), onPressed: _toggle),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class ToolbarControlGroup extends StatelessWidget {
+  const ToolbarControlGroup({super.key, required this.children, this.showOutline = false});
+
+  final List<Widget> children;
+  final bool showOutline;
+
+  int get controlCount => children.length;
+
+  double get width => controlCount * FloatingPanel.itemExtent;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: width,
+      height: FloatingPanel.itemExtent,
+      child: CustomPaint(
+        foregroundPainter: showOutline
+            ? _ToolbarGroupOutlinePainter(color: colorScheme.onPrimaryContainer.withValues(alpha: 0.72))
+            : null,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: children.map((final child) => _HorizontalToolbarItem(child: child)).toList(),
+        ),
+      ),
+    );
+  }
+}
+
+class FloatingVerticalMoreToolbar extends StatefulWidget {
+  const FloatingVerticalMoreToolbar({
+    super.key,
+    required this.children,
+    required this.moreTooltip,
+    required this.closeTooltip,
+  });
+
+  final List<Widget> children;
+  final String moreTooltip;
+  final String closeTooltip;
+
+  @override
+  State<FloatingVerticalMoreToolbar> createState() => _FloatingVerticalMoreToolbarState();
+}
+
+mixin _ToolbarExpansionState<T extends StatefulWidget> on State<T> {
+  var _isOpen = false;
+  var _visibleItems = 0;
+  var _animationId = 0;
+
+  List<Widget> get items;
+
+  int get itemCount => items.length;
+
+  bool get initiallyOpen => false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isOpen = initiallyOpen;
+    _visibleItems = initiallyOpen ? itemCount : 0;
   }
 
   @override
-  void didUpdateWidget(final FloatingPanel oldWidget) {
+  void didUpdateWidget(covariant final T oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_visibleChildren > widget.children.length) {
-      setState(() => _visibleChildren = widget.children.length);
+    if (_isOpen) {
+      _visibleItems = itemCount;
+    } else if (_visibleItems > itemCount) {
+      _visibleItems = itemCount;
     }
   }
 
-  Future<void> _togglePanel() async {
-    if (_isPanelOpen) {
+  Future<void> _toggle() async {
+    if (_isOpen) {
       await _animateClose();
     } else {
       await _animateOpen();
@@ -69,142 +173,265 @@ class FloatingPanelState extends State<FloatingPanel> with TickerProviderStateMi
 
   Future<void> _animateOpen() async {
     final id = ++_animationId;
-    setState(() => _isPanelOpen = true);
+    setState(() => _isOpen = true);
 
-    for (var i = _visibleChildren; i < widget.children.length; i++) {
-      if (!mounted || id != _animationId) return;
-      setState(() => _visibleChildren = i + 1);
-      await Future<void>.delayed(FloatingPanel.openAnimationDelay);
+    for (var i = _visibleItems; i < itemCount; i++) {
+      if (!mounted || id != _animationId) {
+        return;
+      }
+      setState(() => _visibleItems = i + 1);
+      await Future<void>.delayed(FloatingPanel.itemDelay);
     }
   }
 
   Future<void> _animateClose() async {
     final id = ++_animationId;
-    setState(() => _isPanelOpen = false);
+    setState(() => _isOpen = false);
 
-    for (var i = _visibleChildren; i > 0; i--) {
-      if (!mounted || id != _animationId) return;
-      setState(() => _visibleChildren = i - 1);
-      await Future<void>.delayed(FloatingPanel.closeAnimationDelay);
+    for (var i = _visibleItems; i > 0; i--) {
+      if (!mounted || id != _animationId) {
+        return;
+      }
+      setState(() => _visibleItems = i - 1);
+      await Future<void>.delayed(FloatingPanel.itemDelay);
     }
   }
+}
+
+class _FloatingVerticalMoreToolbarState extends State<FloatingVerticalMoreToolbar>
+    with _ToolbarExpansionState<FloatingVerticalMoreToolbar> {
+  @override
+  List<Widget> get items => widget.children;
+
+  @override
+  Widget build(final BuildContext context) => _ToolbarSurface(
+    isOpen: _isOpen,
+    child: Padding(
+      padding: EdgeInsets.symmetric(vertical: _isOpen ? FloatingPanel.itemPadding : 0),
+      child: AnimatedSize(
+        duration: FloatingPanel.surfaceAnimationDuration,
+        curve: Curves.easeInOut,
+        alignment: Alignment.bottomCenter,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ...List.generate(
+              itemCount,
+              (final index) => _AnimatedVerticalToolbarItem(
+                isVisible: index < _visibleItems,
+                child: _CloseOnPointerUp(
+                  onClose: _animateClose,
+                  child: _VerticalToolbarItem(child: items[index]),
+                ),
+              ),
+            ),
+            _VerticalToolbarItem(
+              child: IconButton(
+                style: _isOpen ? selectedToolbarIconButtonStyle(context) : null,
+                icon: const Icon(Icons.more_vert),
+                onPressed: _toggle,
+                tooltip: _isOpen ? widget.closeTooltip : widget.moreTooltip,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+ButtonStyle selectedToolbarIconButtonStyle(final BuildContext context) {
+  final colorScheme = Theme.of(context).colorScheme;
+  return ButtonStyle(
+    backgroundColor: WidgetStatePropertyAll(colorScheme.onPrimaryContainer),
+    foregroundColor: WidgetStatePropertyAll(colorScheme.primaryContainer),
+    overlayColor: WidgetStatePropertyAll(colorScheme.primaryContainer.withValues(alpha: 0.10)),
+    shape: const WidgetStatePropertyAll(CircleBorder()),
+    padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    minimumSize: const WidgetStatePropertyAll(Size.square(FloatingPanel.buttonSize)),
+    fixedSize: const WidgetStatePropertyAll(Size.square(FloatingPanel.buttonSize)),
+  );
+}
+
+class _ToolbarSurface extends StatelessWidget {
+  const _ToolbarSurface({required this.child, required this.isOpen});
+
+  final Widget child;
+  final bool isOpen;
 
   @override
   Widget build(final BuildContext context) {
-    final viewWidth = MediaQuery.of(context).size.width;
-    return GestureDetector(
-      onHorizontalDragEnd: _handleHorizontalDragEnd,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: viewWidth - FloatingPanel.screenMargin),
-        child: Material(
-          elevation: FloatingPanel.panelElevation,
-          borderRadius: BorderRadius.circular(FloatingPanel.panelBorderRadius),
-          color: AppColors.current.primary.withValues(alpha: FloatingPanel.panelAlpha),
+    final colorScheme = Theme.of(context).colorScheme;
+    final radius = isOpen ? FloatingPanel.panelRadius : FloatingPanel.compactPanelRadius;
+    final borderRadius = BorderRadius.circular(radius);
+    return AnimatedContainer(
+      duration: FloatingPanel.surfaceAnimationDuration,
+      curve: Curves.easeInOut,
+      decoration: ShapeDecoration(
+        color: colorScheme.primaryContainer,
+        shadows: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.24),
+            blurRadius: isOpen ? 12 : 8,
+            offset: Offset(0, isOpen ? 4 : 2),
+          ),
+        ],
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
+        clipBehavior: Clip.antiAlias,
+        child: IconButtonTheme(
+          data: _toolbarIconButtonTheme(context),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
+            padding: EdgeInsets.symmetric(
               vertical: FloatingPanel.verticalPadding,
-              horizontal: FloatingPanel.horizontalPadding,
+              horizontal: isOpen ? FloatingPanel.horizontalPadding : FloatingPanel.verticalPadding,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: AnimatedSize(
-                    duration: FloatingPanel.switcherDuration,
-                    curve: Curves.easeInOut,
-                    alignment: Alignment.centerLeft,
-                    child: SizedBox(
-                      height: FloatingPanel.itemHeight,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(widget.children.length, (final i) {
-                            final item = _AnimatedPanelItem(
-                              index: i + 1,
-                              isVisible: i < _visibleChildren,
-                              child: widget.children[i],
-                            );
-                            return Padding(
-                              padding: EdgeInsets.symmetric(horizontal: FloatingPanel.widgetSpacing),
-                              child: item,
-                            );
-                          }),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                FlipFlapDisplay(
-                  items: [
-                    FlipFlapWidgetItem.flip(
-                      flipAxis: Axis.horizontal,
-                      duration: const Duration(milliseconds: 800),
-                      child: IconButton(
-                        key: ValueKey(_isPanelOpen),
-                        icon: Icon(_isPanelOpen ? Icons.close : Icons.menu),
-                        onPressed: _togglePanel,
-                        tooltip: _isPanelOpen ? S.current.hideControls : S.current.showControls,
-                      ),
-                    ),
-                  ],
-                  unitDecoration: const BoxDecoration(color: Colors.transparent),
-                  unitConstraints: BoxConstraints.tightFor(
-                    height: FloatingPanel.itemHeight,
-                    width: FloatingPanel.itemHeight,
-                  ),
-                ),
-              ],
-            ),
+            child: child,
           ),
         ),
       ),
     );
   }
-
-  void _handleHorizontalDragEnd(final DragEndDetails details) {
-    final velocity = details.primaryVelocity;
-    if (velocity == null || velocity.abs() < FloatingPanel.swipeVelocityThreshold) {
-      return;
-    }
-    if (velocity < 0 && !_isPanelOpen) {
-      unawaited(_animateOpen());
-    } else if (velocity > 0 && _isPanelOpen) {
-      unawaited(_animateClose());
-    }
-  }
 }
 
-class _AnimatedPanelItem extends StatelessWidget {
-  const _AnimatedPanelItem({required this.index, required this.isVisible, required this.child});
+IconButtonThemeData _toolbarIconButtonTheme(final BuildContext context) {
+  final colorScheme = Theme.of(context).colorScheme;
+  return IconButtonThemeData(
+    style: IconButton.styleFrom(
+      backgroundColor: Colors.transparent,
+      disabledBackgroundColor: Colors.transparent,
+      foregroundColor: colorScheme.onPrimaryContainer,
+      disabledForegroundColor: colorScheme.onPrimaryContainer.withValues(alpha: 0.38),
+      hoverColor: colorScheme.onPrimaryContainer.withValues(alpha: 0.08),
+      focusColor: colorScheme.onPrimaryContainer.withValues(alpha: 0.10),
+      highlightColor: colorScheme.onPrimaryContainer.withValues(alpha: 0.10),
+      shape: const CircleBorder(),
+      padding: EdgeInsets.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      minimumSize: const Size.square(FloatingPanel.buttonSize),
+      fixedSize: const Size.square(FloatingPanel.buttonSize),
+    ),
+  );
+}
 
-  final int index;
+class _HorizontalToolbarItem extends StatelessWidget {
+  const _HorizontalToolbarItem({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(final BuildContext context) => SizedBox(
+    width: FloatingPanel.itemExtent,
+    height: FloatingPanel.itemExtent,
+    child: Padding(padding: const EdgeInsets.all(FloatingPanel.itemPadding), child: child),
+  );
+}
+
+class _VerticalToolbarItem extends StatelessWidget {
+  const _VerticalToolbarItem({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(final BuildContext context) => SizedBox(
+    width: FloatingPanel.morePanelWidth,
+    height: FloatingPanel.itemExtent,
+    child: Center(child: child),
+  );
+}
+
+class _CloseOnPointerUp extends StatelessWidget {
+  const _CloseOnPointerUp({required this.child, required this.onClose});
+
+  final Widget child;
+  final Future<void> Function() onClose;
+
+  @override
+  Widget build(final BuildContext context) => Listener(
+    behavior: HitTestBehavior.translucent,
+    onPointerUp: (final event) {
+      Future<void>.delayed(Duration.zero, onClose);
+    },
+    child: child,
+  );
+}
+
+class _AnimatedHorizontalToolbarItem extends StatelessWidget {
+  const _AnimatedHorizontalToolbarItem({required this.isVisible, required this.width, required this.child});
+
+  final bool isVisible;
+  final double width;
+  final Widget child;
+
+  @override
+  Widget build(final BuildContext context) => IgnorePointer(
+    ignoring: !isVisible,
+    child: AnimatedContainer(
+      duration: FloatingPanel.itemAnimationDuration,
+      curve: Curves.easeInOut,
+      width: isVisible ? width : 0,
+      height: FloatingPanel.itemExtent,
+      clipBehavior: Clip.hardEdge,
+      decoration: const BoxDecoration(),
+      child: OverflowBox(alignment: Alignment.centerRight, minWidth: width, maxWidth: width, child: child),
+    ),
+  );
+}
+
+class _AnimatedVerticalToolbarItem extends StatelessWidget {
+  const _AnimatedVerticalToolbarItem({required this.isVisible, required this.child});
+
   final bool isVisible;
   final Widget child;
 
   @override
-  Widget build(final BuildContext context) => AnimatedSize(
-    duration: FloatingPanel.animationDuration,
-    curve: Curves.easeInOut,
-    alignment: Alignment.centerLeft,
-    child: AnimatedSwitcher(
-      duration: FloatingPanel.animationDuration,
-      switchInCurve: Curves.easeOut,
-      switchOutCurve: Curves.easeIn,
-      transitionBuilder: (final widgetChild, final animation) => FadeTransition(
-        opacity: animation,
-        child: ScaleTransition(scale: animation, child: widgetChild),
+  Widget build(final BuildContext context) => IgnorePointer(
+    ignoring: !isVisible,
+    child: AnimatedContainer(
+      duration: FloatingPanel.itemAnimationDuration,
+      curve: Curves.easeInOut,
+      width: FloatingPanel.morePanelWidth,
+      height: isVisible ? FloatingPanel.itemExtent + FloatingPanel.verticalItemSpacing : 0,
+      clipBehavior: Clip.hardEdge,
+      decoration: const BoxDecoration(),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: FloatingPanel.verticalItemSpacing),
+          child: child,
+        ),
       ),
-      child: isVisible
-          ? SizedBox(
-              key: ValueKey('floating-panel-item-$index-visible'),
-              width: FloatingPanel.itemWidth,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: FloatingPanel.itemPadding),
-                child: child,
-              ),
-            )
-          : SizedBox(key: ValueKey('floating-panel-item-$index-hidden'), width: 0),
     ),
   );
 }
+
+class _ToolbarGroupOutlinePainter extends CustomPainter {
+  const _ToolbarGroupOutlinePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(final Canvas canvas, final Size size) {
+    const strokeWidth = 1.0;
+    final rect = (Offset.zero & size).deflate(strokeWidth / 2);
+    final radius = FloatingPanel.buttonSize / 2 + FloatingPanel.itemPadding - strokeWidth / 2;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+    canvas.drawRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)), paint);
+  }
+
+  @override
+  bool shouldRepaint(final _ToolbarGroupOutlinePainter oldDelegate) => oldDelegate.color != color;
+}
+
+Widget _asHorizontalToolbarItem(final Widget child) =>
+    child is ToolbarControlGroup ? child : _HorizontalToolbarItem(child: child);
+
+double _horizontalItemWidth(final Widget child) =>
+    child is ToolbarControlGroup ? child.width : FloatingPanel.itemExtent;

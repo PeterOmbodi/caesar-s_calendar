@@ -5,9 +5,9 @@ import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dar
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/info_display_3_cell.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_account_chip.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_action_button_strip.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
@@ -158,11 +158,11 @@ class PuzzleView extends StatelessWidget {
                         top: state.cfgCellOffset(0).dy,
                         child: const PuzzleAccountChip(),
                       ),
-                    if (!isOnboardingVisible)
+                    if (!isOnboardingVisible && (state.isShowSolutions || settings.showTimer))
                       Positioned(
-                        left: state.cfgCellOffset(2).dx,
-                        top: state.cfgCellOffset(2).dy,
-                        child: const PuzzleActionButtonStrip(),
+                        left: state.cfgCellOffset(3).dx,
+                        top: state.cfgCellOffset(3).dy,
+                        child: InfoDisplay3Cell(),
                       ),
                     if (state.isDragging && state.selectedPiece != null)
                       IgnorePointer(
