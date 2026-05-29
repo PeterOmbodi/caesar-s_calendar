@@ -54,9 +54,11 @@ extension PuzzleBlocSolutionsPart on PuzzleBloc {
       return Future.value();
     }
     final applicableSolutions = state.applicableSolutions;
-    final solutionIds = applicableSolutions.length > event.index
-        ? applicableSolutions[event.index]
-        : <String, PlacementParams>{};
+    if (applicableSolutions.isEmpty) {
+      return Future.value();
+    }
+    final solutionIndex = event.index % applicableSolutions.length;
+    final solutionIds = applicableSolutions[solutionIndex];
     final gridPieces = state.gridPieces
         .where((final e) => e.isConfigItem || e.isUsersItem)
         .map(
@@ -83,7 +85,7 @@ extension PuzzleBlocSolutionsPart on PuzzleBloc {
       state.copyWith(
         pieces: gridPieces,
         applicableSolutions: applicableSolutions,
-        solutionIdx: event.index,
+        solutionIdx: solutionIndex,
         moveHistory: [],
         moveIndex: 0,
         status: GameStatus.showingSolution,

@@ -58,12 +58,12 @@ Controls:
 1. Drag pieces from the tray onto the board.
 2. Tap or click a piece to rotate it.
 3. Double tap or double click a piece to flip it.
-4. Open `Info` to view the in-app how-to-play guide.
-5. Open `History` to resume saved sessions or switch to another puzzle date.
-6. Use `Solve` to display an automatic solution for the current layout.
-7. Use `Hint` to reveal one valid move.
-8. Use `Undo` and `Redo` to navigate move history.
-9. Use `Reset` to restart the current puzzle.
+4. Use the floating bottom toolbar for `History`, `Show solution`, `Undo`, `Redo`, and `Hint`.
+5. While viewing solutions, use the solution navigation arrows in place of `Undo` and `Redo`.
+6. Open `More` for `Info`, `Settings`, and `Reset`.
+7. Open `Info` to view the in-app how-to-play guide.
+8. Open `History` to resume saved sessions or switch to another puzzle date.
+9. Use `Hint` to reveal one valid move.
 10. Open `Settings` to change gameplay and UI behavior.
 
 Settings currently include:

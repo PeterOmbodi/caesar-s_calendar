@@ -1,7 +1,8 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
-import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summary_button.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -234,7 +235,10 @@ class SettingsPanel extends StatelessWidget {
                     p.isLoading != n.isLoading ||
                     p.errorMessage != n.errorMessage ||
                     p.pendingCloudReplace != n.pendingCloudReplace,
-                builder: (final context, final auth) => AccountSection(auth: auth),
+                builder: (final context, final auth) => AccountSummaryButton(
+                  auth: auth,
+                  onPressed: () => showAccountSectionSheet(context, closeDrawerFirst: true),
+                ),
               ),
               const SizedBox(height: 12),
               const Divider(),

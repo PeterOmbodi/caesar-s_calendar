@@ -2,6 +2,7 @@ import 'package:caesar_puzzle/infrastructure/sync/sync_status.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/profile/profile_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -116,8 +117,8 @@ class _AccountSectionState extends State<AccountSection> {
     final publicProfile = context.watch<PublicProfileCubit>().state;
     final user = auth.user;
     final canStartProviderSignIn = !auth.isLoading && user == null;
-    final displayName = _bestDisplayName(user);
-    final photoUrl = _bestPhotoUrl(user);
+    final displayName = AccountDisplay.bestDisplayName(user);
+    final photoUrl = AccountDisplay.bestPhotoUrl(user);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +133,7 @@ class _AccountSectionState extends State<AccountSection> {
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
                 children: [
-                  _AccountAvatar(photoUrl: photoUrl, fallbackLabel: _avatarInitial(displayName)),
+                  AccountAvatar(photoUrl: photoUrl, fallbackLabel: AccountDisplay.avatarInitial(displayName)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -248,72 +249,8 @@ class _AccountSectionState extends State<AccountSection> {
     return null;
   }
 
-  String? _bestDisplayName(final dynamic user) {
-    final direct = user?.displayName?.trim();
-    if (direct != null && direct.isNotEmpty) return direct;
-    for (final profile in user?.providerData ?? const []) {
-      final candidate = profile.displayName?.trim();
-      if (candidate != null && candidate.isNotEmpty) return candidate;
-    }
-    return null;
-  }
-
-  String? _bestPhotoUrl(final dynamic user) {
-    final direct = user?.photoURL?.trim();
-    if (direct != null && direct.isNotEmpty) return direct;
-    for (final profile in user?.providerData ?? const []) {
-      final candidate = profile.photoURL?.trim();
-      if (candidate != null && candidate.isNotEmpty) return candidate;
-    }
-    return null;
-  }
-
-  String _avatarInitial(final String? displayName) {
-    final normalized = displayName?.trim();
-    if (normalized == null || normalized.isEmpty) return '?';
-    return normalized.characters.first.toUpperCase();
-  }
-
   String _lastSyncLabel(final SyncStatus status) {
     final last = status.lastSuccessAtMs == null ? null : DateTime.fromMillisecondsSinceEpoch(status.lastSuccessAtMs!);
     return last == null ? 'never' : '${last.toLocal()}';
-  }
-}
-
-class _AccountAvatar extends StatefulWidget {
-  const _AccountAvatar({required this.photoUrl, required this.fallbackLabel});
-
-  final String? photoUrl;
-  final String fallbackLabel;
-
-  @override
-  State<_AccountAvatar> createState() => _AccountAvatarState();
-}
-
-class _AccountAvatarState extends State<_AccountAvatar> {
-  static final Set<String> _failedUrls = <String>{};
-
-  @override
-  Widget build(final BuildContext context) {
-    final photoUrl = widget.photoUrl;
-    if (photoUrl == null || photoUrl.isEmpty || _failedUrls.contains(photoUrl)) {
-      return CircleAvatar(radius: 22, child: Text(widget.fallbackLabel));
-    }
-
-    return CircleAvatar(
-      radius: 22,
-      child: ClipOval(
-        child: Image.network(
-          photoUrl,
-          width: 44,
-          height: 44,
-          fit: BoxFit.cover,
-          errorBuilder: (final context, final error, final stackTrace) {
-            _failedUrls.add(photoUrl);
-            return Center(child: Text(widget.fallbackLabel));
-          },
-        ),
-      ),
-    );
   }
 }
