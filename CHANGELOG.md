@@ -1,3 +1,9 @@
+## 1.8.1+30
+- move puzzle actions into floating bottom toolbars
+- add collapsible main controls and More controls panels
+- show solution navigation in place of undo/redo while previewing solutions
+- add account control and rework solvability indicators in board service cells
+
 ## 1.8.0+29
 - interactive onboarding flow for first launch
 - onboarding replay support
