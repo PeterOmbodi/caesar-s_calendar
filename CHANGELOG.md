@@ -1,3 +1,9 @@
+## 1.8.2+31
+- add medium difficulty for solvability indicator sessions
+- save and restore session difficulty
+- map session difficulty to the selected solvability indicator mode
+- rearrange Settings screen sections
+
 ## 1.8.1+30
 - move puzzle actions into floating bottom toolbars
 - add collapsible main controls and More controls panels
