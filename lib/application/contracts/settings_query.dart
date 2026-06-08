@@ -5,4 +5,5 @@ abstract class SettingsQuery {
   bool get separateMoveColors;
   bool get snapToGridOnTransform;
   bool get requireSolutions;
+  bool get showSolutionCount => false;
 }

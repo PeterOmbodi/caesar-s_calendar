@@ -7,9 +7,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     add(
       PuzzleEvent.configure(
         toInitial: true,
-        configurationPieces: _settings.unlockConfig
-            ? []
-            : state.gridPieces.where((final e) => e.isConfigItem),
+        configurationPieces: _settings.unlockConfig ? [] : state.gridPieces.where((final e) => e.isConfigItem),
       ),
     );
     if (state.solutions.isEmpty && _settings.requireSolutions) {
@@ -17,10 +15,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     }
   }
 
-  FutureOr<void> _timerStateChanged(
-    final _SetTimer event,
-    final Emitter<PuzzleState> emit,
-  ) {
+  FutureOr<void> _timerStateChanged(final _SetTimer event, final Emitter<PuzzleState> emit) {
     if (event.running) {
       if (state.status == GameStatus.paused) {
         final prevState = state;
@@ -53,13 +48,9 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     }
   }
 
-  FutureOr<void> _restoreSession(
-    final _RestoreSession event,
-    final Emitter<PuzzleState> emit,
-  ) {
+  FutureOr<void> _restoreSession(final _RestoreSession event, final Emitter<PuzzleState> emit) {
     final session = event.session;
-    final isSolvedSession = session.status == PuzzleSessionStatus.solved ||
-        session.completedAt != null;
+    final isSolvedSession = session.status == PuzzleSessionStatus.solved || session.completedAt != null;
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     _historyUseCase.activateSession(session);
     _currentSessionDifficulty = session.difficulty;
@@ -68,17 +59,12 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
 
     emit(
       state.copyWith(
-        selectedDate: DateTime(
-          session.puzzleDate.year,
-          session.puzzleDate.month,
-          session.puzzleDate.day,
-        ),
+        selectedDate: DateTime(session.puzzleDate.year, session.puzzleDate.month, session.puzzleDate.day),
         pieces: restoredPieces,
         moveHistory: session.moveHistory,
         moveIndex: session.moveIndex,
         firstMoveAt: session.firstMoveAt,
-        lastResumedAt:
-            !isSolvedSession && session.firstMoveAt != null ? nowMs : null,
+        lastResumedAt: !isSolvedSession && session.firstMoveAt != null ? nowMs : null,
         activeElapsedMs: restoredElapsedMs,
         solutionIdx: -1,
         solutions: const [],
@@ -100,15 +86,8 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     add(const PuzzleEvent.solve(showResult: false));
   }
 
-  FutureOr<void> _setPuzzleDate(
-    final _SetPuzzleDate event,
-    final Emitter<PuzzleState> emit,
-  ) {
-    final nextDate = DateTime(
-      event.date.year,
-      event.date.month,
-      event.date.day,
-    );
+  FutureOr<void> _setPuzzleDate(final _SetPuzzleDate event, final Emitter<PuzzleState> emit) {
+    final nextDate = DateTime(event.date.year, event.date.month, event.date.day);
     _isOnboardingSession = event.onboarding;
     if (!event.onboarding) {
       _historyUseCase.resetSession();
@@ -142,17 +121,12 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
       PuzzleEvent.configure(
         toInitial: true,
         skipSolve: event.onboarding,
-        configurationPieces: _settings.unlockConfig
-            ? []
-            : state.gridPieces.where((final e) => e.isConfigItem),
+        configurationPieces: _settings.unlockConfig ? [] : state.gridPieces.where((final e) => e.isConfigItem),
       ),
     );
   }
 
-  FutureOr<void> _restoreLocalSnapshot(
-    final _RestoreLocalSnapshot event,
-    final Emitter<PuzzleState> emit,
-  ) {
+  FutureOr<void> _restoreLocalSnapshot(final _RestoreLocalSnapshot event, final Emitter<PuzzleState> emit) {
     final snapshot = event.snapshot;
     _isOnboardingSession = event.onboarding;
     emit(
@@ -185,10 +159,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     }
   }
 
-  FutureOr<void> _markSolvedDialogShown(
-    final _MarkSolvedDialogShown event,
-    final Emitter<PuzzleState> emit,
-  ) {
+  FutureOr<void> _markSolvedDialogShown(final _MarkSolvedDialogShown event, final Emitter<PuzzleState> emit) {
     if (state.hasShownSolvedDialog) {
       return Future.value();
     }
@@ -208,12 +179,8 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     }
   }
 
-  List<PuzzlePieceUI> _applySnapshotPieces(
-    final List<PuzzlePieceSnapshot> snapshots,
-  ) {
-    final snapshotById = {
-      for (final snapshot in snapshots) snapshot.id: snapshot,
-    };
+  List<PuzzlePieceUI> _applySnapshotPieces(final List<PuzzlePieceSnapshot> snapshots) {
+    final snapshotById = {for (final snapshot in snapshots) snapshot.id: snapshot};
     return state.pieces.map((final piece) {
       final snapshot = snapshotById[piece.id];
       if (snapshot == null) {
@@ -232,19 +199,19 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
 
   int _restoredSessionElapsedMs(final PuzzleSessionData session) {
     final segmentEndMs = session.completedAt ?? session.updatedAt;
-    final segmentStartMs = session.lastResumedAt ??
-        (session.activeElapsedMs == 0 ? session.firstMoveAt : null);
+    final segmentStartMs = session.lastResumedAt ?? (session.activeElapsedMs == 0 ? session.firstMoveAt : null);
     if (segmentStartMs == null) {
       return session.activeElapsedMs;
     }
 
-    final currentSegmentMs =
-        (segmentEndMs - segmentStartMs).clamp(0, 1 << 31).toInt();
+    final currentSegmentMs = (segmentEndMs - segmentStartMs).clamp(0, 1 << 31).toInt();
     return session.activeElapsedMs + currentSegmentMs;
   }
 
-  PuzzleSessionDifficulty _difficultyFromSettings() =>
-      _settings.requireSolutions
-          ? PuzzleSessionDifficulty.easy
-          : PuzzleSessionDifficulty.hard;
+  PuzzleSessionDifficulty _difficultyFromSettings() {
+    if (!_settings.requireSolutions) {
+      return PuzzleSessionDifficulty.hard;
+    }
+    return _settings.showSolutionCount ? PuzzleSessionDifficulty.easy : PuzzleSessionDifficulty.medium;
+  }
 }

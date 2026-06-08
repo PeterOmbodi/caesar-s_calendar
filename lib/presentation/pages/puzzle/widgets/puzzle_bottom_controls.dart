@@ -8,6 +8,8 @@ import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/floating_panel.dart';
 import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_cupertino_alert_dialog.dart';
@@ -71,7 +73,7 @@ class PuzzleBottomControls extends StatelessWidget {
     switch (result) {
       case ResumeHistorySessionResult(:final session):
         final settingsCubit = context.read<SettingsCubit>();
-        final currentDifficulty = _difficultyFromSettings(settingsCubit.state.solutionIndicator);
+        final currentDifficulty = settingsCubit.state.solutionIndicator.sessionDifficulty;
         if (currentDifficulty != session.difficulty) {
           final shouldContinue = await _showDifficultyMismatchDialog(
             context,
@@ -81,11 +83,7 @@ class PuzzleBottomControls extends StatelessWidget {
           if (shouldContinue != true || !context.mounted) {
             return;
           }
-          settingsCubit.setSolutionIndicator(
-            session.difficulty == PuzzleSessionDifficulty.easy
-                ? SolutionIndicator.countSolutions
-                : SolutionIndicator.none,
-          );
+          settingsCubit.setSolutionIndicator(session.difficulty.solutionIndicator);
         }
         if (!context.mounted) {
           return;
@@ -96,9 +94,6 @@ class PuzzleBottomControls extends StatelessWidget {
     }
   }
 
-  PuzzleSessionDifficulty _difficultyFromSettings(final SolutionIndicator indicator) =>
-      indicator == SolutionIndicator.none ? PuzzleSessionDifficulty.hard : PuzzleSessionDifficulty.easy;
-
   Future<bool?> _showDifficultyMismatchDialog(
     final BuildContext context, {
     required final PuzzleSessionDifficulty sessionDifficulty,
@@ -107,12 +102,7 @@ class PuzzleBottomControls extends StatelessWidget {
     context: context,
     builder: (final dialogContext) => PlatformAlertDialog(
       title: Text(S.current.historyDifficultyMismatchTitle),
-      content: Text(
-        S.current.historyDifficultyMismatchContent(
-          _historyDifficultyLabel(sessionDifficulty),
-          _historyDifficultyLabel(currentDifficulty),
-        ),
-      ),
+      content: Text(S.current.historyDifficultyMismatchContent(sessionDifficulty.label, currentDifficulty.label)),
       actions: [
         PlatformDialogAction(
           onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -125,9 +115,6 @@ class PuzzleBottomControls extends StatelessWidget {
       ],
     ),
   );
-
-  String _historyDifficultyLabel(final PuzzleSessionDifficulty difficulty) =>
-      difficulty == PuzzleSessionDifficulty.hard ? S.current.historyDifficultyHard : S.current.historyDifficultyEasy;
 
   List<Widget> _buildMoreControls(final BuildContext context, final PuzzleState state) => [
     IconButton(
@@ -238,7 +225,7 @@ class PuzzleBottomControls extends StatelessWidget {
             ),
           );
           if (result == true) {
-            puzzleBloc.markCurrentSessionEasy();
+            puzzleBloc.markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
             allowedEvent.call();
           }
         }

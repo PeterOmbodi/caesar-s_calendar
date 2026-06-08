@@ -63,26 +63,16 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_OnDoubleTapDown>((final event, final emit) => _flipPiece(event, emit));
     on<_RotatePiece>((final event, final emit) => _rotatePiece(event, emit));
     on<_Solve>((final event, final emit) => _solve(event, emit));
-    on<_SetSolvingResults>(
-      (final event, final emit) => _setSolvingResults(event, emit),
-    );
+    on<_SetSolvingResults>((final event, final emit) => _setSolvingResults(event, emit));
     on<_ShowSolution>((final event, final emit) => _showSolution(event, emit));
     on<_ShowHint>((final event, final emit) => _showHint(event, emit));
     on<_Undo>((final event, final emit) => _undoMove(event, emit));
     on<_Redo>((final event, final emit) => _redoMove(event, emit));
     on<_SetTimer>((final event, final emit) => _timerStateChanged(event, emit));
-    on<_RestoreSession>(
-      (final event, final emit) => _restoreSession(event, emit),
-    );
-    on<_RestoreLocalSnapshot>(
-      (final event, final emit) => _restoreLocalSnapshot(event, emit),
-    );
-    on<_SetPuzzleDate>(
-      (final event, final emit) => _setPuzzleDate(event, emit),
-    );
-    on<_MarkSolvedDialogShown>(
-      (final event, final emit) => _markSolvedDialogShown(event, emit),
-    );
+    on<_RestoreSession>((final event, final emit) => _restoreSession(event, emit));
+    on<_RestoreLocalSnapshot>((final event, final emit) => _restoreLocalSnapshot(event, emit));
+    on<_SetPuzzleDate>((final event, final emit) => _setPuzzleDate(event, emit));
+    on<_MarkSolvedDialogShown>((final event, final emit) => _markSolvedDialogShown(event, emit));
   }
 
   static const double maxCellSize = 50;
@@ -99,8 +89,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   final PuzzleHistoryUseCase _historyUseCase;
   final LayoutService _layoutService = const LayoutService();
   final MoveHistoryService _moveHistoryService = const MoveHistoryService();
-  final PuzzlePieceMovementService _movementHandler =
-      const PuzzlePieceMovementService();
+  final PuzzlePieceMovementService _movementHandler = const PuzzlePieceMovementService();
 
   late final LifecycleService _lifecycleService;
 
@@ -114,11 +103,17 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     return super.close();
   }
 
-  void markCurrentSessionEasy() {
-    _currentSessionDifficulty = PuzzleSessionDifficulty.easy;
-    _historyUseCase.markCurrentSessionEasy();
+  void markCurrentSessionDifficulty(final PuzzleSessionDifficulty difficulty) {
+    if (state.firstMoveAt == null) {
+      _currentSessionDifficulty = difficulty;
+      _historyUseCase.resetSession();
+      _historyUseCase.setCurrentSessionDifficulty(difficulty);
+      return;
+    }
+    final current = _currentSessionDifficulty;
+    _currentSessionDifficulty = current == null || difficulty.assistRank > current.assistRank ? difficulty : current;
+    _historyUseCase.markCurrentSessionDifficulty(difficulty);
   }
 
-  PuzzleSessionDifficulty get currentSessionDifficulty =>
-      _currentSessionDifficulty ?? _difficultyFromSettings();
+  PuzzleSessionDifficulty get currentSessionDifficulty => _currentSessionDifficulty ?? _difficultyFromSettings();
 }

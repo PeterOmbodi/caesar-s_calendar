@@ -14,6 +14,8 @@ import 'package:caesar_puzzle/domain/algorithms/dancing_links/solver_service.dar
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
+import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
+import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
@@ -29,6 +31,9 @@ class _FakeSettingsQuery implements SettingsQuery {
 
   @override
   bool get requireSolutions => false;
+
+  @override
+  bool get showSolutionCount => false;
 
   @override
   bool get separateMoveColors => false;
@@ -47,11 +52,13 @@ class _FakeSolverService implements PuzzleSolverService {
     required final PuzzleGridEntity grid,
     final bool keepUserMoves = false,
     final DateTime? date,
-  }) async =>
-      const <List<String>>[];
+  }) async => const <List<String>>[];
 }
 
 class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
+  @override
+  Future<void> clearLocalData() async {}
+
   @override
   Future<String> createSession(final PuzzleSessionData session) async =>
       'session-id';
@@ -59,8 +66,10 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   @override
   Future<PuzzleSessionData?> getLatestUnsolvedSession({
     required final DateTime puzzleDate,
-  }) async =>
-      null;
+  }) async => null;
+
+  @override
+  Future<bool> hasAnyLocalSessions() async => false;
 
   @override
   Future<void> markSessionSolved({
@@ -86,27 +95,46 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Future<String> upsertConfig({
     required final String configJson,
     final DateTime? createdAt,
-  }) async =>
-      'cfg';
+  }) async => 'cfg';
 
   @override
   Stream<List<CalendarDayStats>> watchCalendarStats({
     required final DateTime from,
     required final DateTime to,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 
   @override
   Stream<List<PuzzleSessionData>> watchSessionsByDate({
     required final DateTime puzzleDate,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 
   @override
   Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({
     required final DateTime puzzleDate,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
+}
+
+class _FakeSyncRunner implements SyncRunner {
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  Future<void> pause() async {}
+
+  @override
+  void publishProfileNow() {}
+
+  @override
+  void requestSync() {}
+
+  @override
+  void resume({final bool requestImmediateSync = true}) {}
+
+  @override
+  void start() {}
+
+  @override
+  void stop() {}
 }
 
 class _TestPuzzleBloc extends PuzzleBloc {
@@ -126,90 +154,99 @@ PuzzlePieceUI _piece({
   required final PlaceZone zone,
   final bool isConfigItem = false,
   final bool isUsersItem = true,
-}) =>
-    PuzzlePieceUI(
-      id: id,
-      position: position,
-      placeZone: zone,
-      type: type,
-      originalPath: generatePathForType(type, 10),
-      color: () => Colors.blue,
-      centerPoint: const Offset(5, 5),
-      isConfigItem: isConfigItem,
-      isUsersItem: isUsersItem,
-    );
+}) => PuzzlePieceUI(
+  id: id,
+  position: position,
+  placeZone: zone,
+  type: type,
+  originalPath: generatePathForType(type, 10),
+  color: () => Colors.blue,
+  centerPoint: const Offset(5, 5),
+  isConfigItem: isConfigItem,
+  isUsersItem: isUsersItem,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test(
-      'showHint marks state solved when hint places final board piece to valid grid position',
-      () async {
-    final bloc = _TestPuzzleBloc(
-      settings: _FakeSettingsQuery(),
-      solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
-      historyUseCase: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
-    );
-
-    const grid = PuzzleGridEntity(
-      cellSize: 10,
-      rows: 7,
-      columns: 7,
-      origin: Position(dx: 0, dy: 0),
-    );
-    const board = PuzzleBoardEntity(
-      cellSize: 10,
-      rows: 7,
-      columns: 7,
-      origin: Position(dx: 100, dy: 0),
-    );
-
-    final config = _piece(
-      id: 'zone1',
-      type: PieceType.zone1,
-      position: const Offset(0, 0),
-      zone: PlaceZone.grid,
-      isConfigItem: true,
-      isUsersItem: true,
-    );
-    final square = _piece(
-      id: 'Square',
-      type: PieceType.square,
-      position: const Offset(110, 10),
-      zone: PlaceZone.board,
-      isConfigItem: false,
-      isUsersItem: true,
-    );
-
-    final solution = <String, PlacementParams>{
-      'Square': PlacementParams('Square', 2, 2, 0, false),
-    };
-
-    bloc.emitForTest(
-      PuzzleState.initial().copyWith(
-        status: GameStatus.playing,
-        gridConfig: grid,
-        boardConfig: board,
-        pieces: [config, square],
-        solutions: [solution],
-        applicableSolutions: [solution],
-        moveHistory: const [],
-        moveIndex: 0,
-        firstMoveAt: DateTime.now().millisecondsSinceEpoch - 3000,
-        lastResumedAt: DateTime.now().millisecondsSinceEpoch - 1000,
-      ),
-    );
-
-    bloc.add(const PuzzleEvent.showHint());
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-
-    expect(bloc.state.status, GameStatus.solvedByUser);
-    expect(bloc.state.lastResumedAt, isNull);
-    expect(
-      bloc.state.gridPieces.any((final p) => p.id == 'Square'),
-      isTrue,
-    );
-
-    await bloc.close();
+  setUp(() {
+    if (!getIt.isRegistered<SyncRunner>()) {
+      getIt.registerSingleton<SyncRunner>(_FakeSyncRunner());
+    }
   });
+
+  tearDown(() async {
+    if (getIt.isRegistered<SyncRunner>()) {
+      await getIt.unregister<SyncRunner>();
+    }
+  });
+
+  test(
+    'showHint marks state solved when hint places final board piece to valid grid position',
+    () async {
+      final bloc = _TestPuzzleBloc(
+        settings: _FakeSettingsQuery(),
+        solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
+        historyUseCase: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
+      );
+
+      const grid = PuzzleGridEntity(
+        cellSize: 10,
+        rows: 7,
+        columns: 7,
+        origin: Position(dx: 0, dy: 0),
+      );
+      const board = PuzzleBoardEntity(
+        cellSize: 10,
+        rows: 7,
+        columns: 7,
+        origin: Position(dx: 100, dy: 0),
+      );
+
+      final config = _piece(
+        id: 'zone1',
+        type: PieceType.zone1,
+        position: const Offset(0, 0),
+        zone: PlaceZone.grid,
+        isConfigItem: true,
+        isUsersItem: true,
+      );
+      final square = _piece(
+        id: 'Square',
+        type: PieceType.square,
+        position: const Offset(110, 10),
+        zone: PlaceZone.board,
+        isConfigItem: false,
+        isUsersItem: true,
+      );
+
+      final solution = <String, PlacementParams>{
+        'Square': PlacementParams('Square', 2, 2, 0, false),
+      };
+
+      bloc.emitForTest(
+        PuzzleState.initial().copyWith(
+          status: GameStatus.playing,
+          gridConfig: grid,
+          boardConfig: board,
+          pieces: [config, square],
+          solutions: [solution],
+          applicableSolutions: [solution],
+          moveHistory: const [],
+          moveIndex: 0,
+          firstMoveAt: DateTime.now().millisecondsSinceEpoch - 3000,
+          lastResumedAt: DateTime.now().millisecondsSinceEpoch - 1000,
+        ),
+      );
+
+      bloc.add(const PuzzleEvent.showHint());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(bloc.state.status, GameStatus.solvedByUser);
+      expect(bloc.state.lastResumedAt, isNull);
+      expect(bloc.state.gridPieces.any((final p) => p.id == 'Square'), isTrue);
+
+      await bloc.close();
+    },
+  );
 }

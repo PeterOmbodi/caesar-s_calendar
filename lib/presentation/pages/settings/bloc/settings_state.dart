@@ -11,7 +11,7 @@ abstract class SettingsState with _$SettingsState {
     @Default(true) final bool preventOverlap,
     @Default(true) final bool autoLockConfig,
     @Default(true) final bool separateMoveColors,
-    @Default(false) final bool snapToGridOnTransform,
+    @Default(true) final bool snapToGridOnTransform,
     @Default(SolutionIndicator.none) final SolutionIndicator solutionIndicator,
     @Default(true) final bool showTimer,
     @Default(0) final int completedOnboardingVersion,
@@ -20,8 +20,7 @@ abstract class SettingsState with _$SettingsState {
 
   const SettingsState._();
 
-  factory SettingsState.fromJson(final Map<String, dynamic> json) =>
-      _$SettingsStateFromJson(json);
+  factory SettingsState.fromJson(final Map<String, dynamic> json) => _$SettingsStateFromJson(json);
 }
 
 extension AppThemeX on AppTheme {
@@ -55,7 +54,5 @@ extension SettingsStateLocaleX on SettingsState {
       completedOnboardingVersion == 0 && offeredOnboardingVersion < version;
 
   bool shouldSuggestOnboardingReplay(final int version) =>
-      completedOnboardingVersion > 0 &&
-      completedOnboardingVersion < version &&
-      offeredOnboardingVersion < version;
+      completedOnboardingVersion > 0 && completedOnboardingVersion < version && offeredOnboardingVersion < version;
 }

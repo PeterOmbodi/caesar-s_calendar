@@ -4,6 +4,7 @@ import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:intl/intl.dart';
@@ -71,8 +72,6 @@ class SessionList extends StatelessWidget {
         final subtitle =
             '${S.current.historyMoves}: ${session.moveIndex}  |  ${S.current.hintUsed}: $usedHints  |  ${S.current.historyDuration}: ${_formatDuration(durationMs)}';
         final dateLabel = dateFormatter.format(session.puzzleDate);
-        final difficultyLabel = _difficultyLabel(session.difficulty);
-        final difficultyStars = _difficultyStars(session.difficulty);
         final isCustomConfig = _isCustomConfig(session);
         final configLabel = _configLabel(session);
         final configColor = isCustomConfig ? AppColors.current.customConfigAccent : null;
@@ -82,7 +81,7 @@ class SessionList extends StatelessWidget {
             leading: Icon(isSolved ? Icons.check_circle : Icons.timelapse, color: isSolved ? Colors.green : Colors.red),
             title: Row(
               children: [
-                Expanded(child: Text('$statusLabel • $difficultyStars $difficultyLabel')),
+                Expanded(child: Text('$statusLabel • ${session.difficulty.stars} ${session.difficulty.label}')),
                 const SizedBox(width: 8),
                 Icon(Icons.extension, size: 16, color: configColor),
                 const SizedBox(width: 4),
@@ -121,12 +120,6 @@ class SessionList extends StatelessWidget {
     final currentSegmentMs = (segmentEndMs - segmentStartMs).clamp(0, 1 << 31).toInt();
     return session.activeElapsedMs + currentSegmentMs;
   }
-
-  String _difficultyLabel(final PuzzleSessionDifficulty difficulty) =>
-      difficulty == PuzzleSessionDifficulty.hard ? S.current.historyDifficultyHard : S.current.historyDifficultyEasy;
-
-  String _difficultyStars(final PuzzleSessionDifficulty difficulty) =>
-      difficulty == PuzzleSessionDifficulty.hard ? '★★' : '★';
 
   String _configLabel(final PuzzleSessionData session) =>
       _isCustomConfig(session) ? S.current.historyConfigCustom : S.current.historyConfigStandard;

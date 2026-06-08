@@ -89,6 +89,52 @@ class SettingsPanel extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              Text(S.current.solvability, style: const TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              BlocBuilder<SettingsCubit, SettingsState>(
+                buildWhen: (final p, final n) => p.solutionIndicator != n.solutionIndicator,
+                builder: (final context, final state) {
+                  final cubit = context.read<SettingsCubit>();
+                  return RadioGroup<SolutionIndicator>(
+                    groupValue: state.solutionIndicator,
+                    onChanged: cubit.setSolutionIndicator,
+                    child: Column(
+                      children: [
+                        RadioListTile<SolutionIndicator>(
+                          title: Text(S.current.solutionIndicatorHiddenTitle),
+                          subtitle: Text(S.current.solutionIndicatorHiddenSubtitle),
+                          value: SolutionIndicator.none,
+                          controlAffinity: ListTileControlAffinity.trailing,
+                        ),
+                        RadioListTile<SolutionIndicator>(
+                          title: Text(S.current.solutionIndicatorSolvabilityTitle),
+                          subtitle: Text(S.current.solutionIndicatorSolvabilitySubtitle),
+                          value: SolutionIndicator.solvability,
+                          controlAffinity: ListTileControlAffinity.trailing,
+                        ),
+                        RadioListTile<SolutionIndicator>(
+                          title: Text(S.current.solutionIndicatorCountTitle),
+                          subtitle: Text(S.current.solutionIndicatorCountSubtitle),
+                          value: SolutionIndicator.countSolutions,
+                          controlAffinity: ListTileControlAffinity.trailing,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              Text(S.current.additional, style: const TextStyle(fontWeight: FontWeight.w600)),
+              BlocBuilder<SettingsCubit, SettingsState>(
+                buildWhen: (final p, final n) => p.showTimer != n.showTimer,
+                builder: (final context, final state) => SwitchListTile(
+                  title: Text(S.current.timerToggleTitle),
+                  subtitle: Text(S.current.timerToggleSubtitle),
+                  value: state.showTimer,
+                  onChanged: cubit.toggleShowTimer,
+                ),
+              ),
+              const SizedBox(height: 8),
               Text(S.current.general, style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               BlocBuilder<SettingsCubit, SettingsState>(
@@ -135,52 +181,6 @@ class SettingsPanel extends StatelessWidget {
                   subtitle: Text(S.current.borderConfigDescription),
                   value: state.separateMoveColors,
                   onChanged: cubit.toggleSeparateColors,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(S.current.solvability, style: const TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              BlocBuilder<SettingsCubit, SettingsState>(
-                buildWhen: (final p, final n) => p.solutionIndicator != n.solutionIndicator,
-                builder: (final context, final state) {
-                  final cubit = context.read<SettingsCubit>();
-                  return RadioGroup<SolutionIndicator>(
-                    groupValue: state.solutionIndicator,
-                    onChanged: cubit.setSolutionIndicator,
-                    child: Column(
-                      children: [
-                        RadioListTile<SolutionIndicator>(
-                          title: Text(S.current.solutionIndicatorHiddenTitle),
-                          subtitle: Text(S.current.solutionIndicatorHiddenSubtitle),
-                          value: SolutionIndicator.none,
-                          controlAffinity: ListTileControlAffinity.trailing,
-                        ),
-                        RadioListTile<SolutionIndicator>(
-                          title: Text(S.current.solutionIndicatorSolvabilityTitle),
-                          subtitle: Text(S.current.solutionIndicatorSolvabilitySubtitle),
-                          value: SolutionIndicator.solvability,
-                          controlAffinity: ListTileControlAffinity.trailing,
-                        ),
-                        RadioListTile<SolutionIndicator>(
-                          title: Text(S.current.solutionIndicatorCountTitle),
-                          subtitle: Text(S.current.solutionIndicatorCountSubtitle),
-                          value: SolutionIndicator.countSolutions,
-                          controlAffinity: ListTileControlAffinity.trailing,
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 8),
-              Text(S.current.additional, style: const TextStyle(fontWeight: FontWeight.w600)),
-              BlocBuilder<SettingsCubit, SettingsState>(
-                buildWhen: (final p, final n) => p.showTimer != n.showTimer,
-                builder: (final context, final state) => SwitchListTile(
-                  title: Text(S.current.timerToggleTitle),
-                  subtitle: Text(S.current.timerToggleSubtitle),
-                  value: state.showTimer,
-                  onChanged: cubit.toggleShowTimer,
                 ),
               ),
               const SizedBox(height: 12),

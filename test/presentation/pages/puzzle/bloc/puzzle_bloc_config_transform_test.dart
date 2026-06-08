@@ -30,6 +30,9 @@ class _FakeSettingsQuery implements SettingsQuery {
   bool get requireSolutions => false;
 
   @override
+  bool get showSolutionCount => false;
+
+  @override
   bool get separateMoveColors => false;
 
   @override
@@ -46,11 +49,13 @@ class _FakeSolverService implements PuzzleSolverService {
     required final PuzzleGridEntity grid,
     final bool keepUserMoves = false,
     final DateTime? date,
-  }) async =>
-      const <List<String>>[];
+  }) async => const <List<String>>[];
 }
 
 class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
+  @override
+  Future<void> clearLocalData() async {}
+
   @override
   Future<String> createSession(final PuzzleSessionData session) async =>
       'session-id';
@@ -58,8 +63,10 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   @override
   Future<PuzzleSessionData?> getLatestUnsolvedSession({
     required final DateTime puzzleDate,
-  }) async =>
-      null;
+  }) async => null;
+
+  @override
+  Future<bool> hasAnyLocalSessions() async => false;
 
   @override
   Future<void> markSessionSolved({
@@ -85,59 +92,53 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Future<String> upsertConfig({
     required final String configJson,
     final DateTime? createdAt,
-  }) async =>
-      'cfg';
+  }) async => 'cfg';
 
   @override
   Stream<List<CalendarDayStats>> watchCalendarStats({
     required final DateTime from,
     required final DateTime to,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 
   @override
   Stream<List<PuzzleSessionData>> watchSessionsByDate({
     required final DateTime puzzleDate,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 
   @override
   Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({
     required final DateTime puzzleDate,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 }
 
 PuzzlePieceUI _configPiece({
   required final String id,
   required final Offset position,
-}) =>
-    PuzzlePieceUI(
-      id: id,
-      position: position,
-      placeZone: PlaceZone.grid,
-      type: PieceType.square,
-      originalPath: generatePathForType(PieceType.square, 10),
-      color: () => Colors.blue,
-      centerPoint: const Offset(5, 5),
-      isConfigItem: true,
-    );
+}) => PuzzlePieceUI(
+  id: id,
+  position: position,
+  placeZone: PlaceZone.grid,
+  type: PieceType.square,
+  originalPath: generatePathForType(PieceType.square, 10),
+  color: () => Colors.blue,
+  centerPoint: const Offset(5, 5),
+  isConfigItem: true,
+);
 
 PuzzlePieceUI _piece({
   required final String id,
   required final Offset position,
   required final bool isConfigItem,
-}) =>
-    PuzzlePieceUI(
-      id: id,
-      position: position,
-      placeZone: PlaceZone.grid,
-      type: PieceType.square,
-      originalPath: generatePathForType(PieceType.square, 10),
-      color: () => Colors.blue,
-      centerPoint: const Offset(5, 5),
-      isConfigItem: isConfigItem,
-    );
+}) => PuzzlePieceUI(
+  id: id,
+  position: position,
+  placeZone: PlaceZone.grid,
+  type: PieceType.square,
+  originalPath: generatePathForType(PieceType.square, 10),
+  color: () => Colors.blue,
+  centerPoint: const Offset(5, 5),
+  isConfigItem: isConfigItem,
+);
 
 Future<void> _drain() async {
   await Future<void>.delayed(const Duration(milliseconds: 40));
@@ -174,86 +175,94 @@ void main() {
     await bloc.close();
   });
 
-  test('rotate config item is cancelled when overlap with another config item',
-      () async {
-    const grid = PuzzleGridEntity(
-      cellSize: 10,
-      rows: 7,
-      columns: 7,
-      origin: Position(dx: 0, dy: 0),
-    );
-    const board = PuzzleBoardEntity(
-      cellSize: 10,
-      rows: 7,
-      columns: 7,
-      origin: Position(dx: 100, dy: 0),
-    );
-    final a = _configPiece(id: 'A', position: const Offset(10, 10));
-    final b = _configPiece(id: 'B', position: const Offset(10, 10));
+  test(
+    'rotate config item is cancelled when overlap with another config item',
+    () async {
+      const grid = PuzzleGridEntity(
+        cellSize: 10,
+        rows: 7,
+        columns: 7,
+        origin: Position(dx: 0, dy: 0),
+      );
+      const board = PuzzleBoardEntity(
+        cellSize: 10,
+        rows: 7,
+        columns: 7,
+        origin: Position(dx: 100, dy: 0),
+      );
+      final a = _configPiece(id: 'A', position: const Offset(10, 10));
+      final b = _configPiece(id: 'B', position: const Offset(10, 10));
 
-    bloc.emitForTest(
-      PuzzleState.initial().copyWith(
-        status: GameStatus.playing,
-        gridConfig: grid,
-        boardConfig: board,
-        pieces: [a, b],
-      ),
-    );
+      bloc.emitForTest(
+        PuzzleState.initial().copyWith(
+          status: GameStatus.playing,
+          gridConfig: grid,
+          boardConfig: board,
+          pieces: [a, b],
+        ),
+      );
 
-    bloc.add(PuzzleEvent.rotatePiece(a));
-    await _drain();
+      bloc.add(PuzzleEvent.rotatePiece(a));
+      await _drain();
 
-    // Invalid move is shown first.
-    final transformedA = bloc.state.pieces.firstWhere((final p) => p.id == 'A');
-    expect(transformedA.rotation, isNot(a.rotation));
+      // Invalid move is shown first.
+      final transformedA = bloc.state.pieces.firstWhere(
+        (final p) => p.id == 'A',
+      );
+      expect(transformedA.rotation, isNot(a.rotation));
 
-    // Then rolled back.
-    await _feedbackDelay();
-    final updatedA = bloc.state.pieces.firstWhere((final p) => p.id == 'A');
-    expect(updatedA.rotation, a.rotation);
-    expect(bloc.state.moveHistory, isEmpty);
-  });
+      // Then rolled back.
+      await _feedbackDelay();
+      final updatedA = bloc.state.pieces.firstWhere((final p) => p.id == 'A');
+      expect(updatedA.rotation, a.rotation);
+      expect(bloc.state.moveHistory, isEmpty);
+    },
+  );
 
-  test('flip config item is cancelled when overlap with another config item',
-      () async {
-    const grid = PuzzleGridEntity(
-      cellSize: 10,
-      rows: 7,
-      columns: 7,
-      origin: Position(dx: 0, dy: 0),
-    );
-    const board = PuzzleBoardEntity(
-      cellSize: 10,
-      rows: 7,
-      columns: 7,
-      origin: Position(dx: 100, dy: 0),
-    );
-    final a = _configPiece(id: 'A', position: const Offset(10, 10));
-    final b = _configPiece(id: 'B', position: const Offset(10, 10));
+  test(
+    'flip config item is cancelled when overlap with another config item',
+    () async {
+      const grid = PuzzleGridEntity(
+        cellSize: 10,
+        rows: 7,
+        columns: 7,
+        origin: Position(dx: 0, dy: 0),
+      );
+      const board = PuzzleBoardEntity(
+        cellSize: 10,
+        rows: 7,
+        columns: 7,
+        origin: Position(dx: 100, dy: 0),
+      );
+      final a = _configPiece(id: 'A', position: const Offset(10, 10));
+      final b = _configPiece(id: 'B', position: const Offset(10, 10));
 
-    bloc.emitForTest(
-      PuzzleState.initial().copyWith(
-        status: GameStatus.playing,
-        gridConfig: grid,
-        boardConfig: board,
-        pieces: [a, b],
-      ),
-    );
+      bloc.emitForTest(
+        PuzzleState.initial().copyWith(
+          status: GameStatus.playing,
+          gridConfig: grid,
+          boardConfig: board,
+          pieces: [a, b],
+        ),
+      );
 
-    final tapPosition = a.position + a.centerPoint;
-    bloc.add(PuzzleEvent.onDoubleTapDown(tapPosition));
-    await _drain();
+      final tapPosition = a.position + a.centerPoint;
+      bloc.add(PuzzleEvent.onDoubleTapDown(tapPosition));
+      await _drain();
 
-    // onDoubleTapDown selects top-most piece at point (B in this setup)
-    final transformedB = bloc.state.pieces.firstWhere((final p) => p.id == 'B');
-    expect(transformedB.isFlipped, isNot(b.isFlipped));
+      // onDoubleTapDown selects top-most piece at point (B in this setup)
+      final transformedB = bloc.state.pieces.firstWhere(
+        (final p) => p.id == 'B',
+      );
+      expect(transformedB.isFlipped, isNot(b.isFlipped));
 
-    // Then rolled back.
-    await _feedbackDelay();
-    final updatedB = bloc.state.pieces.firstWhere((final p) => p.id == 'B');
-    expect(updatedB.isFlipped, b.isFlipped);
-    expect(bloc.state.moveHistory, isEmpty);
-  });
+      // Then rolled back.
+      await _feedbackDelay();
+      final updatedB = bloc.state.pieces.firstWhere((final p) => p.id == 'B');
+      expect(updatedB.isFlipped, b.isFlipped);
+      expect(bloc.state.moveHistory, isEmpty);
+    },
+  );
 
   test('config move resets timer, regular move starts it', () async {
     const grid = PuzzleGridEntity(
