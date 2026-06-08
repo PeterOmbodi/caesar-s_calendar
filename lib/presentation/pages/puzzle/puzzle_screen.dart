@@ -25,8 +25,10 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -110,11 +112,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 },
               ),
               BlocListener<SettingsCubit, SettingsState>(
-                listenWhen: (final previous, final current) =>
-                    previous.solutionIndicator == SolutionIndicator.none &&
-                    current.solutionIndicator != SolutionIndicator.none,
+                listenWhen: (final previous, final current) => previous.solutionIndicator != current.solutionIndicator,
                 listener: (final context, final state) {
-                  context.read<PuzzleBloc>().markCurrentSessionEasy();
+                  context.read<PuzzleBloc>().markCurrentSessionDifficulty(state.solutionIndicator.sessionDifficulty);
                 },
               ),
               BlocListener<PuzzleBloc, PuzzleState>(
@@ -246,8 +246,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       isPaused: state.isPaused,
     );
     final difficulty = context.read<PuzzleBloc>().currentSessionDifficulty;
-    final difficultyLabel = _difficultyLabel(context, difficulty);
-    final difficultyStars = _difficultyStars(difficulty);
     final configLabel = _configLabel(context, state);
     final configColor = state.isCustomConfig ? AppColors.current.customConfigAccent : null;
     final secondsText = '${spentSeconds % 60}'.padLeft(2, '0');
@@ -262,7 +260,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(S.current.solvedAlertSubTitle),
-            Text('${S.current.solvedAlertLevelLabel}: $difficultyStars $difficultyLabel'),
+            Text('${S.current.solvedAlertLevelLabel}: ${difficulty.stars} ${difficulty.label}'),
             Text(
               '${S.current.solvedAlertConfigLabel}:  $configLabel',
               style: state.isCustomConfig ? TextStyle(color: configColor, fontWeight: FontWeight.w600) : null,
@@ -275,14 +273,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       ),
     );
   }
-
-  String _difficultyLabel(final BuildContext context, final PuzzleSessionDifficulty difficulty) =>
-      difficulty == PuzzleSessionDifficulty.hard
-      ? S.of(context).historyDifficultyHard
-      : S.of(context).historyDifficultyEasy;
-
-  String _difficultyStars(final PuzzleSessionDifficulty difficulty) =>
-      difficulty == PuzzleSessionDifficulty.hard ? '★★' : '★';
 
   String _configLabel(final BuildContext context, final PuzzleState state) =>
       state.isCustomConfig ? S.of(context).historyConfigCustom : S.of(context).historyConfigStandard;

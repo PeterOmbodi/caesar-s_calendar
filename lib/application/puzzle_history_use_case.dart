@@ -35,16 +35,19 @@ class PuzzleHistoryUseCase {
     _currentSessionId = session.id;
     _currentSessionStartedAt = session.startedAt;
     _currentSessionDifficulty = session.difficulty;
-    _currentSessionLockedAfterSolved =
-        session.status == PuzzleSessionStatus.solved || session.completedAt != null;
+    _currentSessionLockedAfterSolved = session.status == PuzzleSessionStatus.solved || session.completedAt != null;
   }
 
   void setCurrentSessionDifficulty(final PuzzleSessionDifficulty difficulty) {
     _currentSessionDifficulty = _coalesceDifficulty(_currentSessionDifficulty, difficulty);
   }
 
+  void markCurrentSessionDifficulty(final PuzzleSessionDifficulty difficulty) {
+    _currentSessionDifficulty = _coalesceDifficulty(_currentSessionDifficulty, difficulty);
+  }
+
   void markCurrentSessionEasy() {
-    _currentSessionDifficulty = PuzzleSessionDifficulty.easy;
+    markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
   }
 
   Stream<List<CalendarDayStats>> watchCalendarStats(final DateTime from, final DateTime to) =>
@@ -206,9 +209,9 @@ class PuzzleHistoryUseCase {
     final PuzzleSessionDifficulty? previous,
     final PuzzleSessionDifficulty incoming,
   ) {
-    if (previous == PuzzleSessionDifficulty.easy || incoming == PuzzleSessionDifficulty.easy) {
-      return PuzzleSessionDifficulty.easy;
+    if (previous == null) {
+      return incoming;
     }
-    return PuzzleSessionDifficulty.hard;
+    return previous.assistRank >= incoming.assistRank ? previous : incoming;
   }
 }

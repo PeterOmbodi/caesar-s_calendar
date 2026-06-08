@@ -207,8 +207,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       return state.status;
     }
     final boardHasPieces = pieces.any((final p) => p.placeZone == PlaceZone.board);
-    return !boardHasPieces && applicableSolutions.isNotEmpty ? GameStatus.solvedByUser
-        : GameStatus.playing;
+    return !boardHasPieces && applicableSolutions.isNotEmpty ? GameStatus.solvedByUser : GameStatus.playing;
   }
 
   List<Map<String, PlacementParams>> _combineSolutions(
@@ -316,7 +315,13 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     if (_isOnboardingSession || nextState.isRestoredSolvedSession) {
       return;
     }
-    final difficulty = _currentSessionDifficulty ?? _difficultyFromSettings();
+    final isFirstSessionMove = prevState.firstMoveAt == null && nextState.firstMoveAt != null;
+    final difficulty = isFirstSessionMove
+        ? _difficultyFromSettings()
+        : _currentSessionDifficulty ?? _difficultyFromSettings();
+    if (isFirstSessionMove) {
+      _historyUseCase.resetSession();
+    }
     _currentSessionDifficulty = difficulty;
     _historyUseCase.setCurrentSessionDifficulty(difficulty);
     _historyUseCase.persistAfterChange(

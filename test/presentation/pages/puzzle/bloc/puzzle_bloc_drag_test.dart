@@ -26,6 +26,9 @@ class _FakeSettingsQuery implements SettingsQuery {
   bool get requireSolutions => false;
 
   @override
+  bool get showSolutionCount => false;
+
+  @override
   bool get separateMoveColors => false;
 
   @override
@@ -42,11 +45,13 @@ class _FakeSolverService implements PuzzleSolverService {
     required final PuzzleGridEntity grid,
     final bool keepUserMoves = false,
     final DateTime? date,
-  }) async =>
-      const <List<String>>[];
+  }) async => const <List<String>>[];
 }
 
 class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
+  @override
+  Future<void> clearLocalData() async {}
+
   @override
   Future<String> createSession(final PuzzleSessionData session) async =>
       'session-id';
@@ -54,8 +59,10 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   @override
   Future<PuzzleSessionData?> getLatestUnsolvedSession({
     required final DateTime puzzleDate,
-  }) async =>
-      null;
+  }) async => null;
+
+  @override
+  Future<bool> hasAnyLocalSessions() async => false;
 
   @override
   Future<void> markSessionSolved({
@@ -81,27 +88,23 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Future<String> upsertConfig({
     required final String configJson,
     final DateTime? createdAt,
-  }) async =>
-      'cfg';
+  }) async => 'cfg';
 
   @override
   Stream<List<CalendarDayStats>> watchCalendarStats({
     required final DateTime from,
     required final DateTime to,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 
   @override
   Stream<List<PuzzleSessionData>> watchSessionsByDate({
     required final DateTime puzzleDate,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 
   @override
   Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({
     required final DateTime puzzleDate,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 }
 
 Future<void> _drain() async {
@@ -127,12 +130,22 @@ void main() {
     await bloc?.close();
   });
 
+  test('difficulty change before first move replaces stale easy value', () {
+    bloc!.markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
+    expect(bloc!.currentSessionDifficulty, PuzzleSessionDifficulty.easy);
+
+    bloc!.markCurrentSessionDifficulty(PuzzleSessionDifficulty.medium);
+
+    expect(bloc!.currentSessionDifficulty, PuzzleSessionDifficulty.medium);
+  });
+
   test('onPanUpdate over grid enables preview with snapped position', () async {
     bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
-    final boardPiece =
-        bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
+    final boardPiece = bloc!.state.boardPieces.firstWhere(
+      (final p) => p.id == 'Square',
+    );
     final panStartPoint = boardPiece.position + boardPiece.centerPoint;
     bloc!.add(PuzzleEvent.onPanStart(panStartPoint));
     await _drain();
@@ -147,70 +160,81 @@ void main() {
     await _drain();
 
     expect(bloc!.state.showPreview, isTrue);
-    expect(bloc!.state.previewPosition,
-        bloc!.state.gridConfig.snapToGrid(targetPosition));
-  });
-
-  test('onPanEnd outside zones rejects drop and keeps piece at start position',
-      () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-
-    final boardPiece =
-        bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
-    final start = boardPiece.position;
-    final panStartPoint = start + boardPiece.centerPoint;
-    bloc!.add(PuzzleEvent.onPanStart(panStartPoint));
-    await _drain();
-    expect(bloc!.state.dragStartOffset, isNotNull);
-
-    final outsidePosition = const Offset(-500, -500);
-    final local = outsidePosition + bloc!.state.dragStartOffset!;
-    bloc!.add(PuzzleEvent.onPanUpdate(local));
-    await _drain();
-
-    bloc!.add(const PuzzleEvent.onPanEnd(Offset.zero));
-    await _drain();
-
-    final updated =
-        bloc!.state.pieces.firstWhere((final p) => p.id == boardPiece.id);
-    expect(updated.position, start);
-    expect(updated.placeZone, PlaceZone.board);
-    expect(bloc!.state.moveHistory, isEmpty);
-  });
-
-  test('onPanEnd keeps existing firstMoveAt instead of resetting timer start',
-      () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-
-    final boardPiece =
-        bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
-    bloc!.add(PuzzleEvent.rotatePiece(boardPiece));
-    await _drain();
-
-    final firstMoveAtBeforeDrop = bloc!.state.firstMoveAt;
-    expect(firstMoveAtBeforeDrop, isNotNull);
-
-    await Future<void>.delayed(const Duration(milliseconds: 30));
-
-    final refreshedPiece =
-        bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
-    final panStartPoint = refreshedPiece.position + refreshedPiece.centerPoint;
-    bloc!.add(PuzzleEvent.onPanStart(panStartPoint));
-    await _drain();
-    expect(bloc!.state.dragStartOffset, isNotNull);
-
-    final targetPosition = Offset(
-      bloc!.state.gridConfig.origin.dx + bloc!.state.gridConfig.cellSize * 2,
-      bloc!.state.gridConfig.origin.dy + bloc!.state.gridConfig.cellSize * 2,
+    expect(
+      bloc!.state.previewPosition,
+      bloc!.state.gridConfig.snapToGrid(targetPosition),
     );
-    final local = targetPosition + bloc!.state.dragStartOffset!;
-    bloc!.add(PuzzleEvent.onPanUpdate(local));
-    await _drain();
-    bloc!.add(const PuzzleEvent.onPanEnd(Offset.zero));
-    await _drain();
-
-    expect(bloc!.state.firstMoveAt, firstMoveAtBeforeDrop);
   });
+
+  test(
+    'onPanEnd outside zones rejects drop and keeps piece at start position',
+    () async {
+      bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+
+      final boardPiece = bloc!.state.boardPieces.firstWhere(
+        (final p) => p.id == 'Square',
+      );
+      final start = boardPiece.position;
+      final panStartPoint = start + boardPiece.centerPoint;
+      bloc!.add(PuzzleEvent.onPanStart(panStartPoint));
+      await _drain();
+      expect(bloc!.state.dragStartOffset, isNotNull);
+
+      final outsidePosition = const Offset(-500, -500);
+      final local = outsidePosition + bloc!.state.dragStartOffset!;
+      bloc!.add(PuzzleEvent.onPanUpdate(local));
+      await _drain();
+
+      bloc!.add(const PuzzleEvent.onPanEnd(Offset.zero));
+      await _drain();
+
+      final updated = bloc!.state.pieces.firstWhere(
+        (final p) => p.id == boardPiece.id,
+      );
+      expect(updated.position, start);
+      expect(updated.placeZone, PlaceZone.board);
+      expect(bloc!.state.moveHistory, isEmpty);
+    },
+  );
+
+  test(
+    'onPanEnd keeps existing firstMoveAt instead of resetting timer start',
+    () async {
+      bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+
+      final boardPiece = bloc!.state.boardPieces.firstWhere(
+        (final p) => p.id == 'Square',
+      );
+      bloc!.add(PuzzleEvent.rotatePiece(boardPiece));
+      await _drain();
+
+      final firstMoveAtBeforeDrop = bloc!.state.firstMoveAt;
+      expect(firstMoveAtBeforeDrop, isNotNull);
+
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+
+      final refreshedPiece = bloc!.state.boardPieces.firstWhere(
+        (final p) => p.id == 'Square',
+      );
+      final panStartPoint =
+          refreshedPiece.position + refreshedPiece.centerPoint;
+      bloc!.add(PuzzleEvent.onPanStart(panStartPoint));
+      await _drain();
+      expect(bloc!.state.dragStartOffset, isNotNull);
+
+      final targetPosition = Offset(
+        bloc!.state.gridConfig.origin.dx + bloc!.state.gridConfig.cellSize * 2,
+        bloc!.state.gridConfig.origin.dy + bloc!.state.gridConfig.cellSize * 2,
+      );
+      final local = targetPosition + bloc!.state.dragStartOffset!;
+      bloc!.add(PuzzleEvent.onPanUpdate(local));
+      await _drain();
+      bloc!.add(const PuzzleEvent.onPanEnd(Offset.zero));
+      await _drain();
+
+      expect(bloc!.state.firstMoveAt, firstMoveAtBeforeDrop);
+    },
+  );
 }

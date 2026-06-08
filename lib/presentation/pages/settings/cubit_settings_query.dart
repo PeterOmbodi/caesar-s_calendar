@@ -24,4 +24,7 @@ class CubitSettingsQuery implements SettingsQuery {
 
   @override
   bool get requireSolutions => cubit.state.solutionIndicator != SolutionIndicator.none;
+
+  @override
+  bool get showSolutionCount => cubit.state.solutionIndicator == SolutionIndicator.countSolutions;
 }

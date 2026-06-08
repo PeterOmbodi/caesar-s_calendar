@@ -2,9 +2,30 @@ import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 
-enum PuzzleSessionDifficulty {
-  easy,
-  hard,
+enum PuzzleSessionDifficulty { easy, hard, medium }
+
+extension PuzzleSessionDifficultyX on PuzzleSessionDifficulty {
+  int get assistRank {
+    switch (this) {
+      case PuzzleSessionDifficulty.hard:
+        return 0;
+      case PuzzleSessionDifficulty.medium:
+        return 1;
+      case PuzzleSessionDifficulty.easy:
+        return 2;
+    }
+  }
+
+  String get stars {
+    switch (this) {
+      case PuzzleSessionDifficulty.hard:
+        return '★★★';
+      case PuzzleSessionDifficulty.medium:
+        return '★★';
+      case PuzzleSessionDifficulty.easy:
+        return '★';
+    }
+  }
 }
 
 class PuzzleSessionData {
