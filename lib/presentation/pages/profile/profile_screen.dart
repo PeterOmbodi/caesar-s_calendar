@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/infrastructure/firebase/firestore_paths.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,7 +14,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(final BuildContext context) {
     final doc = getIt<FirebaseFirestore>().doc(FirestorePaths.publicUserDoc(uid));
     return Scaffold(
-      appBar: AppBar(title: const Text('Public profile')),
+      appBar: AppBar(title: Text(S.current.accountPublicProfileTitle)),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: doc.snapshots(),
         builder: (final context, final snap) {
@@ -27,7 +28,7 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('No public profile published yet.'),
+                  Text(S.current.profileNoPublicProfile),
                   const SizedBox(height: 12),
                   _ShareRow(uid: uid),
                 ],
@@ -39,21 +40,21 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: [
               Text(
-                (data['displayName'] as String?) ?? 'Player',
+                (data['displayName'] as String?) ?? S.current.profilePlayerFallback,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 4),
-              Text('UID: $uid', style: Theme.of(context).textTheme.bodySmall),
+              Text(S.current.profileUidLabel(uid), style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 16),
               Card(
                 child: ListTile(
-                  title: const Text('Solved sessions'),
+                  title: Text(S.current.profileSolvedSessions),
                   trailing: Text('${data['solvedSessions'] ?? 0}'),
                 ),
               ),
               Card(
                 child: ListTile(
-                  title: const Text('Solved variants'),
+                  title: Text(S.current.profileSolvedVariants),
                   trailing: Text('${data['solvedVariants'] ?? 0}'),
                 ),
               ),
@@ -81,10 +82,10 @@ class _ShareRow extends StatelessWidget {
         onPressed: () async {
           await Clipboard.setData(ClipboardData(text: uid));
           if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied UID')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.current.profileCopiedUid)));
         },
         icon: const Icon(Icons.copy),
-        label: const Text('Copy UID'),
+        label: Text(S.current.profileCopyUid),
       ),
     ],
   );

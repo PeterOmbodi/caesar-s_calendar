@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_status.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/profile/profile_screen.dart';
@@ -6,6 +7,9 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_displa
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+const _webVersionUri = 'https://peterombodi.github.io/caesar-s_calendar/';
 
 class AccountSection extends StatefulWidget {
   const AccountSection({required this.auth, super.key});
@@ -40,13 +44,11 @@ class _AccountSectionState extends State<AccountSection> {
     final shouldContinue = await showDialog<bool>(
       context: context,
       builder: (final context) => AlertDialog(
-        title: const Text('Replace local sessions?'),
-        content: const Text(
-          'This account already has cloud sessions. If you continue, the current local sessions on this device will be lost and replaced with cloud data.',
-        ),
+        title: Text(S.current.accountCloudReplaceTitle),
+        content: Text(S.current.accountCloudReplaceMessage),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Stay guest')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Continue')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(S.current.accountCloudReplaceCancel)),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(S.current.accountCloudReplaceContinue)),
         ],
       ),
     );
@@ -66,41 +68,35 @@ class _AccountSectionState extends State<AccountSection> {
       context: context,
       builder: (final context) => StatefulBuilder(
         builder: (final context, final setState) => AlertDialog(
-          title: const Text('Delete account?'),
+          title: Text(S.current.accountDeleteTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'This permanently deletes your cloud account and synced data from this app. '
-                'You will be signed out and local data on this device will be cleared.',
-              ),
+              Text(S.current.accountDeleteMessage),
               if (providerLabel != null) ...[
                 const SizedBox(height: 12),
-                Text(
-                  'Next, $providerLabel will ask you to confirm your identity. '
-                  'Although it may look like sign-in, that step is only used to authorize account deletion.',
-                ),
+                Text(S.current.accountDeleteConfirmIdentityMessage(providerLabel)),
               ],
               const SizedBox(height: 12),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: confirmed,
                 controlAffinity: ListTileControlAffinity.leading,
-                title: const Text('I understand this cannot be undone.'),
+                title: Text(S.current.accountUnderstandDelete),
                 onChanged: (final value) => setState(() => confirmed = value ?? false),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(S.current.historySessionDialogCancel)),
             FilledButton(
               onPressed: confirmed ? () => Navigator.of(context).pop(true) : null,
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
                 foregroundColor: Theme.of(context).colorScheme.onError,
               ),
-              child: Text(providerLabel == null ? 'Delete account' : 'Continue to $providerLabel'),
+              child: Text(providerLabel == null ? S.current.accountDeleteAction : S.current.accountDeleteContinueToProvider(providerLabel)),
             ),
           ],
         ),
@@ -108,6 +104,15 @@ class _AccountSectionState extends State<AccountSection> {
     );
     if (!mounted || shouldDelete != true) return;
     await cubit.deleteAccount();
+  }
+
+  Future<void> _openWebVersion() async {
+    final uri = Uri.parse(_webVersionUri);
+    final didLaunch = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!mounted || didLaunch) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.current.accountOpenWebVersionError)));
   }
 
   @override
@@ -123,10 +128,12 @@ class _AccountSectionState extends State<AccountSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Account & Sync', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(S.current.accountAndSyncTitle, style: const TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
+        Text(S.current.accountAndSyncDescription, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: 8),
         if (!auth.isAvailable)
-          const Text('Firebase is not configured on this build. Sign-in and cloud sync are disabled.')
+          Text(S.current.accountFirebaseUnavailable)
         else ...[
           if (user != null)
             Padding(
@@ -140,7 +147,7 @@ class _AccountSectionState extends State<AccountSection> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          displayName ?? 'Signed-in account',
+                          displayName ?? S.current.accountSignedInFallback,
                           style: Theme.of(context).textTheme.titleMedium,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -151,12 +158,16 @@ class _AccountSectionState extends State<AccountSection> {
                 ],
               ),
             ),
-          Text(user == null ? (auth.isLoading ? 'Signing in...' : 'Local profile') : 'User: ${user.uid}'),
+          Text(
+            user == null
+                ? (auth.isLoading ? S.current.accountSigningIn : S.current.accountLocalProfile)
+                : S.current.accountUidLabel(user.uid),
+          ),
           const SizedBox(height: 8),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Public profile'),
-            subtitle: const Text('Allow other users to view your progress'),
+            title: Text(S.current.accountPublicProfileTitle),
+            subtitle: Text(S.current.accountPublicProfileSubtitle),
             value: publicProfile.enabled,
             onChanged: (user == null || publicProfile.isUpdating || publicProfile.isLoading)
                 ? null
@@ -167,7 +178,7 @@ class _AccountSectionState extends State<AccountSection> {
             child: OutlinedButton.icon(
               onPressed: user == null || auth.isLoading ? null : context.read<PublicProfileCubit>().requestSyncNow,
               icon: const Icon(Icons.cloud_sync),
-              label: const Text('Sync now'),
+              label: Text(S.current.accountSyncNow),
             ),
           ),
           const SizedBox(height: 8),
@@ -176,22 +187,20 @@ class _AccountSectionState extends State<AccountSection> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(publicProfile.syncStatus.isSyncing ? 'Sync: syncing…' : 'Sync: idle'),
+                Text(publicProfile.syncStatus.isSyncing ? S.current.accountSyncSyncing : S.current.accountSyncIdle),
                 Text(
-                  'Last success: ${_lastSyncLabel(publicProfile.syncStatus)}',
+                  S.current.accountSyncLastSuccess(_lastSyncLabel(publicProfile.syncStatus)),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 if (publicProfile.syncStatus.lastError != null)
                   Text(
-                    'Last error: ${publicProfile.syncStatus.lastError}',
+                    S.current.accountSyncLastError(publicProfile.syncStatus.lastError!),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.error),
                   ),
               ],
             ),
           ),
-          if (auth.errorMessage != null) ...[
-            Text(auth.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ],
+          if (auth.errorMessage != null) ...[Text(auth.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error))],
           if (publicProfile.errorMessage != null) ...[
             Text(publicProfile.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ],
@@ -202,30 +211,39 @@ class _AccountSectionState extends State<AccountSection> {
             children: [
               FilledButton(
                 onPressed: canStartProviderSignIn ? cubit.signInWithGoogle : null,
-                child: const Text('Continue with Google'),
+                child: Text(S.current.accountContinueWithGoogle),
               ),
               if (_supportsAppleSignIn(context))
                 FilledButton(
                   onPressed: canStartProviderSignIn ? cubit.signInWithApple : null,
-                  child: const Text('Continue with Apple'),
+                  child: Text(S.current.accountContinueWithApple),
                 ),
               OutlinedButton(
                 onPressed: (user == null || !publicProfile.enabled)
                     ? null
                     : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProfileScreen(uid: user.uid))),
-                child: const Text('Open profile'),
+                child: Text(S.current.accountOpenProfile),
               ),
-              OutlinedButton(
-                onPressed: auth.isLoading || user == null ? null : cubit.signOut,
-                child: const Text('Sign out'),
-              ),
+              OutlinedButton(onPressed: auth.isLoading || user == null ? null : cubit.signOut, child: Text(S.current.accountSignOut)),
               OutlinedButton(
                 onPressed: auth.isLoading || user == null ? null : _showDeleteAccountDialog,
                 style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-                child: const Text('Delete account'),
+                child: Text(S.current.accountDeleteAction),
               ),
             ],
           ),
+          if (!kIsWeb) ...[
+            const SizedBox(height: 12),
+            const Divider(),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: _openWebVersion,
+                icon: const Icon(Icons.open_in_new),
+                label: Text(S.current.accountOpenWebVersion),
+              ),
+            ),
+          ],
         ],
       ],
     );
@@ -251,6 +269,6 @@ class _AccountSectionState extends State<AccountSection> {
 
   String _lastSyncLabel(final SyncStatus status) {
     final last = status.lastSuccessAtMs == null ? null : DateTime.fromMillisecondsSinceEpoch(status.lastSuccessAtMs!);
-    return last == null ? 'never' : '${last.toLocal()}';
+    return last == null ? S.current.accountSyncNever : '${last.toLocal()}';
   }
 }
