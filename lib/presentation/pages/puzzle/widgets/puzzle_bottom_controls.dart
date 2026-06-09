@@ -13,14 +13,54 @@ import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dar
 import 'package:caesar_puzzle/presentation/widgets/floating_panel.dart';
 import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_cupertino_alert_dialog.dart';
+import 'package:caesar_puzzle/presentation/widgets/one_time_info_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+
+enum _BottomControlIntro { history, allSolutions, hint }
+
+extension _BottomControlIntroX on _BottomControlIntro {
+  String get storageKey => 'bottom_control_intro_seen_$name';
+
+  String get title => switch (this) {
+    _BottomControlIntro.history => S.current.bottomControlIntroHistoryTitle,
+    _BottomControlIntro.allSolutions => S.current.bottomControlIntroAllSolutionsTitle,
+    _BottomControlIntro.hint => S.current.bottomControlIntroHintTitle,
+  };
+
+  String get message => switch (this) {
+    _BottomControlIntro.history => S.current.bottomControlIntroHistoryMessage,
+    _BottomControlIntro.allSolutions => S.current.bottomControlIntroAllSolutionsMessage,
+    _BottomControlIntro.hint => S.current.bottomControlIntroHintMessage,
+  };
+
+  String get actionLabel => switch (this) {
+    _BottomControlIntro.history => S.current.onboardingNext,
+    _BottomControlIntro.allSolutions => S.current.ok,
+    _BottomControlIntro.hint => S.current.ok,
+  };
+}
 
 class PuzzleBottomControls extends StatelessWidget {
   const PuzzleBottomControls({super.key, required this.isSetupVisible});
 
   final bool isSetupVisible;
+
+  Future<bool> _showIntroIfNeeded(final BuildContext context, final _BottomControlIntro intro) => OneTimeInfoDialog.show(
+    context: context,
+    storageKey: intro.storageKey,
+    title: intro.title,
+    message: intro.message,
+    actionLabel: intro.actionLabel,
+  );
+
+  Future<void> _runAfterIntro(final BuildContext context, final _BottomControlIntro intro, final Future<void> Function() action) async {
+    if (!await _showIntroIfNeeded(context, intro)) {
+      return;
+    }
+    await action();
+  }
 
   Future<void> _showHowToPlayDialog(final BuildContext context) async {
     final viewWidth = MediaQuery.of(context).size.width;
@@ -104,10 +144,7 @@ class PuzzleBottomControls extends StatelessWidget {
       title: Text(S.current.historyDifficultyMismatchTitle),
       content: Text(S.current.historyDifficultyMismatchContent(sessionDifficulty.label, currentDifficulty.label)),
       actions: [
-        PlatformDialogAction(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(S.current.historySessionDialogCancel),
-        ),
+        PlatformDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(S.current.historySessionDialogCancel)),
         PlatformDialogAction(
           onPressed: () => Navigator.of(dialogContext).pop(true),
           child: Text(S.current.historyDifficultyMismatchContinue),
@@ -123,11 +160,7 @@ class PuzzleBottomControls extends StatelessWidget {
       tooltip: S.current.howToPlayTitle,
     ),
     if (isSetupVisible)
-      IconButton(
-        icon: Icon(Icons.settings),
-        onPressed: () => Scaffold.of(context).openEndDrawer(),
-        tooltip: S.current.settings,
-      ),
+      IconButton(icon: Icon(Icons.settings), onPressed: () => Scaffold.of(context).openEndDrawer(), tooltip: S.current.settings),
     state.isSolving
         ? const SizedBox(
             width: FloatingPanel.buttonSize,
@@ -142,6 +175,7 @@ class PuzzleBottomControls extends StatelessWidget {
   ];
 
   ToolbarControlGroup _buildSolutionControls({
+    required final BuildContext context,
     required final PuzzleState state,
     required final int solutionsCount,
     required final PuzzleBloc puzzleBloc,
@@ -186,8 +220,7 @@ class PuzzleBottomControls extends StatelessWidget {
       final puzzleBloc = context.read<PuzzleBloc>();
       final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
       final isSolvabilityInfoVisible = solutionIndicator != SolutionIndicator.none;
-      final isSolutionSearchDisabled =
-          state.isSolving || (isSolvabilityInfoVisible && solutionsCount == 0) || state.isShowSolutions;
+      final isSolutionSearchDisabled = state.isSolving || (isSolvabilityInfoVisible && solutionsCount == 0) || state.isShowSolutions;
       final isHintDisabled = isSolutionSearchDisabled || state.isSolved;
 
       Future<void> onAssistPressed(final VoidCallback allowedEvent) async {
@@ -197,9 +230,7 @@ class PuzzleBottomControls extends StatelessWidget {
             builder: (final context) => PlatformAlertDialog(
               title: Text(S.of(context).searchCompletedDialogTitle),
               content: Text(S.of(context).solutionsNotFoundDialogMessage),
-              actions: [
-                PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok)),
-              ],
+              actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
             ),
           );
           return;
@@ -217,10 +248,7 @@ class PuzzleBottomControls extends StatelessWidget {
                   onPressed: () => Navigator.of(context).pop(false),
                   child: Text(S.of(context).solutionsFoundDialogCancel),
                 ),
-                PlatformDialogAction(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text(S.of(context).solutionsFoundDialogOk),
-                ),
+                PlatformDialogAction(onPressed: () => Navigator.of(context).pop(true), child: Text(S.of(context).solutionsFoundDialogOk)),
               ],
             ),
           );
@@ -238,10 +266,15 @@ class PuzzleBottomControls extends StatelessWidget {
             ? () => puzzleBloc.add(PuzzleEvent.reset())
             : isSolutionSearchDisabled
             ? null
-            : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
+            : () => _runAfterIntro(
+                context,
+                _BottomControlIntro.allSolutions,
+                () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
+              ),
         tooltip: S.current.searchSolution,
       );
       final solutionControls = _buildSolutionControls(
+        context: context,
         state: state,
         solutionsCount: solutionsCount,
         puzzleBloc: puzzleBloc,
@@ -257,13 +290,19 @@ class PuzzleBottomControls extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.history),
-            onPressed: () => _showHistory(context),
+            onPressed: () => _runAfterIntro(context, _BottomControlIntro.history, () => _showHistory(context)),
             tooltip: S.current.historyTitle,
           ),
           solutionControls,
           IconButton(
             icon: Icon(Icons.tips_and_updates_outlined),
-            onPressed: isHintDisabled ? null : () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showHint())),
+            onPressed: isHintDisabled
+                ? null
+                : () => _runAfterIntro(
+                    context,
+                    _BottomControlIntro.hint,
+                    () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showHint())),
+                  ),
             tooltip: S.current.hint,
           ),
         ],

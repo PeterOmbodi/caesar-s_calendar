@@ -1,3 +1,8 @@
+## 1.8.3+32
+- add one-time info dialogs for bottom toolbar actions
+- add Account & Sync info dialog and web-version link in account settings
+- add localized strings for the new onboarding and account resources across all supported locales
+
 ## 1.8.2+31
 - add medium difficulty for solvability indicator sessions
 - save and restore session difficulty

@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:flutter/material.dart';
@@ -19,13 +20,13 @@ class AccountSummaryButton extends StatelessWidget {
     final photoUrl = AccountDisplay.bestPhotoUrl(user);
     final title = user == null
         ? auth.isLoading
-            ? 'Signing in...'
-            : 'Local profile'
-        : displayName ?? 'Signed-in account';
+            ? S.current.accountSigningIn
+            : S.current.accountLocalProfile
+        : displayName ?? S.current.accountSignedInFallback;
     final subtitle = user == null
         ? auth.isAvailable
-            ? 'Tap to sign in and sync'
-            : 'Sign-in unavailable'
+            ? S.current.accountTapToSignInAndSync
+            : S.current.accountSignInUnavailable
         : user.uid;
 
     return Material(
