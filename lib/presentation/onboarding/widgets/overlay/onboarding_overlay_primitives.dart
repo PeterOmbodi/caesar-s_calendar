@@ -3,11 +3,7 @@ import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingOverlayDimmer extends StatelessWidget {
-  const OnboardingOverlayDimmer({
-    super.key,
-    this.interactionHole,
-    this.spotlightHoles = const [],
-  });
+  const OnboardingOverlayDimmer({super.key, this.interactionHole, this.spotlightHoles = const []});
 
   final Rect? interactionHole;
   final List<Rect> spotlightHoles;
@@ -16,9 +12,7 @@ class OnboardingOverlayDimmer extends StatelessWidget {
   Widget build(final BuildContext context) {
     if (interactionHole == null && spotlightHoles.isEmpty) {
       return const Positioned.fill(
-        child: AbsorbPointer(
-          child: ColoredBox(color: Color.fromARGB(133, 0, 0, 0)),
-        ),
+        child: AbsorbPointer(child: ColoredBox(color: Color.fromARGB(133, 0, 0, 0))),
       );
     }
 
@@ -28,10 +22,7 @@ class OnboardingOverlayDimmer extends StatelessWidget {
         child: IgnorePointer(
           ignoring: interactionHole != null,
           child: CustomPaint(
-            painter: OnboardingOverlayDimmerPainter(
-              interactionHole: interactionHole,
-              spotlightHoles: spotlightHoles,
-            ),
+            painter: OnboardingOverlayDimmerPainter(interactionHole: interactionHole, spotlightHoles: spotlightHoles),
           ),
         ),
       ),
@@ -40,10 +31,7 @@ class OnboardingOverlayDimmer extends StatelessWidget {
 }
 
 class OnboardingOverlayDimmerPainter extends CustomPainter {
-  const OnboardingOverlayDimmerPainter({
-    required this.interactionHole,
-    required this.spotlightHoles,
-  });
+  const OnboardingOverlayDimmerPainter({required this.interactionHole, required this.spotlightHoles});
 
   final Rect? interactionHole;
   final List<Rect> spotlightHoles;
@@ -73,11 +61,7 @@ class OnboardingOverlayDimmerPainter extends CustomPainter {
 }
 
 class OnboardingHighlightFrame extends StatelessWidget {
-  const OnboardingHighlightFrame({
-    super.key,
-    required this.rect,
-    this.showGlow = true,
-  });
+  const OnboardingHighlightFrame({super.key, required this.rect, this.showGlow = true});
 
   final Rect rect;
   final bool showGlow;
@@ -107,51 +91,66 @@ class OnboardingPieceContourHighlight extends StatelessWidget {
     super.key,
     required this.piece,
     this.opacity = 1,
+    this.showGlow = true,
+    this.strokeWidth = 4,
   });
 
   final PuzzlePieceUI piece;
   final double opacity;
+  final bool showGlow;
+  final double strokeWidth;
 
   @override
   Widget build(final BuildContext context) => Positioned.fill(
     child: IgnorePointer(
       child: Opacity(
         opacity: opacity,
-        child: CustomPaint(painter: OnboardingPieceContourHighlightPainter(piece: piece)),
+        child: CustomPaint(
+          painter: OnboardingPieceContourHighlightPainter(piece: piece, showGlow: showGlow, strokeWidth: strokeWidth),
+        ),
       ),
     ),
   );
 }
 
 class OnboardingPieceContourHighlightPainter extends CustomPainter {
-  const OnboardingPieceContourHighlightPainter({required this.piece});
+  const OnboardingPieceContourHighlightPainter({
+    required this.piece,
+    required this.showGlow,
+    required this.strokeWidth,
+  });
 
   final PuzzlePieceUI piece;
+  final bool showGlow;
+  final double strokeWidth;
 
   @override
   void paint(final Canvas canvas, final Size size) {
     final path = piece.getTransformedPath();
-    final glowPaint = Paint()
-      ..color = Colors.amber.withValues(alpha: 0.34)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 14
-      ..strokeJoin = StrokeJoin.round
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+    if (showGlow) {
+      final glowPaint = Paint()
+        ..color = Colors.amber.withValues(alpha: 0.34)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 14
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+      canvas.drawPath(path, glowPaint);
+    }
+
     final strokePaint = Paint()
       ..color = Colors.amber.shade300
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
+      ..strokeWidth = strokeWidth
       ..strokeJoin = StrokeJoin.round
       ..strokeCap = StrokeCap.round;
 
-    canvas.drawPath(path, glowPaint);
     canvas.drawPath(path, strokePaint);
   }
 
   @override
   bool shouldRepaint(covariant final OnboardingPieceContourHighlightPainter oldDelegate) =>
-      oldDelegate.piece != piece;
+      oldDelegate.piece != piece || oldDelegate.showGlow != showGlow || oldDelegate.strokeWidth != strokeWidth;
 }
 
 class OnboardingPieceContourFlipHighlight extends StatelessWidget {
@@ -172,10 +171,7 @@ class OnboardingPieceContourFlipHighlight extends StatelessWidget {
       child: Opacity(
         opacity: opacity,
         child: CustomPaint(
-          painter: OnboardingPieceContourFlipHighlightPainter(
-            piece: piece,
-            scaleX: scaleX,
-          ),
+          painter: OnboardingPieceContourFlipHighlightPainter(piece: piece, scaleX: scaleX),
         ),
       ),
     ),
@@ -183,10 +179,7 @@ class OnboardingPieceContourFlipHighlight extends StatelessWidget {
 }
 
 class OnboardingPieceContourFlipHighlightPainter extends CustomPainter {
-  const OnboardingPieceContourFlipHighlightPainter({
-    required this.piece,
-    required this.scaleX,
-  });
+  const OnboardingPieceContourFlipHighlightPainter({required this.piece, required this.scaleX});
 
   final PuzzlePieceUI piece;
   final double scaleX;

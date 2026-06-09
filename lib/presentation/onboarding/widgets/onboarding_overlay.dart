@@ -54,25 +54,27 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
               ? highlightedRects.map((final rect) => rect.inflate(6)).toList(growable: false)
               : const <Rect>[];
 
-          if (step.id == OnboardingStepId.dragPiece &&
-              onboardingState.isCurrentStepInteractionEnabled) {
+          if (step.id == OnboardingStepId.dragPiece && onboardingState.isCurrentStepInteractionEnabled) {
             cachedDragInteractionHole ??= buildDragInteractionHole(puzzleState);
           } else {
             cachedDragInteractionHole = null;
           }
 
           final interactionHole = switch (step.id) {
-            OnboardingStepId.dragPiece when onboardingState.isCurrentStepInteractionEnabled => cachedDragInteractionHole,
-            OnboardingStepId.rotatePiece when onboardingState.isCurrentStepInteractionEnabled => puzzleState.gridConfig.getBounds.inflate(8),
-            OnboardingStepId.flipPiece when onboardingState.isCurrentStepInteractionEnabled => puzzleState.gridConfig.getBounds.inflate(8),
+            OnboardingStepId.dragPiece when onboardingState.isCurrentStepInteractionEnabled =>
+              cachedDragInteractionHole,
+            OnboardingStepId.rotatePiece when onboardingState.isCurrentStepInteractionEnabled =>
+              puzzleState.gridConfig.getBounds.inflate(8),
+            OnboardingStepId.flipPiece when onboardingState.isCurrentStepInteractionEnabled =>
+              puzzleState.gridConfig.getBounds.inflate(8),
             _ => null,
           };
 
-          final targetHighlightPiece = step.id == OnboardingStepId.dragPiece &&
-                  !onboardingState.isCurrentStepInteractionEnabled &&
-                  !onboardingState.isCurrentStepComplete
+          final targetHighlightPiece = step.id == OnboardingStepId.dragPiece && !onboardingState.isCurrentStepComplete
               ? buildDragDemoTargetPiece(puzzleState)
               : null;
+          final isDragInteractionEnabled =
+              step.id == OnboardingStepId.dragPiece && onboardingState.isCurrentStepInteractionEnabled;
           final rotatePiece = step.id == OnboardingStepId.rotatePiece
               ? puzzleState.gridPieces
                     .where((final piece) => piece.type == PieceType.pShape && !piece.isConfigItem)
@@ -86,7 +88,8 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
                     .firstWhere((final piece) => piece != null, orElse: () => null)
               : null;
           final isPreparingInteraction = pendingInteractionStepId == step.id;
-          final canTapToTry = step.id.supportsTry &&
+          final canTapToTry =
+              step.id.supportsTry &&
               !isPreparingInteraction &&
               !onboardingState.isCurrentStepInteractionEnabled &&
               !onboardingState.isCurrentStepComplete;
@@ -94,10 +97,7 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
           return Positioned.fill(
             child: Stack(
               children: [
-                OnboardingOverlayDimmer(
-                  interactionHole: interactionHole,
-                  spotlightHoles: spotlightHoles,
-                ),
+                OnboardingOverlayDimmer(interactionHole: interactionHole, spotlightHoles: spotlightHoles),
                 if (canTapToTry)
                   Positioned.fill(
                     child: GestureDetector(
@@ -106,13 +106,15 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
                     ),
                   ),
                 ...highlightedRects.map(
-                  (final rect) => OnboardingHighlightFrame(
-                    rect: rect.inflate(6),
-                    showGlow: step.id != OnboardingStepId.dateGoal,
-                  ),
+                  (final rect) =>
+                      OnboardingHighlightFrame(rect: rect.inflate(6), showGlow: step.id != OnboardingStepId.dateGoal),
                 ),
                 if (targetHighlightPiece != null)
-                  OnboardingPieceContourHighlight(piece: targetHighlightPiece),
+                  OnboardingPieceContourHighlight(
+                    piece: targetHighlightPiece,
+                    showGlow: !isDragInteractionEnabled,
+                    strokeWidth: isDragInteractionEnabled ? 1 : 4,
+                  ),
                 if (step.id == OnboardingStepId.dragPiece &&
                     !onboardingState.isCurrentStepInteractionEnabled &&
                     !isPreparingInteraction)
@@ -127,10 +129,7 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
                   !onboardingState.isCurrentStepInteractionEnabled &&
                           !onboardingState.isCurrentStepComplete &&
                           !isPreparingInteraction
-                      ? OnboardingFlipDemoScene(
-                          piece: flipPiece,
-                          cellSize: puzzleState.gridConfig.cellSize,
-                        )
+                      ? OnboardingFlipDemoScene(piece: flipPiece, cellSize: puzzleState.gridConfig.cellSize)
                       : const SizedBox.shrink(),
                 Align(
                   alignment: Alignment.bottomCenter,
@@ -139,7 +138,8 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
                     child: OnboardingCard(
                       step: step,
                       state: onboardingState,
-                      onTryPressed: step.id.supportsTry &&
+                      onTryPressed:
+                          step.id.supportsTry &&
                               !onboardingState.isCurrentStepInteractionEnabled &&
                               !onboardingState.isCurrentStepComplete
                           ? () => startCurrentStepInteraction(step)
@@ -167,12 +167,14 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
         final pShape = findOnboardingPShape(puzzleBloc.state);
         if (pShape.type == PieceType.pShape && pShape.placeZone == PlaceZone.grid) {
           puzzleBloc.add(PuzzleEvent.undo());
-          await puzzleBloc.stream.firstWhere((final state) {
-            final currentPShape = findOnboardingPShape(state);
-            return currentPShape.type == PieceType.pShape &&
-                currentPShape.placeZone == PlaceZone.board &&
-                !state.isDragging;
-          }).timeout(const Duration(milliseconds: 1200));
+          await puzzleBloc.stream
+              .firstWhere((final state) {
+                final currentPShape = findOnboardingPShape(state);
+                return currentPShape.type == PieceType.pShape &&
+                    currentPShape.placeZone == PlaceZone.board &&
+                    !state.isDragging;
+              })
+              .timeout(const Duration(milliseconds: 1200));
         }
       }
       if (!mounted) {

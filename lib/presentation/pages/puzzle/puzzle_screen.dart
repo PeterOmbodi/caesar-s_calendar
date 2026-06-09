@@ -47,6 +47,7 @@ class PuzzleScreen extends StatefulWidget {
 
 class _PuzzleScreenState extends State<PuzzleScreen> {
   static final DateTime _tutorialDate = DateTime(2024);
+  static const Duration _onboardingActionCompletionDelay = Duration(milliseconds: 320);
 
   late final PuzzleBloc _puzzleBloc;
   late final OnboardingBloc _onboardingBloc;
@@ -54,6 +55,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   PuzzleLocalSnapshot? _tutorialBaseSnapshot;
   String? _tutorialPShapeId;
   OnboardingState _lastOnboardingState = const OnboardingState.hidden();
+  int _onboardingCompletionDelayGeneration = 0;
   var _isInitialized = false;
 
   @override
@@ -81,6 +83,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   @override
   void dispose() {
+    _onboardingCompletionDelayGeneration++;
     if (_isInitialized) {
       _puzzleBloc.close();
       _onboardingBloc.close();
@@ -120,19 +123,19 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
               BlocListener<PuzzleBloc, PuzzleState>(
                 listenWhen: (final previous, final current) => _didCompleteDragOnboardingStep(previous, current),
                 listener: (final context, final state) {
-                  context.read<OnboardingBloc>().add(const CompleteCurrentOnboardingStep());
+                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.dragPiece);
                 },
               ),
               BlocListener<PuzzleBloc, PuzzleState>(
                 listenWhen: (final previous, final current) => _didCompleteRotateOnboardingStep(previous, current),
                 listener: (final context, final state) {
-                  context.read<OnboardingBloc>().add(const CompleteCurrentOnboardingStep());
+                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.rotatePiece);
                 },
               ),
               BlocListener<PuzzleBloc, PuzzleState>(
                 listenWhen: (final previous, final current) => _didCompleteFlipOnboardingStep(previous, current),
                 listener: (final context, final state) {
-                  context.read<OnboardingBloc>().add(const CompleteCurrentOnboardingStep());
+                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.flipPiece);
                 },
               ),
               BlocListener<OnboardingBloc, OnboardingState>(
@@ -140,12 +143,14 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   final previous = _lastOnboardingState;
 
                   if (!previous.isVisible && state.isVisible) {
+                    _onboardingCompletionDelayGeneration++;
                     _preOnboardingSnapshot ??= buildPuzzleLocalSnapshot(_puzzleBloc.state);
                     _tutorialBaseSnapshot = null;
                     _tutorialPShapeId = null;
                     ScaffoldMessenger.of(context).hideCurrentSnackBar();
                     _puzzleBloc.add(PuzzleEvent.setPuzzleDate(_tutorialDate, onboarding: true));
                   } else if (previous.isVisible && !state.isVisible) {
+                    _onboardingCompletionDelayGeneration++;
                     if (_didFinishOnboarding(previous)) {
                       context.read<SettingsCubit>().completeOnboarding(currentOnboardingVersion);
                     }
@@ -160,6 +165,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                       state.isVisible &&
                       state.currentStepIndex != previous.currentStepIndex &&
                       _tutorialBaseSnapshot != null) {
+                    _onboardingCompletionDelayGeneration++;
                     _applyTutorialStepSnapshot();
                   } else if (previous.isVisible &&
                       state.isVisible &&
@@ -351,6 +357,23 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       orElse: () => current.pieces.first,
     );
     return piece.type == PieceType.pShape && !piece.isConfigItem;
+  }
+
+  Future<void> _completeCurrentOnboardingStepAfterActionAnimation(final OnboardingStepId stepId) async {
+    final generation = ++_onboardingCompletionDelayGeneration;
+    await Future<void>.delayed(_onboardingActionCompletionDelay);
+    if (!mounted || generation != _onboardingCompletionDelayGeneration) {
+      return;
+    }
+
+    final onboardingState = _onboardingBloc.state;
+    if (!onboardingState.isVisible ||
+        onboardingState.currentStep?.id != stepId ||
+        onboardingState.isCurrentStepComplete ||
+        !onboardingState.isCurrentStepInteractionEnabled) {
+      return;
+    }
+    _onboardingBloc.add(const CompleteCurrentOnboardingStep());
   }
 
   void _captureTutorialBaseSnapshot(final PuzzleState state) {
