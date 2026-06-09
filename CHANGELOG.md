@@ -1,3 +1,6 @@
+## 1.8.4+33
+- small onboarding improvements
+
 ## 1.8.3+32
 - add one-time info dialogs for bottom toolbar actions
 - add Account & Sync info dialog and web-version link in account settings
