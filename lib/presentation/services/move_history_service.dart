@@ -28,7 +28,12 @@ class MoveHistoryService {
         final config = zone == PlaceZone.grid ? state.gridConfig : state.boardConfig;
         final pos = isUndo ? mp.from.position : mp.to.position;
         final absPos = config.absolutPositionPos(pos);
-        return piece.copyWith(placeZone: zone, position: Offset(absPos.dx, absPos.dy));
+        return piece.copyWith(
+          placeZone: zone,
+          position: Offset(absPos.dx, absPos.dy),
+          rotation: isUndo ? mp.rotationFrom : mp.rotationTo,
+          isFlipped: isUndo ? mp.flippedFrom : mp.flippedTo,
+        );
       },
       rotatePiece: (final rp) => piece.copyWith(
         rotation: (rp.rotation - (isUndo ? rotationStep + fullRotation : 0)) % fullRotation,

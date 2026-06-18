@@ -23,6 +23,8 @@ abstract class PuzzleState with _$PuzzleState {
     required final Iterable<PuzzlePieceUI> pieces,
     required final PuzzlePieceUI? selectedPiece,
     required final bool isDragging,
+    required final DrawnGroup? drawnGroup,
+    required final bool isDrawingGroup,
     final Offset? dragStartOffset,
     final Offset? pieceStartPosition,
     final Offset? previewPosition,
@@ -51,6 +53,8 @@ abstract class PuzzleState with _$PuzzleState {
     solutionIdx: -1,
     selectedPiece: null,
     isDragging: false,
+    drawnGroup: null,
+    isDrawingGroup: false,
     showPreview: false,
     previewCollision: false,
     moveHistory: [],
@@ -80,10 +84,7 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isUndoEnabled => !isSolving && moveHistory.isNotEmpty && moveIndex > 0;
 
-  bool get isCustomConfig => PuzzleConfigClassifier.isCustomConfig(
-    pieces: pieces,
-    gridConfig: gridConfig,
-  );
+  bool get isCustomConfig => PuzzleConfigClassifier.isCustomConfig(pieces: pieces, gridConfig: gridConfig);
 
   bool isPieceInGrid(final String pieceId) => gridPieces.any((final e) => !e.isConfigItem && e.id == pieceId);
 

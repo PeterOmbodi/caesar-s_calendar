@@ -10,10 +10,8 @@ class MovePlacementDto {
     position: Position.fromMap(Map<String, dynamic>.from(map['position'] as Map)),
   );
 
-  factory MovePlacementDto.fromDomain(final MovePlacement placement) => MovePlacementDto(
-    zone: placement.zone,
-    position: placement.position,
-  );
+  factory MovePlacementDto.fromDomain(final MovePlacement placement) =>
+      MovePlacementDto(zone: placement.zone, position: placement.position);
 
   final PlaceZone zone;
   final Position position;
@@ -24,27 +22,57 @@ class MovePlacementDto {
 }
 
 class MovePieceDto {
-  const MovePieceDto({required this.from, required this.to});
+  const MovePieceDto({
+    required this.from,
+    required this.to,
+    this.rotationFrom,
+    this.rotationTo,
+    this.flippedFrom,
+    this.flippedTo,
+  });
 
   factory MovePieceDto.fromMap(final Map<String, dynamic> map) => MovePieceDto(
     from: MovePlacementDto.fromMap(Map<String, dynamic>.from(map['from'] as Map)),
     to: MovePlacementDto.fromMap(Map<String, dynamic>.from(map['to'] as Map)),
+    rotationFrom: (map['rotationFrom'] as num?)?.toDouble(),
+    rotationTo: (map['rotationTo'] as num?)?.toDouble(),
+    flippedFrom: map['flippedFrom'] as bool?,
+    flippedTo: map['flippedTo'] as bool?,
   );
 
   factory MovePieceDto.fromDomain(final MovePiece move) => MovePieceDto(
     from: MovePlacementDto.fromDomain(move.from),
     to: MovePlacementDto.fromDomain(move.to),
+    rotationFrom: move.rotationFrom,
+    rotationTo: move.rotationTo,
+    flippedFrom: move.flippedFrom,
+    flippedTo: move.flippedTo,
   );
 
   final MovePlacementDto from;
   final MovePlacementDto to;
+  final double? rotationFrom;
+  final double? rotationTo;
+  final bool? flippedFrom;
+  final bool? flippedTo;
 
-  Map<String, dynamic> toMap() => {'from': from.toMap(), 'to': to.toMap()};
+  Map<String, dynamic> toMap() => {
+    'from': from.toMap(),
+    'to': to.toMap(),
+    if (rotationFrom != null) 'rotationFrom': rotationFrom,
+    if (rotationTo != null) 'rotationTo': rotationTo,
+    if (flippedFrom != null) 'flippedFrom': flippedFrom,
+    if (flippedTo != null) 'flippedTo': flippedTo,
+  };
 
   MovePiece toDomain(final String pieceId) => MovePiece(
     pieceId,
     from: from.toDomain(),
     to: to.toDomain(),
+    rotationFrom: rotationFrom,
+    rotationTo: rotationTo,
+    flippedFrom: flippedFrom,
+    flippedTo: flippedTo,
   );
 }
 
@@ -58,11 +86,8 @@ class MoveDto {
   );
 
   factory MoveDto.fromDomain(final Move move) => move.map(
-    movePiece: (final mp) => MoveDto(
-      type: _MoveTypes.movePiece,
-      pieceId: mp.pieceId,
-      data: MovePieceDto.fromDomain(mp).toMap(),
-    ),
+    movePiece: (final mp) =>
+        MoveDto(type: _MoveTypes.movePiece, pieceId: mp.pieceId, data: MovePieceDto.fromDomain(mp).toMap()),
     rotatePiece: (final rp) => MoveDto(
       type: _MoveTypes.rotatePiece,
       pieceId: rp.pieceId,

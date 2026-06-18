@@ -146,6 +146,7 @@ class PuzzleView extends StatelessWidget {
                             previewPosition: state.previewPosition,
                             showPreview: state.showPreview,
                             previewCollision: state.previewCollision,
+                            drawnGroup: state.drawnGroup,
                             borderColorMode: borderColorMode,
                             selectedDate: state.selectedDate,
                           ),

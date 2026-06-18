@@ -16,12 +16,15 @@ import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
+import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/puzzle_local_snapshot.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_config_classifier.dart';
+import 'package:caesar_puzzle/presentation/services/drawn_group_service.dart';
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/services/lifecycle_service.dart';
 import 'package:caesar_puzzle/presentation/services/move_history_service.dart';
+import 'package:caesar_puzzle/presentation/services/piece_shape_matcher.dart';
 import 'package:caesar_puzzle/presentation/services/puzzle_piece_movement_service.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
@@ -60,7 +63,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_OnPanStart>((final event, final emit) => _onPanStart(event, emit));
     on<_OnPanUpdate>((final event, final emit) => _onPanUpdate(event, emit));
     on<_OnPanEnd>((final event, final emit) => _onPanEnd(event, emit));
-    on<_OnDoubleTapDown>((final event, final emit) => _flipPiece(event, emit));
+    on<_OnDoubleTapDown>((final event, final emit) => _handleDoubleTap(event, emit));
     on<_RotatePiece>((final event, final emit) => _rotatePiece(event, emit));
     on<_Solve>((final event, final emit) => _solve(event, emit));
     on<_SetSolvingResults>((final event, final emit) => _setSolvingResults(event, emit));
@@ -90,12 +93,15 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   final LayoutService _layoutService = const LayoutService();
   final MoveHistoryService _moveHistoryService = const MoveHistoryService();
   final PuzzlePieceMovementService _movementHandler = const PuzzlePieceMovementService();
+  final DrawnGroupService _drawnGroupService = const DrawnGroupService();
+  final PieceShapeMatcher _pieceShapeMatcher = const PieceShapeMatcher();
 
   late final LifecycleService _lifecycleService;
 
   Size? _lastViewSize;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
   bool _isOnboardingSession = false;
+  int? _suppressTapAfterDrawnCommitAtMs;
 
   @override
   Future<void> close() {

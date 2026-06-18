@@ -1,10 +1,12 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
+import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
@@ -19,6 +21,7 @@ class PuzzleBoardPainter extends CustomPainter {
     this.previewPosition,
     this.showPreview = false,
     this.previewCollision = false,
+    this.drawnGroup,
     required this.borderColorMode,
     required this.selectedDate,
   });
@@ -31,6 +34,7 @@ class PuzzleBoardPainter extends CustomPainter {
   final Offset? previewPosition;
   final bool showPreview;
   final bool previewCollision;
+  final DrawnGroup? drawnGroup;
   final bool borderColorMode;
   final DateTime selectedDate;
 
@@ -41,6 +45,7 @@ class PuzzleBoardPainter extends CustomPainter {
       _drawGrid(canvas);
     }
     _drawLabels(canvas);
+    _drawDrawnGroup(canvas);
     if (showPreview && selectedPiece != null && previewPosition != null) {
       _drawPreviewOutline(canvas);
     }
@@ -130,6 +135,32 @@ class PuzzleBoardPainter extends CustomPainter {
       ..strokeWidth = 2.0;
 
     canvas.drawRect(board.getBounds, borderPaint);
+  }
+
+  void _drawDrawnGroup(final Canvas canvas) {
+    final group = drawnGroup;
+    if (group == null) {
+      return;
+    }
+
+    final fillPaint = Paint()
+      ..color = AppColors.current.previewFill.withValues(alpha: 0.28)
+      ..style = PaintingStyle.fill;
+    final strokePaint = Paint()
+      ..color = AppColors.current.previewOutline.withValues(alpha: 0.85)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    final inset = grid.cellSize * 0.08;
+
+    for (final drawnCell in group.cells) {
+      final topLeft = grid.cellTopLeft(drawnCell.cell);
+      final rect = Rect.fromLTWH(topLeft.dx, topLeft.dy, grid.cellSize, grid.cellSize).deflate(inset);
+      final radius = Radius.circular(grid.cellSize * 0.16);
+      final rrect = RRect.fromRectAndRadius(rect, radius);
+      canvas
+        ..drawRRect(rrect, fillPaint)
+        ..drawRRect(rrect, strokePaint);
+    }
   }
 
   void _drawPreviewOutline(final Canvas canvas) {
