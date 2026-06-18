@@ -2,57 +2,185 @@ part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   static const Duration _invalidTransformFeedbackDelay = Duration(milliseconds: 180);
+  static const int _minCommittableDrawnCells = 5;
 
-  FutureOr<void> _flipPiece(final _OnDoubleTapDown event, final Emitter<PuzzleState> emit) async {
+  FutureOr<void> _handleDoubleTap(final _OnDoubleTapDown event, final Emitter<PuzzleState> emit) async {
+    final cell = state.gridConfig.cellAt(event.localPosition);
+    final drawnGroup = state.drawnGroup;
+    if (cell != null && drawnGroup != null && drawnGroup.contains(cell)) {
+      _commitDrawnGroup(drawnGroup, emit);
+      return;
+    }
+
     final selectedPiece = _findPieceAtPosition(event.localPosition);
     if (selectedPiece != null && (!selectedPiece.isConfigItem || _settings.unlockConfig)) {
-      final prevState = state;
-      final flippedPiece = selectedPiece.copyWith(isFlipped: !selectedPiece.isFlipped);
-      final shouldSnap =
-          selectedPiece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
-      final (pieceToSave, snapMove) = shouldSnap
-          ? _moveHistoryService.maybeSnap(selectedPiece: flippedPiece, grid: state.gridConfig)
-          : (flippedPiece, null);
-      final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
-      final tentativePieces = _updatePieceInList(pieceToSave);
-      if (selectedPiece.isConfigItem &&
-          (_movementHandler.checkCollision(
-                piece: pieceToSave,
-                newPosition: pieceToSave.position,
-                zone: pieceToSave.placeZone,
-                preventOverlap: true,
-                pieces: state.pieces,
-                gridConfig: state.gridConfig,
-                boardConfig: state.boardConfig,
-              ) ||
-              _hasConfigOverlap(tentativePieces))) {
-        await _showInvalidTransformFeedback(emit: emit, transformedPiece: pieceToSave, originalPiece: selectedPiece);
-        return;
-      }
-      final pieces = tentativePieces;
-      final shouldResolve = selectedPiece.isConfigItem;
-      final applicableSolutions = shouldResolve
-          ? <Map<String, PlacementParams>>[]
-          : _combineSolutions(state.solutions, pieces);
-      final nextState = state.copyWith(
-        pieces: pieces,
-        moveHistory: [...state.moveHistory, move],
-        moveIndex: state.moveIndex + 1,
-        status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
-        applicableSolutions: applicableSolutions,
-      );
-      final timedState = _resumeTimerAfterUserAction(prevState: prevState, nextState: nextState);
-      emit(timedState);
-      _persistHistoryChange(prevState: prevState, nextState: timedState);
-      if (shouldResolve) {
-        add(const PuzzleEvent.solve(showResult: false));
-      }
+      await _flipPiece(selectedPiece, emit);
     }
+  }
+
+  Future<void> _flipPiece(final PuzzlePieceUI selectedPiece, final Emitter<PuzzleState> emit) async {
+    final prevState = state;
+    final flippedPiece = selectedPiece.copyWith(
+      isFlipped: !selectedPiece.isFlipped,
+      isUsersItem: selectedPiece.isConfigItem ? selectedPiece.isUsersItem : true,
+    );
+    final shouldSnap =
+        selectedPiece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
+    final (pieceToSave, snapMove) = shouldSnap
+        ? _moveHistoryService.maybeSnap(selectedPiece: flippedPiece, grid: state.gridConfig)
+        : (flippedPiece, null);
+    final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
+    final tentativePieces = _updatePieceInList(pieceToSave);
+    if (selectedPiece.isConfigItem &&
+        (_movementHandler.checkCollision(
+              piece: pieceToSave,
+              newPosition: pieceToSave.position,
+              zone: pieceToSave.placeZone,
+              preventOverlap: true,
+              pieces: state.pieces,
+              gridConfig: state.gridConfig,
+              boardConfig: state.boardConfig,
+            ) ||
+            _hasConfigOverlap(tentativePieces))) {
+      await _showInvalidTransformFeedback(emit: emit, transformedPiece: pieceToSave, originalPiece: selectedPiece);
+      return;
+    }
+    final pieces = tentativePieces;
+    final shouldResolve = selectedPiece.isConfigItem;
+    final applicableSolutions = shouldResolve
+        ? <Map<String, PlacementParams>>[]
+        : _combineSolutions(state.solutions, pieces);
+    final nextState = state.copyWith(
+      pieces: pieces,
+      moveHistory: [...state.moveHistory, move],
+      moveIndex: state.moveIndex + 1,
+      status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
+      applicableSolutions: applicableSolutions,
+    );
+    final timedState = _resumeTimerAfterUserAction(prevState: prevState, nextState: nextState);
+    emit(timedState);
+    _persistHistoryChange(prevState: prevState, nextState: timedState);
+    if (shouldResolve) {
+      add(const PuzzleEvent.solve(showResult: false));
+    }
+  }
+
+  void _commitDrawnGroup(final DrawnGroup drawnGroup, final Emitter<PuzzleState> emit) {
+    final match = _findDrawnGroupCommitMatch(drawnGroup);
+    if (match == null) {
+      return;
+    }
+
+    final prevState = state;
+    final sourcePiece = match.piece;
+    final targetPiece = _buildDrawnGroupTargetPiece(match);
+
+    final fromConfig = sourcePiece.placeZone == PlaceZone.grid ? state.gridConfig : state.boardConfig;
+    final move = MovePiece(
+      sourcePiece.id,
+      from: MovePlacement(
+        zone: sourcePiece.placeZone,
+        position: Position(
+          dx: fromConfig.relativePosition(sourcePiece.position).dx,
+          dy: fromConfig.relativePosition(sourcePiece.position).dy,
+        ),
+      ),
+      to: MovePlacement(
+        position: Position(
+          dx: state.gridConfig.relativePosition(targetPiece.position).dx,
+          dy: state.gridConfig.relativePosition(targetPiece.position).dy,
+        ),
+      ),
+      rotationFrom: sourcePiece.rotation,
+      rotationTo: targetPiece.rotation,
+      flippedFrom: sourcePiece.isFlipped,
+      flippedTo: targetPiece.isFlipped,
+    );
+
+    final moveHistory = List<Move>.from(state.moveHistory);
+    if (moveHistory.length > state.moveIndex) {
+      moveHistory.removeRange(state.moveIndex, moveHistory.length);
+    }
+    moveHistory.add(move);
+
+    final pieces = _updatePieceInList(targetPiece);
+    final applicableSolutions = _combineSolutions(state.solutions, pieces);
+    final nextState = state.copyWith(
+      pieces: pieces,
+      selectedPiece: null,
+      isDragging: false,
+      isDrawingGroup: false,
+      drawnGroup: null,
+      drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
+      showPreview: false,
+      previewPosition: null,
+      previewCollision: false,
+      moveHistory: moveHistory,
+      moveIndex: moveHistory.length,
+      status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
+      applicableSolutions: applicableSolutions,
+    );
+    final timedState = _resumeTimerAfterUserAction(prevState: prevState, nextState: nextState);
+    _suppressTapAfterDrawnCommitAtMs = DateTime.now().millisecondsSinceEpoch;
+    emit(timedState);
+    _persistHistoryChange(prevState: prevState, nextState: timedState);
+  }
+
+  DrawnGroupCommitStatus _resolveDrawnGroupCommitStatus(final DrawnGroup? drawnGroup) {
+    if (drawnGroup == null || drawnGroup.cells.length < _minCommittableDrawnCells) {
+      return DrawnGroupCommitStatus.tooSmall;
+    }
+    return _findDrawnGroupCommitMatch(drawnGroup) == null
+        ? DrawnGroupCommitStatus.invalid
+        : DrawnGroupCommitStatus.committable;
+  }
+
+  PieceShapeMatch? _findDrawnGroupCommitMatch(final DrawnGroup drawnGroup) {
+    if (drawnGroup.cells.length < _minCommittableDrawnCells) {
+      return null;
+    }
+
+    final match = _pieceShapeMatcher.match(
+      group: drawnGroup,
+      candidates: state.pieces.where((final piece) => !piece.isConfigItem),
+      grid: state.gridConfig,
+    );
+    if (match == null) {
+      return null;
+    }
+
+    final targetPiece = _buildDrawnGroupTargetPiece(match);
+    final hasCollision = _movementHandler.checkCollision(
+      piece: targetPiece,
+      newPosition: targetPiece.position,
+      zone: PlaceZone.grid,
+      preventOverlap: true,
+      pieces: state.pieces,
+      gridConfig: state.gridConfig,
+      boardConfig: state.boardConfig,
+    );
+    return hasCollision ? null : match;
+  }
+
+  PuzzlePieceUI _buildDrawnGroupTargetPiece(final PieceShapeMatch match) {
+    final sourcePiece = match.piece;
+    return sourcePiece.copyWith(
+      originalPath: generatePathForType(sourcePiece.type, state.gridConfig.cellSize),
+      centerPoint: Offset(state.gridConfig.cellSize / 2, state.gridConfig.cellSize / 2),
+      position: match.position,
+      rotation: match.rotation,
+      isFlipped: match.isFlipped,
+      placeZone: PlaceZone.grid,
+      isUsersItem: true,
+    );
   }
 
   FutureOr<void> _rotatePiece(final _RotatePiece event, final Emitter<PuzzleState> emit) async {
     final prevState = state;
-    final selectedPiece = event.piece.copyWith(rotation: _stepRotation(event.piece.rotation));
+    final selectedPiece = event.piece.copyWith(
+      rotation: _stepRotation(event.piece.rotation),
+      isUsersItem: event.piece.isConfigItem ? event.piece.isUsersItem : true,
+    );
     final shouldSnap =
         event.piece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
     final (pieceToSave, snapMove) = shouldSnap

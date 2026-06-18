@@ -1,31 +1,19 @@
 part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocLayoutPart on PuzzleBloc {
-  FutureOr<void> _onViewSize(
-    final _SetViewSize event,
-    final Emitter<PuzzleState> emit,
-  ) {
-    if (_lastViewSize != event.viewSize &&
-        event.viewSize.width > 0 &&
-        event.viewSize.height > 0) {
+  FutureOr<void> _onViewSize(final _SetViewSize event, final Emitter<PuzzleState> emit) {
+    if (_lastViewSize != event.viewSize && event.viewSize.width > 0 && event.viewSize.height > 0) {
       _lastViewSize = event.viewSize;
       add(PuzzleEvent.configure());
     }
   }
 
-  Future<void> _configure(
-    final _Configure event,
-    final Emitter<PuzzleState> emit,
-  ) async {
+  Future<void> _configure(final _Configure event, final Emitter<PuzzleState> emit) async {
     final viewSize = _lastViewSize!;
     final configurationPieces = event.configurationPieces;
-    final isInitializing =
-        state.status == GameStatus.initializing || event.toInitial;
+    final isInitializing = state.status == GameStatus.initializing || event.toInitial;
     final layout = isInitializing
-        ? _layoutService.buildInitialLayout(
-            viewSize,
-            configurationPieces: configurationPieces,
-          )
+        ? _layoutService.buildInitialLayout(viewSize, configurationPieces: configurationPieces)
         : _layoutService.rebuildLayout(
             viewSize: viewSize,
             prevGrid: state.gridConfig,
@@ -50,6 +38,9 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
           firstMoveAt: null,
           lastResumedAt: null,
           activeElapsedMs: 0,
+          drawnGroup: null,
+          drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
+          isDrawingGroup: false,
         ),
       );
     } else {

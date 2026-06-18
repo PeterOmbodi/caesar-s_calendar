@@ -2,6 +2,17 @@ part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocDragPart on PuzzleBloc {
   FutureOr<void> _onTapDown(final _OnTapDown event, final Emitter<PuzzleState> emit) {
+    if (_consumeTapAfterDrawnCommitSuppression()) {
+      emit(state.copyWith(selectedPiece: null));
+      return Future<void>.value();
+    }
+
+    final cell = state.gridConfig.cellAt(event.localPosition);
+    if (cell != null && state.drawnGroup?.contains(cell) == true) {
+      emit(state.copyWith(selectedPiece: null));
+      return Future<void>.value();
+    }
+
     final piece = _findPieceAtPosition(event.localPosition);
     if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
       emit(state.copyWith(selectedPiece: piece));
@@ -9,6 +20,27 @@ extension PuzzleBlocDragPart on PuzzleBloc {
   }
 
   FutureOr<void> _onTapUp(final _OnTapUp event, final Emitter<PuzzleState> emit) {
+    if (_consumeTapAfterDrawnCommitSuppression()) {
+      emit(state.copyWith(selectedPiece: null, isDragging: false));
+      return Future<void>.value();
+    }
+
+    final cell = state.gridConfig.cellAt(event.localPosition);
+    final drawnGroup = state.drawnGroup;
+    if (cell != null && drawnGroup != null && drawnGroup.contains(cell)) {
+      final updatedGroup = _drawnGroupService.remove(group: drawnGroup, cell: cell);
+      emit(
+        state.copyWith(
+          drawnGroup: updatedGroup,
+          drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(updatedGroup),
+          selectedPiece: null,
+          isDragging: false,
+          isDrawingGroup: false,
+        ),
+      );
+      return Future<void>.value();
+    }
+
     if (state.selectedPiece != null && !state.isDragging) {
       add(PuzzleEvent.rotatePiece(state.selectedPiece!));
     }
@@ -34,12 +66,60 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           pieceStartPosition: piece.position,
           dragStartZone: _movementHandler.getZoneAtPosition(piece.position, state.gridConfig, state.boardConfig),
           isDragging: true,
+          drawnGroup: null,
+          drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
+          isDrawingGroup: false,
+        ),
+      );
+      return Future<void>.value();
+    }
+
+    final cell = state.gridConfig.cellAt(event.localPosition);
+    if (cell == null) {
+      return Future<void>.value();
+    }
+
+    final drawnGroup = state.drawnGroup;
+    if (drawnGroup != null) {
+      if (drawnGroup.contains(cell)) {
+        emit(state.copyWith(isDrawingGroup: true, selectedPiece: null, isDragging: false));
+      }
+      return Future<void>.value();
+    }
+
+    final newGroup = _drawnGroupService.start(cell: cell, grid: state.gridConfig, pieces: state.pieces);
+    if (newGroup != null) {
+      emit(
+        state.copyWith(
+          drawnGroup: newGroup,
+          drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(newGroup),
+          isDrawingGroup: true,
+          selectedPiece: null,
+          isDragging: false,
         ),
       );
     }
   }
 
   FutureOr<void> _onPanUpdate(final _OnPanUpdate event, final Emitter<PuzzleState> emit) {
+    if (state.isDrawingGroup) {
+      final cell = state.gridConfig.cellAt(event.localPosition);
+      final drawnGroup = state.drawnGroup;
+      if (cell == null || drawnGroup == null) {
+        return Future<void>.value();
+      }
+      final updatedGroup = _drawnGroupService.extend(
+        group: drawnGroup,
+        cell: cell,
+        grid: state.gridConfig,
+        pieces: state.pieces,
+      );
+      emit(
+        state.copyWith(drawnGroup: updatedGroup, drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(updatedGroup)),
+      );
+      return Future<void>.value();
+    }
+
     if (state.selectedPiece != null && state.dragStartOffset != null) {
       final newPosition = event.localPosition - state.dragStartOffset!;
       final piece = state.selectedPiece!.copyWith(position: newPosition);
@@ -79,6 +159,11 @@ extension PuzzleBlocDragPart on PuzzleBloc {
   }
 
   FutureOr<void> _onPanEnd(final _OnPanEnd event, final Emitter<PuzzleState> emit) {
+    if (state.isDrawingGroup) {
+      emit(state.copyWith(isDrawingGroup: false));
+      return Future<void>.value();
+    }
+
     if (state.selectedPiece != null) {
       final prevState = state;
       final selectedPiece = state.selectedPiece!;
@@ -93,7 +178,11 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       );
 
       if (dropResult.accepted) {
-        final movedPiece = selectedPiece.copyWith(position: dropResult.snappedPosition!, placeZone: dropResult.zone!);
+        final movedPiece = selectedPiece.copyWith(
+          position: dropResult.snappedPosition!,
+          placeZone: dropResult.zone!,
+          isUsersItem: selectedPiece.isConfigItem ? selectedPiece.isUsersItem : true,
+        );
         final move = dropResult.move!;
         final moveHistory = List<Move>.from(state.moveHistory);
         if (moveHistory.length > state.moveIndex) {
@@ -148,6 +237,20 @@ extension PuzzleBlocDragPart on PuzzleBloc {
 
   PuzzlePieceUI? _findPieceAtPosition(final Offset position) =>
       state.pieces.lastWhereOrNull((final piece) => piece.containsPoint(position));
+
+  bool _consumeTapAfterDrawnCommitSuppression() {
+    final suppressedAt = _suppressTapAfterDrawnCommitAtMs;
+    if (suppressedAt == null) {
+      return false;
+    }
+
+    final elapsedMs = DateTime.now().millisecondsSinceEpoch - suppressedAt;
+    if (elapsedMs >= 0 && elapsedMs <= 700) {
+      return true;
+    }
+    _suppressTapAfterDrawnCommitAtMs = null;
+    return false;
+  }
 
   List<PuzzlePieceUI> _updatePieceInList(final PuzzlePieceUI piece) => List<PuzzlePieceUI>.from(state.pieces)
     ..removeWhere((final p) => p.id == piece.id)

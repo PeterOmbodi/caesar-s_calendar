@@ -1,3 +1,8 @@
+## 1.9.0+34
+- add drawn piece placement on the calendar grid
+- color drawn groups by commit status: too small, valid, or invalid
+- preserve undo/redo, transform state, and user-move tracking for drawn placements
+
 ## 1.8.4+33
 - small onboarding improvements
 

@@ -32,6 +32,7 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 
 - Daily calendar puzzle based on the selected date
 - Drag-and-drop piece placement with support for touch and mouse
+- Draw piece shapes directly on the calendar grid and commit matching groups into placements
 - Single tap/click to rotate a piece
 - Double tap/click to flip a piece
 - Automatic solving powered by a reusable exact-cover solver based on Dancing Links
@@ -55,16 +56,25 @@ The current date can be changed through the history screen, and the board layout
 
 Controls:
 
-1. Drag pieces from the tray onto the board.
-2. Tap or click a piece to rotate it.
-3. Double tap or double click a piece to flip it.
-4. Use the floating bottom toolbar for `History`, `Show solution`, `Undo`, `Redo`, and `Hint`.
-5. While viewing solutions, use the solution navigation arrows in place of `Undo` and `Redo`.
-6. Open `More` for `Info`, `Settings`, and `Reset`.
-7. Open `Info` to view the in-app how-to-play guide.
-8. Open `History` to resume saved sessions or switch to another puzzle date.
-9. Use `Hint` to reveal one valid move.
-10. Open `Settings` to change gameplay and UI behavior.
+1. Place pieces by dragging them from the tray onto the board, or by drawing their shape directly on free grid cells.
+2. To draw a placement, drag across free grid cells to create a temporary group.
+3. Double tap a valid drawn group to place the matching piece there.
+4. Tap a cell in a drawn group to remove it.
+5. Tap or click a piece to rotate it.
+6. Double tap or double click a piece to flip it.
+7. Use the floating bottom toolbar for `History`, `Show solution`, `Undo`, `Redo`, and `Hint`.
+8. While viewing solutions, use the solution navigation arrows in place of `Undo` and `Redo`.
+9. Open `More` for `Info`, `Settings`, and `Reset`.
+10. Open `Info` to view the in-app how-to-play guide.
+11. Open `History` to resume saved sessions or switch to another puzzle date.
+12. Use `Hint` to reveal one valid move.
+13. Open `Settings` to change gameplay and UI behavior.
+
+Drawn groups use color feedback:
+
+- grey means the group is too small to commit
+- green means the group can be committed as a piece placement
+- red means the group has enough cells but cannot be committed
 
 Settings currently include:
 

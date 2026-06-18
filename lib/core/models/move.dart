@@ -33,10 +33,22 @@ sealed class Move {
 }
 
 class MovePiece extends Move {
-  const MovePiece(super.pieceId, {required this.from, required this.to});
+  const MovePiece(
+    super.pieceId, {
+    required this.from,
+    required this.to,
+    this.rotationFrom,
+    this.rotationTo,
+    this.flippedFrom,
+    this.flippedTo,
+  });
 
   final MovePlacement from;
   final MovePlacement to;
+  final double? rotationFrom;
+  final double? rotationTo;
+  final bool? flippedFrom;
+  final bool? flippedTo;
 }
 
 class HintMove extends Move {
