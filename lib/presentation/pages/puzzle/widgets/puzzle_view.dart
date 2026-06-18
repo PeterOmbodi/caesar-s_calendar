@@ -80,10 +80,7 @@ class PuzzleView extends StatelessWidget {
                       Positioned(
                         left: state.cfgCellOffset(1).dx,
                         top: state.cfgCellOffset(1).dy,
-                        child: _PuzzleIndicatorCell(
-                          mode: indicatorMode,
-                          solutionsCount: applicableCount,
-                        ),
+                        child: _PuzzleIndicatorCell(mode: indicatorMode, solutionsCount: applicableCount),
                       ),
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -147,6 +144,7 @@ class PuzzleView extends StatelessWidget {
                             showPreview: state.showPreview,
                             previewCollision: state.previewCollision,
                             drawnGroup: state.drawnGroup,
+                            drawnGroupCommitStatus: state.drawnGroupCommitStatus,
                             borderColorMode: borderColorMode,
                             selectedDate: state.selectedDate,
                           ),
@@ -223,10 +221,7 @@ enum _PuzzleIndicatorMode {
 }
 
 class _PuzzleIndicatorCell extends StatelessWidget {
-  const _PuzzleIndicatorCell({
-    required this.mode,
-    required this.solutionsCount,
-  });
+  const _PuzzleIndicatorCell({required this.mode, required this.solutionsCount});
 
   final _PuzzleIndicatorMode mode;
   final int solutionsCount;
@@ -240,10 +235,7 @@ class _PuzzleIndicatorCell extends StatelessWidget {
       child: FlipFlapDisplay.fromText(
         text: '$solutionsCount'.padLeft(2, '0'),
         unitsInPack: 4,
-        unitConstraints: BoxConstraints(
-          minWidth: solutionsCount < 100 ? 20 : 14,
-          minHeight: 32,
-        ),
+        unitConstraints: BoxConstraints(minWidth: solutionsCount < 100 ? 20 : 14, minHeight: 32),
         unitType: UnitType.number,
         useShortestWay: false,
       ),

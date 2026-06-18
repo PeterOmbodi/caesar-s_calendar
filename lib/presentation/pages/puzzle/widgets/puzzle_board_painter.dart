@@ -22,6 +22,7 @@ class PuzzleBoardPainter extends CustomPainter {
     this.showPreview = false,
     this.previewCollision = false,
     this.drawnGroup,
+    this.drawnGroupCommitStatus = DrawnGroupCommitStatus.tooSmall,
     required this.borderColorMode,
     required this.selectedDate,
   });
@@ -35,6 +36,7 @@ class PuzzleBoardPainter extends CustomPainter {
   final bool showPreview;
   final bool previewCollision;
   final DrawnGroup? drawnGroup;
+  final DrawnGroupCommitStatus drawnGroupCommitStatus;
   final bool borderColorMode;
   final DateTime selectedDate;
 
@@ -143,11 +145,12 @@ class PuzzleBoardPainter extends CustomPainter {
       return;
     }
 
+    final (fillColor, strokeColor) = _drawnGroupColors();
     final fillPaint = Paint()
-      ..color = AppColors.current.previewFill.withValues(alpha: 0.28)
+      ..color = fillColor
       ..style = PaintingStyle.fill;
     final strokePaint = Paint()
-      ..color = AppColors.current.previewOutline.withValues(alpha: 0.85)
+      ..color = strokeColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
     final inset = grid.cellSize * 0.08;
@@ -162,6 +165,18 @@ class PuzzleBoardPainter extends CustomPainter {
         ..drawRRect(rrect, strokePaint);
     }
   }
+
+  (Color fill, Color stroke) _drawnGroupColors() => switch (drawnGroupCommitStatus) {
+    DrawnGroupCommitStatus.tooSmall => (Colors.grey.withValues(alpha: 0.24), Colors.grey.withValues(alpha: 0.78)),
+    DrawnGroupCommitStatus.committable => (
+      AppColors.current.previewFill.withValues(alpha: 0.28),
+      AppColors.current.previewOutline.withValues(alpha: 0.85),
+    ),
+    DrawnGroupCommitStatus.invalid => (
+      AppColors.current.previewFillCollision.withValues(alpha: 0.22),
+      AppColors.current.previewOutlineCollision.withValues(alpha: 0.85),
+    ),
+  };
 
   void _drawPreviewOutline(final Canvas canvas) {
     if (selectedPiece == null || previewPosition == null) return;

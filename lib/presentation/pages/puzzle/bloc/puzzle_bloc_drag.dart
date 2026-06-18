@@ -28,9 +28,11 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     final cell = state.gridConfig.cellAt(event.localPosition);
     final drawnGroup = state.drawnGroup;
     if (cell != null && drawnGroup != null && drawnGroup.contains(cell)) {
+      final updatedGroup = _drawnGroupService.remove(group: drawnGroup, cell: cell);
       emit(
         state.copyWith(
-          drawnGroup: _drawnGroupService.remove(group: drawnGroup, cell: cell),
+          drawnGroup: updatedGroup,
+          drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(updatedGroup),
           selectedPiece: null,
           isDragging: false,
           isDrawingGroup: false,
@@ -65,6 +67,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           dragStartZone: _movementHandler.getZoneAtPosition(piece.position, state.gridConfig, state.boardConfig),
           isDragging: true,
           drawnGroup: null,
+          drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
           isDrawingGroup: false,
         ),
       );
@@ -86,7 +89,15 @@ extension PuzzleBlocDragPart on PuzzleBloc {
 
     final newGroup = _drawnGroupService.start(cell: cell, grid: state.gridConfig, pieces: state.pieces);
     if (newGroup != null) {
-      emit(state.copyWith(drawnGroup: newGroup, isDrawingGroup: true, selectedPiece: null, isDragging: false));
+      emit(
+        state.copyWith(
+          drawnGroup: newGroup,
+          drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(newGroup),
+          isDrawingGroup: true,
+          selectedPiece: null,
+          isDragging: false,
+        ),
+      );
     }
   }
 
@@ -97,15 +108,14 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       if (cell == null || drawnGroup == null) {
         return Future<void>.value();
       }
+      final updatedGroup = _drawnGroupService.extend(
+        group: drawnGroup,
+        cell: cell,
+        grid: state.gridConfig,
+        pieces: state.pieces,
+      );
       emit(
-        state.copyWith(
-          drawnGroup: _drawnGroupService.extend(
-            group: drawnGroup,
-            cell: cell,
-            grid: state.gridConfig,
-            pieces: state.pieces,
-          ),
-        ),
+        state.copyWith(drawnGroup: updatedGroup, drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(updatedGroup)),
       );
       return Future<void>.value();
     }

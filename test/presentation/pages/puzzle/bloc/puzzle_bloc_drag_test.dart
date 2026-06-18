@@ -12,6 +12,7 @@ import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/solver_service.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
+import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
@@ -172,6 +173,33 @@ void main() {
 
     expect(bloc!.state.isDrawingGroup, isFalse);
     expect(bloc!.state.drawnGroup?.cellSet, {Cell(0, 0), Cell(0, 1), Cell(1, 1)});
+  });
+
+  test('drawn group status is too small before five cells', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0)]);
+
+    expect(bloc!.state.drawnGroupCommitStatus, DrawnGroupCommitStatus.tooSmall);
+  });
+
+  test('drawn group status is committable for recognized valid shape', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)]);
+
+    expect(bloc!.state.drawnGroupCommitStatus, DrawnGroupCommitStatus.committable);
+  });
+
+  test('drawn group status is invalid for unrecognized shape with at least five cells', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(0, 2), Cell(0, 3), Cell(0, 4)]);
+
+    expect(bloc!.state.drawnGroupCommitStatus, DrawnGroupCommitStatus.invalid);
   });
 
   test('existing drawn group can be extended only from group cell', () async {

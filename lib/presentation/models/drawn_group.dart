@@ -1,5 +1,7 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
 
+enum DrawnGroupCommitStatus { tooSmall, committable, invalid }
+
 class DrawnCell {
   const DrawnCell({required this.cell, required this.order});
 

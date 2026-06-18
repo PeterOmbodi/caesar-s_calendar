@@ -39,6 +39,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
           lastResumedAt: null,
           activeElapsedMs: 0,
           drawnGroup: null,
+          drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
           isDrawingGroup: false,
         ),
       );

@@ -2,6 +2,7 @@ part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   static const Duration _invalidTransformFeedbackDelay = Duration(milliseconds: 180);
+  static const int _minCommittableDrawnCells = 5;
 
   FutureOr<void> _handleDoubleTap(final _OnDoubleTapDown event, final Emitter<PuzzleState> emit) async {
     final cell = state.gridConfig.cellAt(event.localPosition);
@@ -65,39 +66,14 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   }
 
   void _commitDrawnGroup(final DrawnGroup drawnGroup, final Emitter<PuzzleState> emit) {
-    final match = _pieceShapeMatcher.match(
-      group: drawnGroup,
-      candidates: state.pieces.where((final piece) => !piece.isConfigItem),
-      grid: state.gridConfig,
-    );
+    final match = _findDrawnGroupCommitMatch(drawnGroup);
     if (match == null) {
       return;
     }
 
     final prevState = state;
     final sourcePiece = match.piece;
-    final targetPiece = sourcePiece.copyWith(
-      originalPath: generatePathForType(sourcePiece.type, state.gridConfig.cellSize),
-      centerPoint: Offset(state.gridConfig.cellSize / 2, state.gridConfig.cellSize / 2),
-      position: match.position,
-      rotation: match.rotation,
-      isFlipped: match.isFlipped,
-      placeZone: PlaceZone.grid,
-      isUsersItem: true,
-    );
-
-    final hasCollision = _movementHandler.checkCollision(
-      piece: targetPiece,
-      newPosition: targetPiece.position,
-      zone: PlaceZone.grid,
-      preventOverlap: true,
-      pieces: state.pieces,
-      gridConfig: state.gridConfig,
-      boardConfig: state.boardConfig,
-    );
-    if (hasCollision) {
-      return;
-    }
+    final targetPiece = _buildDrawnGroupTargetPiece(match);
 
     final fromConfig = sourcePiece.placeZone == PlaceZone.grid ? state.gridConfig : state.boardConfig;
     final move = MovePiece(
@@ -135,6 +111,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       isDragging: false,
       isDrawingGroup: false,
       drawnGroup: null,
+      drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
       showPreview: false,
       previewPosition: null,
       previewCollision: false,
@@ -147,6 +124,55 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     _suppressTapAfterDrawnCommitAtMs = DateTime.now().millisecondsSinceEpoch;
     emit(timedState);
     _persistHistoryChange(prevState: prevState, nextState: timedState);
+  }
+
+  DrawnGroupCommitStatus _resolveDrawnGroupCommitStatus(final DrawnGroup? drawnGroup) {
+    if (drawnGroup == null || drawnGroup.cells.length < _minCommittableDrawnCells) {
+      return DrawnGroupCommitStatus.tooSmall;
+    }
+    return _findDrawnGroupCommitMatch(drawnGroup) == null
+        ? DrawnGroupCommitStatus.invalid
+        : DrawnGroupCommitStatus.committable;
+  }
+
+  PieceShapeMatch? _findDrawnGroupCommitMatch(final DrawnGroup drawnGroup) {
+    if (drawnGroup.cells.length < _minCommittableDrawnCells) {
+      return null;
+    }
+
+    final match = _pieceShapeMatcher.match(
+      group: drawnGroup,
+      candidates: state.pieces.where((final piece) => !piece.isConfigItem),
+      grid: state.gridConfig,
+    );
+    if (match == null) {
+      return null;
+    }
+
+    final targetPiece = _buildDrawnGroupTargetPiece(match);
+    final hasCollision = _movementHandler.checkCollision(
+      piece: targetPiece,
+      newPosition: targetPiece.position,
+      zone: PlaceZone.grid,
+      preventOverlap: true,
+      pieces: state.pieces,
+      gridConfig: state.gridConfig,
+      boardConfig: state.boardConfig,
+    );
+    return hasCollision ? null : match;
+  }
+
+  PuzzlePieceUI _buildDrawnGroupTargetPiece(final PieceShapeMatch match) {
+    final sourcePiece = match.piece;
+    return sourcePiece.copyWith(
+      originalPath: generatePathForType(sourcePiece.type, state.gridConfig.cellSize),
+      centerPoint: Offset(state.gridConfig.cellSize / 2, state.gridConfig.cellSize / 2),
+      position: match.position,
+      rotation: match.rotation,
+      isFlipped: match.isFlipped,
+      placeZone: PlaceZone.grid,
+      isUsersItem: true,
+    );
   }
 
   FutureOr<void> _rotatePiece(final _RotatePiece event, final Emitter<PuzzleState> emit) async {
