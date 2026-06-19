@@ -17,41 +17,27 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   static final DateTime _tutorialDate = DateTime(2024);
 
   static final List<OnboardingStep> _basicSteps = [
-    OnboardingStep(
-      id: OnboardingStepId.dateGoal,
-      tutorialDate: _tutorialDate,
-      highlightedLabelIndices: [0, 12],
-    ),
-    OnboardingStep(
-      id: OnboardingStepId.dragPiece,
-      tutorialDate: _tutorialDate,
-      requiresUserAction: true,
-    ),
-    OnboardingStep(
-      id: OnboardingStepId.rotatePiece,
-      tutorialDate: _tutorialDate,
-      requiresUserAction: true,
-    ),
-    OnboardingStep(
-      id: OnboardingStepId.flipPiece,
-      tutorialDate: _tutorialDate,
-      requiresUserAction: true,
-    ),
+    OnboardingStep(id: OnboardingStepId.dateGoal, tutorialDate: _tutorialDate, highlightedLabelIndices: [0, 12]),
+    OnboardingStep(id: OnboardingStepId.dragPiece, tutorialDate: _tutorialDate, requiresUserAction: true),
+    OnboardingStep(id: OnboardingStepId.drawPiece, tutorialDate: _tutorialDate, requiresUserAction: true),
+    OnboardingStep(id: OnboardingStepId.rotatePiece, tutorialDate: _tutorialDate, requiresUserAction: true),
+    OnboardingStep(id: OnboardingStepId.flipPiece, tutorialDate: _tutorialDate, requiresUserAction: true),
   ];
 
   static const List<OnboardingStep> _extendedSteps = [];
 
-  void _onStart(
-    final StartOnboarding event,
-    final Emitter<OnboardingState> emit,
-  ) {
+  static final List<OnboardingStep> _v2UpdateSteps = [
+    OnboardingStep(id: OnboardingStepId.drawPiece, tutorialDate: _tutorialDate, requiresUserAction: true),
+  ];
+
+  void _onStart(final StartOnboarding event, final Emitter<OnboardingState> emit) {
     emit(
       OnboardingState(
         isVisible: true,
         isReplay: event.isReplay,
         mode: event.mode,
         currentStepIndex: 0,
-        steps: _stepsForMode(event.mode),
+        steps: _stepsForMode(event.mode, completedVersion: event.completedVersion),
         isCurrentStepComplete: false,
         isCurrentStepInteractionEnabled: false,
         completedStepIds: const {},
@@ -59,17 +45,11 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     );
   }
 
-  void _onDismiss(
-    final DismissOnboarding event,
-    final Emitter<OnboardingState> emit,
-  ) {
+  void _onDismiss(final DismissOnboarding event, final Emitter<OnboardingState> emit) {
     emit(const OnboardingState.hidden());
   }
 
-  void _onNextStep(
-    final NextOnboardingStep event,
-    final Emitter<OnboardingState> emit,
-  ) {
+  void _onNextStep(final NextOnboardingStep event, final Emitter<OnboardingState> emit) {
     final step = state.currentStep;
     if (step == null) {
       return;
@@ -93,10 +73,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     );
   }
 
-  void _onPreviousStep(
-    final PreviousOnboardingStep event,
-    final Emitter<OnboardingState> emit,
-  ) {
+  void _onPreviousStep(final PreviousOnboardingStep event, final Emitter<OnboardingState> emit) {
     if (state.currentStepIndex <= 0) {
       return;
     }
@@ -110,10 +87,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     );
   }
 
-  void _onCompleteCurrentStep(
-    final CompleteCurrentOnboardingStep event,
-    final Emitter<OnboardingState> emit,
-  ) {
+  void _onCompleteCurrentStep(final CompleteCurrentOnboardingStep event, final Emitter<OnboardingState> emit) {
     if (state.isCurrentStepComplete) {
       return;
     }
@@ -126,17 +100,18 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     );
   }
 
-  void _onStartCurrentInteraction(
-    final StartCurrentOnboardingInteraction event,
-    final Emitter<OnboardingState> emit,
-  ) {
+  void _onStartCurrentInteraction(final StartCurrentOnboardingInteraction event, final Emitter<OnboardingState> emit) {
     if (state.currentStep?.requiresUserAction != true || state.isCurrentStepInteractionEnabled) {
       return;
     }
     emit(state.copyWith(isCurrentStepInteractionEnabled: true));
   }
 
-  List<OnboardingStep> _stepsForMode(final OnboardingMode mode) {
+  List<OnboardingStep> _stepsForMode(final OnboardingMode mode, {required final int completedVersion}) {
+    if (completedVersion == 1) {
+      return _v2UpdateSteps;
+    }
+
     switch (mode) {
       case OnboardingMode.short:
         return _basicSteps;

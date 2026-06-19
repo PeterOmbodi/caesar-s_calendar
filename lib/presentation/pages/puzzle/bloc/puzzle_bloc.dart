@@ -11,6 +11,7 @@ import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
+import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
@@ -64,6 +65,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_OnPanUpdate>((final event, final emit) => _onPanUpdate(event, emit));
     on<_OnPanEnd>((final event, final emit) => _onPanEnd(event, emit));
     on<_OnDoubleTapDown>((final event, final emit) => _handleDoubleTap(event, emit));
+    on<_ClearDrawnGroup>((final event, final emit) => _clearDrawnGroup(event, emit));
     on<_RotatePiece>((final event, final emit) => _rotatePiece(event, emit));
     on<_Solve>((final event, final emit) => _solve(event, emit));
     on<_SetSolvingResults>((final event, final emit) => _setSolvingResults(event, emit));

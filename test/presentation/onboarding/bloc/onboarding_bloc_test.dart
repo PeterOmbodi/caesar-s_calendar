@@ -14,9 +14,22 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(bloc.state.isVisible, isTrue);
-      expect(bloc.state.steps, hasLength(4));
+      expect(bloc.state.steps, hasLength(5));
       expect(bloc.state.currentStep?.id, OnboardingStepId.dateGoal);
       expect(bloc.state.canGoNext, isTrue);
+    });
+
+    test('starts v2 update onboarding with only draw step for users who completed v1', () async {
+      final bloc = OnboardingBloc();
+      addTearDown(bloc.close);
+
+      bloc.add(const StartOnboarding(OnboardingMode.short, completedVersion: 1));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.isVisible, isTrue);
+      expect(bloc.state.steps, hasLength(1));
+      expect(bloc.state.currentStep?.id, OnboardingStepId.drawPiece);
+      expect(bloc.state.canGoNext, isFalse);
     });
 
     test('keeps completed drag-step progress after next and previous', () async {

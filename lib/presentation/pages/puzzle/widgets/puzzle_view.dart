@@ -1,8 +1,13 @@
+import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/piece_type.dart';
+import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
+import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_state.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
+import 'package:caesar_puzzle/presentation/onboarding/widgets/overlay/onboarding_overlay_helpers.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/info_display_3_cell.dart';
@@ -46,6 +51,12 @@ class PuzzleView extends StatelessWidget {
           final stepId = step?.id;
           if (stepId == null) {
             return true;
+          }
+          if (stepId == OnboardingStepId.drawPiece) {
+            if (!onboardingState.isCurrentStepInteractionEnabled) {
+              return false;
+            }
+            return _isDrawOnboardingInteractionAllowed(state, position, action: action);
           }
           if (stepId.allowedInputAction == null) {
             return false;
@@ -119,6 +130,12 @@ class PuzzleView extends StatelessWidget {
                         bloc.add(PuzzleEvent.onPanEnd(details.localPosition));
                       },
                       onDoubleTapDown: (final details) {
+                        if (_shouldWarnAboutWrongDrawOnboardingGroup(state, onboardingState, details.localPosition)) {
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(SnackBar(content: Text(S.current.onboardingDrawWrongShape)));
+                          return;
+                        }
                         if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.doubleTap)) {
                           return;
                         }
@@ -175,6 +192,65 @@ class PuzzleView extends StatelessWidget {
       },
     ),
   );
+}
+
+bool _isDrawOnboardingInteractionAllowed(
+  final PuzzleState state,
+  final Offset position, {
+  required final OnboardingInputAction action,
+}) {
+  final cell = state.gridConfig.cellAt(position);
+  if (cell == null) {
+    return false;
+  }
+  if (action == OnboardingInputAction.tap) {
+    return state.drawnGroup?.contains(cell) == true;
+  }
+  if (action != OnboardingInputAction.drag && action != OnboardingInputAction.doubleTap) {
+    return false;
+  }
+  if (state.drawnGroup?.contains(cell) == true) {
+    return true;
+  }
+  return _drawOnboardingAllowedCells(state).contains(cell);
+}
+
+bool _shouldWarnAboutWrongDrawOnboardingGroup(
+  final PuzzleState state,
+  final OnboardingState onboardingState,
+  final Offset position,
+) {
+  if (!onboardingState.isVisible ||
+      onboardingState.currentStep?.id != OnboardingStepId.drawPiece ||
+      !onboardingState.isCurrentStepInteractionEnabled ||
+      state.drawnGroupCommitStatus == DrawnGroupCommitStatus.committable) {
+    return false;
+  }
+  final cell = state.gridConfig.cellAt(position);
+  return cell != null && state.drawnGroup?.contains(cell) == true;
+}
+
+Set<Cell> _drawOnboardingAllowedCells(final PuzzleState state) {
+  final targetPiece = buildDragDemoTargetPiece(state);
+  if (targetPiece == null) {
+    return const {};
+  }
+
+  final targetCells = targetPiece.cells(state.gridConfig.origin, state.gridConfig.cellSize);
+  final allowedCells = <Cell>{...targetCells};
+  for (final cell in targetCells) {
+    allowedCells.addAll({
+      Cell(cell.row - 1, cell.col),
+      Cell(cell.row + 1, cell.col),
+      Cell(cell.row, cell.col - 1),
+      Cell(cell.row, cell.col + 1),
+    });
+  }
+  allowedCells.removeWhere(
+    (final cell) =>
+        cell.row < 0 || cell.row >= state.gridConfig.rows || cell.col < 0 || cell.col >= state.gridConfig.columns,
+  );
+  return allowedCells;
 }
 
 class _DraggedPiecePainter extends CustomPainter {

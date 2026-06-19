@@ -31,7 +31,7 @@ dependencies:
   flutter_native_splash: ^2.4.7
   confetti: ^0.8.0
   package_info_plus: ^9.0.0
-  flutter_flip_flap: ^0.4.2
+  flutter_flip_flap: ^0.5.0
   drift: ^2.32.0
   path: ^1.9.1
   crypto: ^3.0.7
