@@ -1,3 +1,6 @@
+## 1.9.1+35
+- add draw piece tutorial step
+
 ## 1.9.0+34
 - add drawn piece placement on the calendar grid
 - color drawn groups by commit status: too small, valid, or invalid
