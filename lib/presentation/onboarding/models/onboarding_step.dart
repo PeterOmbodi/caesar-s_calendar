@@ -1,9 +1,4 @@
-enum OnboardingStepId {
-  dateGoal,
-  dragPiece,
-  rotatePiece,
-  flipPiece,
-}
+enum OnboardingStepId { dateGoal, dragPiece, drawPiece, rotatePiece, flipPiece }
 
 class OnboardingStep {
   const OnboardingStep({

@@ -22,9 +22,12 @@ sealed class PuzzleEvent with _$PuzzleEvent {
 
   const factory PuzzleEvent.onDoubleTapDown(final Offset localPosition) = _OnDoubleTapDown;
 
+  const factory PuzzleEvent.clearDrawnGroup() = _ClearDrawnGroup;
+
   const factory PuzzleEvent.solve({required final bool showResult}) = _Solve;
 
-  const factory PuzzleEvent.setSolvingResults(final Iterable<Map<String, PlacementParams>> solutions) = _SetSolvingResults;
+  const factory PuzzleEvent.setSolvingResults(final Iterable<Map<String, PlacementParams>> solutions) =
+      _SetSolvingResults;
 
   const factory PuzzleEvent.showSolution(final int index) = _ShowSolution;
 
@@ -49,10 +52,8 @@ sealed class PuzzleEvent with _$PuzzleEvent {
     @Default(false) final bool onboarding,
   }) = _RestoreLocalSnapshot;
 
-  const factory PuzzleEvent.setPuzzleDate(
-    final DateTime date, {
-    @Default(false) final bool onboarding,
-  }) = _SetPuzzleDate;
+  const factory PuzzleEvent.setPuzzleDate(final DateTime date, {@Default(false) final bool onboarding}) =
+      _SetPuzzleDate;
 
   const factory PuzzleEvent.markSolvedDialogShown() = _MarkSolvedDialogShown;
 }

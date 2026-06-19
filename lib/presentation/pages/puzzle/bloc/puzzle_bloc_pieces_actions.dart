@@ -150,6 +150,9 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     }
 
     final targetPiece = _buildDrawnGroupTargetPiece(match);
+    if (_isOnboardingSession && !_isOnboardingDrawTarget(targetPiece)) {
+      return null;
+    }
     final hasCollision = _movementHandler.checkCollision(
       piece: targetPiece,
       newPosition: targetPiece.position,
@@ -160,6 +163,21 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       boardConfig: state.boardConfig,
     );
     return hasCollision ? null : match;
+  }
+
+  bool _isOnboardingDrawTarget(final PuzzlePieceUI targetPiece) {
+    final targetTopLeft = Offset(
+      state.gridConfig.origin.dx + 3 * state.gridConfig.cellSize,
+      state.gridConfig.origin.dy,
+    );
+    if (targetPiece.type != PieceType.pShape || targetPiece.placeZone != PlaceZone.grid) {
+      return false;
+    }
+
+    final expectedPiece = targetPiece.copyWith(position: targetTopLeft, rotation: 0, isFlipped: false);
+    final expectedCells = expectedPiece.cells(state.gridConfig.origin, state.gridConfig.cellSize);
+    final actualCells = targetPiece.cells(state.gridConfig.origin, state.gridConfig.cellSize);
+    return expectedCells.length == actualCells.length && actualCells.containsAll(expectedCells);
   }
 
   PuzzlePieceUI _buildDrawnGroupTargetPiece(final PieceShapeMatch match) {

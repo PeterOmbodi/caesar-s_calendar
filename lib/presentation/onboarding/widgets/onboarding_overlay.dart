@@ -63,6 +63,8 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
           final interactionHole = switch (step.id) {
             OnboardingStepId.dragPiece when onboardingState.isCurrentStepInteractionEnabled =>
               cachedDragInteractionHole,
+            OnboardingStepId.drawPiece when onboardingState.isCurrentStepInteractionEnabled =>
+              puzzleState.gridConfig.getBounds.inflate(8),
             OnboardingStepId.rotatePiece when onboardingState.isCurrentStepInteractionEnabled =>
               puzzleState.gridConfig.getBounds.inflate(8),
             OnboardingStepId.flipPiece when onboardingState.isCurrentStepInteractionEnabled =>
@@ -70,7 +72,9 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
             _ => null,
           };
 
-          final targetHighlightPiece = step.id == OnboardingStepId.dragPiece && !onboardingState.isCurrentStepComplete
+          final targetHighlightPiece =
+              (step.id == OnboardingStepId.dragPiece || step.id == OnboardingStepId.drawPiece) &&
+                  !onboardingState.isCurrentStepComplete
               ? buildDragDemoTargetPiece(puzzleState)
               : null;
           final isDragInteractionEnabled =
@@ -143,6 +147,12 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
                               !onboardingState.isCurrentStepInteractionEnabled &&
                               !onboardingState.isCurrentStepComplete
                           ? () => startCurrentStepInteraction(step)
+                          : null,
+                      onTryAgainPressed:
+                          step.id == OnboardingStepId.drawPiece &&
+                              onboardingState.isCurrentStepInteractionEnabled &&
+                              puzzleState.drawnGroup != null
+                          ? () => context.read<PuzzleBloc>().add(const PuzzleEvent.clearDrawnGroup())
                           : null,
                     ),
                   ),

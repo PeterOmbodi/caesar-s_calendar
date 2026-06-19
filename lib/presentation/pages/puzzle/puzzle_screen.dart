@@ -127,6 +127,12 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 },
               ),
               BlocListener<PuzzleBloc, PuzzleState>(
+                listenWhen: (final previous, final current) => _didCompleteDrawOnboardingStep(previous, current),
+                listener: (final context, final state) {
+                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.drawPiece);
+                },
+              ),
+              BlocListener<PuzzleBloc, PuzzleState>(
                 listenWhen: (final previous, final current) => _didCompleteRotateOnboardingStep(previous, current),
                 listener: (final context, final state) {
                   _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.rotatePiece);
@@ -313,6 +319,40 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         move.to.position.dy == targetRelativePosition.dy;
   }
 
+  bool _didCompleteDrawOnboardingStep(final PuzzleState previous, final PuzzleState current) {
+    final onboardingState = _onboardingBloc.state;
+    if (!onboardingState.isVisible ||
+        onboardingState.currentStep?.id != OnboardingStepId.drawPiece ||
+        !onboardingState.isCurrentStepInteractionEnabled) {
+      return false;
+    }
+    if (previous.drawnGroup == null ||
+        current.drawnGroup != null ||
+        current.moveIndex != previous.moveIndex + 1 ||
+        current.moveHistory.isEmpty) {
+      return false;
+    }
+
+    final move = current.moveHistory.last;
+    if (move is! MovePiece) {
+      return false;
+    }
+
+    final targetTopLeft = resolvePTargetTopLeft(current);
+    final targetRelativePosition = current.gridConfig.relativePosition(targetTopLeft);
+    final piece = current.pieces.firstWhere(
+      (final candidate) => candidate.id == move.pieceId,
+      orElse: () => current.pieces.first,
+    );
+
+    return piece.type == PieceType.pShape &&
+        !piece.isConfigItem &&
+        move.to.zone == PlaceZone.grid &&
+        piece.placeZone == PlaceZone.grid &&
+        move.to.position.dx == targetRelativePosition.dx &&
+        move.to.position.dy == targetRelativePosition.dy;
+  }
+
   bool _didCompleteRotateOnboardingStep(final PuzzleState previous, final PuzzleState current) {
     final onboardingState = _onboardingBloc.state;
     if (!onboardingState.isVisible ||
@@ -467,7 +507,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(S.current.onboardingReplayPrompt),
-          action: SnackBarAction(label: S.current.onboardingReplayAction, onPressed: _startOnboardingReplay),
+          action: SnackBarAction(label: S.current.onboardingReplayAction, onPressed: _startOnboardingUpdate),
         ),
       );
     }
@@ -476,8 +516,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   bool _didFinishOnboarding(final OnboardingState previous) =>
       previous.currentStepIndex == previous.steps.length - 1 && previous.canGoNext;
 
-  void _startOnboardingReplay() {
-    context.read<SettingsCubit>().markOnboardingOffered(currentOnboardingVersion);
-    _onboardingBloc.add(const StartOnboarding(OnboardingMode.short, isReplay: true));
+  void _startOnboardingUpdate() {
+    final settingsCubit = context.read<SettingsCubit>();
+    final completedVersion = settingsCubit.state.completedOnboardingVersion;
+    settingsCubit.markOnboardingOffered(currentOnboardingVersion);
+    _onboardingBloc.add(StartOnboarding(OnboardingMode.short, completedVersion: completedVersion));
   }
 }

@@ -235,6 +235,18 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     }
   }
 
+  FutureOr<void> _clearDrawnGroup(final _ClearDrawnGroup event, final Emitter<PuzzleState> emit) {
+    emit(
+      state.copyWith(
+        drawnGroup: null,
+        drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
+        isDrawingGroup: false,
+        selectedPiece: null,
+        isDragging: false,
+      ),
+    );
+  }
+
   PuzzlePieceUI? _findPieceAtPosition(final Offset position) =>
       state.pieces.lastWhereOrNull((final piece) => piece.containsPoint(position));
 

@@ -9,20 +9,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 class OnboardingCard extends StatelessWidget {
-  const OnboardingCard({super.key, required this.step, required this.state, this.onTryPressed});
+  const OnboardingCard({super.key, required this.step, required this.state, this.onTryPressed, this.onTryAgainPressed});
 
   final OnboardingStep step;
   final OnboardingState state;
   final VoidCallback? onTryPressed;
+  final VoidCallback? onTryAgainPressed;
 
   @override
   Widget build(final BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final tutorialDateText = DateFormat.MMMMd(locale).format(step.tutorialDate);
+    final cardHeight = MediaQuery.sizeOf(context).height >= 760 ? 292.0 : 272.0;
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 420, minHeight: 272, maxHeight: 272),
+      constraints: BoxConstraints(maxWidth: 420, minHeight: cardHeight, maxHeight: cardHeight),
       child: Card(
         elevation: 10,
         child: Padding(
@@ -49,6 +51,10 @@ class OnboardingCard extends StatelessWidget {
                   const Spacer(),
                   if (onTryPressed != null) ...[
                     FilledButton.tonal(onPressed: onTryPressed, child: Text(S.current.onboardingTry)),
+                    const Spacer(),
+                  ],
+                  if (onTryAgainPressed != null) ...[
+                    TextButton(onPressed: onTryAgainPressed, child: Text(S.current.onboardingTryAgain)),
                     const Spacer(),
                   ],
                   FilledButton(
@@ -111,40 +117,42 @@ class OnboardingCardBody extends StatelessWidget {
         _OnboardingProgress(state: state),
         const SizedBox(height: 8),
         Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: showCompletionOnly
-                ? Text(step.id.successMessage, style: textTheme.bodyMedium)
-                : step.id == OnboardingStepId.dateGoal
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(combinedBodyText, maxLines: 4, overflow: TextOverflow.ellipsis),
-                      const SizedBox(height: 8),
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.event_available, size: 18),
-                              const SizedBox(width: 8),
-                              Text(
-                                tutorialDateText,
-                                style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                              ),
-                            ],
+          child: SingleChildScrollView(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: showCompletionOnly
+                  ? Text(step.id.successMessage, style: textTheme.bodyMedium)
+                  : step.id == OnboardingStepId.dateGoal
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(combinedBodyText),
+                        const SizedBox(height: 8),
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.event_available, size: 18),
+                                const SizedBox(width: 8),
+                                Text(
+                                  tutorialDateText,
+                                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  )
-                : Text(combinedBodyText, maxLines: 5, overflow: TextOverflow.ellipsis),
+                      ],
+                    )
+                  : Text(combinedBodyText),
+            ),
           ),
         ),
       ],

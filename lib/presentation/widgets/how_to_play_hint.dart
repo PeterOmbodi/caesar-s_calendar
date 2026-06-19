@@ -1,21 +1,25 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_flip_flap/flip_flap_theme.dart';
 import 'package:flutter_flip_flap/models/flip_flap_item.dart';
-import 'package:flutter_flip_flap/split_flap_theme.dart';
 import 'package:flutter_flip_flap/widgets/flip_flap_display.dart';
 
 class HowToPlayHint extends StatelessWidget {
-  const HowToPlayHint({
-    super.key,
-    this.onReplayOnboarding,
-  });
+  const HowToPlayHint({super.key, this.onReplayOnboarding});
 
   final VoidCallback? onReplayOnboarding;
 
   @override
   Widget build(final BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final steps = <String>[S.current.howToPlayStepDrag, S.current.howToPlayStepRotate, S.current.howToPlayStepFlip, S.current.howToPlayShadow];
+    final steps = <String>[
+      S.current.howToPlayStepPlace,
+      S.current.howToPlayStepDraw,
+      S.current.howToPlayStepDrawEdit,
+      S.current.howToPlayStepRotate,
+      S.current.howToPlayStepFlip,
+      S.current.howToPlayShadow,
+    ];
     final viewWidth = MediaQuery.of(context).size.width;
     return SingleChildScrollView(
       padding: EdgeInsets.all(viewWidth < 600 ? 0 : 16),
@@ -59,6 +63,11 @@ class HowToPlayHint extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 6),
               child: Text('${index + 1}. ${steps[index]}', style: textTheme.bodyMedium),
             ),
+          ),
+          _InfoRow(
+            icon: Icons.draw,
+            title: S.current.howToPlayDrawnGroupTitle,
+            description: S.current.howToPlayDrawnGroupDescription,
           ),
           const SizedBox(height: 16),
           Text(S.current.howToPlayControlsTitle, style: textTheme.titleMedium),
@@ -122,10 +131,7 @@ class HowToPlayHint extends StatelessWidget {
             leadWidget: FlipFlapDisplay.fromText(
               text: '42',
               unitsInPack: 4,
-              unitConstraints: BoxConstraints(
-                minWidth: 20,
-                minHeight: 32,
-              ),
+              unitConstraints: BoxConstraints(minWidth: 20, minHeight: 32),
               unitType: UnitType.number,
               useShortestWay: false,
             ),
@@ -142,7 +148,10 @@ class HowToPlayHint extends StatelessWidget {
                       child: Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Text(S.current.time, style: FlipFlapTheme.of(context).textStyle.copyWith(fontSize: 14)),
+                          child: Text(
+                            S.current.time,
+                            style: FlipFlapTheme.of(context).textStyle.copyWith(fontSize: 14),
+                          ),
                         ),
                       ),
                     ),
@@ -152,7 +161,7 @@ class HowToPlayHint extends StatelessWidget {
                 FlipFlapDisplay.fromText(
                   text: '01:23',
                   unitConstraints: const BoxConstraints(minWidth: 20, minHeight: 32),
-                )
+                ),
               ],
             ),
             title: S.current.howToPlayTimerTitle,
@@ -168,7 +177,10 @@ class HowToPlayHint extends StatelessWidget {
                       child: Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Text(S.current.solutionShort, style: FlipFlapTheme.of(context).textStyle.copyWith(fontSize: 14)),
+                          child: Text(
+                            S.current.solutionShort,
+                            style: FlipFlapTheme.of(context).textStyle.copyWith(fontSize: 14),
+                          ),
                         ),
                       ),
                     ),
@@ -178,7 +190,7 @@ class HowToPlayHint extends StatelessWidget {
                 FlipFlapDisplay.fromText(
                   text: ' #01',
                   unitConstraints: const BoxConstraints(minWidth: 20, minHeight: 32),
-                )
+                ),
               ],
             ),
             title: S.current.howToPlaySolutionNumbTitle,
@@ -233,11 +245,7 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _InfoColumn extends StatelessWidget {
-  const _InfoColumn({
-    required this.leadWidget,
-    required this.title,
-    required this.description,
-  });
+  const _InfoColumn({required this.leadWidget, required this.title, required this.description});
 
   final Widget leadWidget;
   final String title;
@@ -257,7 +265,7 @@ class _InfoColumn extends StatelessWidget {
               const SizedBox(width: 12),
               Text(title, style: textTheme.titleSmall),
             ],
-          ) ,
+          ),
 
           Padding(
             padding: const EdgeInsets.only(left: 36, top: 4),

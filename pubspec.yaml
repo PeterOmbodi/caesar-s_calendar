@@ -3,7 +3,7 @@ description: Caesar’s Calendar Puzzle
 
 publish_to: 'none'
 
-version: 1.9.0+34
+version: 1.9.1+35
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -15,34 +15,34 @@ dependencies:
 
   intl: ^0.20.2
   get_it: ^9.2.1
-  injectable: ^2.7.1+4
+  injectable: ^3.0.0
   provider: ^6.1.5+1
-  bloc: ^9.2.0
+  bloc: ^9.2.1
   flutter_bloc: ^9.1.1
-  hydrated_bloc: ^10.1.1
-  path_provider: ^2.1.5
+  hydrated_bloc: ^11.0.0
+  path_provider: ^2.1.6
   freezed: ^3.2.5
   freezed_annotation: ^3.1.0
-  json_annotation: ^4.11.0
+  json_annotation: ^4.12.0
   collection: ^1.19.1
   flutter_platform_widgets: ^10.0.1
-  shared_preferences: ^2.5.4
+  shared_preferences: ^2.5.5
   url_launcher: ^6.3.2
-  flutter_native_splash: ^2.4.7
+  flutter_native_splash: ^2.4.8
   confetti: ^0.8.0
-  package_info_plus: ^9.0.0
-  flutter_flip_flap: ^0.4.2
-  drift: ^2.32.0
+  package_info_plus: ^10.1.0
+  flutter_flip_flap: ^0.5.0
+  drift: ^2.34.0
   path: ^1.9.1
   crypto: ^3.0.7
   exact_cover_dlx:
     path: packages/exact_cover_dlx
-  firebase_core: ^4.2.0
-  firebase_app_check: ^0.4.1+2
-  firebase_auth: ^6.0.2
-  cloud_firestore: ^6.0.2
+  firebase_core: ^4.11.0
+  firebase_app_check: ^0.4.5
+  firebase_auth: ^6.5.3
+  cloud_firestore: ^6.6.0
   google_sign_in: ^7.2.0
-  sign_in_with_apple: ^7.0.1
+  sign_in_with_apple: ^8.1.0
 
   flutter_localizations:
     sdk: flutter
@@ -52,14 +52,14 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  very_good_analysis: 10.2.0
-  injectable_generator: ^2.12.1
-  build_runner: ^2.12.2
+  very_good_analysis: 10.3.0
+  injectable_generator: ^3.0.2
+  build_runner: ^2.15.0
   flutter_launcher_icons: ^0.14.4
-  json_serializable: ^6.13.0
-  intl_utils: ^2.8.14
+  json_serializable: ^6.14.0
+  intl_utils: ^2.8.15
   intl_utils_formatter: ^1.0.1
-  drift_dev: ^2.32.0
+  drift_dev: ^2.34.0
 
 flutter_launcher_icons:
   android: true

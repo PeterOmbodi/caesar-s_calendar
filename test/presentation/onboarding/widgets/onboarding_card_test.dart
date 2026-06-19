@@ -12,25 +12,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final tutorialDate = DateTime(2024);
   late final steps = [
-    OnboardingStep(
-      id: OnboardingStepId.dateGoal,
-      tutorialDate: tutorialDate,
-    ),
-    OnboardingStep(
-      id: OnboardingStepId.dragPiece,
-      tutorialDate: tutorialDate,
-      requiresUserAction: true,
-    ),
-    OnboardingStep(
-      id: OnboardingStepId.rotatePiece,
-      tutorialDate: tutorialDate,
-      requiresUserAction: true,
-    ),
-    OnboardingStep(
-      id: OnboardingStepId.flipPiece,
-      tutorialDate: tutorialDate,
-      requiresUserAction: true,
-    ),
+    OnboardingStep(id: OnboardingStepId.dateGoal, tutorialDate: tutorialDate),
+    OnboardingStep(id: OnboardingStepId.dragPiece, tutorialDate: tutorialDate, requiresUserAction: true),
+    OnboardingStep(id: OnboardingStepId.drawPiece, tutorialDate: tutorialDate, requiresUserAction: true),
+    OnboardingStep(id: OnboardingStepId.rotatePiece, tutorialDate: tutorialDate, requiresUserAction: true),
+    OnboardingStep(id: OnboardingStepId.flipPiece, tutorialDate: tutorialDate, requiresUserAction: true),
   ];
 
   Future<void> pumpCard(
@@ -50,11 +36,7 @@ void main() {
           ],
           supportedLocales: S.delegate.supportedLocales,
           home: Scaffold(
-            body: OnboardingCard(
-              step: state.currentStep!,
-              state: state,
-              onTryPressed: onTryPressed,
-            ),
+            body: OnboardingCard(step: state.currentStep!, state: state, onTryPressed: onTryPressed),
           ),
         ),
       ),
