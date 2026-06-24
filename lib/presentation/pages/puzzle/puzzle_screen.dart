@@ -157,8 +157,13 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     _puzzleBloc.add(PuzzleEvent.setPuzzleDate(_tutorialDate, onboarding: true));
                   } else if (previous.isVisible && !state.isVisible) {
                     _onboardingCompletionDelayGeneration++;
+                    final settingsCubit = context.read<SettingsCubit>();
+                    final selectedDifficulty = state.selectedDifficulty;
+                    if (selectedDifficulty != null) {
+                      settingsCubit.setSolutionIndicator(selectedDifficulty);
+                    }
                     if (_didFinishOnboarding(previous)) {
-                      context.read<SettingsCubit>().completeOnboarding(currentOnboardingVersion);
+                      settingsCubit.completeOnboarding(currentOnboardingVersion);
                     }
                     final snapshot = _preOnboardingSnapshot;
                     _preOnboardingSnapshot = null;

@@ -3,6 +3,7 @@ import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_event.dart
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_state.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   OnboardingBloc() : super(const OnboardingState.hidden()) {
@@ -12,6 +13,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<PreviousOnboardingStep>(_onPreviousStep);
     on<CompleteCurrentOnboardingStep>(_onCompleteCurrentStep);
     on<StartCurrentOnboardingInteraction>(_onStartCurrentInteraction);
+    on<SelectOnboardingDifficulty>(_onSelectDifficulty);
   }
 
   static final DateTime _tutorialDate = DateTime(2024);
@@ -22,6 +24,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     OnboardingStep(id: OnboardingStepId.drawPiece, tutorialDate: _tutorialDate, requiresUserAction: true),
     OnboardingStep(id: OnboardingStepId.rotatePiece, tutorialDate: _tutorialDate, requiresUserAction: true),
     OnboardingStep(id: OnboardingStepId.flipPiece, tutorialDate: _tutorialDate, requiresUserAction: true),
+    OnboardingStep(id: OnboardingStepId.difficulty, tutorialDate: _tutorialDate),
   ];
 
   static const List<OnboardingStep> _extendedSteps = [];
@@ -37,10 +40,11 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         isReplay: event.isReplay,
         mode: event.mode,
         currentStepIndex: 0,
-        steps: _stepsForMode(event.mode, completedVersion: event.completedVersion),
+        steps: _stepsForMode(event.mode, completedVersion: event.completedVersion, isReplay: event.isReplay),
         isCurrentStepComplete: false,
         isCurrentStepInteractionEnabled: false,
         completedStepIds: const {},
+        pendingDifficulty: SolutionIndicator.countSolutions,
       ),
     );
   }
@@ -52,6 +56,14 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   void _onNextStep(final NextOnboardingStep event, final Emitter<OnboardingState> emit) {
     final step = state.currentStep;
     if (step == null) {
+      return;
+    }
+    if (step.id == OnboardingStepId.difficulty) {
+      final selectedDifficulty = state.pendingDifficulty;
+      if (selectedDifficulty == null) {
+        return;
+      }
+      emit(state.copyWith(isVisible: false, selectedDifficulty: selectedDifficulty));
       return;
     }
     if (step.requiresUserAction && !state.canSkipActionStep) {
@@ -107,16 +119,31 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     emit(state.copyWith(isCurrentStepInteractionEnabled: true));
   }
 
-  List<OnboardingStep> _stepsForMode(final OnboardingMode mode, {required final int completedVersion}) {
+  void _onSelectDifficulty(final SelectOnboardingDifficulty event, final Emitter<OnboardingState> emit) {
+    if (state.currentStep?.id != OnboardingStepId.difficulty) {
+      return;
+    }
+    emit(state.copyWith(pendingDifficulty: event.difficulty));
+  }
+
+  List<OnboardingStep> _stepsForMode(
+    final OnboardingMode mode, {
+    required final int completedVersion,
+    required final bool isReplay,
+  }) {
     if (completedVersion == 1) {
       return _v2UpdateSteps;
     }
 
-    switch (mode) {
-      case OnboardingMode.short:
-        return _basicSteps;
-      case OnboardingMode.full:
-        return [..._basicSteps, ..._extendedSteps];
+    final steps = switch (mode) {
+      OnboardingMode.short => _basicSteps,
+      OnboardingMode.full => [..._basicSteps, ..._extendedSteps],
+    };
+
+    if (isReplay) {
+      return steps.where((final step) => step.id != OnboardingStepId.difficulty).toList(growable: false);
     }
+
+    return steps;
   }
 }

@@ -4,6 +4,7 @@ import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_state.dart
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dart';
 import 'package:caesar_puzzle/presentation/onboarding/widgets/overlay/onboarding_card.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -85,6 +86,41 @@ void main() {
 
       final nextButton = tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Next'));
       expect(nextButton.onPressed, isNotNull);
+    });
+
+    testWidgets('shows a compact easy-selected difficulty selector with a persistent settings note', (
+      final tester,
+    ) async {
+      final difficultyStep = OnboardingStep(id: OnboardingStepId.difficulty, tutorialDate: tutorialDate);
+      final state = OnboardingState(
+        isVisible: true,
+        isReplay: false,
+        mode: OnboardingMode.short,
+        currentStepIndex: steps.length,
+        steps: [...steps, difficultyStep],
+        isCurrentStepComplete: false,
+        isCurrentStepInteractionEnabled: false,
+        completedStepIds: const {},
+        pendingDifficulty: SolutionIndicator.countSolutions,
+      );
+
+      await pumpCard(tester, state: state);
+
+      expect(find.text('Easy'), findsOneWidget);
+      expect(find.text('Medium'), findsOneWidget);
+      expect(find.text('Hard'), findsOneWidget);
+      expect(find.byIcon(Icons.close), findsNothing);
+      expect(find.byIcon(Icons.light_mode_outlined), findsNothing);
+      expect(find.byIcon(Icons.balance_outlined), findsNothing);
+      expect(find.byIcon(Icons.visibility_off_outlined), findsNothing);
+
+      expect(
+        find.text('Difficulty, timer, theme, language, and more can be changed anytime in Settings.'),
+        findsOneWidget,
+      );
+
+      final doneButton = tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Ok'));
+      expect(doneButton.onPressed, isNotNull);
     });
   });
 }
