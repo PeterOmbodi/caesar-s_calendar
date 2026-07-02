@@ -22,9 +22,11 @@ class SyncRunner {
   bool _pendingSync = false;
   bool _pendingProfilePublish = false;
 
-  void start() {
+  void start({final bool requestImmediateSync = true}) {
     _lifecycleListener ??= AppLifecycleListener(onStateChange: _onLifecycleChanged);
-    requestSync();
+    if (requestImmediateSync) {
+      requestSync();
+    }
   }
 
   void stop() {
@@ -57,6 +59,22 @@ class SyncRunner {
     _suspended = false;
     if (requestImmediateSync) {
       requestSync();
+    }
+  }
+
+  Future<void> runExclusiveSync() async {
+    if (!_suspended || _running) {
+      throw StateError('Exclusive sync requires a paused, idle SyncRunner.');
+    }
+
+    _status.setSyncing();
+    try {
+      await _sync.syncOnce();
+      await _publicProfile.publishNow();
+      _status.setSuccess();
+    } catch (e) {
+      _status.setError(e);
+      rethrow;
     }
   }
 

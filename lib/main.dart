@@ -23,7 +23,7 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await FirebaseBootstrap.ensureInitialized();
   configureInjection();
-  getIt<SyncRunner>().start();
+  getIt<SyncRunner>().start(requestImmediateSync: false);
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
         ? HydratedStorageDirectory.web

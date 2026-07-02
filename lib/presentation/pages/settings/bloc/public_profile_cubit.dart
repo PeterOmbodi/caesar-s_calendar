@@ -18,8 +18,9 @@ class PublicProfileCubit extends Cubit<PublicProfileState> {
     this._profiles,
     this._auth,
     this._syncRunner,
-    this._syncStatus,
-  ) : super(PublicProfileState.initial(syncStatus: _syncStatus.state)) {
+    this._syncStatus, {
+    this.operationTimeout = const Duration(seconds: 15),
+  }) : super(PublicProfileState.initial(syncStatus: _syncStatus.state)) {
     _init();
   }
 
@@ -27,6 +28,7 @@ class PublicProfileCubit extends Cubit<PublicProfileState> {
   final AuthService _auth;
   final SyncRunner _syncRunner;
   final SyncStatusService _syncStatus;
+  final Duration operationTimeout;
 
   StreamSubscription<Object?>? _authSub;
   StreamSubscription<SyncStatus>? _syncSub;
@@ -53,10 +55,15 @@ class PublicProfileCubit extends Cubit<PublicProfileState> {
 
     emit(state.copyWith(isUpdating: true, enabled: enabled, errorMessage: null));
     try {
-      await _profiles.setEnabled(enabled);
+      await _profiles.setEnabled(enabled).timeout(operationTimeout);
       emit(state.copyWith(isUpdating: false, enabled: enabled, errorMessage: null));
     } catch (e) {
-      final actual = await _profiles.isEnabled();
+      var actual = !enabled;
+      try {
+        actual = await _profiles.isEnabled().timeout(operationTimeout);
+      } catch (_) {
+        // Keep the last confirmed value when Firestore is still unavailable.
+      }
       emit(state.copyWith(isUpdating: false, enabled: actual, errorMessage: e.toString()));
     }
   }
@@ -79,7 +86,7 @@ class PublicProfileCubit extends Cubit<PublicProfileState> {
 
     emit(state.copyWith(isAvailable: true, isLoading: true, errorMessage: null));
     try {
-      final enabled = await _profiles.isEnabled();
+      final enabled = await _profiles.isEnabled().timeout(operationTimeout);
       emit(state.copyWith(isLoading: false, enabled: enabled, isUpdating: false, errorMessage: null));
     } catch (e) {
       emit(state.copyWith(isLoading: false, enabled: false, isUpdating: false, errorMessage: e.toString()));

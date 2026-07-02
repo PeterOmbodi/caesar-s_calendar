@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
-import 'package:caesar_puzzle/infrastructure/achievements/public_profile_service.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_failure.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_service.dart';
+import 'package:caesar_puzzle/presentation/auth/bloc/cloud_profile_transition_policy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
@@ -24,7 +24,6 @@ class AuthCubit extends Cubit<AuthState> {
     this._syncService,
     this._puzzleHistoryUseCase,
     this._syncRunner,
-    this._publicProfileService,
   ) : super(AuthState.initial(isAvailable: _auth.isAvailable)) {
     _init();
   }
@@ -34,7 +33,6 @@ class AuthCubit extends Cubit<AuthState> {
   final SyncService _syncService;
   final PuzzleHistoryUseCase _puzzleHistoryUseCase;
   final SyncRunner _syncRunner;
-  final PublicProfileService _publicProfileService;
 
   static const _lastCloudUidKey = 'last_cloud_uid';
 
@@ -60,8 +58,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       await _runWithSyncPaused(() async {
         await _prepareLocalDataForSignedInUser(currentUser.uid);
-        await _syncService.syncOnce();
-        await _publicProfileService.publishNow();
+        await _syncRunner.runExclusiveSync();
       });
       await _setLastCloudUid(currentUser.uid);
       emit(state.copyWith(user: currentUser, isLoading: false, errorMessage: null));
@@ -192,8 +189,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> _completeSignedInUserTransition(final String uid) async {
     await _prepareLocalDataForSignedInUser(uid);
-    await _syncService.syncOnce();
-    await _publicProfileService.publishNow();
+    await _syncRunner.runExclusiveSync();
     await _setLastCloudUid(uid);
     emit(state.copyWith(isLoading: false, errorMessage: null, pendingCloudReplace: null));
   }
@@ -202,13 +198,19 @@ class AuthCubit extends Cubit<AuthState> {
     final lastCloudUid = await _getLastCloudUid();
     final hasCloudData = await _syncService.hasCloudData(uid);
 
-    final shouldClearLocalData = lastCloudUid != null || hasCloudData;
+    final shouldClearLocalData = shouldResetLocalProfile(
+      lastCloudUid: lastCloudUid,
+      currentUid: uid,
+      hasCloudData: hasCloudData,
+    );
     if (shouldClearLocalData) {
       await _resetLocalProfile();
       return;
     }
 
-    await _syncService.clearAllSyncCheckpoints();
+    if (lastCloudUid == null) {
+      await _syncService.clearAllSyncCheckpoints();
+    }
   }
 
   Future<void> _resetLocalProfile() async {

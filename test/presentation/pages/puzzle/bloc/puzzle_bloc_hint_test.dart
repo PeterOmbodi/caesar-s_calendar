@@ -122,6 +122,9 @@ class _FakeSyncRunner implements SyncRunner {
   Future<void> pause() async {}
 
   @override
+  Future<void> runExclusiveSync() async {}
+
+  @override
   void publishProfileNow() {}
 
   @override
@@ -131,7 +134,7 @@ class _FakeSyncRunner implements SyncRunner {
   void resume({final bool requestImmediateSync = true}) {}
 
   @override
-  void start() {}
+  void start({final bool requestImmediateSync = true}) {}
 
   @override
   void stop() {}
