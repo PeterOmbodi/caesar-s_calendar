@@ -7,7 +7,6 @@ import 'package:caesar_puzzle/infrastructure/auth/auth_failure.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_service.dart';
-import 'package:caesar_puzzle/presentation/auth/bloc/cloud_profile_transition_policy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
@@ -198,11 +197,7 @@ class AuthCubit extends Cubit<AuthState> {
     final lastCloudUid = await _getLastCloudUid();
     final hasCloudData = await _syncService.hasCloudData(uid);
 
-    final shouldClearLocalData = shouldResetLocalProfile(
-      lastCloudUid: lastCloudUid,
-      currentUid: uid,
-      hasCloudData: hasCloudData,
-    );
+    final shouldClearLocalData = lastCloudUid != uid && (lastCloudUid != null || hasCloudData);
     if (shouldClearLocalData) {
       await _resetLocalProfile();
       return;
