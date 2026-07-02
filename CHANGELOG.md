@@ -1,3 +1,12 @@
+## 1.9.2+36
+- add difficulty selection to onboarding
+- animate onboarding progress
+- allow extending a drawn group by tapping an adjacent free cell
+- improve initial piece centering across screen orientations
+- fix iOS project configuration
+- improve cloud sync and public profile stability
+- simplify account UI and hide the internal user ID
+
 ## 1.9.1+35
 - add draw piece tutorial step
 

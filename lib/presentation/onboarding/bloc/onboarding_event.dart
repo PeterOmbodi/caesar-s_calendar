@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 
 sealed class OnboardingEvent {
   const OnboardingEvent();
@@ -30,4 +31,10 @@ class CompleteCurrentOnboardingStep extends OnboardingEvent {
 
 class StartCurrentOnboardingInteraction extends OnboardingEvent {
   const StartCurrentOnboardingInteraction();
+}
+
+class SelectOnboardingDifficulty extends OnboardingEvent {
+  const SelectOnboardingDifficulty(this.difficulty);
+
+  final SolutionIndicator difficulty;
 }

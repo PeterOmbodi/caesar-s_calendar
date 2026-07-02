@@ -8,7 +8,7 @@ enum OnboardingInputAction { tap, drag, doubleTap }
 enum OnboardingPShapeSetup { board, target, targetRotated90 }
 
 extension OnboardingStepIdPolicyX on OnboardingStepId {
-  bool get supportsTry => this != OnboardingStepId.dateGoal;
+  bool get supportsTry => this != OnboardingStepId.dateGoal && this != OnboardingStepId.difficulty;
 
   bool get usesGridInteractionHole =>
       this == OnboardingStepId.drawPiece || this == OnboardingStepId.rotatePiece || this == OnboardingStepId.flipPiece;
@@ -51,6 +51,7 @@ extension OnboardingStepIdPolicyX on OnboardingStepId {
     OnboardingStepId.drawPiece => S.current.onboardingDrawTitle,
     OnboardingStepId.rotatePiece => S.current.onboardingRotateTitle,
     OnboardingStepId.flipPiece => S.current.onboardingFlipTitle,
+    OnboardingStepId.difficulty => S.current.onboardingDifficultyTitle,
   };
 
   String get stepDescription => switch (this) {
@@ -59,6 +60,7 @@ extension OnboardingStepIdPolicyX on OnboardingStepId {
     OnboardingStepId.drawPiece => S.current.onboardingDrawDescription,
     OnboardingStepId.rotatePiece => S.current.onboardingRotateDescription,
     OnboardingStepId.flipPiece => S.current.onboardingFlipDescription,
+    OnboardingStepId.difficulty => S.current.onboardingDifficultySettingsNote,
   };
 
   String get successMessage => switch (this) {
@@ -67,6 +69,7 @@ extension OnboardingStepIdPolicyX on OnboardingStepId {
     OnboardingStepId.drawPiece => S.current.onboardingDrawDetected,
     OnboardingStepId.rotatePiece => S.current.onboardingRotateDetected,
     OnboardingStepId.flipPiece => S.current.onboardingFlipDetected,
+    OnboardingStepId.difficulty => '',
   };
 
   String instructionText({required final bool isInteractionEnabled}) {

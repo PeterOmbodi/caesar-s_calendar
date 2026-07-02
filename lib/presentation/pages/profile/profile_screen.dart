@@ -3,7 +3,6 @@ import 'package:caesar_puzzle/infrastructure/firebase/firestore_paths.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key, required this.uid});
@@ -78,15 +77,16 @@ class _ShareRow extends StatelessWidget {
     spacing: 8,
     runSpacing: 8,
     children: [
-      OutlinedButton.icon(
-        onPressed: () async {
-          await Clipboard.setData(ClipboardData(text: uid));
-          if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.current.profileCopiedUid)));
-        },
-        icon: const Icon(Icons.copy),
-        label: Text(S.current.profileCopyUid),
-      ),
+      // todo need to provide sharing
+      // OutlinedButton.icon(
+      //   onPressed: () async {
+      //     await Clipboard.setData(ClipboardData(text: uid));
+      //     if (!context.mounted) return;
+      //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.current.profileCopiedUid)));
+      //   },
+      //   icon: const Icon(Icons.copy),
+      //   label: Text(S.current.profileCopyUid),
+      // ),
     ],
   );
 }

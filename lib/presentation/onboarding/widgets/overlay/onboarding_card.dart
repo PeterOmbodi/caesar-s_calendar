@@ -4,6 +4,7 @@ import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_event.dart
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_state.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -43,7 +44,7 @@ class OnboardingCard extends StatelessWidget {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  if (state.currentStepIndex > 0)
+                  if (state.currentStepIndex > 0 && step.id != OnboardingStepId.difficulty)
                     TextButton(
                       onPressed: () => context.read<OnboardingBloc>().add(const PreviousOnboardingStep()),
                       child: Text(S.current.onboardingBack),
@@ -58,7 +59,9 @@ class OnboardingCard extends StatelessWidget {
                     const Spacer(),
                   ],
                   FilledButton(
-                    onPressed: step.requiresUserAction && !state.canSkipActionStep
+                    onPressed: step.id == OnboardingStepId.difficulty && state.pendingDifficulty == null
+                        ? null
+                        : step.requiresUserAction && !state.canSkipActionStep
                         ? null
                         : () => context.read<OnboardingBloc>().add(const NextOnboardingStep()),
                     child: Text(
@@ -105,12 +108,13 @@ class OnboardingCardBody extends StatelessWidget {
         Row(
           children: [
             Expanded(child: Text(step.id.stepTitle, style: textTheme.titleLarge)),
-            IconButton(
-              onPressed: () => context.read<OnboardingBloc>().add(const DismissOnboarding()),
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.close),
-              tooltip: S.current.onboardingClose,
-            ),
+            if (step.id != OnboardingStepId.difficulty)
+              IconButton(
+                onPressed: () => context.read<OnboardingBloc>().add(const DismissOnboarding()),
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.close),
+                tooltip: S.current.onboardingClose,
+              ),
           ],
         ),
         const SizedBox(height: 4),
@@ -122,6 +126,8 @@ class OnboardingCardBody extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: showCompletionOnly
                   ? Text(step.id.successMessage, style: textTheme.bodyMedium)
+                  : step.id == OnboardingStepId.difficulty
+                  ? _DifficultySelector(selectedDifficulty: state.pendingDifficulty)
                   : step.id == OnboardingStepId.dateGoal
                   ? Column(
                       mainAxisSize: MainAxisSize.min,
@@ -160,6 +166,57 @@ class OnboardingCardBody extends StatelessWidget {
   }
 }
 
+class _DifficultySelector extends StatelessWidget {
+  const _DifficultySelector({required this.selectedDifficulty});
+
+  final SolutionIndicator? selectedDifficulty;
+
+  @override
+  Widget build(final BuildContext context) {
+    final description = switch (selectedDifficulty) {
+      SolutionIndicator.countSolutions => S.current.onboardingDifficultyEasyDescription,
+      SolutionIndicator.solvability => S.current.onboardingDifficultyMediumDescription,
+      SolutionIndicator.none => S.current.onboardingDifficultyHardDescription,
+      null => S.current.onboardingDifficultySettingsNote,
+    };
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: SegmentedButton<SolutionIndicator>(
+            segments: [
+              ButtonSegment(
+                value: SolutionIndicator.countSolutions,
+                label: Text(S.current.onboardingDifficultyEasyTitle),
+              ),
+              ButtonSegment(
+                value: SolutionIndicator.solvability,
+                label: Text(S.current.onboardingDifficultyMediumTitle),
+              ),
+              ButtonSegment(value: SolutionIndicator.none, label: Text(S.current.onboardingDifficultyHardTitle)),
+            ],
+            selected: selectedDifficulty == null ? const {} : {selectedDifficulty!},
+            emptySelectionAllowed: true,
+            showSelectedIcon: false,
+            onSelectionChanged: (final selected) {
+              if (selected.isEmpty) return;
+              context.read<OnboardingBloc>().add(SelectOnboardingDifficulty(selected.first));
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 40),
+          child: Text(description, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+        const SizedBox(height: 8),
+        Text(S.current.onboardingDifficultySettingsNote, style: Theme.of(context).textTheme.bodySmall),
+      ],
+    );
+  }
+}
+
 class _OnboardingProgress extends StatelessWidget {
   const _OnboardingProgress({required this.state});
 
@@ -168,19 +225,31 @@ class _OnboardingProgress extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    const spacing = 6.0;
 
-    return Row(
-      children: [
-        for (var i = 0; i < state.steps.length; i++) ...[
-          Expanded(
-            child: Container(
-              height: 6,
-              decoration: BoxDecoration(color: progressColor(colorScheme, i), borderRadius: BorderRadius.circular(999)),
-            ),
-          ),
-          if (i < state.steps.length - 1) const SizedBox(width: 6),
-        ],
-      ],
+    return LayoutBuilder(
+      builder: (final context, final constraints) {
+        final itemWidth = (constraints.maxWidth - spacing * (state.steps.length - 1)) / (state.steps.length + 1);
+        return Row(
+          spacing: spacing,
+          children: [
+            for (var i = 0; i < state.steps.length; i++)
+              AnimatedContainer(
+                key: ValueKey('onboarding-progress-$i'),
+                width: itemWidth * (i == state.currentStepIndex ? 2 : 1),
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                child: Container(
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: progressColor(colorScheme, i),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 

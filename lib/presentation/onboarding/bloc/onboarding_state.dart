@@ -1,5 +1,6 @@
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 
 class OnboardingState {
   const OnboardingState({
@@ -11,6 +12,8 @@ class OnboardingState {
     required this.isCurrentStepComplete,
     required this.isCurrentStepInteractionEnabled,
     required this.completedStepIds,
+    this.pendingDifficulty,
+    this.selectedDifficulty,
   });
 
   const OnboardingState.hidden()
@@ -21,7 +24,9 @@ class OnboardingState {
       steps = const [],
       isCurrentStepComplete = false,
       isCurrentStepInteractionEnabled = false,
-      completedStepIds = const {};
+      completedStepIds = const {},
+      pendingDifficulty = null,
+      selectedDifficulty = null;
 
   final bool isVisible;
   final bool isReplay;
@@ -31,16 +36,16 @@ class OnboardingState {
   final bool isCurrentStepComplete;
   final bool isCurrentStepInteractionEnabled;
   final Set<OnboardingStepId> completedStepIds;
+  final SolutionIndicator? pendingDifficulty;
+  final SolutionIndicator? selectedDifficulty;
 
   OnboardingStep? get currentStep =>
-      currentStepIndex >= 0 && currentStepIndex < steps.length
-          ? steps[currentStepIndex]
-          : null;
+      currentStepIndex >= 0 && currentStepIndex < steps.length ? steps[currentStepIndex] : null;
 
-  bool get isCurrentStepPreviouslyCompleted =>
-      currentStep != null && completedStepIds.contains(currentStep!.id);
+  bool get isCurrentStepPreviouslyCompleted => currentStep != null && completedStepIds.contains(currentStep!.id);
 
-  bool get canGoNext => currentStep?.requiresUserAction != true || isCurrentStepComplete || isCurrentStepPreviouslyCompleted;
+  bool get canGoNext =>
+      currentStep?.requiresUserAction != true || isCurrentStepComplete || isCurrentStepPreviouslyCompleted;
   bool get canSkipActionStep => isReplay || canGoNext;
 
   OnboardingState copyWith({
@@ -52,6 +57,8 @@ class OnboardingState {
     final bool? isCurrentStepComplete,
     final bool? isCurrentStepInteractionEnabled,
     final Set<OnboardingStepId>? completedStepIds,
+    final SolutionIndicator? pendingDifficulty,
+    final SolutionIndicator? selectedDifficulty,
   }) => OnboardingState(
     isVisible: isVisible ?? this.isVisible,
     isReplay: isReplay ?? this.isReplay,
@@ -59,8 +66,9 @@ class OnboardingState {
     currentStepIndex: currentStepIndex ?? this.currentStepIndex,
     steps: steps ?? this.steps,
     isCurrentStepComplete: isCurrentStepComplete ?? this.isCurrentStepComplete,
-    isCurrentStepInteractionEnabled:
-        isCurrentStepInteractionEnabled ?? this.isCurrentStepInteractionEnabled,
+    isCurrentStepInteractionEnabled: isCurrentStepInteractionEnabled ?? this.isCurrentStepInteractionEnabled,
     completedStepIds: completedStepIds ?? this.completedStepIds,
+    pendingDifficulty: pendingDifficulty ?? this.pendingDifficulty,
+    selectedDifficulty: selectedDifficulty ?? this.selectedDifficulty,
   );
 }

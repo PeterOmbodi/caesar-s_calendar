@@ -5,6 +5,7 @@ import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_board_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:flutter/material.dart';
@@ -50,8 +51,9 @@ class LayoutService {
       ),
     );
 
-    final boardX = boardConfig.initialX(gCellSize);
-    final boardY = boardConfig.initialY(gCellSize);
+    final boardInitialOrigin = _initialBoardPieceOrigin(boardConfig, gCellSize);
+    final boardX = boardInitialOrigin.dx;
+    final boardY = boardInitialOrigin.dy;
     final cellXOffset = gCellSize + boardExtraX;
 
     final centerPoint = Offset(gCellSize * gridCenterOffset, gCellSize * gridCenterOffset);
@@ -138,8 +140,7 @@ class LayoutService {
       ),
     );
 
-    final boardX = boardConfig.initialX(gCellSize);
-    final boardY = boardConfig.initialY(gCellSize);
+    final boardInitialOrigin = _initialBoardPieceOrigin(boardConfig, gCellSize);
 
     final gridCellMod = gCellSize / prevGrid.cellSize;
 
@@ -163,10 +164,9 @@ class LayoutService {
         )
         .toList();
 
-    final prevBoardX = prevBoard.initialX(prevGrid.cellSize);
-    final prevBoardY = prevBoard.initialY(prevGrid.cellSize);
-    final boardDeltaX = boardX - prevBoardX * gridCellMod;
-    final boardDeltaY = boardY - prevBoardY * gridCellMod;
+    final prevBoardInitialOrigin = _initialBoardPieceOrigin(prevBoard, prevGrid.cellSize);
+    final boardDeltaX = boardInitialOrigin.dx - prevBoardInitialOrigin.dx * gridCellMod;
+    final boardDeltaY = boardInitialOrigin.dy - prevBoardInitialOrigin.dy * gridCellMod;
 
     final boardPieces = pieces
         .where((final p) => p.placeZone == PlaceZone.board)
@@ -187,6 +187,9 @@ class LayoutService {
     final floored = (smallestSide / (gridRows + 1)).floor();
     return floored < maxCellSize ? (floored.isEven ? floored.toDouble() : floored - 1.0) : maxCellSize;
   }
+
+  Offset _initialBoardPieceOrigin(final PuzzleBoardEntity board, final double cellSize) =>
+      Offset(board.getBounds.center.dx - (7 * cellSize + 6 * boardExtraX) / 2, board.initialY(cellSize));
 }
 
 class LayoutConfig {

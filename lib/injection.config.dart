@@ -119,7 +119,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i265.SyncService>(),
         gh<_i196.PuzzleHistoryUseCase>(),
         gh<_i187.SyncRunner>(),
-        gh<_i641.PublicProfileService>(),
       ),
     );
     return this;

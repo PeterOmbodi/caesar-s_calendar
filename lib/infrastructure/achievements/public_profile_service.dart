@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/infrastructure/achievements/public_profile_publish_policy.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:caesar_puzzle/infrastructure/firebase/firestore_paths.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/app_database.dart';
@@ -36,14 +37,17 @@ class PublicProfileService {
       return;
     }
 
-    await publishNow();
+    await _publishNow(enabling: true);
   }
 
-  Future<void> publishNow() async {
+  Future<void> publishNow() => _publishNow(enabling: false);
+
+  Future<void> _publishNow({required final bool enabling}) async {
     if (!_auth.isAvailable) return;
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
-    if (!await isEnabled()) return;
+    final profileExists = await isEnabled();
+    if (!canPublishPublicProfile(profileExists: profileExists, enabling: enabling)) return;
 
     final solvedSessions = await _countSolvedSessions();
     final solvedVariants = await _countSolvedVariants();

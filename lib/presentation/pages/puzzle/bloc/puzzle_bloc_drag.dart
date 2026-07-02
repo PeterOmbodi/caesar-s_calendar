@@ -27,18 +27,22 @@ extension PuzzleBlocDragPart on PuzzleBloc {
 
     final cell = state.gridConfig.cellAt(event.localPosition);
     final drawnGroup = state.drawnGroup;
-    if (cell != null && drawnGroup != null && drawnGroup.contains(cell)) {
-      final updatedGroup = _drawnGroupService.remove(group: drawnGroup, cell: cell);
-      emit(
-        state.copyWith(
-          drawnGroup: updatedGroup,
-          drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(updatedGroup),
-          selectedPiece: null,
-          isDragging: false,
-          isDrawingGroup: false,
-        ),
-      );
-      return Future<void>.value();
+    if (cell != null && drawnGroup != null) {
+      final updatedGroup = drawnGroup.contains(cell)
+          ? _drawnGroupService.remove(group: drawnGroup, cell: cell)
+          : _drawnGroupService.extend(group: drawnGroup, cell: cell, grid: state.gridConfig, pieces: state.pieces);
+      if (updatedGroup != drawnGroup) {
+        emit(
+          state.copyWith(
+            drawnGroup: updatedGroup,
+            drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(updatedGroup),
+            selectedPiece: null,
+            isDragging: false,
+            isDrawingGroup: false,
+          ),
+        );
+        return Future<void>.value();
+      }
     }
 
     if (state.selectedPiece != null && !state.isDragging) {

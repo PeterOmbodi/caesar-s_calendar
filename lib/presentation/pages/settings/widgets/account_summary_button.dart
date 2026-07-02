@@ -27,7 +27,7 @@ class AccountSummaryButton extends StatelessWidget {
         ? auth.isAvailable
             ? S.current.accountTapToSignInAndSync
             : S.current.accountSignInUnavailable
-        : user.uid;
+        : '';
 
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
