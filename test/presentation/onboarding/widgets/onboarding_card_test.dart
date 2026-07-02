@@ -45,6 +45,43 @@ void main() {
   }
 
   group('OnboardingCard', () {
+    testWidgets('animates progress item widths when current step changes', (final tester) async {
+      OnboardingState stateAt(final int index) => OnboardingState(
+        isVisible: true,
+        isReplay: false,
+        mode: OnboardingMode.short,
+        currentStepIndex: index,
+        steps: steps,
+        isCurrentStepComplete: true,
+        isCurrentStepInteractionEnabled: false,
+        completedStepIds: const {},
+      );
+
+      await pumpCard(tester, state: stateAt(0));
+
+      final firstItem = find.byKey(const ValueKey('onboarding-progress-0'));
+      final secondItem = find.byKey(const ValueKey('onboarding-progress-1'));
+      expect(firstItem, findsOneWidget);
+      expect(secondItem, findsOneWidget);
+      final initialFirstWidth = tester.getSize(firstItem).width;
+      final initialSecondWidth = tester.getSize(secondItem).width;
+
+      await pumpCard(tester, state: stateAt(1));
+      await tester.pump(const Duration(milliseconds: 125));
+
+      final intermediateFirstWidth = tester.getSize(firstItem).width;
+      final intermediateSecondWidth = tester.getSize(secondItem).width;
+      expect(intermediateFirstWidth, lessThan(initialFirstWidth));
+      expect(intermediateFirstWidth, greaterThan(initialSecondWidth));
+      expect(intermediateSecondWidth, greaterThan(initialSecondWidth));
+      expect(intermediateSecondWidth, lessThan(initialFirstWidth));
+
+      await tester.pumpAndSettle();
+
+      expect(tester.getSize(firstItem).width, closeTo(initialSecondWidth, 0.01));
+      expect(tester.getSize(secondItem).width, closeTo(initialFirstWidth, 0.01));
+    });
+
     testWidgets('shows Try and disables Next for incomplete action step', (final tester) async {
       final state = OnboardingState(
         isVisible: true,

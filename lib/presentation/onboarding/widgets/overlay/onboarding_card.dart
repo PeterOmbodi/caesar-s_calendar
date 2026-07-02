@@ -225,19 +225,31 @@ class _OnboardingProgress extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    const spacing = 6.0;
 
-    return Row(
-      children: [
-        for (var i = 0; i < state.steps.length; i++) ...[
-          Expanded(
-            child: Container(
-              height: 6,
-              decoration: BoxDecoration(color: progressColor(colorScheme, i), borderRadius: BorderRadius.circular(999)),
-            ),
-          ),
-          if (i < state.steps.length - 1) const SizedBox(width: 6),
-        ],
-      ],
+    return LayoutBuilder(
+      builder: (final context, final constraints) {
+        final itemWidth = (constraints.maxWidth - spacing * (state.steps.length - 1)) / (state.steps.length + 1);
+        return Row(
+          spacing: spacing,
+          children: [
+            for (var i = 0; i < state.steps.length; i++)
+              AnimatedContainer(
+                key: ValueKey('onboarding-progress-$i'),
+                width: itemWidth * (i == state.currentStepIndex ? 2 : 1),
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                child: Container(
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: progressColor(colorScheme, i),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
