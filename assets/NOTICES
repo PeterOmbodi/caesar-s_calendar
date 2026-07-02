@@ -6144,7 +6144,6 @@ flutter_lints
 google_identity_services_web
 google_sign_in
 google_sign_in_platform_interface
-path_provider_linux
 path_provider_windows
 plugin_platform_interface
 shared_preferences_linux
@@ -11499,6 +11498,7 @@ google_sign_in_web
 path_provider
 path_provider_android
 path_provider_foundation
+path_provider_linux
 path_provider_platform_interface
 shared_preferences
 shared_preferences_android
