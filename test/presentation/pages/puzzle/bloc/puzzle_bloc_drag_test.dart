@@ -175,6 +175,72 @@ void main() {
     expect(bloc!.state.drawnGroup?.cellSet, {Cell(0, 0), Cell(0, 1), Cell(1, 1)});
   });
 
+  test('tap adds an orthogonally adjacent free cell to drawn group', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _drawCells(bloc!, [Cell(0, 0)]);
+
+    bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 0, 1)));
+    await _drain();
+
+    expect(bloc!.state.drawnGroup?.cellSet, {Cell(0, 0), Cell(0, 1)});
+  });
+
+  test('tap ignores diagonal and non-adjacent cells', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _drawCells(bloc!, [Cell(0, 0)]);
+
+    bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 1, 1)));
+    await _drain();
+    bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 0, 2)));
+    await _drain();
+
+    expect(bloc!.state.drawnGroup?.cellSet, {Cell(0, 0)});
+  });
+
+  test('tap ignores an occupied cell adjacent to drawn group', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    final square = bloc!.state.boardPieces.firstWhere((final piece) => piece.id == 'Square');
+    final gridPosition = bloc!.state.gridConfig.cellTopLeft(Cell(0, 0));
+    final pieces = bloc!.state.pieces
+        .map(
+          (final piece) =>
+              piece.id == square.id ? piece.copyWith(position: gridPosition, placeZone: PlaceZone.grid) : piece,
+        )
+        .toList();
+    (bloc! as dynamic).emit(bloc!.state.copyWith(pieces: pieces));
+    await _drawCells(bloc!, [Cell(3, 0)]);
+
+    bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 2, 0)));
+    await _drain();
+
+    expect(bloc!.state.drawnGroup?.cellSet, {Cell(3, 0)});
+  });
+
+  test('tap does not start a drawn group', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 0, 0)));
+    await _drain();
+
+    expect(bloc!.state.drawnGroup, isNull);
+  });
+
+  test('tap on a drawn cell still removes it', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1)]);
+
+    bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 0, 1)));
+    await _drain();
+
+    expect(bloc!.state.drawnGroup?.cellSet, {Cell(0, 0)});
+  });
+
   test('drawn group status is too small before five cells', () async {
     bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
     await Future<void>.delayed(const Duration(milliseconds: 250));
