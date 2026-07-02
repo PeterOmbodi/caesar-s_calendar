@@ -151,18 +151,12 @@ class _AccountSectionState extends State<AccountSection> {
                           style: Theme.of(context).textTheme.titleMedium,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text(user.uid, style: Theme.of(context).textTheme.bodySmall, overflow: TextOverflow.ellipsis),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-          Text(
-            user == null
-                ? (auth.isLoading ? S.current.accountSigningIn : S.current.accountLocalProfile)
-                : S.current.accountUidLabel(user.uid),
-          ),
           const SizedBox(height: 8),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
