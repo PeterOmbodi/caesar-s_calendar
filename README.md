@@ -59,7 +59,7 @@ Controls:
 1. Place pieces by dragging them from the tray onto the board, or by drawing their shape directly on free grid cells.
 2. To draw a placement, drag across free grid cells to create a temporary group.
 3. Double tap a valid drawn group to place the matching piece there.
-4. Tap a cell in a drawn group to remove it.
+4. Tap a free adjacent cell to add it to the group. Tap a cell in a drawn group to remove it.
 5. Tap or click a piece to rotate it.
 6. Double tap or double click a piece to flip it.
 7. Use the floating bottom toolbar for `History`, `Show solution`, `Undo`, `Redo`, and `Hint`.
