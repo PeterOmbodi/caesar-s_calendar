@@ -203,15 +203,15 @@ class _AccountSectionState extends State<AccountSection> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              FilledButton(
-                onPressed: canStartProviderSignIn ? cubit.signInWithGoogle : null,
-                child: Text(S.current.accountContinueWithGoogle),
-              ),
               if (_supportsAppleSignIn(context))
                 FilledButton(
                   onPressed: canStartProviderSignIn ? cubit.signInWithApple : null,
                   child: Text(S.current.accountContinueWithApple),
                 ),
+              FilledButton(
+                onPressed: canStartProviderSignIn ? cubit.signInWithGoogle : null,
+                child: Text(S.current.accountContinueWithGoogle),
+              ),
               OutlinedButton(
                 onPressed: (user == null || !publicProfile.enabled)
                     ? null
