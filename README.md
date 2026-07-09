@@ -223,6 +223,7 @@ The legacy in-app Dancing Links implementation is still kept under:
 - Freezed
 - Injectable / GetIt
 - Intl / ARB localization
+  
 
 ## License
 
