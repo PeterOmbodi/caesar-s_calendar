@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_status.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_status_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:injectable/injectable.dart';
 
@@ -14,15 +15,24 @@ part 'public_profile_state.dart';
 
 @injectable
 class PublicProfileCubit extends Cubit<PublicProfileState> {
-  PublicProfileCubit(
+  PublicProfileCubit(this._profiles, this._auth, this._syncRunner, this._syncStatus)
+    : operationTimeout = defaultOperationTimeout,
+      super(PublicProfileState.initial(syncStatus: _syncStatus.state)) {
+    _init();
+  }
+
+  @visibleForTesting
+  PublicProfileCubit.withOperationTimeout(
     this._profiles,
     this._auth,
     this._syncRunner,
     this._syncStatus, {
-    this.operationTimeout = const Duration(seconds: 15),
+    required this.operationTimeout,
   }) : super(PublicProfileState.initial(syncStatus: _syncStatus.state)) {
     _init();
   }
+
+  static const defaultOperationTimeout = Duration(seconds: 15);
 
   final PublicProfileService _profiles;
   final AuthService _auth;

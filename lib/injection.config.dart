@@ -101,6 +101,14 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i578.SyncStatusService>(),
       ),
     );
+    gh.factory<_i783.PublicProfileCubit>(
+      () => _i783.PublicProfileCubit(
+        gh<_i641.PublicProfileService>(),
+        gh<_i990.AuthService>(),
+        gh<_i187.SyncRunner>(),
+        gh<_i578.SyncStatusService>(),
+      ),
+    );
     gh.lazySingleton<_i196.PuzzleHistoryUseCase>(
       () => _i196.PuzzleHistoryUseCase(gh<_i735.PuzzleHistoryRepository>()),
     );
@@ -111,15 +119,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i265.SyncService>(),
         gh<_i196.PuzzleHistoryUseCase>(),
         gh<_i187.SyncRunner>(),
-      ),
-    );
-    gh.factory<_i783.PublicProfileCubit>(
-      () => _i783.PublicProfileCubit(
-        gh<_i641.PublicProfileService>(),
-        gh<_i990.AuthService>(),
-        gh<_i187.SyncRunner>(),
-        gh<_i578.SyncStatusService>(),
-        operationTimeout: gh<Duration>(),
       ),
     );
     return this;
