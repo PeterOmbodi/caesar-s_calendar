@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('toggle is re-enabled when the profile update times out', () async {
     final status = SyncStatusService();
-    final cubit = PublicProfileCubit(
+    final cubit = PublicProfileCubit.withOperationTimeout(
       _HangingPublicProfileService(),
       _FakeAuthService(),
       _FakeSyncRunner(),

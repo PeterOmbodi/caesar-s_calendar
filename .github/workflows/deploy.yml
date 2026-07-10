@@ -19,7 +19,7 @@ jobs:
       - run: flutter pub get
       - run: dart run build_runner build -d
       - run: dart run intl_utils:generate
-      - run: flutter build web --release --base-href /caesar-s_calendar/ --dart-define=FIREBASE_APPCHECK_WEB_SITE_KEY=$FIREBASE_APPCHECK_WEB_SITE_KEY
+      - run: flutter build web --release -O0 --source-maps --base-href /caesar-s_calendar/ --dart-define=FIREBASE_APPCHECK_WEB_SITE_KEY=$FIREBASE_APPCHECK_WEB_SITE_KEY
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
