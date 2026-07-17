@@ -29,7 +29,7 @@ extension TripleInfoDisplayX on TripleInfoDisplay {
               activeElapsedMs: state.activeElapsedMs,
               isPaused: state.isPaused,
             )
-            .map((final e) => e.toString().padLeft(2, '0'));
+            .map(InfoDisplay3Cell.formatTimerMinutes);
       case TripleInfoDisplay.solutionIndex:
         return Stream<String>.value(' #');
     }
@@ -69,6 +69,17 @@ class InfoDisplay3Cell extends StatelessWidget {
     required final Brightness brightness,
     required final double cellSize,
   }) => ValueKey('$label-${brightness.name}-${cellSize.toStringAsFixed(2)}');
+
+  static String formatTimerMinutes(final int minutes) {
+    if (minutes >= 1000) {
+      return '*${(minutes % 100).toString().padLeft(2, '0')}';
+    }
+
+    return minutes.toString().padLeft(2, '0');
+  }
+
+  static double timerMinuteSegmentWidth({required final double cellSize, required final String minuteText}) =>
+      cellSize * (minuteText.length > 2 ? 0.28 : 0.4);
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
@@ -125,13 +136,22 @@ class InfoDisplay3Cell extends StatelessWidget {
           StreamBuilder<String>(
             stream: cell2Stream,
             initialData: '',
-            builder: (final context, final snapshot) => ConstrainedBox(
-              constraints: state.gridConfig.cellConstraints(),
-              child: FlipFlapDisplay.fromText(
-                text: snapshot.data ?? '',
-                unitConstraints: BoxConstraints(minWidth: flapMinWidth, minHeight: flapMinHeight),
-              ),
-            ),
+            builder: (final context, final snapshot) {
+              final minuteText = snapshot.data ?? '';
+
+              return ConstrainedBox(
+                constraints: state.gridConfig.cellConstraints(),
+                child: FlipFlapDisplay.fromText(
+                  text: minuteText,
+                  unitConstraints: BoxConstraints(
+                    minWidth: displayMode == TripleInfoDisplay.timer
+                        ? timerMinuteSegmentWidth(cellSize: cellSize, minuteText: minuteText)
+                        : flapMinWidth,
+                    minHeight: flapMinHeight,
+                  ),
+                ),
+              );
+            },
           ),
           StreamBuilder<String>(
             stream: cell3Stream,
