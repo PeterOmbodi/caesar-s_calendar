@@ -20,6 +20,7 @@ class LayoutService {
   static const double gridEdgeTolerance = 5;
   static const double maxCellSize = 50;
   static const double boardToGridSizeRatio = 1.2;
+  static const double horizontalContentPadding = 8.0;
   static const int gridRows = 7;
   static const int gridColumns = 7;
   static const double defaultPadding = 16.0;
@@ -172,10 +173,13 @@ class LayoutService {
   double _calcCellSize(final Size viewSize) {
     final isPortrait = viewSize.height > viewSize.width;
     final gridAndBoardCells = gridRows * (1 + boardToGridSizeRatio);
-    final mainAxisAvailable = isPortrait ? viewSize.height - defaultPadding : viewSize.width - defaultPadding;
+    final horizontalInsets = horizontalContentPadding * 2;
+    final mainAxisAvailable = isPortrait
+        ? viewSize.height - defaultPadding
+        : viewSize.width - defaultPadding - horizontalInsets;
     final mainAxisCellSize = mainAxisAvailable / gridAndBoardCells;
     final crossAxisCellSize = isPortrait
-        ? viewSize.width / (gridColumns * boardToGridSizeRatio)
+        ? (viewSize.width - horizontalInsets) / (gridColumns * boardToGridSizeRatio)
         : viewSize.height / (gridRows * boardToGridSizeRatio);
     final floored = math.min(mainAxisCellSize, crossAxisCellSize).floor();
     return floored.isEven ? floored.toDouble() : floored - 1.0;
@@ -197,7 +201,7 @@ class LayoutService {
     if (isPortrait) {
       final contentWidth = math.max(gridWidth, boardWidth);
       final contentHeight = gridHeight + defaultPadding + boardHeight;
-      final left = (viewSize.width - contentWidth) / 2;
+      final left = horizontalContentPadding + (viewSize.width - horizontalContentPadding * 2 - contentWidth) / 2;
       final top = (viewSize.height - contentHeight) / 2;
       return (
         grid: Offset(left + (contentWidth - gridWidth) / 2, top),
@@ -207,7 +211,7 @@ class LayoutService {
 
     final contentWidth = gridWidth + defaultPadding + boardWidth;
     final contentHeight = math.max(gridHeight, boardHeight);
-    final left = (viewSize.width - contentWidth) / 2;
+    final left = horizontalContentPadding + (viewSize.width - horizontalContentPadding * 2 - contentWidth) / 2;
     final top = (viewSize.height - contentHeight) / 2;
     return (
       grid: Offset(left, top + (contentHeight - gridHeight) / 2),

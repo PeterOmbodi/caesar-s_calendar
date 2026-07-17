@@ -29,22 +29,26 @@ PuzzlePieceUI? buildDragDemoTargetPiece(final PuzzleState puzzleState) {
 }
 
 Rect buildDragInteractionHole(final PuzzleState puzzleState) {
-  final baseRect = puzzleState.gridConfig.getBounds
-      .expandToInclude(puzzleState.boardConfig.getBounds)
-      .inflate(8);
+  final baseRect = puzzleState.gridConfig.getBounds.expandToInclude(puzzleState.boardConfig.getBounds).inflate(8);
+  final extraInset = puzzleState.gridConfig.cellSize / 3;
   final sourcePiece = puzzleState.boardPieces
       .where((final piece) => piece.type == PieceType.pShape && !piece.isConfigItem)
       .cast<PuzzlePieceUI?>()
       .firstWhere((final piece) => piece != null, orElse: () => null);
   if (sourcePiece == null) {
-    return Rect.fromLTRB(baseRect.left + 8, baseRect.top, baseRect.right - 8, baseRect.bottom);
+    return Rect.fromLTRB(
+      baseRect.left + 8 - extraInset,
+      baseRect.top,
+      baseRect.right - 8 + extraInset,
+      baseRect.bottom,
+    );
   }
 
   final sourceBounds = sourcePiece.getTransformedPath().getBounds();
   return Rect.fromLTRB(
-    baseRect.left + 8,
+    baseRect.left + 8 - extraInset,
     baseRect.top,
-    baseRect.right - 8,
-    sourceBounds.bottom + 16,
+    baseRect.right - 8 + extraInset,
+    sourceBounds.bottom + 16 + extraInset,
   );
 }

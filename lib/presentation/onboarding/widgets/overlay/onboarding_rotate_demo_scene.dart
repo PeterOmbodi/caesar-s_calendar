@@ -6,19 +6,16 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingRotateDemoScene extends StatefulWidget {
-  const OnboardingRotateDemoScene({
-    super.key,
-    required this.piece,
-  });
+  const OnboardingRotateDemoScene({super.key, required this.piece, this.coordinateOffset = Offset.zero});
 
   final PuzzlePieceUI piece;
+  final Offset coordinateOffset;
 
   @override
   State<OnboardingRotateDemoScene> createState() => OnboardingRotateDemoSceneState();
 }
 
-class OnboardingRotateDemoSceneState extends State<OnboardingRotateDemoScene>
-    with SingleTickerProviderStateMixin {
+class OnboardingRotateDemoSceneState extends State<OnboardingRotateDemoScene> with SingleTickerProviderStateMixin {
   static const Offset tapOffset = Offset(6, -18);
   static const Duration tapDuration = Duration(milliseconds: 240);
 
@@ -44,27 +41,15 @@ class OnboardingRotateDemoSceneState extends State<OnboardingRotateDemoScene>
     ]).animate(controller);
     highlightOpacity = TweenSequence<double>([
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 40),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 18,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 18,
-      ),
+      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)), weight: 18),
+      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)), weight: 18),
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 24),
     ]).animate(controller);
     handOpacity = TweenSequence<double>([
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 14),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 10,
-      ),
+      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)), weight: 10),
       TweenSequenceItem(tween: ConstantTween<double>(0), weight: 42),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 10,
-      ),
+      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)), weight: 10),
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 24),
     ]).animate(controller);
     startLoop();
@@ -107,10 +92,14 @@ class OnboardingRotateDemoSceneState extends State<OnboardingRotateDemoScene>
     animation: controller,
     builder: (final context, final child) {
       final piece = widget.piece.copyWith(rotation: widget.piece.rotation + rotation.value);
-      final handAnchor = widget.piece.position + widget.piece.centerPoint + tapOffset;
+      final handAnchor = widget.piece.position + widget.piece.centerPoint + tapOffset + widget.coordinateOffset;
       return Stack(
         children: [
-          OnboardingPieceContourHighlight(piece: piece, opacity: highlightOpacity.value),
+          OnboardingPieceContourHighlight(
+            piece: piece,
+            coordinateOffset: widget.coordinateOffset,
+            opacity: highlightOpacity.value,
+          ),
           Positioned(
             left: handAnchor.dx,
             top: handAnchor.dy,
@@ -123,8 +112,7 @@ class OnboardingRotateDemoSceneState extends State<OnboardingRotateDemoScene>
                   tween: Tween(begin: 1, end: controller.value < 0.16 ? 0.84 : 1),
                   duration: tapDuration,
                   curve: Curves.easeInOut,
-                  builder: (final context, final scale, final child) =>
-                      Transform.scale(scale: scale, child: child),
+                  builder: (final context, final scale, final child) => Transform.scale(scale: scale, child: child),
                   child: const OnboardingDemoHandBubble(),
                 ),
               ),

@@ -12,7 +12,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 enum DemoHandPhase { visible, hidden }
 
 class OnboardingDragDemoScene extends StatefulWidget {
-  const OnboardingDragDemoScene({super.key});
+  const OnboardingDragDemoScene({super.key, this.coordinateOffset = Offset.zero});
+
+  final Offset coordinateOffset;
 
   @override
   State<OnboardingDragDemoScene> createState() => OnboardingDragDemoSceneState();
@@ -38,8 +40,12 @@ class OnboardingDragDemoSceneState extends State<OnboardingDragDemoScene> {
   @override
   Widget build(final BuildContext context) => Stack(
     children: [
-      OnboardingDragDemoRunner(onReachedTarget: hideHand, onReturned: showHand),
-      OnboardingDemoDragHandOverlay(phase: phase),
+      OnboardingDragDemoRunner(
+        coordinateOffset: widget.coordinateOffset,
+        onReachedTarget: hideHand,
+        onReturned: showHand,
+      ),
+      OnboardingDemoDragHandOverlay(phase: phase, coordinateOffset: widget.coordinateOffset),
     ],
   );
 }
@@ -47,10 +53,12 @@ class OnboardingDragDemoSceneState extends State<OnboardingDragDemoScene> {
 class OnboardingDragDemoRunner extends StatefulWidget {
   const OnboardingDragDemoRunner({
     super.key,
+    this.coordinateOffset = Offset.zero,
     required this.onReachedTarget,
     required this.onReturned,
   });
 
+  final Offset coordinateOffset;
   final VoidCallback onReachedTarget;
   final VoidCallback onReturned;
 
@@ -150,18 +158,16 @@ class OnboardingDragDemoRunnerState extends State<OnboardingDragDemoRunner> {
       if (piece == null) {
         return const SizedBox.shrink();
       }
-      return OnboardingPieceContourHighlight(piece: piece);
+      return OnboardingPieceContourHighlight(piece: piece, coordinateOffset: widget.coordinateOffset);
     },
   );
 }
 
 class OnboardingDemoDragHandOverlay extends StatefulWidget {
-  const OnboardingDemoDragHandOverlay({
-    super.key,
-    required this.phase,
-  });
+  const OnboardingDemoDragHandOverlay({super.key, required this.phase, this.coordinateOffset = Offset.zero});
 
   final DemoHandPhase phase;
+  final Offset coordinateOffset;
 
   @override
   State<OnboardingDemoDragHandOverlay> createState() => OnboardingDemoDragHandOverlayState();
@@ -185,7 +191,7 @@ class OnboardingDemoDragHandOverlayState extends State<OnboardingDemoDragHandOve
         return const SizedBox.shrink();
       }
 
-      final anchor = pShape.position + pShape.centerPoint + handOffset;
+      final anchor = pShape.position + pShape.centerPoint + handOffset + widget.coordinateOffset;
       return AnimatedPositioned(
         duration: moveDuration,
         curve: Curves.easeInOut,
@@ -209,8 +215,7 @@ class OnboardingDemoDragHandOverlayState extends State<OnboardingDemoDragHandOve
                       tween: Tween(begin: 0.92, end: 1),
                       duration: const Duration(milliseconds: 700),
                       curve: Curves.easeInOut,
-                      builder: (final context, final scale, final child) =>
-                          Transform.scale(scale: scale, child: child),
+                      builder: (final context, final scale, final child) => Transform.scale(scale: scale, child: child),
                       child: const OnboardingDemoHandBubble(),
                     ),
                   ),

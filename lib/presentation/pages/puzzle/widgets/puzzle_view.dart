@@ -80,8 +80,7 @@ class PuzzleView extends StatelessWidget {
 
         return state.status == GameStatus.initializing
             ? Center(child: CircularProgressIndicator())
-            : Container(
-                color: Theme.of(context).colorScheme.primary.withAlpha(18),
+            : SizedBox(
                 width: double.infinity,
                 height: double.infinity,
                 child: Stack(

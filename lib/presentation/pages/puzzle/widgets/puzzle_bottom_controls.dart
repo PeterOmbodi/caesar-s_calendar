@@ -43,19 +43,24 @@ extension _BottomControlIntroX on _BottomControlIntro {
 }
 
 class PuzzleBottomControls extends StatelessWidget {
-  const PuzzleBottomControls({super.key, required this.isSetupVisible});
+  const PuzzleBottomControls({super.key, required this.onSettingsPressed});
 
-  final bool isSetupVisible;
+  final void Function(BuildContext context) onSettingsPressed;
 
-  Future<bool> _showIntroIfNeeded(final BuildContext context, final _BottomControlIntro intro) => OneTimeInfoDialog.show(
-    context: context,
-    storageKey: intro.storageKey,
-    title: intro.title,
-    message: intro.message,
-    actionLabel: intro.actionLabel,
-  );
+  Future<bool> _showIntroIfNeeded(final BuildContext context, final _BottomControlIntro intro) =>
+      OneTimeInfoDialog.show(
+        context: context,
+        storageKey: intro.storageKey,
+        title: intro.title,
+        message: intro.message,
+        actionLabel: intro.actionLabel,
+      );
 
-  Future<void> _runAfterIntro(final BuildContext context, final _BottomControlIntro intro, final Future<void> Function() action) async {
+  Future<void> _runAfterIntro(
+    final BuildContext context,
+    final _BottomControlIntro intro,
+    final Future<void> Function() action,
+  ) async {
     if (!await _showIntroIfNeeded(context, intro)) {
       return;
     }
@@ -144,7 +149,10 @@ class PuzzleBottomControls extends StatelessWidget {
       title: Text(S.current.historyDifficultyMismatchTitle),
       content: Text(S.current.historyDifficultyMismatchContent(sessionDifficulty.label, currentDifficulty.label)),
       actions: [
-        PlatformDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(S.current.historySessionDialogCancel)),
+        PlatformDialogAction(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(S.current.historySessionDialogCancel),
+        ),
         PlatformDialogAction(
           onPressed: () => Navigator.of(dialogContext).pop(true),
           child: Text(S.current.historyDifficultyMismatchContinue),
@@ -159,8 +167,7 @@ class PuzzleBottomControls extends StatelessWidget {
       onPressed: () => _showHowToPlayDialog(context),
       tooltip: S.current.howToPlayTitle,
     ),
-    if (isSetupVisible)
-      IconButton(icon: Icon(Icons.settings), onPressed: () => Scaffold.of(context).openEndDrawer(), tooltip: S.current.settings),
+    IconButton(icon: Icon(Icons.settings), onPressed: () => onSettingsPressed(context), tooltip: S.current.settings),
     state.isSolving
         ? const SizedBox(
             width: FloatingPanel.buttonSize,
@@ -220,7 +227,8 @@ class PuzzleBottomControls extends StatelessWidget {
       final puzzleBloc = context.read<PuzzleBloc>();
       final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
       final isSolvabilityInfoVisible = solutionIndicator != SolutionIndicator.none;
-      final isSolutionSearchDisabled = state.isSolving || (isSolvabilityInfoVisible && solutionsCount == 0) || state.isShowSolutions;
+      final isSolutionSearchDisabled =
+          state.isSolving || (isSolvabilityInfoVisible && solutionsCount == 0) || state.isShowSolutions;
       final isHintDisabled = isSolutionSearchDisabled || state.isSolved;
 
       Future<void> onAssistPressed(final VoidCallback allowedEvent) async {
@@ -230,7 +238,9 @@ class PuzzleBottomControls extends StatelessWidget {
             builder: (final context) => PlatformAlertDialog(
               title: Text(S.of(context).searchCompletedDialogTitle),
               content: Text(S.of(context).solutionsNotFoundDialogMessage),
-              actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
+              actions: [
+                PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok)),
+              ],
             ),
           );
           return;
@@ -248,7 +258,10 @@ class PuzzleBottomControls extends StatelessWidget {
                   onPressed: () => Navigator.of(context).pop(false),
                   child: Text(S.of(context).solutionsFoundDialogCancel),
                 ),
-                PlatformDialogAction(onPressed: () => Navigator.of(context).pop(true), child: Text(S.of(context).solutionsFoundDialogOk)),
+                PlatformDialogAction(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(S.of(context).solutionsFoundDialogOk),
+                ),
               ],
             ),
           );

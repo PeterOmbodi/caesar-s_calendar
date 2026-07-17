@@ -21,7 +21,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OnboardingOverlay extends StatefulWidget {
-  const OnboardingOverlay({super.key});
+  const OnboardingOverlay({super.key, this.coordinateOffset = Offset.zero});
+
+  final Offset coordinateOffset;
 
   @override
   State<OnboardingOverlay> createState() => OnboardingOverlayState();
@@ -43,11 +45,11 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
         builder: (final context, final puzzleState) {
           final step = onboardingState.currentStep!;
           final highlightedRects = step.highlightedLabelIndices
-              .map((final index) => resolveLabelCellRect(puzzleState, index))
+              .map((final index) => resolveLabelCellRect(puzzleState, index)?.shift(widget.coordinateOffset))
               .whereType<Rect>()
               .toList(growable: true);
           if (step.highlightGrid) {
-            highlightedRects.add(puzzleState.gridConfig.getBounds);
+            highlightedRects.add(puzzleState.gridConfig.getBounds.shift(widget.coordinateOffset));
           }
 
           final spotlightHoles = step.id == OnboardingStepId.dateGoal
@@ -62,13 +64,13 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
 
           final interactionHole = switch (step.id) {
             OnboardingStepId.dragPiece when onboardingState.isCurrentStepInteractionEnabled =>
-              cachedDragInteractionHole,
+              cachedDragInteractionHole?.shift(widget.coordinateOffset),
             OnboardingStepId.drawPiece when onboardingState.isCurrentStepInteractionEnabled =>
-              puzzleState.gridConfig.getBounds.inflate(8),
+              puzzleState.gridConfig.getBounds.shift(widget.coordinateOffset).inflate(8),
             OnboardingStepId.rotatePiece when onboardingState.isCurrentStepInteractionEnabled =>
-              puzzleState.gridConfig.getBounds.inflate(8),
+              puzzleState.gridConfig.getBounds.shift(widget.coordinateOffset).inflate(8),
             OnboardingStepId.flipPiece when onboardingState.isCurrentStepInteractionEnabled =>
-              puzzleState.gridConfig.getBounds.inflate(8),
+              puzzleState.gridConfig.getBounds.shift(widget.coordinateOffset).inflate(8),
             _ => null,
           };
 
@@ -116,24 +118,29 @@ class OnboardingOverlayState extends State<OnboardingOverlay> {
                 if (targetHighlightPiece != null)
                   OnboardingPieceContourHighlight(
                     piece: targetHighlightPiece,
+                    coordinateOffset: widget.coordinateOffset,
                     showGlow: !isDragInteractionEnabled,
                     strokeWidth: isDragInteractionEnabled ? 1 : 4,
                   ),
                 if (step.id == OnboardingStepId.dragPiece &&
                     !onboardingState.isCurrentStepInteractionEnabled &&
                     !isPreparingInteraction)
-                  const OnboardingDragDemoScene(),
+                  OnboardingDragDemoScene(coordinateOffset: widget.coordinateOffset),
                 if (step.id == OnboardingStepId.rotatePiece && rotatePiece != null)
                   !onboardingState.isCurrentStepInteractionEnabled &&
                           !onboardingState.isCurrentStepComplete &&
                           !isPreparingInteraction
-                      ? OnboardingRotateDemoScene(piece: rotatePiece)
+                      ? OnboardingRotateDemoScene(piece: rotatePiece, coordinateOffset: widget.coordinateOffset)
                       : const SizedBox.shrink(),
                 if (step.id == OnboardingStepId.flipPiece && flipPiece != null)
                   !onboardingState.isCurrentStepInteractionEnabled &&
                           !onboardingState.isCurrentStepComplete &&
                           !isPreparingInteraction
-                      ? OnboardingFlipDemoScene(piece: flipPiece, cellSize: puzzleState.gridConfig.cellSize)
+                      ? OnboardingFlipDemoScene(
+                          piece: flipPiece,
+                          cellSize: puzzleState.gridConfig.cellSize,
+                          coordinateOffset: widget.coordinateOffset,
+                        )
                       : const SizedBox.shrink(),
                 Align(
                   alignment: Alignment.bottomCenter,
