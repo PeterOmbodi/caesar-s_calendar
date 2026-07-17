@@ -219,7 +219,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             ],
             child: Stack(
               children: [
-                const PuzzleView(),
+                if (isWideScreen)
+                  const Positioned(left: 0, top: 0, right: PuzzleScreen.sidePanelWidth, bottom: 0, child: PuzzleView())
+                else
+                  const PuzzleView(),
                 Align(
                   alignment: Alignment.topCenter,
                   child: BlocBuilder<PuzzleBloc, PuzzleState>(

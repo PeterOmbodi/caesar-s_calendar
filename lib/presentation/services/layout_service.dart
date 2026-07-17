@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
@@ -17,6 +19,7 @@ class LayoutService {
   static const double intersectionWidthThreshold = 2;
   static const double gridEdgeTolerance = 5;
   static const double maxCellSize = 50;
+  static const double boardToGridSizeRatio = 1.2;
   static const int gridRows = 7;
   static const int gridColumns = 7;
   static const double defaultPadding = 16.0;
@@ -26,29 +29,21 @@ class LayoutService {
 
   LayoutConfig buildInitialLayout(final Size viewSize, {final Iterable<PuzzlePieceUI> configurationPieces = const []}) {
     final gCellSize = _calcCellSize(viewSize);
-    final gLeftPadding = gCellSize < maxCellSize || viewSize.height < viewSize.width
-        ? wideScreenPadding
-        : (viewSize.width - gCellSize * gridColumns) / 2;
+    final boardCellSize = _calcBoardCellSize(gCellSize);
+    final positions = _calcLayoutPositions(viewSize, gCellSize, boardCellSize);
 
     final gridConfig = PuzzleGridEntity(
       cellSize: gCellSize,
       rows: gridRows,
       columns: gridColumns,
-      origin: Position(dx: gLeftPadding, dy: defaultPadding),
+      origin: Position(dx: positions.grid.dx, dy: positions.grid.dy),
     );
 
     final boardConfig = PuzzleBoardEntity(
-      cellSize: gCellSize + gLeftPadding / gridColumns,
+      cellSize: boardCellSize,
       rows: gridRows,
       columns: gridColumns,
-      origin: Position(
-        dx: viewSize.height > viewSize.width
-            ? gLeftPadding / 2
-            : gridConfig.origin.dx + gridConfig.cellSize * gridConfig.columns + defaultPadding,
-        dy: viewSize.height > viewSize.width
-            ? gridConfig.origin.dy + gridConfig.cellSize * gridConfig.rows + defaultPadding
-            : defaultPadding,
-      ),
+      origin: Position(dx: positions.board.dx, dy: positions.board.dy),
     );
 
     final boardInitialOrigin = _initialBoardPieceOrigin(boardConfig, gCellSize);
@@ -115,29 +110,21 @@ class LayoutService {
     required final Iterable<PuzzlePieceUI> pieces,
   }) {
     final gCellSize = _calcCellSize(viewSize);
-    final gLeftPadding = gCellSize < maxCellSize || viewSize.height < viewSize.width
-        ? wideScreenPadding
-        : (viewSize.width - gCellSize * gridColumns) / 2;
+    final boardCellSize = _calcBoardCellSize(gCellSize);
+    final positions = _calcLayoutPositions(viewSize, gCellSize, boardCellSize);
 
     final gridConfig = PuzzleGridEntity(
       cellSize: gCellSize,
       rows: gridRows,
       columns: gridColumns,
-      origin: Position(dx: gLeftPadding, dy: defaultPadding),
+      origin: Position(dx: positions.grid.dx, dy: positions.grid.dy),
     );
 
     final boardConfig = PuzzleBoardEntity(
-      cellSize: gCellSize + gLeftPadding / gridColumns,
+      cellSize: boardCellSize,
       rows: gridRows,
       columns: gridColumns,
-      origin: Position(
-        dx: viewSize.height > viewSize.width
-            ? gLeftPadding / 2
-            : gridConfig.origin.dx + gridConfig.cellSize * gridConfig.columns + defaultPadding,
-        dy: viewSize.height > viewSize.width
-            ? gridConfig.origin.dy + gridConfig.cellSize * gridConfig.rows + defaultPadding
-            : defaultPadding,
-      ),
+      origin: Position(dx: positions.board.dx, dy: positions.board.dy),
     );
 
     final boardInitialOrigin = _initialBoardPieceOrigin(boardConfig, gCellSize);
@@ -183,9 +170,49 @@ class LayoutService {
   }
 
   double _calcCellSize(final Size viewSize) {
-    final smallestSide = viewSize.width > viewSize.height ? viewSize.height : viewSize.width;
-    final floored = (smallestSide / (gridRows + 1)).floor();
-    return floored < maxCellSize ? (floored.isEven ? floored.toDouble() : floored - 1.0) : maxCellSize;
+    final isPortrait = viewSize.height > viewSize.width;
+    final gridAndBoardCells = gridRows * (1 + boardToGridSizeRatio);
+    final mainAxisAvailable = isPortrait ? viewSize.height - defaultPadding : viewSize.width - defaultPadding;
+    final mainAxisCellSize = mainAxisAvailable / gridAndBoardCells;
+    final crossAxisCellSize = isPortrait
+        ? viewSize.width / (gridColumns * boardToGridSizeRatio)
+        : viewSize.height / (gridRows * boardToGridSizeRatio);
+    final floored = math.min(mainAxisCellSize, crossAxisCellSize).floor();
+    return floored.isEven ? floored.toDouble() : floored - 1.0;
+  }
+
+  double _calcBoardCellSize(final double gridCellSize) => gridCellSize * boardToGridSizeRatio;
+
+  ({Offset grid, Offset board}) _calcLayoutPositions(
+    final Size viewSize,
+    final double gridCellSize,
+    final double boardCellSize,
+  ) {
+    final gridWidth = gridColumns * gridCellSize;
+    final gridHeight = gridRows * gridCellSize;
+    final boardWidth = gridColumns * boardCellSize;
+    final boardHeight = gridRows * boardCellSize;
+    final isPortrait = viewSize.height > viewSize.width;
+
+    if (isPortrait) {
+      final contentWidth = math.max(gridWidth, boardWidth);
+      final contentHeight = gridHeight + defaultPadding + boardHeight;
+      final left = (viewSize.width - contentWidth) / 2;
+      final top = (viewSize.height - contentHeight) / 2;
+      return (
+        grid: Offset(left + (contentWidth - gridWidth) / 2, top),
+        board: Offset(left + (contentWidth - boardWidth) / 2, top + gridHeight + defaultPadding),
+      );
+    }
+
+    final contentWidth = gridWidth + defaultPadding + boardWidth;
+    final contentHeight = math.max(gridHeight, boardHeight);
+    final left = (viewSize.width - contentWidth) / 2;
+    final top = (viewSize.height - contentHeight) / 2;
+    return (
+      grid: Offset(left, top + (contentHeight - gridHeight) / 2),
+      board: Offset(left + gridWidth + defaultPadding, top + (contentHeight - boardHeight) / 2),
+    );
   }
 
   Offset _initialBoardPieceOrigin(final PuzzleBoardEntity board, final double cellSize) =>

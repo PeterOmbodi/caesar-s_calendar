@@ -3,7 +3,6 @@ import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
-import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/widgets/one_time_info_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +11,25 @@ class PuzzleAccountChip extends StatelessWidget {
   const PuzzleAccountChip({super.key});
 
   static const _introStorageKey = 'puzzle_account_chip_intro_seen';
+
+  static double avatarRadiusForCellSize(final double cellSize) => cellSize * 0.4;
+
+  static double placeholderIconSizeForRadius(final double radius) => radius * 1.1;
+
+  static bool shouldRebuildForCellSize(final double previous, final double current) => previous != current;
+
+  @override
+  Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
+    buildWhen: (final previous, final current) =>
+        shouldRebuildForCellSize(previous.gridConfig.cellSize, current.gridConfig.cellSize),
+    builder: (final context, final state) => _PuzzleAccountChipContent(cellSize: state.gridConfig.cellSize),
+  );
+}
+
+class _PuzzleAccountChipContent extends StatelessWidget {
+  const _PuzzleAccountChipContent({required this.cellSize});
+
+  final double cellSize;
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<AuthCubit, AuthState>(
@@ -25,13 +43,13 @@ class PuzzleAccountChip extends StatelessWidget {
       final user = auth.user;
       final displayName = AccountDisplay.bestDisplayName(user);
       final photoUrl = AccountDisplay.bestPhotoUrl(user);
-      final cellSize = context.read<PuzzleBloc>().state.gridConfig.cellSize;
-      final avatarRadius = (cellSize - 16) / 2;
+      final avatarRadius = PuzzleAccountChip.avatarRadiusForCellSize(cellSize);
+      final avatarPadding = cellSize * 0.06;
 
       return ConstrainedBox(
-        constraints: context.read<PuzzleBloc>().state.gridConfig.cellConstraints(),
+        constraints: BoxConstraints.tightFor(height: cellSize, width: cellSize),
         child: Padding(
-          padding: const EdgeInsets.all(6),
+          padding: EdgeInsets.all(avatarPadding),
           child: Tooltip(
             message: S.current.accountAndSyncTitle,
             child: Material(
@@ -43,7 +61,7 @@ class PuzzleAccountChip extends StatelessWidget {
                 onTap: () async {
                   final shouldOpen = await OneTimeInfoDialog.show(
                     context: context,
-                    storageKey: _introStorageKey,
+                    storageKey: PuzzleAccountChip._introStorageKey,
                     title: S.current.accountAndSyncTitle,
                     message: S.current.accountAndSyncIntroMessage,
                     actionLabel: S.current.onboardingNext,
@@ -59,6 +77,7 @@ class PuzzleAccountChip extends StatelessWidget {
                     fallbackLabel: AccountDisplay.avatarInitial(displayName),
                     radius: avatarRadius,
                     placeholderIcon: user == null ? Icons.person_outline : null,
+                    placeholderIconSize: PuzzleAccountChip.placeholderIconSizeForRadius(avatarRadius),
                   ),
                 ),
               ),

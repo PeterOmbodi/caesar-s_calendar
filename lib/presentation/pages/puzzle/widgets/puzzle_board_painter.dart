@@ -40,6 +40,8 @@ class PuzzleBoardPainter extends CustomPainter {
   final bool borderColorMode;
   final DateTime selectedDate;
 
+  static double cellLabelFontSize(final double cellSize) => (cellSize * 0.28).clamp(12.0, 30.0);
+
   @override
   void paint(final Canvas canvas, final Size size) {
     _drawBoard(canvas);
@@ -215,7 +217,7 @@ class PuzzleBoardPainter extends CustomPainter {
 
     final textStyle = TextStyle(
       color: isTodayLabel ? AppColors.current.todayLabel : AppColors.current.cellLabel,
-      fontSize: 14,
+      fontSize: cellLabelFontSize(grid.cellSize),
       fontWeight: isTodayLabel ? FontWeight.w700 : FontWeight.w400,
     );
 

@@ -2,6 +2,7 @@ import 'package:caesar_puzzle/core/services/timer_service.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,6 +64,12 @@ extension TripleInfoDisplayX on TripleInfoDisplay {
 class InfoDisplay3Cell extends StatelessWidget {
   const InfoDisplay3Cell({super.key});
 
+  static ValueKey<String> labelKey({
+    required final String label,
+    required final Brightness brightness,
+    required final double cellSize,
+  }) => ValueKey('$label-${brightness.name}-${cellSize.toStringAsFixed(2)}');
+
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
     builder: (final context, final state) {
@@ -79,9 +86,14 @@ class InfoDisplay3Cell extends StatelessWidget {
       final cell2Stream = displayMode.cell2Stream(state: bloc.state, timerService: timerService);
       final cell3Stream = displayMode.cell3Stream(bloc: bloc, timerService: timerService);
 
+      final cellSize = state.gridConfig.cellSize;
+      final labelFontSize = PuzzleBoardPainter.cellLabelFontSize(cellSize);
+      final flapMinWidth = cellSize * 0.4;
+      final narrowFlapMinWidth = cellSize * 0.28;
+      final flapMinHeight = cellSize * 0.64;
       final cell3minWidth = displayMode == TripleInfoDisplay.solutionIndex && state.applicableSolutions.length > 99
-          ? 14.0
-          : 20.0;
+          ? narrowFlapMinWidth
+          : flapMinWidth;
 
       final brightness = Theme.of(context).brightness;
 
@@ -98,15 +110,15 @@ class InfoDisplay3Cell extends StatelessWidget {
                     flipAxis: Axis.horizontal,
                     duration: const Duration(milliseconds: 1000),
                     child: Center(
-                      key: ValueKey('${displayMode.label}_$brightness'),
-                      child: Text(displayMode.label, style: FlipFlapTheme.of(context).textStyle.copyWith(fontSize: 14)),
+                      key: labelKey(label: displayMode.label, brightness: brightness, cellSize: cellSize),
+                      child: Text(
+                        displayMode.label,
+                        style: FlipFlapTheme.of(context).textStyle.copyWith(fontSize: labelFontSize),
+                      ),
                     ),
                   ),
                 ],
-                unitConstraints: BoxConstraints.tightFor(
-                  height: state.gridConfig.cellSize - 6,
-                  width: state.gridConfig.cellSize - 4,
-                ),
+                unitConstraints: BoxConstraints.tightFor(height: cellSize * 0.88, width: cellSize * 0.92),
               ),
             ),
           ),
@@ -117,7 +129,7 @@ class InfoDisplay3Cell extends StatelessWidget {
               constraints: state.gridConfig.cellConstraints(),
               child: FlipFlapDisplay.fromText(
                 text: snapshot.data ?? '',
-                unitConstraints: const BoxConstraints(minWidth: 20, minHeight: 32),
+                unitConstraints: BoxConstraints(minWidth: flapMinWidth, minHeight: flapMinHeight),
               ),
             ),
           ),
@@ -128,7 +140,7 @@ class InfoDisplay3Cell extends StatelessWidget {
               constraints: state.gridConfig.cellConstraints(),
               child: FlipFlapDisplay.fromText(
                 text: snapshot.data ?? '',
-                unitConstraints: BoxConstraints(minWidth: cell3minWidth, minHeight: 32),
+                unitConstraints: BoxConstraints(minWidth: cell3minWidth, minHeight: flapMinHeight),
               ),
             ),
           ),
