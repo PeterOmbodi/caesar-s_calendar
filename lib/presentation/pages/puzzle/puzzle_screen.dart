@@ -19,6 +19,7 @@ import 'package:caesar_puzzle/presentation/onboarding/models/puzzle_local_snapsh
 import 'package:caesar_puzzle/presentation/onboarding/utils/onboarding_target_resolver.dart';
 import 'package:caesar_puzzle/presentation/onboarding/utils/puzzle_local_snapshot_mapper.dart';
 import 'package:caesar_puzzle/presentation/onboarding/widgets/onboarding_overlay.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_bottom_controls.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
@@ -55,6 +56,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   PuzzleLocalSnapshot? _tutorialBaseSnapshot;
   String? _tutorialPShapeId;
   OnboardingState _lastOnboardingState = const OnboardingState.hidden();
+  PuzzleSettingsPanelController _settingsPanelController = const PuzzleSettingsPanelController();
   int _onboardingCompletionDelayGeneration = 0;
   var _isInitialized = false;
 
@@ -94,6 +96,15 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   @override
   Widget build(final BuildContext context) {
     final isWideScreen = MediaQuery.of(context).size.width >= PuzzleScreen.wideScreenBreakpoint;
+    _syncSettingsPanelWithWidth(isWideScreen);
+    final gameplayInsets = _settingsPanelController.gameplayInsets(
+      isWideScreen: isWideScreen,
+      sidePanelWidth: PuzzleScreen.sidePanelWidth,
+    );
+    final onboardingCoordinateOffset = _settingsPanelController.onboardingCoordinateOffset(
+      isWideScreen: isWideScreen,
+      sidePanelWidth: PuzzleScreen.sidePanelWidth,
+    );
     return MultiBlocProvider(
       providers: [
         BlocProvider<PuzzleBloc>.value(value: _puzzleBloc),
@@ -219,7 +230,16 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             ],
             child: Stack(
               children: [
-                const PuzzleView(),
+                Positioned.fill(child: ColoredBox(color: Theme.of(context).colorScheme.primary.withAlpha(18))),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  left: gameplayInsets.left,
+                  top: 0,
+                  right: gameplayInsets.right,
+                  bottom: 0,
+                  child: const PuzzleView(),
+                ),
                 Align(
                   alignment: Alignment.topCenter,
                   child: BlocBuilder<PuzzleBloc, PuzzleState>(
@@ -236,16 +256,20 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 Positioned(
                   bottom: 24,
                   right: 12 + (isWideScreen ? PuzzleScreen.sidePanelWidth : 0),
-                  child: PuzzleBottomControls(isSetupVisible: !isWideScreen),
+                  child: PuzzleBottomControls(
+                    onSettingsPressed: (final controlsContext) => _openSettings(controlsContext, isWideScreen),
+                  ),
                 ),
                 if (isWideScreen)
-                  const Positioned(
-                    right: 0,
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    right: _settingsPanelController.isInlinePanelVisible ? 0 : -PuzzleScreen.sidePanelWidth,
                     top: 0,
                     bottom: 0,
-                    child: SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
+                    child: const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
                   ),
-                const OnboardingOverlay(),
+                OnboardingOverlay(coordinateOffset: onboardingCoordinateOffset),
               ],
             ),
           ),
@@ -253,6 +277,28 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         endDrawer: isWideScreen ? null : const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
       ),
     );
+  }
+
+  void _syncSettingsPanelWithWidth(final bool isWideScreen) {
+    final next = _settingsPanelController.forScreenWidth(isWideScreen: isWideScreen);
+    if (next == _settingsPanelController) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((final _) {
+      if (mounted) {
+        setState(() => _settingsPanelController = next);
+      }
+    });
+  }
+
+  void _openSettings(final BuildContext context, final bool isWideScreen) {
+    if (!isWideScreen) {
+      Scaffold.of(context).openEndDrawer();
+      return;
+    }
+    setState(() {
+      _settingsPanelController = _settingsPanelController.toggle(isWideScreen: true);
+    });
   }
 
   Future<void> _showSolvedDialog(final BuildContext context, final PuzzleState state) async {

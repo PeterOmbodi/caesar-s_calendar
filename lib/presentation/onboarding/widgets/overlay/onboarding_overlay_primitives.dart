@@ -90,12 +90,14 @@ class OnboardingPieceContourHighlight extends StatelessWidget {
   const OnboardingPieceContourHighlight({
     super.key,
     required this.piece,
+    this.coordinateOffset = Offset.zero,
     this.opacity = 1,
     this.showGlow = true,
     this.strokeWidth = 4,
   });
 
   final PuzzlePieceUI piece;
+  final Offset coordinateOffset;
   final double opacity;
   final bool showGlow;
   final double strokeWidth;
@@ -106,7 +108,12 @@ class OnboardingPieceContourHighlight extends StatelessWidget {
       child: Opacity(
         opacity: opacity,
         child: CustomPaint(
-          painter: OnboardingPieceContourHighlightPainter(piece: piece, showGlow: showGlow, strokeWidth: strokeWidth),
+          painter: OnboardingPieceContourHighlightPainter(
+            piece: piece,
+            coordinateOffset: coordinateOffset,
+            showGlow: showGlow,
+            strokeWidth: strokeWidth,
+          ),
         ),
       ),
     ),
@@ -116,17 +123,19 @@ class OnboardingPieceContourHighlight extends StatelessWidget {
 class OnboardingPieceContourHighlightPainter extends CustomPainter {
   const OnboardingPieceContourHighlightPainter({
     required this.piece,
+    required this.coordinateOffset,
     required this.showGlow,
     required this.strokeWidth,
   });
 
   final PuzzlePieceUI piece;
+  final Offset coordinateOffset;
   final bool showGlow;
   final double strokeWidth;
 
   @override
   void paint(final Canvas canvas, final Size size) {
-    final path = piece.getTransformedPath();
+    final path = piece.getTransformedPath().shift(coordinateOffset);
     if (showGlow) {
       final glowPaint = Paint()
         ..color = Colors.amber.withValues(alpha: 0.34)
@@ -150,18 +159,23 @@ class OnboardingPieceContourHighlightPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant final OnboardingPieceContourHighlightPainter oldDelegate) =>
-      oldDelegate.piece != piece || oldDelegate.showGlow != showGlow || oldDelegate.strokeWidth != strokeWidth;
+      oldDelegate.piece != piece ||
+      oldDelegate.coordinateOffset != coordinateOffset ||
+      oldDelegate.showGlow != showGlow ||
+      oldDelegate.strokeWidth != strokeWidth;
 }
 
 class OnboardingPieceContourFlipHighlight extends StatelessWidget {
   const OnboardingPieceContourFlipHighlight({
     super.key,
     required this.piece,
+    this.coordinateOffset = Offset.zero,
     required this.scaleX,
     required this.opacity,
   });
 
   final PuzzlePieceUI piece;
+  final Offset coordinateOffset;
   final double scaleX;
   final double opacity;
 
@@ -171,7 +185,11 @@ class OnboardingPieceContourFlipHighlight extends StatelessWidget {
       child: Opacity(
         opacity: opacity,
         child: CustomPaint(
-          painter: OnboardingPieceContourFlipHighlightPainter(piece: piece, scaleX: scaleX),
+          painter: OnboardingPieceContourFlipHighlightPainter(
+            piece: piece,
+            coordinateOffset: coordinateOffset,
+            scaleX: scaleX,
+          ),
         ),
       ),
     ),
@@ -179,15 +197,20 @@ class OnboardingPieceContourFlipHighlight extends StatelessWidget {
 }
 
 class OnboardingPieceContourFlipHighlightPainter extends CustomPainter {
-  const OnboardingPieceContourFlipHighlightPainter({required this.piece, required this.scaleX});
+  const OnboardingPieceContourFlipHighlightPainter({
+    required this.piece,
+    required this.coordinateOffset,
+    required this.scaleX,
+  });
 
   final PuzzlePieceUI piece;
+  final Offset coordinateOffset;
   final double scaleX;
 
   @override
   void paint(final Canvas canvas, final Size size) {
-    final path = piece.getTransformedPath();
-    final centerWorld = piece.position + piece.centerPoint;
+    final path = piece.getTransformedPath().shift(coordinateOffset);
+    final centerWorld = piece.position + piece.centerPoint + coordinateOffset;
     final safeScale = scaleX.abs() < 1e-3 ? (scaleX.isNegative ? -1e-3 : 1e-3) : scaleX;
 
     canvas
@@ -217,7 +240,7 @@ class OnboardingPieceContourFlipHighlightPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant final OnboardingPieceContourFlipHighlightPainter oldDelegate) =>
-      oldDelegate.piece != piece || oldDelegate.scaleX != scaleX;
+      oldDelegate.piece != piece || oldDelegate.coordinateOffset != coordinateOffset || oldDelegate.scaleX != scaleX;
 }
 
 class OnboardingDemoHandBubble extends StatelessWidget {

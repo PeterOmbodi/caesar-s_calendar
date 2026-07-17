@@ -9,17 +9,18 @@ class OnboardingFlipDemoScene extends StatefulWidget {
     super.key,
     required this.piece,
     required this.cellSize,
+    this.coordinateOffset = Offset.zero,
   });
 
   final PuzzlePieceUI piece;
   final double cellSize;
+  final Offset coordinateOffset;
 
   @override
   State<OnboardingFlipDemoScene> createState() => OnboardingFlipDemoSceneState();
 }
 
-class OnboardingFlipDemoSceneState extends State<OnboardingFlipDemoScene>
-    with SingleTickerProviderStateMixin {
+class OnboardingFlipDemoSceneState extends State<OnboardingFlipDemoScene> with SingleTickerProviderStateMixin {
   static const Offset tapOffset = Offset(6, -18);
   static const Duration tapDuration = Duration(milliseconds: 180);
 
@@ -50,45 +51,21 @@ class OnboardingFlipDemoSceneState extends State<OnboardingFlipDemoScene>
     ]).animate(controller);
     highlightOpacity = TweenSequence<double>([
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 56),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 14,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 14,
-      ),
+      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)), weight: 14),
+      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)), weight: 14),
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 16),
     ]).animate(controller);
     handOpacity = TweenSequence<double>([
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 10),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 6,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 6,
-      ),
+      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)), weight: 6),
+      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)), weight: 6),
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 6),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 6,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 6,
-      ),
+      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)), weight: 6),
+      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)), weight: 6),
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 10),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 8,
-      ),
+      TweenSequenceItem(tween: Tween<double>(begin: 1, end: 0).chain(CurveTween(curve: Curves.easeInOut)), weight: 8),
       TweenSequenceItem(tween: ConstantTween<double>(0), weight: 42),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 8,
-      ),
+      TweenSequenceItem(tween: Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeInOut)), weight: 8),
       TweenSequenceItem(tween: ConstantTween<double>(1), weight: 6),
     ]).animate(controller);
     handScale = TweenSequence<double>([
@@ -160,14 +137,17 @@ class OnboardingFlipDemoSceneState extends State<OnboardingFlipDemoScene>
   Widget build(final BuildContext context) => AnimatedBuilder(
     animation: controller,
     builder: (final context, final child) {
-      final handAnchor = widget.piece.position +
+      final handAnchor =
+          widget.piece.position +
           widget.piece.centerPoint +
           tapOffset -
-          Offset(widget.cellSize / 2, 0);
+          Offset(widget.cellSize / 2, 0) +
+          widget.coordinateOffset;
       return Stack(
         children: [
           OnboardingPieceContourFlipHighlight(
             piece: widget.piece,
+            coordinateOffset: widget.coordinateOffset,
             scaleX: flipScale.value,
             opacity: highlightOpacity.value,
           ),
@@ -179,10 +159,7 @@ class OnboardingFlipDemoSceneState extends State<OnboardingFlipDemoScene>
                 duration: tapDuration,
                 opacity: handOpacity.value,
                 curve: Curves.easeInOut,
-                child: Transform.scale(
-                  scale: handScale.value,
-                  child: const OnboardingDemoHandBubble(),
-                ),
+                child: Transform.scale(scale: handScale.value, child: const OnboardingDemoHandBubble()),
               ),
             ),
           ),

@@ -35,12 +35,14 @@ class AccountAvatar extends StatefulWidget {
     required this.fallbackLabel,
     this.radius = 22,
     this.placeholderIcon,
+    this.placeholderIconSize,
   });
 
   final String? photoUrl;
   final String fallbackLabel;
   final double radius;
   final IconData? placeholderIcon;
+  final double? placeholderIconSize;
 
   @override
   State<AccountAvatar> createState() => _AccountAvatarState();
@@ -56,7 +58,9 @@ class _AccountAvatarState extends State<AccountAvatar> {
     if (photoUrl == null || photoUrl.isEmpty || _failedUrls.contains(photoUrl)) {
       return CircleAvatar(
         radius: widget.radius,
-        child: widget.placeholderIcon == null ? Text(widget.fallbackLabel) : Icon(widget.placeholderIcon),
+        child: widget.placeholderIcon == null
+            ? Text(widget.fallbackLabel)
+            : Icon(widget.placeholderIcon, size: widget.placeholderIconSize),
       );
     }
 

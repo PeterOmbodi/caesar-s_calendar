@@ -1,3 +1,9 @@
+## 1.9.3+37
+- improve adaptive puzzle layout on tablets, web, and desktop
+- add toggleable settings panel behavior on wide screens
+- scale grid labels, timer display, and account avatar from the puzzle cell size
+- support three-digit timer minutes and overflow display
+
 ## 1.9.2+36
 - add difficulty selection to onboarding
 - animate onboarding progress

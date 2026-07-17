@@ -80,8 +80,7 @@ class PuzzleView extends StatelessWidget {
 
         return state.status == GameStatus.initializing
             ? Center(child: CircularProgressIndicator())
-            : Container(
-                color: Theme.of(context).colorScheme.primary.withAlpha(18),
+            : SizedBox(
                 width: double.infinity,
                 height: double.infinity,
                 child: Stack(
@@ -311,12 +310,17 @@ class _PuzzleIndicatorCell extends StatelessWidget {
       child: FlipFlapDisplay.fromText(
         text: '$solutionsCount'.padLeft(2, '0'),
         unitsInPack: 4,
-        unitConstraints: BoxConstraints(minWidth: solutionsCount < 100 ? 20 : 14, minHeight: 32),
+        unitConstraints: _solutionCounterConstraints(context, solutionsCount),
         unitType: UnitType.number,
         useShortestWay: false,
       ),
     ),
   };
+}
+
+BoxConstraints _solutionCounterConstraints(final BuildContext context, final int solutionsCount) {
+  final cellSize = context.read<PuzzleBloc>().state.gridConfig.cellSize;
+  return BoxConstraints(minWidth: solutionsCount < 100 ? cellSize * 0.4 : cellSize * 0.28, minHeight: cellSize * 0.64);
 }
 
 class _SolvabilityMark extends StatelessWidget {
@@ -329,8 +333,10 @@ class _SolvabilityMark extends StatelessWidget {
       final icon = solvabilable ? Icons.check_circle : Icons.cancel;
       final iconColor = solvabilable ? Colors.green : Colors.red;
       final cellSize = context.read<PuzzleBloc>().state.gridConfig.cellSize;
+      final outerPadding = cellSize * 0.12;
+      final innerPadding = cellSize * 0.08;
       return Padding(
-        padding: const EdgeInsets.all(6),
+        padding: EdgeInsets.all(outerPadding),
         child: FlipFlapDisplay(
           items: [
             FlipFlapWidgetItem.flip(
@@ -338,20 +344,20 @@ class _SolvabilityMark extends StatelessWidget {
               duration: const Duration(milliseconds: 1000),
               child: Padding(
                 key: ValueKey(icon.codePoint),
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(innerPadding),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(cellSize / 2),
                     color: Colors.grey.shade200,
                   ),
                   child: Center(
-                    child: Icon(icon, size: cellSize / 2, color: iconColor),
+                    child: Icon(icon, size: cellSize * 0.48, color: iconColor),
                   ),
                 ),
               ),
             ),
           ],
-          unitConstraints: BoxConstraints.tightFor(height: cellSize - 12, width: cellSize - 12),
+          unitConstraints: BoxConstraints.tightFor(height: cellSize * 0.76, width: cellSize * 0.76),
         ),
       );
     },
