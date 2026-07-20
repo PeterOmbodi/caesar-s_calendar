@@ -74,6 +74,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signInWithGoogle() async {
+    AuthService.debugAuth('AuthCubit signInWithGoogle called');
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       await _runWithSyncPaused(() async {
@@ -86,6 +87,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signInWithApple() async {
+    AuthService.debugAuth('AuthCubit signInWithApple called');
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       await _runWithSyncPaused(() async {
