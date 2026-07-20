@@ -26,6 +26,9 @@ class AuthService {
   final FirebaseFirestore _firestore;
   final GoogleSignIn _google;
 
+  static bool shouldUseRedirectSignIn({required final bool isWeb, required final TargetPlatform targetPlatform}) =>
+      isWeb && targetPlatform == TargetPlatform.iOS;
+
   bool get isAvailable => FirebaseBootstrap.result?.enabled ?? false;
 
   Stream<User?> authStateChanges() {
@@ -73,6 +76,10 @@ class AuthService {
   Future<Either<AuthFailure, UserCredential>> _signInWithGoogleOnWeb() async {
     try {
       final provider = GoogleAuthProvider()..setCustomParameters({'prompt': 'select_account'});
+      if (shouldUseRedirectSignIn(isWeb: kIsWeb, targetPlatform: defaultTargetPlatform)) {
+        await _auth.signInWithRedirect(provider);
+        return Completer<Either<AuthFailure, UserCredential>>().future;
+      }
       final result = await _auth.signInWithPopup(provider);
       await _ensureUserDoc();
       return Right(result);
@@ -122,6 +129,10 @@ class AuthService {
   Future<Either<AuthFailure, UserCredential>> _signInWithAppleOnWeb() async {
     try {
       final provider = AppleAuthProvider();
+      if (shouldUseRedirectSignIn(isWeb: kIsWeb, targetPlatform: defaultTargetPlatform)) {
+        await _auth.signInWithRedirect(provider);
+        return Completer<Either<AuthFailure, UserCredential>>().future;
+      }
       final result = await _auth.signInWithPopup(provider);
       await _ensureUserDoc();
       return Right(result);
