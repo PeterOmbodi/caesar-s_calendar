@@ -26,31 +26,6 @@ class AuthService {
   final FirebaseFirestore _firestore;
   final GoogleSignIn _google;
 
-  static bool shouldUseRedirectSignIn({required final bool isWeb, required final TargetPlatform targetPlatform}) {
-    if (!isWeb) {
-      return false;
-    }
-    final forcedFlow = Uri.base.queryParameters['authFlow'];
-    if (forcedFlow == 'redirect') {
-      return true;
-    }
-    if (forcedFlow == 'popup') {
-      return false;
-    }
-    return targetPlatform == TargetPlatform.iOS;
-  }
-
-  static bool get isAuthDebugEnabled {
-    final uri = Uri.base;
-    return uri.queryParameters['authDebug'] == '1' || uri.fragment.contains('authDebug');
-  }
-
-  static void debugAuth(final String message) {
-    if (isAuthDebugEnabled) {
-      debugPrint('[auth-debug] $message');
-    }
-  }
-
   bool get isAvailable => FirebaseBootstrap.result?.enabled ?? false;
 
   Stream<User?> authStateChanges() {
@@ -66,23 +41,6 @@ class AuthService {
   User? get currentUser => isAvailable ? _auth.currentUser : null;
   String? get currentDisplayName => _bestDisplayName(_auth.currentUser);
   String? get currentPhotoUrl => _bestPhotoUrl(_auth.currentUser);
-
-  Future<void> completeRedirectSignInIfNeeded() async {
-    if (!isAvailable || !shouldUseRedirectSignIn(isWeb: kIsWeb, targetPlatform: defaultTargetPlatform)) {
-      debugAuth(
-        'skip getRedirectResult: isAvailable=$isAvailable kIsWeb=$kIsWeb platform=${defaultTargetPlatform.name}',
-      );
-      return;
-    }
-
-    debugAuth('before getRedirectResult href=${Uri.base}');
-    final result = await _auth.getRedirectResult();
-    debugAuth('after getRedirectResult user=${_debugUser(result.user)} provider=${result.credential?.providerId}');
-    if (result.user != null) {
-      await _ensureUserDoc();
-      debugAuth('ensured user doc for ${_debugUser(result.user)}');
-    }
-  }
 
   Future<Either<AuthFailure, UserCredential>> signInWithGoogle() async {
     if (!isAvailable) return Left(const AuthUnavailableFailure());
@@ -115,18 +73,7 @@ class AuthService {
   Future<Either<AuthFailure, UserCredential>> _signInWithGoogleOnWeb() async {
     try {
       final provider = GoogleAuthProvider()..setCustomParameters({'prompt': 'select_account'});
-      final shouldRedirect = shouldUseRedirectSignIn(isWeb: kIsWeb, targetPlatform: defaultTargetPlatform);
-      debugAuth(
-        'Google web sign-in flow=${shouldRedirect ? 'redirect' : 'popup'} platform=${defaultTargetPlatform.name}',
-      );
-      if (shouldRedirect) {
-        debugAuth('start Google redirect href=${Uri.base}');
-        await _auth.signInWithRedirect(provider);
-        return Completer<Either<AuthFailure, UserCredential>>().future;
-      }
-      debugAuth('start Google popup href=${Uri.base}');
       final result = await _auth.signInWithPopup(provider);
-      debugAuth('after Google popup user=${_debugUser(result.user)} provider=${result.credential?.providerId}');
       await _ensureUserDoc();
       return Right(result);
     } on FirebaseAuthException catch (e) {
@@ -175,18 +122,7 @@ class AuthService {
   Future<Either<AuthFailure, UserCredential>> _signInWithAppleOnWeb() async {
     try {
       final provider = AppleAuthProvider();
-      final shouldRedirect = shouldUseRedirectSignIn(isWeb: kIsWeb, targetPlatform: defaultTargetPlatform);
-      debugAuth(
-        'Apple web sign-in flow=${shouldRedirect ? 'redirect' : 'popup'} platform=${defaultTargetPlatform.name}',
-      );
-      if (shouldRedirect) {
-        debugAuth('start Apple redirect href=${Uri.base}');
-        await _auth.signInWithRedirect(provider);
-        return Completer<Either<AuthFailure, UserCredential>>().future;
-      }
-      debugAuth('start Apple popup href=${Uri.base}');
       final result = await _auth.signInWithPopup(provider);
-      debugAuth('after Apple popup user=${_debugUser(result.user)} provider=${result.credential?.providerId}');
       await _ensureUserDoc();
       return Right(result);
     } on FirebaseAuthException catch (e) {
@@ -266,13 +202,6 @@ class AuthService {
       if (candidate != null && candidate.isNotEmpty) return candidate;
     }
     return null;
-  }
-
-  static String _debugUser(final User? user) {
-    if (user == null) {
-      return 'null';
-    }
-    return user.uid;
   }
 
   AuthProviderKind? _providerKindForUser(final User user) {
