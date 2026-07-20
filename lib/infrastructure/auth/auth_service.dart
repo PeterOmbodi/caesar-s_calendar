@@ -45,6 +45,17 @@ class AuthService {
   String? get currentDisplayName => _bestDisplayName(_auth.currentUser);
   String? get currentPhotoUrl => _bestPhotoUrl(_auth.currentUser);
 
+  Future<void> completeRedirectSignInIfNeeded() async {
+    if (!isAvailable || !shouldUseRedirectSignIn(isWeb: kIsWeb, targetPlatform: defaultTargetPlatform)) {
+      return;
+    }
+
+    final result = await _auth.getRedirectResult();
+    if (result.user != null) {
+      await _ensureUserDoc();
+    }
+  }
+
   Future<Either<AuthFailure, UserCredential>> signInWithGoogle() async {
     if (!isAvailable) return Left(const AuthUnavailableFailure());
     if (kIsWeb) {

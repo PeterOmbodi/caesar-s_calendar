@@ -17,13 +17,8 @@ part 'auth_state.dart';
 
 @lazySingleton
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit(
-    this._auth,
-    this._historyRepository,
-    this._syncService,
-    this._puzzleHistoryUseCase,
-    this._syncRunner,
-  ) : super(AuthState.initial(isAvailable: _auth.isAvailable)) {
+  AuthCubit(this._auth, this._historyRepository, this._syncService, this._puzzleHistoryUseCase, this._syncRunner)
+    : super(AuthState.initial(isAvailable: _auth.isAvailable)) {
     _init();
   }
 
@@ -42,6 +37,12 @@ class AuthCubit extends Cubit<AuthState> {
       emit(state.copyWith(isLoading: false));
       return;
     }
+    Object? redirectError;
+    try {
+      await _auth.completeRedirectSignInIfNeeded();
+    } catch (e) {
+      redirectError = e;
+    }
     await _sub?.cancel();
     _sub = _auth.userChanges().listen(
       _onUserChanged,
@@ -49,7 +50,7 @@ class AuthCubit extends Cubit<AuthState> {
     );
     final currentUser = _auth.currentUser;
     if (currentUser == null) {
-      emit(state.copyWith(user: null, isLoading: false, errorMessage: null));
+      emit(state.copyWith(user: null, isLoading: false, errorMessage: redirectError?.toString()));
       return;
     }
 
