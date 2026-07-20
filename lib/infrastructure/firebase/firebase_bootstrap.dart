@@ -25,7 +25,7 @@ class FirebaseBootstrap {
 
     try {
       if (Firebase.apps.isEmpty) {
-        final options = defaultTargetPlatform == TargetPlatform.iOS ? null : DefaultFirebaseOptions.currentPlatform;
+        final options = firebaseOptionsForPlatform(isWeb: kIsWeb, targetPlatform: defaultTargetPlatform);
         await Firebase.initializeApp(options: options);
       }
       await _activateAppCheck();
@@ -37,6 +37,16 @@ class FirebaseBootstrap {
       _result = FirebaseBootstrapResult(enabled: false, error: e);
       return _result!;
     }
+  }
+
+  static FirebaseOptions? firebaseOptionsForPlatform({
+    required final bool isWeb,
+    required final TargetPlatform targetPlatform,
+  }) {
+    if (isWeb) {
+      return DefaultFirebaseOptions.web;
+    }
+    return targetPlatform == TargetPlatform.iOS ? null : DefaultFirebaseOptions.currentPlatform;
   }
 
   static Future<void> _activateAppCheck() async {
