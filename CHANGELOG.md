@@ -1,6 +1,3 @@
-## 1.9.5+39
-- fix Google and Apple sign-in on iOS web browsers
-
 ## 1.9.4+38
 - fix saved session restoration after adaptive layout changes on wide screens
 - fix Firebase initialization for web builds running in iOS browsers

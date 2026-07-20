@@ -17,8 +17,13 @@ part 'auth_state.dart';
 
 @lazySingleton
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit(this._auth, this._historyRepository, this._syncService, this._puzzleHistoryUseCase, this._syncRunner)
-    : super(AuthState.initial(isAvailable: _auth.isAvailable)) {
+  AuthCubit(
+    this._auth,
+    this._historyRepository,
+    this._syncService,
+    this._puzzleHistoryUseCase,
+    this._syncRunner,
+  ) : super(AuthState.initial(isAvailable: _auth.isAvailable)) {
     _init();
   }
 
@@ -33,30 +38,18 @@ class AuthCubit extends Cubit<AuthState> {
   StreamSubscription<User?>? _sub;
 
   Future<void> _init() async {
-    AuthService.debugAuth('AuthCubit init isAvailable=${_auth.isAvailable}');
     if (!_auth.isAvailable) {
       emit(state.copyWith(isLoading: false));
       return;
     }
-    Object? redirectError;
-    try {
-      await _auth.completeRedirectSignInIfNeeded();
-    } catch (e) {
-      redirectError = e;
-      AuthService.debugAuth('getRedirectResult error=$e');
-    }
     await _sub?.cancel();
     _sub = _auth.userChanges().listen(
       _onUserChanged,
-      onError: (final e, _) {
-        AuthService.debugAuth('userChanges error=$e');
-        emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
-      },
+      onError: (final e, _) => emit(state.copyWith(isLoading: false, errorMessage: e.toString())),
     );
     final currentUser = _auth.currentUser;
-    AuthService.debugAuth('AuthCubit currentUser after redirect=${_debugUser(currentUser)}');
     if (currentUser == null) {
-      emit(state.copyWith(user: null, isLoading: false, errorMessage: redirectError?.toString()));
+      emit(state.copyWith(user: null, isLoading: false, errorMessage: null));
       return;
     }
 
@@ -74,7 +67,6 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signInWithGoogle() async {
-    AuthService.debugAuth('AuthCubit signInWithGoogle called');
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       await _runWithSyncPaused(() async {
@@ -87,7 +79,6 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signInWithApple() async {
-    AuthService.debugAuth('AuthCubit signInWithApple called');
     emit(state.copyWith(isLoading: true, errorMessage: null));
     try {
       await _runWithSyncPaused(() async {
@@ -164,11 +155,8 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   void _onUserChanged(final User? user) {
-    AuthService.debugAuth('userChanges user=${_debugUser(user)}');
     emit(state.copyWith(user: user, isLoading: false));
   }
-
-  String _debugUser(final User? user) => user == null ? 'null' : user.uid;
 
   Future<void> _handleAuthResult(final Either<AuthFailure, UserCredential> result) async {
     await result.fold(
