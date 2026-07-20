@@ -3,17 +3,21 @@ import 'dart:async';
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart';
 import 'package:caesar_puzzle/application/contracts/settings_query.dart';
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
+import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
+import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
+import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/solver_service.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
 import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
@@ -481,5 +485,58 @@ void main() {
     await _drain();
 
     expect(bloc!.state.firstMoveAt, firstMoveAtBeforeDrop);
+  });
+
+  test('restoreSession maps saved grid placements onto current wide layout', () async {
+    final savedLayout = const LayoutService().buildInitialLayout(const Size(1200, 800));
+    final savedGridPosition = savedLayout.gridConfig.cellTopLeft(Cell(2, 2));
+    final savedPieces = savedLayout.pieces.map((final piece) {
+      final restoredPiece = piece.id == 'Square'
+          ? piece.copyWith(position: savedGridPosition, placeZone: PlaceZone.grid, isUsersItem: true)
+          : piece;
+      return PuzzlePieceSnapshot(
+        id: restoredPiece.id,
+        placeZone: restoredPiece.placeZone,
+        position: Position(dx: restoredPiece.position.dx, dy: restoredPiece.position.dy),
+        rotation: restoredPiece.rotation,
+        isFlipped: restoredPiece.isFlipped,
+        isUsersItem: restoredPiece.isUsersItem,
+        isConfigItem: restoredPiece.isConfigItem,
+      );
+    }).toList();
+    final startedAt = DateTime.now().millisecondsSinceEpoch - 1000;
+    final session = PuzzleSessionData(
+      id: 'saved-session',
+      puzzleDate: DateTime(2026, 7, 20),
+      configId: 'standard',
+      difficulty: PuzzleSessionDifficulty.hard,
+      status: PuzzleSessionStatus.unsolved,
+      startedAt: startedAt,
+      firstMoveAt: startedAt,
+      lastResumedAt: startedAt,
+      activeElapsedMs: 0,
+      updatedAt: startedAt,
+      completedAt: null,
+      moveIndex: 1,
+      moveHistoryVersion: 1,
+      pieces: savedPieces,
+      moveHistory: [
+        MovePiece(
+          'Square',
+          from: MovePlacement(zone: PlaceZone.board, position: Position(dx: 0, dy: 0)),
+          to: MovePlacement(zone: PlaceZone.grid, position: Position(dx: 2, dy: 2)),
+        ),
+      ],
+    );
+
+    bloc!.add(const PuzzleEvent.setViewSize(Size(860, 800)));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+
+    bloc!.add(PuzzleEvent.restoreSession(session));
+    await _drain();
+
+    final restoredSquare = bloc!.state.pieces.firstWhere((final piece) => piece.id == 'Square');
+    expect(restoredSquare.placeZone, PlaceZone.grid);
+    expect(restoredSquare.position, bloc!.state.gridConfig.cellTopLeft(Cell(2, 2)));
   });
 }
