@@ -29,6 +29,17 @@ class AuthService {
   static bool shouldUseRedirectSignIn({required final bool isWeb, required final TargetPlatform targetPlatform}) =>
       isWeb && targetPlatform == TargetPlatform.iOS;
 
+  static bool get isAuthDebugEnabled {
+    final uri = Uri.base;
+    return uri.queryParameters['authDebug'] == '1' || uri.fragment.contains('authDebug');
+  }
+
+  static void debugAuth(final String message) {
+    if (isAuthDebugEnabled) {
+      debugPrint('[auth-debug] $message');
+    }
+  }
+
   bool get isAvailable => FirebaseBootstrap.result?.enabled ?? false;
 
   Stream<User?> authStateChanges() {
@@ -47,12 +58,18 @@ class AuthService {
 
   Future<void> completeRedirectSignInIfNeeded() async {
     if (!isAvailable || !shouldUseRedirectSignIn(isWeb: kIsWeb, targetPlatform: defaultTargetPlatform)) {
+      debugAuth(
+        'skip getRedirectResult: isAvailable=$isAvailable kIsWeb=$kIsWeb platform=${defaultTargetPlatform.name}',
+      );
       return;
     }
 
+    debugAuth('before getRedirectResult href=${Uri.base}');
     final result = await _auth.getRedirectResult();
+    debugAuth('after getRedirectResult user=${_debugUser(result.user)} provider=${result.credential?.providerId}');
     if (result.user != null) {
       await _ensureUserDoc();
+      debugAuth('ensured user doc for ${_debugUser(result.user)}');
     }
   }
 
@@ -88,6 +105,7 @@ class AuthService {
     try {
       final provider = GoogleAuthProvider()..setCustomParameters({'prompt': 'select_account'});
       if (shouldUseRedirectSignIn(isWeb: kIsWeb, targetPlatform: defaultTargetPlatform)) {
+        debugAuth('start Google redirect href=${Uri.base}');
         await _auth.signInWithRedirect(provider);
         return Completer<Either<AuthFailure, UserCredential>>().future;
       }
@@ -141,6 +159,7 @@ class AuthService {
     try {
       final provider = AppleAuthProvider();
       if (shouldUseRedirectSignIn(isWeb: kIsWeb, targetPlatform: defaultTargetPlatform)) {
+        debugAuth('start Apple redirect href=${Uri.base}');
         await _auth.signInWithRedirect(provider);
         return Completer<Either<AuthFailure, UserCredential>>().future;
       }
@@ -224,6 +243,13 @@ class AuthService {
       if (candidate != null && candidate.isNotEmpty) return candidate;
     }
     return null;
+  }
+
+  static String _debugUser(final User? user) {
+    if (user == null) {
+      return 'null';
+    }
+    return user.uid;
   }
 
   AuthProviderKind? _providerKindForUser(final User user) {
