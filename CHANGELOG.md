@@ -1,3 +1,7 @@
+## 1.9.4+38
+- fix saved session restoration after adaptive layout changes on wide screens
+- fix Firebase initialization for web builds running in iOS browsers
+
 ## 1.9.3+37
 - improve adaptive puzzle layout on tablets, web, and desktop
 - add toggleable settings panel behavior on wide screens
