@@ -54,7 +54,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     _historyUseCase.activateSession(session);
     _currentSessionDifficulty = session.difficulty;
-    final restoredPieces = _applySnapshotPieces(session.pieces);
+    final restoredPieces = _restoreSessionPieces(session);
     final restoredElapsedMs = _restoredSessionElapsedMs(session);
 
     emit(
@@ -204,6 +204,69 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         isForbidden: snapshot.isConfigItem,
       );
     }).toList();
+  }
+
+  List<PuzzlePieceUI> _restoreSessionPieces(final PuzzleSessionData session) {
+    final snapshotById = {for (final snapshot in session.pieces) snapshot.id: snapshot};
+    final restoredPieces = state.pieces.map((final piece) {
+      final snapshot = snapshotById[piece.id];
+      if (snapshot == null) {
+        return piece;
+      }
+      return piece.copyWith(
+        rotation: snapshot.rotation,
+        isFlipped: snapshot.isFlipped,
+        placeZone: snapshot.placeZone,
+        isUsersItem: snapshot.isUsersItem,
+        isForbidden: snapshot.isConfigItem,
+      );
+    }).toList();
+
+    for (final move in session.moveHistory.take(session.moveIndex)) {
+      final pieceIndex = restoredPieces.indexWhere((final piece) => piece.id == move.pieceId);
+      if (pieceIndex < 0) {
+        continue;
+      }
+      final piece = restoredPieces[pieceIndex];
+      restoredPieces[pieceIndex] = _applySessionMoveToPiece(piece: piece, move: move);
+    }
+
+    return restoredPieces;
+  }
+
+  PuzzlePieceUI _applySessionMoveToPiece({required final PuzzlePieceUI piece, required final Move move}) => move.map(
+    movePiece: (final mp) => _applySessionPlacement(
+      piece: piece,
+      placement: mp.to,
+      rotation: mp.rotationTo ?? piece.rotation,
+      isFlipped: mp.flippedTo ?? piece.isFlipped,
+    ),
+    rotatePiece: (final rp) => piece.copyWith(
+      rotation: rp.rotation,
+      position: _moveHistoryService.snapOffset(state.gridConfig, rp.snapCorrection, false) ?? piece.position,
+    ),
+    flipPiece: (final fp) => piece.copyWith(
+      isFlipped: fp.isFlipped,
+      position: _moveHistoryService.snapOffset(state.gridConfig, fp.snapCorrection, false) ?? piece.position,
+    ),
+    hintMove: (final hm) =>
+        _applySessionPlacement(piece: piece, placement: hm.to, rotation: hm.rotationTo, isFlipped: hm.flippedTo),
+  );
+
+  PuzzlePieceUI _applySessionPlacement({
+    required final PuzzlePieceUI piece,
+    required final MovePlacement placement,
+    required final double rotation,
+    required final bool isFlipped,
+  }) {
+    final config = placement.zone == PlaceZone.grid ? state.gridConfig : state.boardConfig;
+    final position = config.absolutPositionPos(placement.position);
+    return piece.copyWith(
+      placeZone: placement.zone,
+      position: Offset(position.dx, position.dy),
+      rotation: rotation,
+      isFlipped: isFlipped,
+    );
   }
 
   int _restoredSessionElapsedMs(final PuzzleSessionData session) {
