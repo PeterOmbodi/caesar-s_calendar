@@ -21,6 +21,7 @@ class AuthService {
        _google = googleSignIn;
 
   static const _googleWebClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
+  static const _webPopupSignInTimeout = Duration(minutes: 2);
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
@@ -73,15 +74,15 @@ class AuthService {
   Future<Either<AuthFailure, UserCredential>> _signInWithGoogleOnWeb() async {
     try {
       final provider = GoogleAuthProvider()..setCustomParameters({'prompt': 'select_account'});
-      final result = await _auth.signInWithPopup(provider);
+      final result = await _auth.signInWithPopup(provider).timeout(_webPopupSignInTimeout);
       await _ensureUserDoc();
       return Right(result);
     } on FirebaseAuthException catch (e) {
       debugPrint('Google sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.message ?? e.code));
+      return Left(authFailureFromWebPopupError(e));
     } catch (e) {
       debugPrint('Google sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.toString()));
+      return Left(authFailureFromWebPopupError(e));
     }
   }
 
@@ -122,15 +123,15 @@ class AuthService {
   Future<Either<AuthFailure, UserCredential>> _signInWithAppleOnWeb() async {
     try {
       final provider = AppleAuthProvider();
-      final result = await _auth.signInWithPopup(provider);
+      final result = await _auth.signInWithPopup(provider).timeout(_webPopupSignInTimeout);
       await _ensureUserDoc();
       return Right(result);
     } on FirebaseAuthException catch (e) {
       debugPrint('Apple sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.message ?? e.code));
+      return Left(authFailureFromWebPopupError(e));
     } catch (e) {
       debugPrint('Apple sign-in failed: $e');
-      return Left(AuthUnknownFailure(e.toString()));
+      return Left(authFailureFromWebPopupError(e));
     }
   }
 
