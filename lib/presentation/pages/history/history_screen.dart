@@ -32,6 +32,8 @@ class _HistoryView extends StatefulWidget {
 }
 
 class _HistoryViewState extends State<_HistoryView> with SingleTickerProviderStateMixin {
+  static const double _wideBreakpoint = 840;
+
   late final TabController _tabController;
 
   @override
@@ -50,6 +52,7 @@ class _HistoryViewState extends State<_HistoryView> with SingleTickerProviderSta
   Widget build(final BuildContext context) => BlocBuilder<HistoryCubit, HistoryState>(
     builder: (final context, final state) {
       final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+      final isWide = MediaQuery.of(context).size.width >= _wideBreakpoint;
       return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
@@ -68,9 +71,11 @@ class _HistoryViewState extends State<_HistoryView> with SingleTickerProviderSta
           ],
         ),
         body: SafeArea(
-          child: isLandscape
-              ? _HistoryLandscapeBody(tabController: _tabController)
-              : _HistoryPortraitBody(tabController: _tabController),
+          child: isWide
+              ? const _HistoryWideBody()
+              : (isLandscape
+                    ? _HistoryLandscapeBody(tabController: _tabController)
+                    : _HistoryPortraitBody(tabController: _tabController)),
         ),
       );
     },
@@ -184,6 +189,54 @@ class _HistoryLandscapeBody extends StatelessWidget {
           const StatisticsTab(),
         ],
       ),
+    ),
+  );
+}
+
+class _HistoryWideBody extends StatelessWidget {
+  const _HistoryWideBody();
+
+  @override
+  Widget build(final BuildContext context) => BlocBuilder<HistoryCubit, HistoryState>(
+    builder: (final context, final state) => Column(
+      children: [
+        const SizedBox(height: 8),
+        DateSelector(
+          selectedDate: state.selectedDate,
+          rangeStart: state.rangeStart,
+          rangeEnd: state.rangeEnd,
+          stats: state.calendarStats,
+          onDateTap: context.read<HistoryCubit>().selectDate,
+          fitGridToWidth: true,
+        ),
+        const SizedBox(height: 8),
+        if (state.errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          ),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: state.isSessionsLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SessionList(
+                        sessions: state.sessions,
+                        selectedDate: state.selectedDate,
+                        onStartPuzzleForDay: (final date) =>
+                            Navigator.of(context).pop(HistoryScreenResult.startPuzzleForDate(date)),
+                        onResumeSession: (final session) =>
+                            Navigator.of(context).pop(HistoryScreenResult.resumeSession(session)),
+                      ),
+              ),
+              const VerticalDivider(width: 1),
+              const Expanded(child: StatisticsTab()),
+            ],
+          ),
+        ),
+      ],
     ),
   );
 }
