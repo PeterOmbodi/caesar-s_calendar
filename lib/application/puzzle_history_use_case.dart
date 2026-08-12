@@ -3,10 +3,13 @@ import 'dart:convert';
 
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart';
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
+import 'package:caesar_puzzle/application/models/period_range_resolver.dart';
+import 'package:caesar_puzzle/application/models/period_stats.dart';
 import 'package:caesar_puzzle/application/models/puzzle_history_input.dart';
 import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
+import 'package:caesar_puzzle/application/models/stats_period.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
@@ -58,6 +61,156 @@ class PuzzleHistoryUseCase {
 
   Stream<List<PuzzleSessionData>> watchSessionsByMonthDay(final DateTime date) =>
       _historyRepository.watchSessionsByMonthDay(puzzleDate: DateTime(date.year, date.month, date.day));
+
+  static final DateTime _historyRangeStart = DateTime(2020);
+  static final DateTime _historyRangeEnd = DateTime(2100, 12, 31);
+
+  Stream<PeriodStats> watchPeriodStats({
+    required final StatsPeriod period,
+    required final StatsYearScope yearScope,
+    required final DateTime referenceDate,
+  }) {
+    final queryRange = _queryRangeFor(period, yearScope, referenceDate);
+    return _historyRepository
+        .watchSessionsInPuzzleDateRange(from: queryRange.start, to: queryRange.end)
+        .map((final sessions) => _aggregatePeriodStats(sessions, period, yearScope, referenceDate));
+  }
+
+  DateRange _queryRangeFor(final StatsPeriod period, final StatsYearScope yearScope, final DateTime referenceDate) {
+    if (yearScope == StatsYearScope.allYears) {
+      return DateRange(_historyRangeStart, _historyRangeEnd);
+    }
+    return switch (period) {
+      StatsPeriod.week => PeriodRangeResolver.weekRange(referenceDate),
+      StatsPeriod.month => PeriodRangeResolver.monthRange(referenceDate),
+      StatsPeriod.year => PeriodRangeResolver.yearRange(referenceDate.year),
+    };
+  }
+
+  PeriodStats _aggregatePeriodStats(
+    final List<PuzzleSessionData> sessions,
+    final StatsPeriod period,
+    final StatsYearScope yearScope,
+    final DateTime referenceDate,
+  ) {
+    var started = 0;
+    var solved = 0;
+    var solvedHard = 0;
+    var hintsUsed = 0;
+    var totalTimePlayedMs = 0;
+    var totalMovesSolved = 0;
+    final solvedDays = <DateTime>{};
+
+    for (final session in sessions) {
+      if (!PeriodRangeResolver.matches(period, yearScope, referenceDate, session.puzzleDate)) {
+        continue;
+      }
+      if (session.firstMoveAt != null) {
+        started += 1;
+        hintsUsed += session.moveHistory.whereType<HintMove>().length;
+        totalTimePlayedMs += session.activeElapsedMs;
+      }
+      if (session.status == PuzzleSessionStatus.solved) {
+        solved += 1;
+        totalMovesSolved += session.moveIndex;
+        if (session.difficulty == PuzzleSessionDifficulty.hard) {
+          solvedHard += 1;
+        }
+        solvedDays.add(session.puzzleDate);
+      }
+    }
+
+    return PeriodStats(
+      started: started,
+      solved: solved,
+      solvedHard: solvedHard,
+      solvedDays: solvedDays.length,
+      bestStreakDays: _bestStreak(solvedDays, period, yearScope, referenceDate),
+      hintsUsed: hintsUsed,
+      totalTimePlayedMs: totalTimePlayedMs,
+      totalMovesSolved: totalMovesSolved,
+    );
+  }
+
+  int _bestStreak(
+    final Set<DateTime> solvedDays,
+    final StatsPeriod period,
+    final StatsYearScope yearScope,
+    final DateTime referenceDate,
+  ) {
+    if (solvedDays.isEmpty) {
+      return 0;
+    }
+    switch (period) {
+      case StatsPeriod.week:
+      case StatsPeriod.month:
+        final range = period == StatsPeriod.week
+            ? PeriodRangeResolver.weekRange(referenceDate)
+            : PeriodRangeResolver.monthRange(referenceDate);
+        return switch (yearScope) {
+          StatsYearScope.currentYear => _longestRunInRange(solvedDays, range),
+          StatsYearScope.allYears => _longestRunInRangeByMonthDay(solvedDays, range),
+        };
+      case StatsPeriod.year:
+        return switch (yearScope) {
+          StatsYearScope.currentYear => _longestRunInRange(
+            solvedDays,
+            PeriodRangeResolver.yearRange(referenceDate.year),
+          ),
+          StatsYearScope.allYears => _longestRunInRange(solvedDays, _spanOf(solvedDays)),
+        };
+    }
+  }
+
+  DateRange _spanOf(final Set<DateTime> dates) {
+    var earliest = dates.first;
+    var latest = dates.first;
+    for (final date in dates) {
+      if (date.isBefore(earliest)) earliest = date;
+      if (date.isAfter(latest)) latest = date;
+    }
+    return DateRange(earliest, latest);
+  }
+
+  int _longestRunInRange(final Set<DateTime> solvedDays, final DateRange range) {
+    final startUtc = DateTime.utc(range.start.year, range.start.month, range.start.day);
+    final endUtc = DateTime.utc(range.end.year, range.end.month, range.end.day);
+    final totalDays = endUtc.difference(startUtc).inDays;
+
+    var longest = 0;
+    var current = 0;
+    for (var offset = 0; offset <= totalDays; offset++) {
+      final utcDay = startUtc.add(Duration(days: offset));
+      final localDay = DateTime(utcDay.year, utcDay.month, utcDay.day);
+      if (solvedDays.contains(localDay)) {
+        current += 1;
+        longest = current > longest ? current : longest;
+      } else {
+        current = 0;
+      }
+    }
+    return longest;
+  }
+
+  int _longestRunInRangeByMonthDay(final Set<DateTime> solvedDays, final DateRange range) {
+    final solvedMonthDays = solvedDays.map((final date) => (date.month, date.day)).toSet();
+    final startUtc = DateTime.utc(range.start.year, range.start.month, range.start.day);
+    final endUtc = DateTime.utc(range.end.year, range.end.month, range.end.day);
+    final totalDays = endUtc.difference(startUtc).inDays;
+
+    var longest = 0;
+    var current = 0;
+    for (var offset = 0; offset <= totalDays; offset++) {
+      final utcDay = startUtc.add(Duration(days: offset));
+      if (solvedMonthDays.contains((utcDay.month, utcDay.day))) {
+        current += 1;
+        longest = current > longest ? current : longest;
+      } else {
+        current = 0;
+      }
+    }
+    return longest;
+  }
 
   void persistAfterChange(final PuzzleHistoryInput input) {
     if (_currentSessionLockedAfterSolved) {

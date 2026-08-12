@@ -167,6 +167,14 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
       .map((final rows) => rows.map(_sessionFromRow).toList());
 
   @override
+  Stream<List<PuzzleSessionData>> watchSessionsInPuzzleDateRange({
+    required final DateTime from,
+    required final DateTime to,
+  }) => _dao
+      .watchSessionsInPuzzleDateRange(fromDate: _dateKey(from), toDate: _dateKey(to))
+      .map((final rows) => rows.map(_sessionFromRow).toList());
+
+  @override
   Future<PuzzleSessionData?> getLatestUnsolvedSession({required final DateTime puzzleDate}) async {
     final row = await _dao.getLatestUnsolvedSession(
       puzzleDate: _dateKey(puzzleDate),

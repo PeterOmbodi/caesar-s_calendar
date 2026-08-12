@@ -39,6 +39,11 @@ abstract class PuzzleHistoryRepository {
     required final DateTime puzzleDate,
   });
 
+  Stream<List<PuzzleSessionData>> watchSessionsInPuzzleDateRange({
+    required final DateTime from,
+    required final DateTime to,
+  });
+
   Future<PuzzleSessionData?> getLatestUnsolvedSession({
     required final DateTime puzzleDate,
   });

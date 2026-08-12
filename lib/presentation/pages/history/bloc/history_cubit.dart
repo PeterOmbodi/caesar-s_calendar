@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
+import 'package:caesar_puzzle/application/models/period_range_resolver.dart';
+import 'package:caesar_puzzle/application/models/period_stats.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
+import 'package:caesar_puzzle/application/models/stats_period.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 
 class HistoryState {
@@ -15,6 +18,10 @@ class HistoryState {
     required this.isCalendarLoading,
     required this.isSessionsLoading,
     required this.errorMessage,
+    required this.statsPeriod,
+    required this.statsYearScope,
+    required this.periodStats,
+    required this.isPeriodStatsLoading,
   });
 
   factory HistoryState.initial(final DateTime now) {
@@ -28,6 +35,10 @@ class HistoryState {
       isCalendarLoading: true,
       isSessionsLoading: true,
       errorMessage: null,
+      statsPeriod: StatsPeriod.week,
+      statsYearScope: StatsYearScope.currentYear,
+      periodStats: PeriodStats.empty,
+      isPeriodStatsLoading: true,
     );
   }
 
@@ -39,6 +50,10 @@ class HistoryState {
   final bool isCalendarLoading;
   final bool isSessionsLoading;
   final String? errorMessage;
+  final StatsPeriod statsPeriod;
+  final StatsYearScope statsYearScope;
+  final PeriodStats periodStats;
+  final bool isPeriodStatsLoading;
 
   HistoryState copyWith({
     final DateTime? selectedDate,
@@ -50,6 +65,10 @@ class HistoryState {
     final bool? isSessionsLoading,
     final String? errorMessage,
     final bool clearErrorMessage = false,
+    final StatsPeriod? statsPeriod,
+    final StatsYearScope? statsYearScope,
+    final PeriodStats? periodStats,
+    final bool? isPeriodStatsLoading,
   }) => HistoryState(
     selectedDate: selectedDate ?? this.selectedDate,
     rangeStart: rangeStart ?? this.rangeStart,
@@ -59,6 +78,10 @@ class HistoryState {
     isCalendarLoading: isCalendarLoading ?? this.isCalendarLoading,
     isSessionsLoading: isSessionsLoading ?? this.isSessionsLoading,
     errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+    statsPeriod: statsPeriod ?? this.statsPeriod,
+    statsYearScope: statsYearScope ?? this.statsYearScope,
+    periodStats: periodStats ?? this.periodStats,
+    isPeriodStatsLoading: isPeriodStatsLoading ?? this.isPeriodStatsLoading,
   );
 }
 
@@ -74,6 +97,7 @@ class HistoryCubit extends Cubit<HistoryState> {
 
   StreamSubscription<List<CalendarDayStats>>? _calendarSubscription;
   StreamSubscription<List<PuzzleSessionData>>? _sessionsSubscription;
+  StreamSubscription<PeriodStats>? _periodStatsSubscription;
 
   void initialize({final DateTime? initialDate}) {
     final date = _startOfDay(initialDate ?? DateTime.now());
@@ -84,11 +108,13 @@ class HistoryCubit extends Cubit<HistoryState> {
         rangeEnd: _calendarRangeEnd,
         isCalendarLoading: true,
         isSessionsLoading: true,
+        isPeriodStatsLoading: true,
         clearErrorMessage: true,
       ),
     );
     _subscribeCalendar();
     _subscribeSessions();
+    _subscribePeriodStats();
   }
 
   void selectDate(final DateTime date) {
@@ -96,8 +122,48 @@ class HistoryCubit extends Cubit<HistoryState> {
     if (selected == state.selectedDate) {
       return;
     }
-    emit(state.copyWith(selectedDate: selected, isSessionsLoading: true, clearErrorMessage: true));
+    emit(
+      state.copyWith(
+        selectedDate: selected,
+        isSessionsLoading: true,
+        isPeriodStatsLoading: true,
+        clearErrorMessage: true,
+      ),
+    );
     _subscribeSessions();
+    _subscribePeriodStats();
+  }
+
+  void setStatsPeriod(final StatsPeriod period) {
+    if (period == state.statsPeriod) {
+      return;
+    }
+    emit(state.copyWith(statsPeriod: period, isPeriodStatsLoading: true, clearErrorMessage: true));
+    _subscribePeriodStats();
+  }
+
+  void setStatsYearScope(final StatsYearScope yearScope) {
+    if (yearScope == state.statsYearScope) {
+      return;
+    }
+    emit(state.copyWith(statsYearScope: yearScope, isPeriodStatsLoading: true, clearErrorMessage: true));
+    _subscribePeriodStats();
+  }
+
+  void _subscribePeriodStats() {
+    _periodStatsSubscription?.cancel();
+    _periodStatsSubscription = _historyUseCase
+        .watchPeriodStats(
+          period: state.statsPeriod,
+          yearScope: state.statsYearScope,
+          referenceDate: PeriodRangeResolver.referenceDateFor(state.selectedDate),
+        )
+        .listen(
+          (final periodStats) => emit(state.copyWith(periodStats: periodStats, isPeriodStatsLoading: false)),
+          onError: (final error, final stackTrace) {
+            emit(state.copyWith(isPeriodStatsLoading: false, errorMessage: error.toString()));
+          },
+        );
   }
 
   void _subscribeCalendar() {
@@ -130,6 +196,7 @@ class HistoryCubit extends Cubit<HistoryState> {
   Future<void> close() async {
     await _calendarSubscription?.cancel();
     await _sessionsSubscription?.cancel();
+    await _periodStatsSubscription?.cancel();
     return super.close();
   }
 }

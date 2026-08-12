@@ -193,6 +193,18 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
         ]))
           .watch();
 
+  Stream<List<PuzzleSession>> watchSessionsInPuzzleDateRange({
+    required final String fromDate,
+    required final String toDate,
+  }) =>
+      (select(puzzleSessions)
+        ..where(
+              (final row) =>
+          row.puzzleDate.isBiggerOrEqualValue(fromDate) & row.puzzleDate.isSmallerOrEqualValue(toDate),
+        )
+        ..orderBy([(final row) => OrderingTerm.desc(row.puzzleDate)]))
+          .watch();
+
   Stream<List<CalendarStatsRow>> watchCalendarStats({
     required final String fromDate,
     required final String toDate,

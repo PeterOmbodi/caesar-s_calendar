@@ -8,6 +8,7 @@ import 'package:caesar_puzzle/presentation/pages/history/bloc/history_cubit.dart
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/date_selector.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/session_list.dart';
+import 'package:caesar_puzzle/presentation/pages/history/widgets/statistics_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,8 +24,27 @@ class HistoryScreen extends StatelessWidget {
   );
 }
 
-class _HistoryView extends StatelessWidget {
+class _HistoryView extends StatefulWidget {
   const _HistoryView();
+
+  @override
+  State<_HistoryView> createState() => _HistoryViewState();
+}
+
+class _HistoryViewState extends State<_HistoryView> with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<HistoryCubit, HistoryState>(
@@ -47,7 +67,11 @@ class _HistoryView extends StatelessWidget {
             ),
           ],
         ),
-        body: SafeArea(child: isLandscape ? const _HistoryLandscapeBody() : const _HistoryPortraitBody()),
+        body: SafeArea(
+          child: isLandscape
+              ? _HistoryLandscapeBody(tabController: _tabController)
+              : _HistoryPortraitBody(tabController: _tabController),
+        ),
       );
     },
   );
@@ -68,7 +92,9 @@ class _HistoryView extends StatelessWidget {
 }
 
 class _HistoryPortraitBody extends StatelessWidget {
-  const _HistoryPortraitBody();
+  const _HistoryPortraitBody({required this.tabController});
+
+  final TabController tabController;
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<HistoryCubit, HistoryState>(
@@ -88,17 +114,24 @@ class _HistoryPortraitBody extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
+        _HistoryTabBar(controller: tabController),
         Expanded(
-          child: state.isSessionsLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SessionList(
-                  sessions: state.sessions,
-                  selectedDate: state.selectedDate,
-                  onStartPuzzleForDay: (final date) =>
-                      Navigator.of(context).pop(HistoryScreenResult.startPuzzleForDate(date)),
-                  onResumeSession: (final session) =>
-                      Navigator.of(context).pop(HistoryScreenResult.resumeSession(session)),
-                ),
+          child: TabBarView(
+            controller: tabController,
+            children: [
+              state.isSessionsLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SessionList(
+                sessions: state.sessions,
+                selectedDate: state.selectedDate,
+                onStartPuzzleForDay: (final date) =>
+                    Navigator.of(context).pop(HistoryScreenResult.startPuzzleForDate(date)),
+                onResumeSession: (final session) =>
+                    Navigator.of(context).pop(HistoryScreenResult.resumeSession(session)),
+              ),
+              const StatisticsTab(),
+            ],
+          ),
         ),
       ],
     ),
@@ -106,12 +139,14 @@ class _HistoryPortraitBody extends StatelessWidget {
 }
 
 class _HistoryLandscapeBody extends StatelessWidget {
-  const _HistoryLandscapeBody();
+  const _HistoryLandscapeBody({required this.tabController});
+
+  final TabController tabController;
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<HistoryCubit, HistoryState>(
-    builder: (final context, final state) => CustomScrollView(
-      slivers: [
+    builder: (final context, final state) => NestedScrollView(
+      headerSliverBuilder: (final context, final innerBoxIsScrolled) => [
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverPersistentHeader(
           pinned: true,
@@ -131,22 +166,62 @@ class _HistoryLandscapeBody extends StatelessWidget {
               child: Text(state.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ),
           ),
-        if (state.isSessionsLoading)
-          const SliverFillRemaining(hasScrollBody: false, child: Center(child: CircularProgressIndicator()))
-        else
-          SliverToBoxAdapter(
-            child: SessionList(
-              sessions: state.sessions,
-              selectedDate: state.selectedDate,
-              onStartPuzzleForDay: (final date) =>
-                  Navigator.of(context).pop(HistoryScreenResult.startPuzzleForDate(date)),
-              onResumeSession: (final session) => Navigator.of(context).pop(HistoryScreenResult.resumeSession(session)),
-              primaryScroll: false,
-            ),
-          ),
+        SliverPersistentHeader(pinned: true, delegate: _TabBarHeaderDelegate(controller: tabController)),
       ],
+      body: TabBarView(
+        controller: tabController,
+        children: [
+          state.isSessionsLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SessionList(
+            sessions: state.sessions,
+            selectedDate: state.selectedDate,
+            onStartPuzzleForDay: (final date) =>
+                Navigator.of(context).pop(HistoryScreenResult.startPuzzleForDate(date)),
+            onResumeSession: (final session) =>
+                Navigator.of(context).pop(HistoryScreenResult.resumeSession(session)),
+          ),
+          const StatisticsTab(),
+        ],
+      ),
     ),
   );
+}
+
+class _HistoryTabBar extends StatelessWidget {
+  const _HistoryTabBar({required this.controller});
+
+  final TabController controller;
+
+  @override
+  Widget build(final BuildContext context) => TabBar(
+    controller: controller,
+    tabs: [
+      Tab(text: S.current.historyTabSessions),
+      Tab(text: S.current.historyTabStatistics),
+    ],
+  );
+}
+
+class _TabBarHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _TabBarHeaderDelegate({required this.controller});
+
+  final TabController controller;
+
+  @override
+  double get minExtent => 48;
+
+  @override
+  double get maxExtent => 48;
+
+  @override
+  Widget build(final BuildContext context, final double shrinkOffset, final bool overlapsContent) => Material(
+    color: Theme.of(context).scaffoldBackgroundColor,
+    child: _HistoryTabBar(controller: controller),
+  );
+
+  @override
+  bool shouldRebuild(final _TabBarHeaderDelegate oldDelegate) => controller != oldDelegate.controller;
 }
 
 class _HistoryAppBarIconButton extends StatelessWidget {
@@ -222,8 +297,8 @@ class _DateSelectorHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(final _DateSelectorHeaderDelegate oldDelegate) =>
       selectedDate != oldDelegate.selectedDate ||
-      rangeStart != oldDelegate.rangeStart ||
-      rangeEnd != oldDelegate.rangeEnd ||
-      isCalendarLoading != oldDelegate.isCalendarLoading ||
-      stats != oldDelegate.stats;
+          rangeStart != oldDelegate.rangeStart ||
+          rangeEnd != oldDelegate.rangeEnd ||
+          isCalendarLoading != oldDelegate.isCalendarLoading ||
+          stats != oldDelegate.stats;
 }
