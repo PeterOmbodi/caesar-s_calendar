@@ -112,6 +112,12 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({
     required final DateTime puzzleDate,
   }) => const Stream.empty();
+
+  @override
+  Stream<List<PuzzleSessionData>> watchSessionsInPuzzleDateRange({
+    required final DateTime from,
+    required final DateTime to,
+  }) => const Stream.empty();
 }
 
 class _FakeSyncRunner implements SyncRunner {

@@ -101,6 +101,12 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
 
   @override
   Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({required final DateTime puzzleDate}) => const Stream.empty();
+
+  @override
+  Stream<List<PuzzleSessionData>> watchSessionsInPuzzleDateRange({
+    required final DateTime from,
+    required final DateTime to,
+  }) => const Stream.empty();
 }
 
 Future<void> _drain() async {
