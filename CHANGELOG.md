@@ -1,3 +1,6 @@
+## 1.10.1+40
+- add wide-layout side-by-side view for sessions and statistics
+
 ## 1.10.0+39
 - add Statistics tab to the History screen with week, month, and year filters
 - show solve rate, hard-mode rate, best streak, hints used, time played, and average moves per solve
