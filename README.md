@@ -41,6 +41,7 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 - Puzzle history with resume support for in-progress sessions
 - Cross-device puzzle session sync for signed-in users on Android, iOS, and Web
 - Calendar history view with per-day activity stats
+- Statistics tab in the History screen with week/month/year filters and current year / all years scope, showing solve rate, hard-mode rate, best streak, hints used, time played, and average moves per solve
 - Configurable puzzle layout by unlocking fixed board blocks
 - Theme switching: system, light, and dark
 - Solving timer and solution indicators

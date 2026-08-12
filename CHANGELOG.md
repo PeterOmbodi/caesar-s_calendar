@@ -1,3 +1,8 @@
+## 1.10.0+39
+- add Statistics tab to the History screen with week, month, and year filters
+- show solve rate, hard-mode rate, best streak, hints used, time played, and average moves per solve
+- add current year / all years scope toggle for statistics
+
 ## 1.9.4+38
 - fix saved session restoration after adaptive layout changes on wide screens
 - fix Firebase initialization for web builds running in iOS browsers
