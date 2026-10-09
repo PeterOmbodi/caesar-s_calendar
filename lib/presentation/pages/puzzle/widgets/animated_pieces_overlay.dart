@@ -16,6 +16,7 @@ class AnimatedPiecesOverlay extends StatefulWidget {
     required this.childBuilder,
     required this.cellSize,
     this.borderColorMode = false,
+    this.instantIds = const {},
     this.selectedPiece,
   });
   final Iterable<PuzzlePieceUI> pieces;
@@ -24,6 +25,9 @@ class AnimatedPiecesOverlay extends StatefulWidget {
   final Widget Function(Set<PieceId> hiddenIds) childBuilder;
   final double cellSize;
   final bool borderColorMode;
+
+  /// Pieces that follow their new position without a transition, e.g. the one being dragged.
+  final Set<PieceId> instantIds;
   final PuzzlePieceUI? selectedPiece;
 
   @override
@@ -111,7 +115,7 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
       final id = entry.key;
       final next = entry.value;
       final prev = from[id];
-      if (prev == null) continue;
+      if (prev == null || widget.instantIds.contains(id)) continue;
 
       final hasMeaningfulChange =
           !_offsetEq(prev.position, next.position) ||

@@ -10,6 +10,7 @@ import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dar
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
 import 'package:caesar_puzzle/presentation/onboarding/widgets/overlay/onboarding_overlay_helpers.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
@@ -18,7 +19,6 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.da
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
-import 'package:caesar_puzzle/presentation/widgets/floating_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -26,8 +26,6 @@ class PuzzleView extends StatelessWidget {
   const PuzzleView({super.key, this.headerHeight = 0});
 
   static const double statusGap = 8;
-  static const double toolbarReserve =
-      FloatingPanel.screenMargin + FloatingPanel.itemExtent + FloatingPanel.verticalPadding * 2;
 
   final double headerHeight;
 
@@ -38,14 +36,10 @@ class PuzzleView extends StatelessWidget {
         final bloc = context.read<PuzzleBloc>();
         final onboardingState = context.watch<OnboardingBloc>().state;
         final spec = ScreenSpec.of(context);
-        final bottomReserve = statusGap + PuzzleStatusLine.height + (spec.isLandscape ? 0 : toolbarReserve);
-        bloc.add(
-          PuzzleEvent.setViewSize(
-            constraints.biggest,
-            maxCell: spec.maxCell,
-            contentInsets: EdgeInsets.only(top: headerHeight, bottom: bottomReserve),
-          ),
-        );
+        final contentInsets =
+            EdgeInsets.only(top: headerHeight, bottom: statusGap + PuzzleStatusLine.height) +
+            GameChrome.reservedInsets(context);
+        bloc.add(PuzzleEvent.setViewSize(constraints.biggest, maxCell: spec.maxCell, contentInsets: contentInsets));
         final settings = context.watch<SettingsCubit>().state;
         final borderColorMode = settings.separateMoveColors;
         final tray = state.boardConfig.getBounds;
@@ -147,6 +141,7 @@ class PuzzleView extends StatelessWidget {
                         curve: Curves.easeInOut,
                         borderColorMode: borderColorMode,
                         cellSize: state.gridConfig.cellSize,
+                        instantIds: {if (state.isDragging && state.pointerPiece != null) state.pointerPiece!.id},
                         selectedPiece: state.pointerPiece ?? state.selectedPiece,
                         childBuilder: (final hiddenIds) => CustomPaint(
                           painter: PuzzleBoardPainter(

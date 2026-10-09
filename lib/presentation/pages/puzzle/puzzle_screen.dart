@@ -22,8 +22,8 @@ import 'package:caesar_puzzle/presentation/onboarding/utils/puzzle_local_snapsho
 import 'package:caesar_puzzle/presentation/onboarding/widgets/onboarding_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_bottom_controls.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_toolbar.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.dart';
@@ -277,12 +277,14 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                         : SizedBox.shrink(),
                   ),
                 ),
-                Positioned(
-                  bottom: 24,
-                  right: 12 + (settingsDocked ? PuzzleScreen.sidePanelWidth : 0),
-                  child: PuzzleBottomControls(
-                    onSettingsPressed: (final controlsContext) => _openSettings(controlsContext, settingsDocked),
-                  ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  left: gameplayInsets.left,
+                  top: 0,
+                  right: gameplayInsets.right,
+                  bottom: 0,
+                  child: const PuzzleToolbar(),
                 ),
                 if (settingsDocked)
                   AnimatedPositioned(

@@ -172,11 +172,16 @@ class _SlotButton extends StatelessWidget {
                   )
                 else
                   Icon(icon, size: 24, color: foreground),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, height: 13 / 11, fontWeight: FontWeight.w500, color: foreground),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      style: TextStyle(fontSize: 11, height: 13 / 11, fontWeight: FontWeight.w500, color: foreground),
+                    ),
+                  ),
                 ),
               ],
             ),

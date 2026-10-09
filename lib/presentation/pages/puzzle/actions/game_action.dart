@@ -2,15 +2,17 @@ import 'package:flutter/foundation.dart';
 
 enum GameActionId {
   history,
-  showSolutions,
-  closeSolutions,
-  prevSolution,
-  nextSolution,
+  hint,
   undo,
   redo,
-  hint,
+  rotate,
+  flip,
+  prevSolution,
+  solutionCounter,
+  nextSolution,
+  closeSolutions,
+  showSolutions,
   howToPlay,
-  settings,
   restart,
 }
 
@@ -33,6 +35,8 @@ class GameAction {
     this.active = false,
     this.busy = false,
     this.assistGate,
+    this.count,
+    this.total,
   });
 
   final GameActionId id;
@@ -41,6 +45,8 @@ class GameAction {
   final bool active;
   final bool busy;
   final AssistGate? assistGate;
+  final int? count;
+  final int? total;
 
   @override
   bool operator ==(final Object other) =>
@@ -51,12 +57,15 @@ class GameAction {
           other.enabled == enabled &&
           other.active == active &&
           other.busy == busy &&
-          other.assistGate == assistGate;
+          other.assistGate == assistGate &&
+          other.count == count &&
+          other.total == total;
 
   @override
-  int get hashCode => Object.hash(id, slot, enabled, active, busy, assistGate);
+  int get hashCode => Object.hash(id, slot, enabled, active, busy, assistGate, count, total);
 
   @override
   String toString() =>
-      'GameAction($id, $slot, enabled: $enabled, active: $active, busy: $busy, assistGate: $assistGate)';
+      'GameAction($id, $slot, enabled: $enabled, active: $active, busy: $busy, assistGate: $assistGate, '
+      'count: $count, total: $total)';
 }
