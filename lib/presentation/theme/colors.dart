@@ -1,6 +1,9 @@
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
 
 abstract class ThemeColors {
+  GameColors get game;
+
   Color get primary;
 
   Color get secondary;
@@ -55,6 +58,9 @@ class Light implements ThemeColors {
   const Light();
 
   @override
+  GameColors get game => GameColors.light;
+
+  @override
   Color get primary => Colors.deepPurple;
 
   @override
@@ -64,7 +70,7 @@ class Light implements ThemeColors {
   Color get pieceBorder => Colors.black;
 
   @override
-  Color get pieceBorderSelected => Colors.yellow;
+  Color get pieceBorderSelected => game.selection;
 
   @override
   Color get pieceFillSelectedOverlay => Colors.transparent;
@@ -73,44 +79,47 @@ class Light implements ThemeColors {
   Color get pieceCenterDot => Colors.red;
 
   @override
-  Color get gridLine => Colors.grey.shade300;
+  Color get gridLine => game.gridLine;
 
   @override
-  Color get gridBorder => Colors.black;
+  Color get gridBorder => game.boardBorder;
 
   @override
-  Color get boardBackground => Colors.grey.shade100;
+  Color get boardBackground => game.board;
 
   @override
-  Color get boardBorder => Colors.grey.shade400;
+  Color get boardBorder => game.boardBorder;
 
   @override
-  Color get boardLabelText => Colors.black54;
+  Color get boardLabelText => game.textSecondary;
 
   @override
-  Color get previewOutline => Colors.green;
+  Color get previewOutline => game.ok;
 
   @override
-  Color get previewOutlineCollision => Colors.red;
+  Color get previewOutlineCollision => game.bad;
 
   @override
-  Color get previewFill => Colors.green;
+  Color get previewFill => game.ok;
 
   @override
-  Color get previewFillCollision => Colors.red;
+  Color get previewFillCollision => game.bad;
 
   @override
-  Color get todayLabel => Colors.blue;
+  Color get todayLabel => game.accent;
 
   @override
-  Color get cellLabel => Colors.black;
+  Color get cellLabel => game.cellLabel;
 
   @override
-  Color get customConfigAccent => Colors.amber.shade800;
+  Color get customConfigAccent => game.customConfig;
 }
 
 class Dark implements ThemeColors {
   const Dark();
+
+  @override
+  GameColors get game => GameColors.dark;
 
   @override
   Color get primary => Colors.deepPurple;
@@ -122,7 +131,7 @@ class Dark implements ThemeColors {
   Color get pieceBorder => Colors.white;
 
   @override
-  Color get pieceBorderSelected => Colors.yellow;
+  Color get pieceBorderSelected => game.selection;
 
   @override
   Color get pieceFillSelectedOverlay => Colors.transparent;
@@ -131,38 +140,38 @@ class Dark implements ThemeColors {
   Color get pieceCenterDot => Colors.red;
 
   @override
-  Color get gridLine => Colors.grey.shade700;
+  Color get gridLine => game.gridLine;
 
   @override
-  Color get gridBorder => Colors.white;
+  Color get gridBorder => game.boardBorder;
 
   @override
-  Color get boardBackground => Colors.grey.shade900;
+  Color get boardBackground => game.board;
 
   @override
-  Color get boardBorder => Colors.grey.shade600;
+  Color get boardBorder => game.boardBorder;
 
   @override
-  Color get boardLabelText => Colors.white70;
+  Color get boardLabelText => game.textSecondary;
 
   @override
-  Color get previewOutline => Colors.lightGreenAccent;
+  Color get previewOutline => game.ok;
 
   @override
-  Color get previewOutlineCollision => Colors.redAccent;
+  Color get previewOutlineCollision => game.bad;
 
   @override
-  Color get previewFill => Colors.lightGreenAccent;
+  Color get previewFill => game.ok;
 
   @override
-  Color get previewFillCollision => Colors.redAccent;
+  Color get previewFillCollision => game.bad;
 
   @override
-  Color get todayLabel => Colors.lightBlueAccent;
+  Color get todayLabel => game.accent;
 
   @override
-  Color get cellLabel => Colors.white;
+  Color get cellLabel => game.cellLabel;
 
   @override
-  Color get customConfigAccent => Colors.amber.shade300;
+  Color get customConfigAccent => game.customConfig;
 }

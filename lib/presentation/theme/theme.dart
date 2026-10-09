@@ -1,4 +1,6 @@
+import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_flip_flap/flutter_flip_flap.dart';
 
@@ -16,6 +18,8 @@ class AppThemeData {
       ),
     ),
     extensions: [
+      GameColors.light,
+      ChromeTheme.glass,
       FlipFlapTheme(
         unitDecoration: BoxDecoration(
           color: AppColors.light.boardBorder,
@@ -41,6 +45,8 @@ class AppThemeData {
       ),
     ),
     extensions: [
+      GameColors.dark,
+      ChromeTheme.glass,
       FlipFlapTheme(
         unitDecoration: BoxDecoration(
           color: AppColors.dark.boardBorder,

@@ -6,21 +6,21 @@ extension PieceTypeExtension on PieceType {
   Color get colorForType {
     switch (this) {
       case PieceType.lShape:
-        return Colors.teal.withValues(alpha: 0.8);
+        return AppColors.current.game.piece(PieceType.lShape).withValues(alpha: 0.8);
       case PieceType.square:
-        return Colors.indigo.withValues(alpha: 0.8);
+        return AppColors.current.game.piece(PieceType.square).withValues(alpha: 0.8);
       case PieceType.zShape:
-        return Colors.brown.withValues(alpha: 0.8);
+        return AppColors.current.game.piece(PieceType.zShape).withValues(alpha: 0.8);
       case PieceType.yShape:
-        return Colors.blueGrey.withValues(alpha: 0.8);
+        return AppColors.current.game.piece(PieceType.yShape).withValues(alpha: 0.8);
       case PieceType.uShape:
-        return Colors.grey.withValues(alpha: 0.8);
+        return AppColors.current.game.piece(PieceType.uShape).withValues(alpha: 0.8);
       case PieceType.pShape:
-        return Colors.deepPurple.withValues(alpha: 0.8);
+        return AppColors.current.game.piece(PieceType.pShape).withValues(alpha: 0.8);
       case PieceType.nShape:
-        return Colors.blue.withValues(alpha: 0.8);
+        return AppColors.current.game.piece(PieceType.nShape).withValues(alpha: 0.8);
       case PieceType.vShape:
-        return Colors.cyan.withValues(alpha: 0.8);
+        return AppColors.current.game.piece(PieceType.vShape).withValues(alpha: 0.8);
       case PieceType.zone1:
       case PieceType.zone2:
         return AppColors.current.primary.withAlpha(50);
