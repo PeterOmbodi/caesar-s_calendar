@@ -2,16 +2,20 @@ part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocLayoutPart on PuzzleBloc {
   FutureOr<void> _onViewSize(final _SetViewSize event, final Emitter<PuzzleState> emit) {
-    final hasChanged = _lastViewSize != event.viewSize || _lastMaxCell != event.maxCell;
+    final hasChanged =
+        _lastViewSize != event.viewSize ||
+        _lastMaxCell != event.maxCell ||
+        _lastContentInsets != event.contentInsets;
     if (hasChanged && event.viewSize.width > 0 && event.viewSize.height > 0) {
       _lastViewSize = event.viewSize;
       _lastMaxCell = event.maxCell;
+      _lastContentInsets = event.contentInsets;
       add(PuzzleEvent.configure());
     }
   }
 
   Future<void> _configure(final _Configure event, final Emitter<PuzzleState> emit) async {
-    final contentRect = Offset.zero & _lastViewSize!;
+    final contentRect = _lastContentInsets.deflateRect(Offset.zero & _lastViewSize!);
     final configurationPieces = event.configurationPieces;
     final isInitializing = state.status == GameStatus.initializing || event.toInitial;
     final layout = isInitializing

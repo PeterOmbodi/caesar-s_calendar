@@ -2,7 +2,6 @@ part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   static const Duration _invalidTransformFeedbackDelay = Duration(milliseconds: 180);
-  static const int _minCommittableDrawnCells = 5;
 
   FutureOr<void> _handleDoubleTap(final _OnDoubleTapDown event, final Emitter<PuzzleState> emit) async {
     final cell = state.gridConfig.cellAt(event.localPosition);
@@ -156,7 +155,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   }
 
   DrawnGroupCommitStatus _resolveDrawnGroupCommitStatus(final DrawnGroup? drawnGroup) {
-    if (drawnGroup == null || drawnGroup.cells.length < _minCommittableDrawnCells) {
+    if (drawnGroup == null || drawnGroup.cells.length < PuzzleBloc.minCommittableDrawnCells) {
       return DrawnGroupCommitStatus.tooSmall;
     }
     return _findDrawnGroupCommitMatch(drawnGroup) == null
@@ -165,7 +164,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   }
 
   PieceShapeMatch? _findDrawnGroupCommitMatch(final DrawnGroup drawnGroup) {
-    if (drawnGroup.cells.length < _minCommittableDrawnCells) {
+    if (drawnGroup.cells.length < PuzzleBloc.minCommittableDrawnCells) {
       return null;
     }
 

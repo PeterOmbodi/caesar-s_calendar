@@ -23,14 +23,17 @@ import 'package:caesar_puzzle/presentation/onboarding/widgets/onboarding_overlay
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_bottom_controls.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -59,6 +62,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   PuzzleSettingsPanelController _settingsPanelController = const PuzzleSettingsPanelController();
   int _onboardingCompletionDelayGeneration = 0;
   var _isInitialized = false;
+  double _headerHeight = 0;
 
   @override
   void didChangeDependencies() {
@@ -230,7 +234,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             ],
             child: Stack(
               children: [
-                Positioned.fill(child: ColoredBox(color: Theme.of(context).colorScheme.primary.withAlpha(18))),
+                Positioned.fill(child: _GameBackground(colors: GameColors.of(context))),
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeOutCubic,
@@ -238,7 +242,27 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   top: 0,
                   right: gameplayInsets.right,
                   bottom: 0,
-                  child: const PuzzleView(),
+                  child: PuzzleView(headerHeight: _headerHeight),
+                ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  left: gameplayInsets.left,
+                  top: 0,
+                  right: gameplayInsets.right,
+                  child: MeasureSize(
+                    onChange: (final size) {
+                      if (mounted && size.height != _headerHeight) {
+                        setState(() => _headerHeight = size.height);
+                      }
+                    },
+                    child: Builder(
+                      builder: (final headerContext) => PuzzleHeader(
+                        onLayoutsPressed: () => _openSettings(headerContext, settingsDocked),
+                        onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
+                      ),
+                    ),
+                  ),
                 ),
                 Align(
                   alignment: Alignment.topCenter,
@@ -577,4 +601,22 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     settingsCubit.markOnboardingOffered(currentOnboardingVersion);
     _onboardingBloc.add(StartOnboarding(OnboardingMode.short, completedVersion: completedVersion));
   }
+}
+
+class _GameBackground extends StatelessWidget {
+  const _GameBackground({required this.colors});
+
+  final GameColors colors;
+
+  @override
+  Widget build(final BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [colors.backgroundTop, colors.background],
+        stops: const [0, 0.45],
+      ),
+    ),
+  );
 }

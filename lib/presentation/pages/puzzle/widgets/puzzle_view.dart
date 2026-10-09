@@ -13,14 +13,23 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_status_line.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
+import 'package:caesar_puzzle/presentation/widgets/floating_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PuzzleView extends StatelessWidget {
-  const PuzzleView({super.key});
+  const PuzzleView({super.key, this.headerHeight = 0});
+
+  static const double statusGap = 8;
+  static const double toolbarReserve =
+      FloatingPanel.screenMargin + FloatingPanel.itemExtent + FloatingPanel.verticalPadding * 2;
+
+  final double headerHeight;
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
@@ -28,8 +37,18 @@ class PuzzleView extends StatelessWidget {
       builder: (final context, final constraints) {
         final bloc = context.read<PuzzleBloc>();
         final onboardingState = context.watch<OnboardingBloc>().state;
-        bloc.add(PuzzleEvent.setViewSize(constraints.biggest, maxCell: ScreenSpec.of(context).maxCell));
-        final borderColorMode = context.watch<SettingsCubit>().state.separateMoveColors;
+        final spec = ScreenSpec.of(context);
+        final bottomReserve = statusGap + PuzzleStatusLine.height + (spec.isLandscape ? 0 : toolbarReserve);
+        bloc.add(
+          PuzzleEvent.setViewSize(
+            constraints.biggest,
+            maxCell: spec.maxCell,
+            contentInsets: EdgeInsets.only(top: headerHeight, bottom: bottomReserve),
+          ),
+        );
+        final settings = context.watch<SettingsCubit>().state;
+        final borderColorMode = settings.separateMoveColors;
+        final tray = state.boardConfig.getBounds;
 
         bool isInteractionAllowed(final Offset position, {required final OnboardingInputAction action}) {
           final step = onboardingState.currentStep;
@@ -150,6 +169,19 @@ class PuzzleView extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (!onboardingState.isVisible)
+                      Positioned(
+                        left: tray.left,
+                        top: tray.bottom + statusGap,
+                        width: tray.width,
+                        child: IgnorePointer(
+                          child: PuzzleStatusLine(
+                            state: state,
+                            indicator: settings.solutionIndicator,
+                            showTimer: settings.showTimer,
+                          ),
+                        ),
+                      ),
                     if (state.isDragging && state.pointerPiece != null)
                       IgnorePointer(
                         child: CustomPaint(

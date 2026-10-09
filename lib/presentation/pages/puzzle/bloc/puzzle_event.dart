@@ -4,7 +4,12 @@ part of 'puzzle_bloc.dart';
 sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.started() = _Started;
 
-  const factory PuzzleEvent.setViewSize(final Size viewSize, {required final double maxCell}) = _SetViewSize;
+  /// [contentInsets] is the part of the view taken by the header, status line and toolbar.
+  const factory PuzzleEvent.setViewSize(
+    final Size viewSize, {
+    required final double maxCell,
+    @Default(EdgeInsets.zero) final EdgeInsets contentInsets,
+  }) = _SetViewSize;
 
   const factory PuzzleEvent.reset() = _Reset;
 

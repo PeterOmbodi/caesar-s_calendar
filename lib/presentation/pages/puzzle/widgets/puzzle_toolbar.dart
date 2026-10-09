@@ -1,5 +1,6 @@
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_event.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dart';
@@ -8,12 +9,11 @@ import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/actions_for.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visuals.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
-import 'package:caesar_puzzle/presentation/widgets/floating_panel.dart';
 import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_cupertino_alert_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/one_time_info_dialog.dart';
@@ -45,10 +45,8 @@ extension _BottomControlIntroX on _BottomControlIntro {
   };
 }
 
-class PuzzleBottomControls extends StatelessWidget {
-  const PuzzleBottomControls({super.key, required this.onSettingsPressed});
-
-  final void Function(BuildContext context) onSettingsPressed;
+class PuzzleToolbar extends StatelessWidget {
+  const PuzzleToolbar({super.key});
 
   Future<bool> _showIntroIfNeeded(final BuildContext context, final _BottomControlIntro intro) =>
       OneTimeInfoDialog.show(
@@ -164,15 +162,6 @@ class PuzzleBottomControls extends StatelessWidget {
     ),
   );
 
-  static const _solutionGroupIds = {
-    GameActionId.showSolutions,
-    GameActionId.closeSolutions,
-    GameActionId.prevSolution,
-    GameActionId.nextSolution,
-    GameActionId.undo,
-    GameActionId.redo,
-  };
-
   Future<void> _runAssist(
     final BuildContext context,
     final PuzzleState state,
@@ -223,94 +212,46 @@ class PuzzleBottomControls extends StatelessWidget {
     switch (action.id) {
       case GameActionId.history:
         await _runAfterIntro(context, _BottomControlIntro.history, () => _showHistory(context));
-      case GameActionId.showSolutions:
-        await _runAfterIntro(
-          context,
-          _BottomControlIntro.allSolutions,
-          () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showSolution(0))),
-        );
-      case GameActionId.closeSolutions:
-      case GameActionId.restart:
-        puzzleBloc.add(PuzzleEvent.reset());
-      case GameActionId.prevSolution:
-        puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx - 1));
-      case GameActionId.nextSolution:
-        puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx + 1));
-      case GameActionId.undo:
-        puzzleBloc.add(PuzzleEvent.undo());
-      case GameActionId.redo:
-        puzzleBloc.add(PuzzleEvent.redo());
       case GameActionId.hint:
         await _runAfterIntro(
           context,
           _BottomControlIntro.hint,
           () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showHint())),
         );
+      case GameActionId.undo:
+        puzzleBloc.add(PuzzleEvent.undo());
+      case GameActionId.redo:
+        puzzleBloc.add(PuzzleEvent.redo());
+      case GameActionId.rotate:
+        puzzleBloc.add(const PuzzleEvent.rotateSelected());
+      case GameActionId.flip:
+        puzzleBloc.add(const PuzzleEvent.flipSelected());
+      case GameActionId.prevSolution:
+        puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx - 1));
+      case GameActionId.nextSolution:
+        puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx + 1));
+      case GameActionId.solutionCounter:
+        break;
+      case GameActionId.closeSolutions:
+      case GameActionId.restart:
+        puzzleBloc.add(PuzzleEvent.reset());
+      case GameActionId.showSolutions:
+        await _runAfterIntro(
+          context,
+          _BottomControlIntro.allSolutions,
+          () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showSolution(0))),
+        );
       case GameActionId.howToPlay:
         await _showHowToPlayDialog(context);
-      case GameActionId.settings:
-        onSettingsPressed(context);
     }
-  }
-
-  Widget _buildButton(final BuildContext context, final PuzzleState state, final GameAction action) {
-    if (action.busy) {
-      return const SizedBox(
-        width: FloatingPanel.buttonSize,
-        height: FloatingPanel.buttonSize,
-        child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()),
-      );
-    }
-    return IconButton(
-      icon: Icon(action.id.icon),
-      style: action.active ? selectedToolbarIconButtonStyle(context) : null,
-      onPressed: action.enabled ? () => _invoke(context, state, action) : null,
-      tooltip: action.id.label,
-    );
-  }
-
-  List<Widget> _buildPrimaryControls(
-    final BuildContext context,
-    final PuzzleState state,
-    final List<GameAction> actions,
-  ) {
-    final isBrowsingSolutions = actions.any((final a) => a.id == GameActionId.prevSolution);
-    final children = <Widget>[];
-    var group = <Widget>[];
-    void flushGroup() {
-      if (group.isNotEmpty) {
-        children.add(ToolbarControlGroup(showOutline: isBrowsingSolutions, children: group));
-        group = [];
-      }
-    }
-
-    for (final action in actions) {
-      final button = _buildButton(context, state, action);
-      if (_solutionGroupIds.contains(action.id)) {
-        group.add(button);
-      } else {
-        flushGroup();
-        children.add(button);
-      }
-    }
-    flushGroup();
-    return children;
   }
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
-    builder: (final context, final state) {
-      final actions = actionsFor(state, context.watch<SettingsCubit>().state.solutionIndicator);
-      List<GameAction> inSlot(final ActionSlot slot) => actions.where((final a) => a.slot == slot).toList();
-
-      return FloatingPanel(
-        morePanel: FloatingVerticalMoreToolbar(
-          moreTooltip: S.current.showControls,
-          closeTooltip: S.current.hideControls,
-          children: [for (final action in inSlot(ActionSlot.overflow)) _buildButton(context, state, action)],
-        ),
-        children: _buildPrimaryControls(context, state, inSlot(ActionSlot.primary)),
-      );
-    },
+    builder: (final context, final state) => GameChrome.forSpec(
+      actions: actionsFor(state, context.watch<SettingsCubit>().state.solutionIndicator),
+      spec: ScreenSpec.of(context),
+      onInvoke: (final action) => _invoke(context, state, action),
+    ),
   );
 }

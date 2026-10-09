@@ -84,6 +84,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   static const int gridRows = 7;
+  static const int minCommittableDrawnCells = 5;
   static const int gridColumns = 7;
   static const double defaultPadding = 16.0;
   static const double wideScreenPadding = 24.0;
@@ -104,6 +105,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   Size? _lastViewSize;
   double _lastMaxCell = double.infinity;
+  EdgeInsets _lastContentInsets = EdgeInsets.zero;
   // Piece that the current tap down selected; such a tap must not rotate or flip it.
   String? _selectedOnTapDownId;
   PuzzleSessionDifficulty? _currentSessionDifficulty;

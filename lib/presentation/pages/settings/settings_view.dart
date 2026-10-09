@@ -57,6 +57,21 @@ class SettingsPanel extends StatelessWidget {
             children: [
               Text(S.current.settings, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
               const SizedBox(height: 12),
+              BlocBuilder<AuthCubit, AuthState>(
+                buildWhen: (final p, final n) =>
+                    p.isAvailable != n.isAvailable ||
+                    p.user?.uid != n.user?.uid ||
+                    p.isLoading != n.isLoading ||
+                    p.errorMessage != n.errorMessage ||
+                    p.pendingCloudReplace != n.pendingCloudReplace,
+                builder: (final context, final auth) => AccountSummaryButton(
+                  auth: auth,
+                  onPressed: () => showAccountSectionSheet(context, closeDrawerFirst: true),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Divider(),
+              const SizedBox(height: 12),
               BlocBuilder<SettingsCubit, SettingsState>(
                 buildWhen: (final p, final n) => p.theme != n.theme,
                 builder: (final context, final state) => Column(
@@ -228,20 +243,6 @@ class SettingsPanel extends StatelessWidget {
               const SizedBox(height: 12),
               const Divider(),
               const SizedBox(height: 12),
-              BlocBuilder<AuthCubit, AuthState>(
-                buildWhen: (final p, final n) =>
-                    p.isAvailable != n.isAvailable ||
-                    p.user?.uid != n.user?.uid ||
-                    p.isLoading != n.isLoading ||
-                    p.errorMessage != n.errorMessage ||
-                    p.pendingCloudReplace != n.pendingCloudReplace,
-                builder: (final context, final auth) => AccountSummaryButton(
-                  auth: auth,
-                  onPressed: () => showAccountSectionSheet(context, closeDrawerFirst: true),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Divider(),
               FutureBuilder(
                 future: PackageInfo.fromPlatform(),
                 builder: (final context, final snapshot) {
