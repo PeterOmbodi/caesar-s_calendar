@@ -212,7 +212,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           moveHistory.removeRange(state.moveIndex, moveHistory.length);
         }
         moveHistory.add(move);
-        final pieces = _updatePieceInList(movedPiece);
+        final pieces = _updatePieceInList(_withHintFlag(movedPiece, appliedMoves: state.moveIndex));
         final shouldResolve = movedPiece.isConfigItem;
         final applicableSolutions = shouldResolve
             ? <Map<String, PlacementParams>>[]

@@ -14,6 +14,7 @@ class AnimatedPiecesOverlay extends StatefulWidget {
     required this.duration,
     required this.curve,
     required this.childBuilder,
+    required this.cellSize,
     this.borderColorMode = false,
     this.selectedPiece,
   });
@@ -21,6 +22,7 @@ class AnimatedPiecesOverlay extends StatefulWidget {
   final Duration duration;
   final Curve curve;
   final Widget Function(Set<PieceId> hiddenIds) childBuilder;
+  final double cellSize;
   final bool borderColorMode;
   final PuzzlePieceUI? selectedPiece;
 
@@ -91,6 +93,7 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
                 tweens: _tweens,
                 t: _animation.value,
                 borderColorMode: widget.borderColorMode,
+                cellSize: widget.cellSize,
                 selectedPieceId: widget.selectedPiece?.id,
               ),
             ),

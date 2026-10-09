@@ -59,7 +59,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         ? _moveHistoryService.maybeSnap(selectedPiece: flippedPiece, grid: state.gridConfig)
         : (flippedPiece, null);
     final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
-    final tentativePieces = _updatePieceInList(pieceToSave);
+    final tentativePieces = _updatePieceInList(_withHintFlag(pieceToSave, appliedMoves: state.moveIndex));
     if (selectedPiece.isConfigItem &&
         (_movementHandler.checkCollision(
               piece: pieceToSave,
@@ -132,7 +132,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     }
     moveHistory.add(move);
 
-    final pieces = _updatePieceInList(targetPiece);
+    final pieces = _updatePieceInList(_withHintFlag(targetPiece, appliedMoves: state.moveIndex));
     final applicableSolutions = _combineSolutions(state.solutions, pieces);
     final nextState = state.copyWith(
       pieces: pieces,
@@ -234,7 +234,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         ? _moveHistoryService.maybeSnap(selectedPiece: selectedPiece, grid: state.gridConfig)
         : (selectedPiece, null);
     final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
-    final tentativePieces = _updatePieceInList(pieceToSave);
+    final tentativePieces = _updatePieceInList(_withHintFlag(pieceToSave, appliedMoves: state.moveIndex));
     if (selectedPiece.isConfigItem &&
         (_movementHandler.checkCollision(
               piece: pieceToSave,
@@ -327,7 +327,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         rotationStep: PuzzleBloc.rotationStep,
         fullRotation: PuzzleBloc.fullRotation,
       );
-      final pieces = _updatePieceInList(selectedPiece);
+      final pieces = _updatePieceInList(_withHintFlag(selectedPiece, appliedMoves: idx));
       final shouldResolve = selectedPiece.isConfigItem && _settings.requireSolutions;
       final applicableSolutions = shouldResolve
           ? state.applicableSolutions
@@ -357,7 +357,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       rotationStep: PuzzleBloc.rotationStep,
       fullRotation: PuzzleBloc.fullRotation,
     );
-    final pieces = _updatePieceInList(selectedPiece);
+    final pieces = _updatePieceInList(_withHintFlag(selectedPiece, appliedMoves: idx));
     final shouldResolve = selectedPiece.isConfigItem && _settings.requireSolutions;
     final applicableSolutions = shouldResolve ? state.applicableSolutions : _combineSolutions(state.solutions, pieces);
     final nextState = state.copyWith(
@@ -423,6 +423,31 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       }
       return true;
     }).toList();
+  }
+
+  // A piece counts as hint-placed while it covers the cells where a hint among the applied moves put it.
+  PuzzlePieceUI _withHintFlag(final PuzzlePieceUI piece, {required final int appliedMoves}) {
+    if (piece.isConfigItem) {
+      return piece;
+    }
+    final hint = state.moveHistory
+        .take(appliedMoves)
+        .whereType<HintMove>()
+        .lastWhereOrNull((final move) => move.pieceId == piece.id);
+    if (hint == null || piece.placeZone != PlaceZone.grid) {
+      return piece.copyWith(isUsersItem: true);
+    }
+    final grid = state.gridConfig;
+    final hintedPosition = grid.absolutPositionPos(hint.to.position);
+    final hintedPiece = piece.copyWith(
+      position: Offset(hintedPosition.dx, hintedPosition.dy),
+      rotation: hint.rotationTo,
+      isFlipped: hint.flippedTo,
+    );
+    final hintedCells = hintedPiece.cells(grid.origin, grid.cellSize);
+    final pieceCells = piece.cells(grid.origin, grid.cellSize);
+    final isAtHint = hintedCells.length == pieceCells.length && hintedCells.containsAll(pieceCells);
+    return piece.copyWith(isUsersItem: !isAtHint);
   }
 
   PuzzlePieceUI _applyPlacementToPiece(final PuzzlePieceUI piece, final PlacementParams params) {

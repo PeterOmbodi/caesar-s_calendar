@@ -11,17 +11,13 @@ import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_pol
 import 'package:caesar_puzzle/presentation/onboarding/widgets/overlay/onboarding_overlay_helpers.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/info_display_3_cell.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_account_chip.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
-import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_flip_flap/flutter_flip_flap.dart';
 
 class PuzzleView extends StatelessWidget {
   const PuzzleView({super.key});
@@ -34,15 +30,6 @@ class PuzzleView extends StatelessWidget {
         final onboardingState = context.watch<OnboardingBloc>().state;
         bloc.add(PuzzleEvent.setViewSize(constraints.biggest, maxCell: ScreenSpec.of(context).maxCell));
         final borderColorMode = context.watch<SettingsCubit>().state.separateMoveColors;
-
-        final settings = context.watch<SettingsCubit>().state;
-        final applicableCount = state.applicableSolutions.length;
-        final isOnboardingVisible = onboardingState.isVisible;
-        final indicatorMode = _PuzzleIndicatorMode.resolve(
-          isOnboardingVisible: isOnboardingVisible,
-          solutionIndicator: settings.solutionIndicator,
-          isShowSolutions: state.isShowSolutions,
-        );
 
         bool isInteractionAllowed(final Offset position, {required final OnboardingInputAction action}) {
           final step = onboardingState.currentStep;
@@ -87,12 +74,6 @@ class PuzzleView extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    if (indicatorMode != _PuzzleIndicatorMode.hidden)
-                      Positioned(
-                        left: state.cfgCellOffset(1).dx,
-                        top: state.cfgCellOffset(1).dy,
-                        child: _PuzzleIndicatorCell(mode: indicatorMode, solutionsCount: applicableCount),
-                      ),
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTapDown: (final details) {
@@ -146,6 +127,7 @@ class PuzzleView extends StatelessWidget {
                         duration: const Duration(milliseconds: 220),
                         curve: Curves.easeInOut,
                         borderColorMode: borderColorMode,
+                        cellSize: state.gridConfig.cellSize,
                         selectedPiece: state.pointerPiece ?? state.selectedPiece,
                         childBuilder: (final hiddenIds) => CustomPaint(
                           painter: PuzzleBoardPainter(
@@ -155,7 +137,6 @@ class PuzzleView extends StatelessWidget {
                                   (!state.isDragging || p.id != state.pointerPiece?.id),
                             ),
                             grid: state.gridConfig,
-                            board: state.boardConfig,
                             selectedPiece: state.pointerPiece ?? state.selectedPiece,
                             previewPosition: state.previewPosition,
                             showPreview: state.showPreview,
@@ -164,26 +145,15 @@ class PuzzleView extends StatelessWidget {
                             drawnGroupCommitStatus: state.drawnGroupCommitStatus,
                             borderColorMode: borderColorMode,
                             selectedDate: state.selectedDate,
+                            isSolved: state.isSolved,
                           ),
                         ),
                       ),
                     ),
-                    if (!isOnboardingVisible)
-                      Positioned(
-                        left: state.cfgCellOffset(0).dx,
-                        top: state.cfgCellOffset(0).dy,
-                        child: const PuzzleAccountChip(),
-                      ),
-                    if (!isOnboardingVisible && (state.isShowSolutions || settings.showTimer))
-                      Positioned(
-                        left: state.cfgCellOffset(3).dx,
-                        top: state.cfgCellOffset(3).dy,
-                        child: InfoDisplay3Cell(),
-                      ),
                     if (state.isDragging && state.pointerPiece != null)
                       IgnorePointer(
                         child: CustomPaint(
-                          painter: _DraggedPiecePainter(piece: state.pointerPiece!, borderColorMode: borderColorMode),
+                          painter: _DraggedPiecePainter(piece: state.pointerPiece!, cellSize: state.gridConfig.cellSize),
                         ),
                       ),
                   ],
@@ -254,113 +224,16 @@ Set<Cell> _drawOnboardingAllowedCells(final PuzzleState state) {
 }
 
 class _DraggedPiecePainter extends CustomPainter {
-  const _DraggedPiecePainter({required this.piece, required this.borderColorMode});
+  const _DraggedPiecePainter({required this.piece, required this.cellSize});
 
   final PuzzlePieceUI piece;
-  final bool borderColorMode;
+  final double cellSize;
 
   @override
-  void paint(final Canvas canvas, final Size size) {
-    PiecePaintHelper.drawPiece(canvas, piece, true, borderColorMode);
-    final centerPaint = Paint()
-      ..color = AppColors.current.pieceCenterDot
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(piece.position + piece.centerPoint, 5.0, centerPaint);
-  }
+  void paint(final Canvas canvas, final Size size) =>
+      PiecePaintHelper.drawPiece(canvas, piece, cellSize: cellSize, look: PieceLook.lifted);
 
   @override
   bool shouldRepaint(covariant final _DraggedPiecePainter oldDelegate) =>
-      oldDelegate.piece != piece || oldDelegate.borderColorMode != borderColorMode;
-}
-
-enum _PuzzleIndicatorMode {
-  hidden,
-  solvability,
-  solutionsCount;
-
-  static _PuzzleIndicatorMode resolve({
-    required final bool isOnboardingVisible,
-    required final SolutionIndicator solutionIndicator,
-    required final bool isShowSolutions,
-  }) {
-    if (isOnboardingVisible) {
-      return _PuzzleIndicatorMode.hidden;
-    }
-    if (solutionIndicator == SolutionIndicator.solvability) {
-      return _PuzzleIndicatorMode.solvability;
-    }
-    if (solutionIndicator == SolutionIndicator.countSolutions || isShowSolutions) {
-      return _PuzzleIndicatorMode.solutionsCount;
-    }
-    return _PuzzleIndicatorMode.hidden;
-  }
-}
-
-class _PuzzleIndicatorCell extends StatelessWidget {
-  const _PuzzleIndicatorCell({required this.mode, required this.solutionsCount});
-
-  final _PuzzleIndicatorMode mode;
-  final int solutionsCount;
-
-  @override
-  Widget build(final BuildContext context) => switch (mode) {
-    _PuzzleIndicatorMode.hidden => const SizedBox.shrink(),
-    _PuzzleIndicatorMode.solvability => const _SolvabilityMark(),
-    _PuzzleIndicatorMode.solutionsCount => ConstrainedBox(
-      constraints: context.read<PuzzleBloc>().state.gridConfig.cellConstraints(),
-      child: FlipFlapDisplay.fromText(
-        text: '$solutionsCount'.padLeft(2, '0'),
-        unitsInPack: 4,
-        unitConstraints: _solutionCounterConstraints(context, solutionsCount),
-        unitType: UnitType.number,
-        useShortestWay: false,
-      ),
-    ),
-  };
-}
-
-BoxConstraints _solutionCounterConstraints(final BuildContext context, final int solutionsCount) {
-  final cellSize = context.read<PuzzleBloc>().state.gridConfig.cellSize;
-  return BoxConstraints(minWidth: solutionsCount < 100 ? cellSize * 0.4 : cellSize * 0.28, minHeight: cellSize * 0.64);
-}
-
-class _SolvabilityMark extends StatelessWidget {
-  const _SolvabilityMark();
-
-  @override
-  Widget build(final BuildContext context) => BlocSelector<PuzzleBloc, PuzzleState, bool>(
-    selector: (final s) => s.applicableSolutions.isNotEmpty,
-    builder: (final context, final solvabilable) {
-      final icon = solvabilable ? Icons.check_circle : Icons.cancel;
-      final iconColor = solvabilable ? Colors.green : Colors.red;
-      final cellSize = context.read<PuzzleBloc>().state.gridConfig.cellSize;
-      final outerPadding = cellSize * 0.12;
-      final innerPadding = cellSize * 0.08;
-      return Padding(
-        padding: EdgeInsets.all(outerPadding),
-        child: FlipFlapDisplay(
-          items: [
-            FlipFlapWidgetItem.flip(
-              flipAxis: Axis.horizontal,
-              duration: const Duration(milliseconds: 1000),
-              child: Padding(
-                key: ValueKey(icon.codePoint),
-                padding: EdgeInsets.all(innerPadding),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(cellSize / 2),
-                    color: Colors.grey.shade200,
-                  ),
-                  child: Center(
-                    child: Icon(icon, size: cellSize * 0.48, color: iconColor),
-                  ),
-                ),
-              ),
-            ),
-          ],
-          unitConstraints: BoxConstraints.tightFor(height: cellSize * 0.76, width: cellSize * 0.76),
-        ),
-      );
-    },
-  );
+      oldDelegate.piece != piece || oldDelegate.cellSize != cellSize;
 }

@@ -10,11 +10,13 @@ class PiecesTweenPainter extends CustomPainter {
     required this.tweens,
     required this.t,
     required this.borderColorMode,
+    required this.cellSize,
     required this.selectedPieceId,
   });
   final Map<PieceId, PieceTween> tweens;
   final double t;
   final bool borderColorMode;
+  final double cellSize;
   final String? selectedPieceId;
 
   @override
@@ -49,8 +51,13 @@ class PiecesTweenPainter extends CustomPainter {
         ..translate(-centerWorld.dx, -centerWorld.dy);
 
       final piece = tw.to.copyWith(position: pos, rotation: rot, isFlipped: false);
-      final isSelected = piece.id == selectedPieceId;
-      PiecePaintHelper.drawPiece(canvas, piece, isSelected, borderColorMode);
+      PiecePaintHelper.drawPiece(
+        canvas,
+        piece,
+        cellSize: cellSize,
+        look: piece.id == selectedPieceId ? PieceLook.selected : PieceLook.normal,
+        showHintBadge: borderColorMode && !piece.isUsersItem,
+      );
 
       canvas.restore();
     }
@@ -61,5 +68,6 @@ class PiecesTweenPainter extends CustomPainter {
       old.tweens != tweens ||
       old.t != t ||
       old.borderColorMode != borderColorMode ||
+      old.cellSize != cellSize ||
       old.selectedPieceId != selectedPieceId;
 }

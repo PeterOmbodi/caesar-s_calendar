@@ -74,6 +74,11 @@ extension PuzzlePieceX on PuzzlePieceUI {
 
   Path getTransformedPath() => path.transform(_getMatrix().storage);
 
+  /// Places a path drawn in the piece's own coordinates at its position, rotation and flip.
+  Path transformLocalPath(final Path localPath) => localPath.transform(_getMatrix().storage);
+
+  Offset transformLocalPoint(final Offset localPoint) => MatrixUtils.transformPoint(_getMatrix(), localPoint);
+
   bool containsPoint(final Offset point) {
     final invertedMatrix = Matrix4.inverted(_getMatrix());
     final transformedPoint = Offset(

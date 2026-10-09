@@ -258,4 +258,59 @@ void main() {
       await bloc.close();
     },
   );
+
+  test('hinted piece keeps the hint mark only while it is at the hinted cells', () async {
+    final bloc = _TestPuzzleBloc(
+      settings: _FakeSettingsQuery(),
+      solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
+      historyUseCase: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
+    );
+    const grid = PuzzleGridEntity(cellSize: 10, rows: 7, columns: 7, origin: Position(dx: 0, dy: 0));
+    const board = PuzzleBoardEntity(cellSize: 10, rows: 7, columns: 7, origin: Position(dx: 100, dy: 0));
+    final square = _piece(id: 'Square', type: PieceType.square, position: const Offset(110, 10), zone: PlaceZone.board);
+    final v = _piece(id: 'V-Shape', type: PieceType.vShape, position: const Offset(140, 40), zone: PlaceZone.board);
+    final solution = <String, PlacementParams>{'Square': PlacementParams('Square', 2, 2, 0, false)};
+    bloc.emitForTest(
+      PuzzleState.initial().copyWith(
+        status: GameStatus.playing,
+        gridConfig: grid,
+        boardConfig: board,
+        pieces: [square, v],
+        solutions: [solution],
+        applicableSolutions: [solution],
+      ),
+    );
+
+    Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 50));
+    Future<void> drag(final Offset from, final Offset to) async {
+      bloc.add(PuzzleEvent.onPanStart(from));
+      await settle();
+      bloc.add(PuzzleEvent.onPanUpdate(to));
+      await settle();
+      bloc.add(PuzzleEvent.onPanEnd(to));
+      await settle();
+    }
+
+    bool isHinted() => !bloc.state.pieces.firstWhere((final p) => p.id == 'Square').isUsersItem;
+
+    bloc.add(const PuzzleEvent.showHint());
+    await settle();
+    expect(isHinted(), isTrue);
+
+    await drag(const Offset(25, 25), const Offset(45, 45));
+    expect(isHinted(), isFalse);
+
+    await drag(const Offset(45, 45), const Offset(25, 25));
+    expect(isHinted(), isTrue);
+
+    bloc.add(const PuzzleEvent.undo());
+    await settle();
+    expect(isHinted(), isFalse);
+
+    bloc.add(const PuzzleEvent.redo());
+    await settle();
+    expect(isHinted(), isTrue);
+
+    await bloc.close();
+  });
 }

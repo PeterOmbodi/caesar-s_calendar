@@ -14,8 +14,6 @@ abstract class ThemeColors {
 
   Color get pieceFillSelectedOverlay;
 
-  Color get pieceCenterDot;
-
   Color get gridLine;
 
   Color get gridBorder;
@@ -76,9 +74,6 @@ class Light implements ThemeColors {
   Color get pieceFillSelectedOverlay => Colors.transparent;
 
   @override
-  Color get pieceCenterDot => Colors.red;
-
-  @override
   Color get gridLine => game.gridLine;
 
   @override
@@ -135,9 +130,6 @@ class Dark implements ThemeColors {
 
   @override
   Color get pieceFillSelectedOverlay => Colors.transparent;
-
-  @override
-  Color get pieceCenterDot => Colors.red;
 
   @override
   Color get gridLine => game.gridLine;
