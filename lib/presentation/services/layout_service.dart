@@ -18,7 +18,6 @@ class LayoutService {
   static const double collisionTolerance = 2;
   static const double intersectionWidthThreshold = 2;
   static const double gridEdgeTolerance = 5;
-  static const double maxCellSize = 50;
   static const double boardToGridSizeRatio = 1.2;
   static const double horizontalContentPadding = 8.0;
   static const int gridRows = 7;
@@ -28,10 +27,14 @@ class LayoutService {
   static const double boardExtraX = 1.5;
   static const double gridCenterOffset = 0.5;
 
-  LayoutConfig buildInitialLayout(final Size viewSize, {final Iterable<PuzzlePieceUI> configurationPieces = const []}) {
-    final gCellSize = _calcCellSize(viewSize);
+  LayoutConfig buildInitialLayout(
+    final Rect contentRect, {
+    required final double maxCell,
+    final Iterable<PuzzlePieceUI> configurationPieces = const [],
+  }) {
+    final gCellSize = _calcCellSize(contentRect.size, maxCell);
     final boardCellSize = _calcBoardCellSize(gCellSize);
-    final positions = _calcLayoutPositions(viewSize, gCellSize, boardCellSize);
+    final positions = _calcLayoutPositions(contentRect, gCellSize, boardCellSize);
 
     final gridConfig = PuzzleGridEntity(
       cellSize: gCellSize,
@@ -105,14 +108,15 @@ class LayoutService {
   }
 
   LayoutConfig rebuildLayout({
-    required final Size viewSize,
+    required final Rect contentRect,
+    required final double maxCell,
     required final PuzzleGridEntity prevGrid,
     required final PuzzleBoardEntity prevBoard,
     required final Iterable<PuzzlePieceUI> pieces,
   }) {
-    final gCellSize = _calcCellSize(viewSize);
+    final gCellSize = _calcCellSize(contentRect.size, maxCell);
     final boardCellSize = _calcBoardCellSize(gCellSize);
-    final positions = _calcLayoutPositions(viewSize, gCellSize, boardCellSize);
+    final positions = _calcLayoutPositions(contentRect, gCellSize, boardCellSize);
 
     final gridConfig = PuzzleGridEntity(
       cellSize: gCellSize,
@@ -170,7 +174,7 @@ class LayoutService {
     return LayoutConfig(gridConfig: gridConfig, boardConfig: boardConfig, pieces: [...gridPieces, ...boardPieces]);
   }
 
-  double _calcCellSize(final Size viewSize) {
+  double _calcCellSize(final Size viewSize, final double maxCell) {
     final isPortrait = viewSize.height > viewSize.width;
     final gridAndBoardCells = gridRows * (1 + boardToGridSizeRatio);
     final horizontalInsets = horizontalContentPadding * 2;
@@ -181,17 +185,18 @@ class LayoutService {
     final crossAxisCellSize = isPortrait
         ? (viewSize.width - horizontalInsets) / (gridColumns * boardToGridSizeRatio)
         : viewSize.height / (gridRows * boardToGridSizeRatio);
-    final floored = math.min(mainAxisCellSize, crossAxisCellSize).floor();
+    final floored = math.min(math.min(mainAxisCellSize, crossAxisCellSize), maxCell).floor();
     return floored.isEven ? floored.toDouble() : floored - 1.0;
   }
 
   double _calcBoardCellSize(final double gridCellSize) => gridCellSize * boardToGridSizeRatio;
 
   ({Offset grid, Offset board}) _calcLayoutPositions(
-    final Size viewSize,
+    final Rect contentRect,
     final double gridCellSize,
     final double boardCellSize,
   ) {
+    final viewSize = contentRect.size;
     final gridWidth = gridColumns * gridCellSize;
     final gridHeight = gridRows * gridCellSize;
     final boardWidth = gridColumns * boardCellSize;
@@ -201,8 +206,11 @@ class LayoutService {
     if (isPortrait) {
       final contentWidth = math.max(gridWidth, boardWidth);
       final contentHeight = gridHeight + defaultPadding + boardHeight;
-      final left = horizontalContentPadding + (viewSize.width - horizontalContentPadding * 2 - contentWidth) / 2;
-      final top = (viewSize.height - contentHeight) / 2;
+      final left =
+          contentRect.left +
+          horizontalContentPadding +
+          (viewSize.width - horizontalContentPadding * 2 - contentWidth) / 2;
+      final top = contentRect.top + (viewSize.height - contentHeight) / 2;
       return (
         grid: Offset(left + (contentWidth - gridWidth) / 2, top),
         board: Offset(left + (contentWidth - boardWidth) / 2, top + gridHeight + defaultPadding),
@@ -211,8 +219,9 @@ class LayoutService {
 
     final contentWidth = gridWidth + defaultPadding + boardWidth;
     final contentHeight = math.max(gridHeight, boardHeight);
-    final left = horizontalContentPadding + (viewSize.width - horizontalContentPadding * 2 - contentWidth) / 2;
-    final top = (viewSize.height - contentHeight) / 2;
+    final left =
+        contentRect.left + horizontalContentPadding + (viewSize.width - horizontalContentPadding * 2 - contentWidth) / 2;
+    final top = contentRect.top + (viewSize.height - contentHeight) / 2;
     return (
       grid: Offset(left, top + (contentHeight - gridHeight) / 2),
       board: Offset(left + gridWidth + defaultPadding, top + (contentHeight - boardHeight) / 2),

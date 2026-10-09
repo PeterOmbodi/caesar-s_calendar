@@ -4,7 +4,7 @@ part of 'puzzle_bloc.dart';
 sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.started() = _Started;
 
-  const factory PuzzleEvent.setViewSize(final Size viewSize) = _SetViewSize;
+  const factory PuzzleEvent.setViewSize(final Size viewSize, {required final double maxCell}) = _SetViewSize;
 
   const factory PuzzleEvent.reset() = _Reset;
 

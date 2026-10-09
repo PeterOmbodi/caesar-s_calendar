@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
@@ -31,7 +32,7 @@ class PuzzleView extends StatelessWidget {
       builder: (final context, final constraints) {
         final bloc = context.read<PuzzleBloc>();
         final onboardingState = context.watch<OnboardingBloc>().state;
-        bloc.add(PuzzleEvent.setViewSize(constraints.biggest));
+        bloc.add(PuzzleEvent.setViewSize(constraints.biggest, maxCell: ScreenSpec.of(context).maxCell));
         final borderColorMode = context.watch<SettingsCubit>().state.separateMoveColors;
 
         final settings = context.watch<SettingsCubit>().state;

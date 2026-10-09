@@ -80,7 +80,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_MarkSolvedDialogShown>((final event, final emit) => _markSolvedDialogShown(event, emit));
   }
 
-  static const double maxCellSize = 50;
   static const int gridRows = 7;
   static const int gridColumns = 7;
   static const double defaultPadding = 16.0;
@@ -101,6 +100,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   late final LifecycleService _lifecycleService;
 
   Size? _lastViewSize;
+  double _lastMaxCell = double.infinity;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
   bool _isOnboardingSession = false;
   int? _suppressTapAfterDrawnCommitAtMs;

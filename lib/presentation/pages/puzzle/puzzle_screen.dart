@@ -9,6 +9,7 @@ import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/core/services/timer_service.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_event.dart';
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_state.dart';
@@ -40,7 +41,6 @@ class PuzzleScreen extends StatefulWidget {
   const PuzzleScreen({super.key});
 
   static const sidePanelWidth = 340.0;
-  static const wideScreenBreakpoint = 1124.0;
 
   @override
   State<PuzzleScreen> createState() => _PuzzleScreenState();
@@ -95,14 +95,14 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   @override
   Widget build(final BuildContext context) {
-    final isWideScreen = MediaQuery.of(context).size.width >= PuzzleScreen.wideScreenBreakpoint;
-    _syncSettingsPanelWithWidth(isWideScreen);
+    final settingsDocked = ScreenSpec.of(context).settingsDocked;
+    _syncSettingsPanelWithWidth(settingsDocked);
     final gameplayInsets = _settingsPanelController.gameplayInsets(
-      isWideScreen: isWideScreen,
+      isWideScreen: settingsDocked,
       sidePanelWidth: PuzzleScreen.sidePanelWidth,
     );
     final onboardingCoordinateOffset = _settingsPanelController.onboardingCoordinateOffset(
-      isWideScreen: isWideScreen,
+      isWideScreen: settingsDocked,
       sidePanelWidth: PuzzleScreen.sidePanelWidth,
     );
     return MultiBlocProvider(
@@ -255,12 +255,12 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 ),
                 Positioned(
                   bottom: 24,
-                  right: 12 + (isWideScreen ? PuzzleScreen.sidePanelWidth : 0),
+                  right: 12 + (settingsDocked ? PuzzleScreen.sidePanelWidth : 0),
                   child: PuzzleBottomControls(
-                    onSettingsPressed: (final controlsContext) => _openSettings(controlsContext, isWideScreen),
+                    onSettingsPressed: (final controlsContext) => _openSettings(controlsContext, settingsDocked),
                   ),
                 ),
-                if (isWideScreen)
+                if (settingsDocked)
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOutCubic,
@@ -274,7 +274,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             ),
           ),
         ),
-        endDrawer: isWideScreen ? null : const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
+        endDrawer: settingsDocked ? null : const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
       ),
     );
   }
