@@ -6,6 +6,9 @@ import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dar
 import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
 import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/actions/actions_for.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visuals.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
@@ -161,164 +164,152 @@ class PuzzleBottomControls extends StatelessWidget {
     ),
   );
 
-  List<Widget> _buildMoreControls(final BuildContext context, final PuzzleState state) => [
-    IconButton(
-      icon: const Icon(Icons.info_outline_rounded),
-      onPressed: () => _showHowToPlayDialog(context),
-      tooltip: S.current.howToPlayTitle,
-    ),
-    IconButton(icon: Icon(Icons.settings), onPressed: () => onSettingsPressed(context), tooltip: S.current.settings),
-    state.isSolving
-        ? const SizedBox(
-            width: FloatingPanel.buttonSize,
-            height: FloatingPanel.buttonSize,
-            child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()),
-          )
-        : IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<PuzzleBloc>().add(PuzzleEvent.reset()),
-            tooltip: S.current.reset,
-          ),
-  ];
+  static const _solutionGroupIds = {
+    GameActionId.showSolutions,
+    GameActionId.closeSolutions,
+    GameActionId.prevSolution,
+    GameActionId.nextSolution,
+    GameActionId.undo,
+    GameActionId.redo,
+  };
 
-  ToolbarControlGroup _buildSolutionControls({
-    required final BuildContext context,
-    required final PuzzleState state,
-    required final int solutionsCount,
-    required final PuzzleBloc puzzleBloc,
-    required final Widget showSolutionButton,
-  }) {
-    final isShowingSolutions = state.isShowSolutions && solutionsCount > 0;
-    return ToolbarControlGroup(
-      showOutline: isShowingSolutions,
-      children: [
-        showSolutionButton,
-        if (isShowingSolutions) ...[
-          IconButton(
-            icon: const Icon(Icons.arrow_left),
-            onPressed: () => puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx - 1)),
-            tooltip: S.current.prevSolution,
+  Future<void> _runAssist(
+    final BuildContext context,
+    final PuzzleState state,
+    final AssistGate gate,
+    final VoidCallback allowedEvent,
+  ) async {
+    switch (gate) {
+      case AssistGate.open:
+        allowedEvent();
+      case AssistGate.noSolutions:
+        await showDialog(
+          context: context,
+          builder: (final context) => PlatformAlertDialog(
+            title: Text(S.of(context).searchCompletedDialogTitle),
+            content: Text(S.of(context).solutionsNotFoundDialogMessage),
+            actions: [
+              PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok)),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.arrow_right),
-            onPressed: () => puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx + 1)),
-            tooltip: S.current.nextSolution,
+        );
+      case AssistGate.confirmEasy:
+        final result = await showDialog<bool>(
+          context: context,
+          builder: (final context) => PlatformAlertDialog(
+            title: Text(S.of(context).searchCompletedDialogTitle),
+            content: Text(S.of(context).solutionsFoundDialogMessage(state.applicableSolutions.length)),
+            actions: [
+              PlatformDialogAction(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(S.of(context).solutionsFoundDialogCancel),
+              ),
+              PlatformDialogAction(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(S.of(context).solutionsFoundDialogOk),
+              ),
+            ],
           ),
-        ] else ...[
-          IconButton(
-            icon: Icon(Icons.undo),
-            onPressed: state.isUndoEnabled ? () => puzzleBloc.add(PuzzleEvent.undo()) : null,
-            tooltip: S.current.undo,
-          ),
-          IconButton(
-            icon: Icon(Icons.redo),
-            onPressed: state.isRedoEnabled ? () => puzzleBloc.add(PuzzleEvent.redo()) : null,
-            tooltip: S.current.redo,
-          ),
-        ],
-      ],
+        );
+        if (result == true && context.mounted) {
+          context.read<PuzzleBloc>().markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
+          allowedEvent();
+        }
+    }
+  }
+
+  Future<void> _invoke(final BuildContext context, final PuzzleState state, final GameAction action) async {
+    final puzzleBloc = context.read<PuzzleBloc>();
+    switch (action.id) {
+      case GameActionId.history:
+        await _runAfterIntro(context, _BottomControlIntro.history, () => _showHistory(context));
+      case GameActionId.showSolutions:
+        await _runAfterIntro(
+          context,
+          _BottomControlIntro.allSolutions,
+          () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showSolution(0))),
+        );
+      case GameActionId.closeSolutions:
+      case GameActionId.restart:
+        puzzleBloc.add(PuzzleEvent.reset());
+      case GameActionId.prevSolution:
+        puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx - 1));
+      case GameActionId.nextSolution:
+        puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx + 1));
+      case GameActionId.undo:
+        puzzleBloc.add(PuzzleEvent.undo());
+      case GameActionId.redo:
+        puzzleBloc.add(PuzzleEvent.redo());
+      case GameActionId.hint:
+        await _runAfterIntro(
+          context,
+          _BottomControlIntro.hint,
+          () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showHint())),
+        );
+      case GameActionId.howToPlay:
+        await _showHowToPlayDialog(context);
+      case GameActionId.settings:
+        onSettingsPressed(context);
+    }
+  }
+
+  Widget _buildButton(final BuildContext context, final PuzzleState state, final GameAction action) {
+    if (action.busy) {
+      return const SizedBox(
+        width: FloatingPanel.buttonSize,
+        height: FloatingPanel.buttonSize,
+        child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator()),
+      );
+    }
+    return IconButton(
+      icon: Icon(action.id.icon),
+      style: action.active ? selectedToolbarIconButtonStyle(context) : null,
+      onPressed: action.enabled ? () => _invoke(context, state, action) : null,
+      tooltip: action.id.label,
     );
+  }
+
+  List<Widget> _buildPrimaryControls(
+    final BuildContext context,
+    final PuzzleState state,
+    final List<GameAction> actions,
+  ) {
+    final isBrowsingSolutions = actions.any((final a) => a.id == GameActionId.prevSolution);
+    final children = <Widget>[];
+    var group = <Widget>[];
+    void flushGroup() {
+      if (group.isNotEmpty) {
+        children.add(ToolbarControlGroup(showOutline: isBrowsingSolutions, children: group));
+        group = [];
+      }
+    }
+
+    for (final action in actions) {
+      final button = _buildButton(context, state, action);
+      if (_solutionGroupIds.contains(action.id)) {
+        group.add(button);
+      } else {
+        flushGroup();
+        children.add(button);
+      }
+    }
+    flushGroup();
+    return children;
   }
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
     builder: (final context, final state) {
-      final solutionsCount = state.applicableSolutions.length;
-      final puzzleBloc = context.read<PuzzleBloc>();
-      final solutionIndicator = context.watch<SettingsCubit>().state.solutionIndicator;
-      final isSolvabilityInfoVisible = solutionIndicator != SolutionIndicator.none;
-      final isSolutionSearchDisabled =
-          state.isSolving || (isSolvabilityInfoVisible && solutionsCount == 0) || state.isShowSolutions;
-      final isHintDisabled = isSolutionSearchDisabled || state.isSolved;
-
-      Future<void> onAssistPressed(final VoidCallback allowedEvent) async {
-        if (solutionsCount == 0) {
-          await showDialog(
-            context: context,
-            builder: (final context) => PlatformAlertDialog(
-              title: Text(S.of(context).searchCompletedDialogTitle),
-              content: Text(S.of(context).solutionsNotFoundDialogMessage),
-              actions: [
-                PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok)),
-              ],
-            ),
-          );
-          return;
-        }
-        if (isSolvabilityInfoVisible) {
-          allowedEvent.call();
-        } else {
-          final result = await showDialog<bool>(
-            context: context,
-            builder: (final context) => PlatformAlertDialog(
-              title: Text(S.of(context).searchCompletedDialogTitle),
-              content: Text(S.of(context).solutionsFoundDialogMessage(state.applicableSolutions.length)),
-              actions: [
-                PlatformDialogAction(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(S.of(context).solutionsFoundDialogCancel),
-                ),
-                PlatformDialogAction(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: Text(S.of(context).solutionsFoundDialogOk),
-                ),
-              ],
-            ),
-          );
-          if (result == true) {
-            puzzleBloc.markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
-            allowedEvent.call();
-          }
-        }
-      }
-
-      final showSolutionButton = IconButton(
-        icon: Icon(Icons.lightbulb),
-        style: state.isShowSolutions ? selectedToolbarIconButtonStyle(context) : null,
-        onPressed: state.isShowSolutions
-            ? () => puzzleBloc.add(PuzzleEvent.reset())
-            : isSolutionSearchDisabled
-            ? null
-            : () => _runAfterIntro(
-                context,
-                _BottomControlIntro.allSolutions,
-                () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showSolution(0))),
-              ),
-        tooltip: S.current.searchSolution,
-      );
-      final solutionControls = _buildSolutionControls(
-        context: context,
-        state: state,
-        solutionsCount: solutionsCount,
-        puzzleBloc: puzzleBloc,
-        showSolutionButton: showSolutionButton,
-      );
+      final actions = actionsFor(state, context.watch<SettingsCubit>().state.solutionIndicator);
+      List<GameAction> inSlot(final ActionSlot slot) => actions.where((final a) => a.slot == slot).toList();
 
       return FloatingPanel(
         morePanel: FloatingVerticalMoreToolbar(
           moreTooltip: S.current.showControls,
           closeTooltip: S.current.hideControls,
-          children: _buildMoreControls(context, state),
+          children: [for (final action in inSlot(ActionSlot.overflow)) _buildButton(context, state, action)],
         ),
-        children: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () => _runAfterIntro(context, _BottomControlIntro.history, () => _showHistory(context)),
-            tooltip: S.current.historyTitle,
-          ),
-          solutionControls,
-          IconButton(
-            icon: Icon(Icons.tips_and_updates_outlined),
-            onPressed: isHintDisabled
-                ? null
-                : () => _runAfterIntro(
-                    context,
-                    _BottomControlIntro.hint,
-                    () => onAssistPressed(() => puzzleBloc.add(PuzzleEvent.showHint())),
-                  ),
-            tooltip: S.current.hint,
-          ),
-        ],
+        children: _buildPrimaryControls(context, state, inSlot(ActionSlot.primary)),
       );
     },
   );
