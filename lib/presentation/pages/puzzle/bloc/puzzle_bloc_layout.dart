@@ -40,6 +40,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
           isRestoredSolvedSession: false,
           hasShownSolvedDialog: false,
           solutionIdx: -1,
+          selectedPieceId: null,
           moveHistory: [],
           moveIndex: 0,
           firstMoveAt: null,

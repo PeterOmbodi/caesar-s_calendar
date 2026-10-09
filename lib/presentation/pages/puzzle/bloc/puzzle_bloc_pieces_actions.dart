@@ -12,9 +12,38 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       return;
     }
 
-    final selectedPiece = _findPieceAtPosition(event.localPosition);
-    if (selectedPiece != null && (!selectedPiece.isConfigItem || _settings.unlockConfig)) {
-      await _flipPiece(selectedPiece, emit);
+    final piece = _findPieceAtPosition(event.localPosition);
+    final wasSelectedOnTapDown = piece != null && _selectedOnTapDownId == piece.id;
+    _selectedOnTapDownId = null;
+    if (piece == null || (piece.isConfigItem && !_settings.unlockConfig)) {
+      emit(state.copyWith(pointerPiece: null, selectedPieceId: null));
+      return;
+    }
+    if (piece.id == state.selectedPieceId && !wasSelectedOnTapDown) {
+      await _flipPiece(piece, emit);
+      emit(state.copyWith(pointerPiece: null));
+    } else {
+      emit(state.copyWith(pointerPiece: null, selectedPieceId: piece.id));
+    }
+  }
+
+  FutureOr<void> _selectPiece(final _SelectPiece event, final Emitter<PuzzleState> emit) {
+    if (state.pieces.any((final p) => p.id == event.pieceId)) {
+      emit(state.copyWith(selectedPieceId: event.pieceId));
+    }
+  }
+
+  FutureOr<void> _rotateSelected(final _RotateSelected event, final Emitter<PuzzleState> emit) async {
+    final piece = state.selectedPiece;
+    if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
+      await _rotatePiece(piece, emit);
+    }
+  }
+
+  FutureOr<void> _flipSelected(final _FlipSelected event, final Emitter<PuzzleState> emit) async {
+    final piece = state.selectedPiece;
+    if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
+      await _flipPiece(piece, emit);
     }
   }
 
@@ -107,7 +136,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     final applicableSolutions = _combineSolutions(state.solutions, pieces);
     final nextState = state.copyWith(
       pieces: pieces,
-      selectedPiece: null,
+      pointerPiece: null,
       isDragging: false,
       isDrawingGroup: false,
       drawnGroup: null,
@@ -193,14 +222,14 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     );
   }
 
-  FutureOr<void> _rotatePiece(final _RotatePiece event, final Emitter<PuzzleState> emit) async {
+  Future<void> _rotatePiece(final PuzzlePieceUI piece, final Emitter<PuzzleState> emit) async {
     final prevState = state;
-    final selectedPiece = event.piece.copyWith(
-      rotation: _stepRotation(event.piece.rotation),
-      isUsersItem: event.piece.isConfigItem ? event.piece.isUsersItem : true,
+    final selectedPiece = piece.copyWith(
+      rotation: _stepRotation(piece.rotation),
+      isUsersItem: piece.isConfigItem ? piece.isUsersItem : true,
     );
     final shouldSnap =
-        event.piece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
+        piece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
     final (pieceToSave, snapMove) = shouldSnap
         ? _moveHistoryService.maybeSnap(selectedPiece: selectedPiece, grid: state.gridConfig)
         : (selectedPiece, null);
@@ -217,7 +246,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
               boardConfig: state.boardConfig,
             ) ||
             _hasConfigOverlap(tentativePieces))) {
-      await _showInvalidTransformFeedback(emit: emit, transformedPiece: pieceToSave, originalPiece: event.piece);
+      await _showInvalidTransformFeedback(emit: emit, transformedPiece: pieceToSave, originalPiece: piece);
       return;
     }
     final pieces = tentativePieces;
@@ -349,7 +378,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     required final Iterable<PuzzlePieceUI> pieces,
     required final List<Map<String, PlacementParams>> applicableSolutions,
   }) {
-    if (state.selectedPiece?.isUsersItem == false) {
+    if (state.pointerPiece?.isUsersItem == false) {
       return state.status;
     }
     final boardHasPieces = pieces.any((final p) => p.placeZone == PlaceZone.board);
@@ -494,7 +523,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     required final PuzzlePieceUI transformedPiece,
     required final PuzzlePieceUI originalPiece,
   }) async {
-    emit(state.copyWith(pieces: _updatePieceInList(transformedPiece), selectedPiece: transformedPiece));
+    emit(state.copyWith(pieces: _updatePieceInList(transformedPiece), pointerPiece: transformedPiece));
     await Future<void>.delayed(_invalidTransformFeedbackDelay);
     if (isClosed) {
       return;
@@ -510,6 +539,6 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     if (!canRollback) {
       return;
     }
-    emit(state.copyWith(pieces: _updatePieceInList(originalPiece), selectedPiece: null));
+    emit(state.copyWith(pieces: _updatePieceInList(originalPiece), pointerPiece: null));
   }
 }

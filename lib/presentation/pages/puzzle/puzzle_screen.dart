@@ -543,6 +543,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         onboarding: true,
       ),
     );
+    if (stepId == OnboardingStepId.flipPiece) {
+      // The rotate step already taught selection, so the flip step starts with the piece selected.
+      _puzzleBloc.add(PuzzleEvent.selectPiece(pShapeId));
+    }
   }
 
   void _maybePresentOnboarding() {

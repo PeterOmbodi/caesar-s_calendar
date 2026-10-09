@@ -205,10 +205,11 @@ void main() {
           gridConfig: grid,
           boardConfig: board,
           pieces: [a, b],
+          selectedPieceId: a.id,
         ),
       );
 
-      bloc.add(PuzzleEvent.rotatePiece(a));
+      bloc.add(const PuzzleEvent.rotateSelected());
       await _drain();
 
       // Invalid move is shown first.
@@ -249,6 +250,7 @@ void main() {
           gridConfig: grid,
           boardConfig: board,
           pieces: [a, b],
+          selectedPieceId: b.id,
         ),
       );
 
@@ -256,7 +258,7 @@ void main() {
       bloc.add(PuzzleEvent.onDoubleTapDown(tapPosition));
       await _drain();
 
-      // onDoubleTapDown selects top-most piece at point (B in this setup)
+      // Double tap flips the selected piece under the point (B in this setup)
       final transformedB = bloc.state.pieces.firstWhere(
         (final p) => p.id == 'B',
       );
@@ -306,14 +308,18 @@ void main() {
       ),
     );
 
-    bloc.add(PuzzleEvent.rotatePiece(config));
+    bloc.add(PuzzleEvent.selectPiece(config.id));
+    await _drain();
+    bloc.add(const PuzzleEvent.rotateSelected());
     await _drain();
 
     expect(bloc.state.firstMoveAt, isNull);
     expect(bloc.state.lastResumedAt, isNull);
     expect(bloc.state.activeElapsedMs, 0);
 
-    bloc.add(PuzzleEvent.rotatePiece(regular));
+    bloc.add(PuzzleEvent.selectPiece(regular.id));
+    await _drain();
+    bloc.add(const PuzzleEvent.rotateSelected());
     await _drain();
 
     expect(bloc.state.firstMoveAt, isNotNull);

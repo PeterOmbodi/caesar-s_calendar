@@ -12,7 +12,13 @@ sealed class PuzzleEvent with _$PuzzleEvent {
 
   const factory PuzzleEvent.onTapUp(final Offset localPosition) = _OnTapUp;
 
-  const factory PuzzleEvent.rotatePiece(final PuzzlePieceUI piece) = _RotatePiece;
+  const factory PuzzleEvent.selectPiece(final String pieceId) = _SelectPiece;
+
+  const factory PuzzleEvent.deselectPiece() = _DeselectPiece;
+
+  const factory PuzzleEvent.rotateSelected() = _RotateSelected;
+
+  const factory PuzzleEvent.flipSelected() = _FlipSelected;
 
   const factory PuzzleEvent.onPanStart(final Offset localPosition) = _OnPanStart;
 

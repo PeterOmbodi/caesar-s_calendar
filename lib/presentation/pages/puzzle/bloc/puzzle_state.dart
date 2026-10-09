@@ -21,7 +21,8 @@ abstract class PuzzleState with _$PuzzleState {
     required final List<Map<String, PlacementParams>> applicableSolutions,
     required final int solutionIdx,
     required final Iterable<PuzzlePieceUI> pieces,
-    required final PuzzlePieceUI? selectedPiece,
+    required final PuzzlePieceUI? pointerPiece,
+    final String? selectedPieceId,
     required final bool isDragging,
     required final DrawnGroup? drawnGroup,
     required final DrawnGroupCommitStatus drawnGroupCommitStatus,
@@ -52,7 +53,7 @@ abstract class PuzzleState with _$PuzzleState {
     solutions: [],
     applicableSolutions: [],
     solutionIdx: -1,
-    selectedPiece: null,
+    pointerPiece: null,
     isDragging: false,
     drawnGroup: null,
     drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
@@ -75,6 +76,8 @@ abstract class PuzzleState with _$PuzzleState {
       status == GameStatus.paused || (status != GameStatus.playing && status != GameStatus.solutionsReady);
 
   bool get isShowSolutions => status == GameStatus.showingSolution;
+
+  PuzzlePieceUI? get selectedPiece => pieces.firstWhereOrNull((final p) => p.id == selectedPieceId);
 
   Iterable<PuzzlePieceUI> piecesByZone(final PlaceZone zone) => pieces.where((final p) => p.placeZone == zone);
 

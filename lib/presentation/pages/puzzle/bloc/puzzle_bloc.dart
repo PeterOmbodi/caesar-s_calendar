@@ -66,7 +66,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_OnPanEnd>((final event, final emit) => _onPanEnd(event, emit));
     on<_OnDoubleTapDown>((final event, final emit) => _handleDoubleTap(event, emit));
     on<_ClearDrawnGroup>((final event, final emit) => _clearDrawnGroup(event, emit));
-    on<_RotatePiece>((final event, final emit) => _rotatePiece(event, emit));
+    on<_SelectPiece>((final event, final emit) => _selectPiece(event, emit));
+    on<_DeselectPiece>((final event, final emit) => emit(state.copyWith(selectedPieceId: null)));
+    on<_RotateSelected>((final event, final emit) => _rotateSelected(event, emit));
+    on<_FlipSelected>((final event, final emit) => _flipSelected(event, emit));
     on<_Solve>((final event, final emit) => _solve(event, emit));
     on<_SetSolvingResults>((final event, final emit) => _setSolvingResults(event, emit));
     on<_ShowSolution>((final event, final emit) => _showSolution(event, emit));
@@ -101,6 +104,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   Size? _lastViewSize;
   double _lastMaxCell = double.infinity;
+  // Piece that the current tap down selected; such a tap must not rotate or flip it.
+  String? _selectedOnTapDownId;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
   bool _isOnboardingSession = false;
   int? _suppressTapAfterDrawnCommitAtMs;

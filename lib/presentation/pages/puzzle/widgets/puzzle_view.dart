@@ -66,9 +66,9 @@ class PuzzleView extends StatelessWidget {
             return false;
           }
 
-          final selectedPiece = state.selectedPiece;
-          if (action == OnboardingInputAction.drag && state.isDragging && selectedPiece != null) {
-            return selectedPiece.type == PieceType.pShape && !selectedPiece.isConfigItem;
+          final pointerPiece = state.pointerPiece;
+          if (action == OnboardingInputAction.drag && state.isDragging && pointerPiece != null) {
+            return pointerPiece.type == PieceType.pShape && !pointerPiece.isConfigItem;
           }
           final tappedPiece = state.pieces.lastWhere(
             (final piece) => piece.containsPoint(position),
@@ -124,7 +124,7 @@ class PuzzleView extends StatelessWidget {
                             onboardingState.currentStep?.id == OnboardingStepId.dragPiece &&
                             onboardingState.isCurrentStepInteractionEnabled &&
                             state.isDragging &&
-                            state.selectedPiece?.type != PieceType.pShape) {
+                            state.pointerPiece?.type != PieceType.pShape) {
                           return;
                         }
                         bloc.add(PuzzleEvent.onPanEnd(details.localPosition));
@@ -146,17 +146,17 @@ class PuzzleView extends StatelessWidget {
                         duration: const Duration(milliseconds: 220),
                         curve: Curves.easeInOut,
                         borderColorMode: borderColorMode,
-                        selectedPiece: state.selectedPiece,
+                        selectedPiece: state.pointerPiece ?? state.selectedPiece,
                         childBuilder: (final hiddenIds) => CustomPaint(
                           painter: PuzzleBoardPainter(
                             pieces: state.pieces.where(
                               (final p) =>
                                   (!hiddenIds.contains(p.id) || p.isConfigItem) &&
-                                  (!state.isDragging || p.id != state.selectedPiece?.id),
+                                  (!state.isDragging || p.id != state.pointerPiece?.id),
                             ),
                             grid: state.gridConfig,
                             board: state.boardConfig,
-                            selectedPiece: state.selectedPiece,
+                            selectedPiece: state.pointerPiece ?? state.selectedPiece,
                             previewPosition: state.previewPosition,
                             showPreview: state.showPreview,
                             previewCollision: state.previewCollision,
@@ -180,10 +180,10 @@ class PuzzleView extends StatelessWidget {
                         top: state.cfgCellOffset(3).dy,
                         child: InfoDisplay3Cell(),
                       ),
-                    if (state.isDragging && state.selectedPiece != null)
+                    if (state.isDragging && state.pointerPiece != null)
                       IgnorePointer(
                         child: CustomPaint(
-                          painter: _DraggedPiecePainter(piece: state.selectedPiece!, borderColorMode: borderColorMode),
+                          painter: _DraggedPiecePainter(piece: state.pointerPiece!, borderColorMode: borderColorMode),
                         ),
                       ),
                   ],

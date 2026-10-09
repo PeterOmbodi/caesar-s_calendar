@@ -2,26 +2,32 @@ part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocDragPart on PuzzleBloc {
   FutureOr<void> _onTapDown(final _OnTapDown event, final Emitter<PuzzleState> emit) {
+    _selectedOnTapDownId = null;
     if (_consumeTapAfterDrawnCommitSuppression()) {
-      emit(state.copyWith(selectedPiece: null));
+      emit(state.copyWith(pointerPiece: null));
       return Future<void>.value();
     }
 
     final cell = state.gridConfig.cellAt(event.localPosition);
     if (cell != null && state.drawnGroup?.contains(cell) == true) {
-      emit(state.copyWith(selectedPiece: null));
+      emit(state.copyWith(pointerPiece: null));
       return Future<void>.value();
     }
 
     final piece = _findPieceAtPosition(event.localPosition);
     if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
-      emit(state.copyWith(selectedPiece: piece));
+      if (piece.id != state.selectedPieceId) {
+        _selectedOnTapDownId = piece.id;
+      }
+      emit(state.copyWith(pointerPiece: piece, selectedPieceId: piece.id));
+    } else {
+      emit(state.copyWith(pointerPiece: null));
     }
   }
 
   FutureOr<void> _onTapUp(final _OnTapUp event, final Emitter<PuzzleState> emit) {
     if (_consumeTapAfterDrawnCommitSuppression()) {
-      emit(state.copyWith(selectedPiece: null, isDragging: false));
+      emit(state.copyWith(pointerPiece: null, isDragging: false));
       return Future<void>.value();
     }
 
@@ -36,7 +42,8 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           state.copyWith(
             drawnGroup: updatedGroup,
             drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(updatedGroup),
-            selectedPiece: null,
+            pointerPiece: null,
+            selectedPieceId: null,
             isDragging: false,
             isDrawingGroup: false,
           ),
@@ -45,14 +52,24 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       }
     }
 
-    if (state.selectedPiece != null && !state.isDragging) {
-      add(PuzzleEvent.rotatePiece(state.selectedPiece!));
+    final pointerPiece = state.pointerPiece;
+    final wasSelectedOnTapDown = pointerPiece != null && _selectedOnTapDownId == pointerPiece.id;
+    _selectedOnTapDownId = null;
+    if (pointerPiece != null && !state.isDragging && !wasSelectedOnTapDown) {
+      add(const PuzzleEvent.rotateSelected());
     }
-    emit(state.copyWith(selectedPiece: null, isDragging: false));
+    emit(
+      state.copyWith(
+        pointerPiece: null,
+        isDragging: false,
+        selectedPieceId: pointerPiece == null ? null : state.selectedPieceId,
+      ),
+    );
   }
 
   FutureOr<void> _onPanStart(final _OnPanStart event, final Emitter<PuzzleState> emit) {
-    final piece = _findPieceAtPosition(event.localPosition) ?? state.selectedPiece;
+    _selectedOnTapDownId = null;
+    final piece = _findPieceAtPosition(event.localPosition) ?? state.pointerPiece;
     if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
       final pieces = List<PuzzlePieceUI>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((final item) => item.id == piece.id);
@@ -65,7 +82,8 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       emit(
         state.copyWith(
           pieces: pieces,
-          selectedPiece: piece,
+          pointerPiece: piece,
+          selectedPieceId: piece.id,
           dragStartOffset: event.localPosition - piece.position,
           pieceStartPosition: piece.position,
           dragStartZone: _movementHandler.getZoneAtPosition(piece.position, state.gridConfig, state.boardConfig),
@@ -86,7 +104,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     final drawnGroup = state.drawnGroup;
     if (drawnGroup != null) {
       if (drawnGroup.contains(cell)) {
-        emit(state.copyWith(isDrawingGroup: true, selectedPiece: null, isDragging: false));
+        emit(state.copyWith(isDrawingGroup: true, pointerPiece: null, selectedPieceId: null, isDragging: false));
       }
       return Future<void>.value();
     }
@@ -98,7 +116,8 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           drawnGroup: newGroup,
           drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(newGroup),
           isDrawingGroup: true,
-          selectedPiece: null,
+          pointerPiece: null,
+          selectedPieceId: null,
           isDragging: false,
         ),
       );
@@ -124,9 +143,9 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       return Future<void>.value();
     }
 
-    if (state.selectedPiece != null && state.dragStartOffset != null) {
+    if (state.pointerPiece != null && state.dragStartOffset != null) {
       final newPosition = event.localPosition - state.dragStartOffset!;
-      final piece = state.selectedPiece!.copyWith(position: newPosition);
+      final piece = state.pointerPiece!.copyWith(position: newPosition);
       final pieces = List<PuzzlePieceUI>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((final item) => item.id == piece.id);
       if (pieceIndex >= 0) {
@@ -141,7 +160,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           emit(
             state.copyWith(
               pieces: pieces,
-              selectedPiece: piece,
+              pointerPiece: piece,
               showPreview: true,
               previewPosition: previewPosition,
               previewCollision: _movementHandler.checkCollision(
@@ -157,7 +176,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           );
         case PlaceZone.board:
         case null:
-          emit(state.copyWith(pieces: pieces, selectedPiece: piece, showPreview: false, previewCollision: false));
+          emit(state.copyWith(pieces: pieces, pointerPiece: piece, showPreview: false, previewCollision: false));
       }
     }
   }
@@ -168,9 +187,9 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       return Future<void>.value();
     }
 
-    if (state.selectedPiece != null) {
+    if (state.pointerPiece != null) {
       final prevState = state;
-      final selectedPiece = state.selectedPiece!;
+      final selectedPiece = state.pointerPiece!;
       final dropResult = _movementHandler.computeDropResult(
         selectedPiece: selectedPiece,
         pieceStartPosition: state.pieceStartPosition!,
@@ -202,7 +221,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           pieces: pieces,
           showPreview: false,
           previewPosition: null,
-          selectedPiece: null,
+          pointerPiece: null,
           dragStartOffset: null,
           pieceStartPosition: null,
           dragStartZone: null,
@@ -222,13 +241,13 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         debugPrint(
           'Collision detected, returning to original position, pieceStartPosition: ${state.pieceStartPosition}',
         );
-        final resetPiece = state.selectedPiece!.copyWith(position: state.pieceStartPosition);
+        final resetPiece = state.pointerPiece!.copyWith(position: state.pieceStartPosition);
         emit(
           state.copyWith(
             pieces: _updatePieceInList(resetPiece),
             showPreview: false,
             previewPosition: null,
-            selectedPiece: null,
+            pointerPiece: null,
             dragStartOffset: null,
             pieceStartPosition: null,
             dragStartZone: null,
@@ -245,14 +264,19 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         drawnGroup: null,
         drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
         isDrawingGroup: false,
-        selectedPiece: null,
+        pointerPiece: null,
         isDragging: false,
       ),
     );
   }
 
-  PuzzlePieceUI? _findPieceAtPosition(final Offset position) =>
-      state.pieces.lastWhereOrNull((final piece) => piece.containsPoint(position));
+  PuzzlePieceUI? _findPieceAtPosition(final Offset position) {
+    final selectedPiece = state.selectedPiece;
+    if (selectedPiece != null && selectedPiece.containsPoint(position)) {
+      return selectedPiece;
+    }
+    return state.pieces.lastWhereOrNull((final piece) => piece.containsPoint(position));
+  }
 
   bool _consumeTapAfterDrawnCommitSuppression() {
     final suppressedAt = _suppressTapAfterDrawnCommitAtMs;

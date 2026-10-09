@@ -17,6 +17,7 @@ import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
@@ -112,6 +113,28 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
 
 Future<void> _drain() async {
   await Future<void>.delayed(const Duration(milliseconds: 60));
+}
+
+Future<void> _tap(final PuzzleBloc bloc, final Offset position) async {
+  bloc.add(PuzzleEvent.onTapDown(position));
+  await _drain();
+  bloc.add(PuzzleEvent.onTapUp(position));
+  await _drain();
+}
+
+// Flutter delivers a double tap as tap down of the first tap, then double tap down (the tap itself is cancelled).
+Future<void> _doubleTap(final PuzzleBloc bloc, final Offset position) async {
+  bloc.add(PuzzleEvent.onTapDown(position));
+  await _drain();
+  bloc.add(PuzzleEvent.onDoubleTapDown(position));
+  await _drain();
+}
+
+PuzzlePieceUI _piece(final PuzzleBloc bloc, final String id) => bloc.state.pieces.firstWhere((final p) => p.id == id);
+
+Offset _pieceAnchor(final PuzzleBloc bloc, final String id) {
+  final piece = _piece(bloc, id);
+  return piece.position + piece.centerPoint;
 }
 
 Offset _cellCenter(final PuzzleBloc bloc, final int row, final int col) {
@@ -398,7 +421,7 @@ void main() {
     bloc!.add(PuzzleEvent.onTapDown(tapPosition));
     await _drain();
 
-    expect(bloc!.state.selectedPiece, isNull);
+    expect(bloc!.state.pointerPiece, isNull);
     final square = bloc!.state.pieces.firstWhere((final p) => p.id == 'Square');
     expect(square.isUsersItem, isTrue);
   });
@@ -418,7 +441,7 @@ void main() {
     bloc!.add(PuzzleEvent.onTapDown(tapPosition));
     await _drain();
 
-    expect(bloc!.state.selectedPiece, isNull);
+    expect(bloc!.state.pointerPiece, isNull);
   });
 
   test('manual flip of hint piece marks it as user item', () async {
@@ -427,7 +450,7 @@ void main() {
 
     final square = bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
     final pieces = bloc!.state.pieces.map((final p) => p.id == square.id ? p.copyWith(isUsersItem: false) : p).toList();
-    (bloc! as dynamic).emit(bloc!.state.copyWith(pieces: pieces));
+    (bloc! as dynamic).emit(bloc!.state.copyWith(pieces: pieces, selectedPieceId: square.id));
 
     final hintedSquare = bloc!.state.pieces.firstWhere((final p) => p.id == 'Square');
     bloc!.add(PuzzleEvent.onDoubleTapDown(hintedSquare.position + hintedSquare.centerPoint));
@@ -467,7 +490,9 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final boardPiece = bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
-    bloc!.add(PuzzleEvent.rotatePiece(boardPiece));
+    bloc!.add(PuzzleEvent.selectPiece(boardPiece.id));
+    await _drain();
+    bloc!.add(const PuzzleEvent.rotateSelected());
     await _drain();
 
     final firstMoveAtBeforeDrop = bloc!.state.firstMoveAt;
@@ -548,5 +573,148 @@ void main() {
     final restoredSquare = bloc!.state.pieces.firstWhere((final piece) => piece.id == 'Square');
     expect(restoredSquare.placeZone, PlaceZone.grid);
     expect(restoredSquare.position, bloc!.state.gridConfig.cellTopLeft(Cell(2, 2)));
+  });
+
+  group('piece selection gestures', () {
+    const emptySpot = Offset(2, 2);
+
+    Future<void> ready() async {
+      bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+    }
+
+    test('first tap selects without rotating, second tap rotates', () async {
+      await ready();
+      final rotation = _piece(bloc!, 'Square').rotation;
+
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(_piece(bloc!, 'Square').rotation, rotation);
+      expect(bloc!.state.moveHistory, isEmpty);
+
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(_piece(bloc!, 'Square').rotation, isNot(rotation));
+      expect(bloc!.state.moveHistory.single, isA<RotatePiece>());
+    });
+
+    test('double tap on an unselected piece only selects it', () async {
+      await ready();
+
+      await _doubleTap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(_piece(bloc!, 'Square').isFlipped, isFalse);
+      expect(bloc!.state.moveHistory, isEmpty);
+    });
+
+    test('double tap on the selected piece flips it', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      await _doubleTap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      expect(_piece(bloc!, 'Square').isFlipped, isTrue);
+      expect(bloc!.state.moveHistory.single, isA<FlipPiece>());
+      expect(bloc!.state.selectedPieceId, 'Square');
+    });
+
+    test('tap on another piece moves the selection without rotating', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      final rotation = _piece(bloc!, 'L-Shape').rotation;
+
+      await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
+
+      expect(bloc!.state.selectedPieceId, 'L-Shape');
+      expect(_piece(bloc!, 'L-Shape').rotation, rotation);
+    });
+
+    test('tap on empty space deselects', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      await _tap(bloc!, emptySpot);
+
+      expect(bloc!.state.selectedPieceId, isNull);
+    });
+
+    test('double tap on empty space deselects', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      await _doubleTap(bloc!, emptySpot);
+
+      expect(bloc!.state.selectedPieceId, isNull);
+    });
+
+    test('tap on empty space after a double tap does not rotate the selected piece', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      await _doubleTap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      final rotation = _piece(bloc!, 'Square').rotation;
+
+      await _tap(bloc!, emptySpot);
+
+      expect(_piece(bloc!, 'Square').rotation, rotation);
+      expect(bloc!.state.moveHistory.whereType<RotatePiece>(), isEmpty);
+      expect(bloc!.state.selectedPieceId, isNull);
+    });
+
+    test('drag selects the dragged piece', () async {
+      await ready();
+      final anchor = _pieceAnchor(bloc!, 'Square');
+
+      bloc!.add(PuzzleEvent.onPanStart(anchor));
+      await _drain();
+      bloc!.add(PuzzleEvent.onPanUpdate(anchor + const Offset(4, 4)));
+      await _drain();
+      bloc!.add(PuzzleEvent.onPanEnd(anchor + const Offset(4, 4)));
+      await _drain();
+
+      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(bloc!.state.pointerPiece, isNull);
+    });
+
+    test('rotateSelected and flipSelected transform the selected piece', () async {
+      await ready();
+      bloc!.add(const PuzzleEvent.selectPiece('Square'));
+      await _drain();
+      final rotation = _piece(bloc!, 'Square').rotation;
+
+      bloc!.add(const PuzzleEvent.rotateSelected());
+      await _drain();
+      bloc!.add(const PuzzleEvent.flipSelected());
+      await _drain();
+
+      expect(_piece(bloc!, 'Square').rotation, isNot(rotation));
+      expect(_piece(bloc!, 'Square').isFlipped, isTrue);
+      expect(bloc!.state.moveHistory, hasLength(2));
+    });
+
+    test('undo and redo keep the selection', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      bloc!.add(const PuzzleEvent.undo());
+      await _drain();
+      expect(bloc!.state.selectedPieceId, 'Square');
+
+      bloc!.add(const PuzzleEvent.redo());
+      await _drain();
+      expect(bloc!.state.selectedPieceId, 'Square');
+    });
+
+    test('deselectPiece clears the selection', () async {
+      await ready();
+      bloc!.add(const PuzzleEvent.selectPiece('Square'));
+      await _drain();
+
+      bloc!.add(const PuzzleEvent.deselectPiece());
+      await _drain();
+
+      expect(bloc!.state.selectedPieceId, isNull);
+    });
   });
 }

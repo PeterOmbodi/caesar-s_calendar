@@ -86,6 +86,7 @@ extension PuzzleBlocSolutionsPart on PuzzleBloc {
         pieces: gridPieces,
         applicableSolutions: applicableSolutions,
         solutionIdx: solutionIndex,
+        selectedPieceId: null,
         moveHistory: [],
         moveIndex: 0,
         status: GameStatus.showingSolution,
