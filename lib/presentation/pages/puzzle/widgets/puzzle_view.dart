@@ -143,16 +143,18 @@ class PuzzleView extends StatelessWidget {
                         bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition));
                       },
                       child: AnimatedPiecesOverlay(
-                        pieces: state.pieces,
+                        pieces: state.shownPieces,
                         duration: const Duration(milliseconds: 220),
                         curve: Curves.easeInOut,
                         borderColorMode: borderColorMode,
                         cellSize: state.gridConfig.cellSize,
                         instantIds: {if (state.isDragging && state.pointerPiece != null) state.pointerPiece!.id},
                         selectedPiece: state.pointerPiece ?? state.selectedPiece,
-                        childBuilder: (final hiddenIds) => CustomPaint(
+                        pinnedId: state.isDragging ? null : state.selectedPieceId,
+                        dimTray: state.isTrayPieceSelected,
+                        childBuilder: (final hiddenIds, final trayDim) => CustomPaint(
                           painter: PuzzleBoardPainter(
-                            pieces: state.pieces.where(
+                            pieces: state.shownPieces.where(
                               (final p) =>
                                   (!hiddenIds.contains(p.id) || p.isConfigItem) &&
                                   (!state.isDragging || p.id != state.pointerPiece?.id),
@@ -167,6 +169,7 @@ class PuzzleView extends StatelessWidget {
                             borderColorMode: borderColorMode,
                             selectedDate: state.selectedDate,
                             isSolved: state.isSolved,
+                            trayDim: trayDim,
                           ),
                         ),
                       ),

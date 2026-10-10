@@ -37,6 +37,7 @@ abstract class PuzzleState with _$PuzzleState {
     required final int moveIndex,
     // Survives undo: a piece put back on a hinted place stays hinted.
     @Default(<String, List<Set<Cell>>>{}) final Map<String, List<Set<Cell>>> hintedCells,
+    @Default(Rect.zero) final Rect trayArea,
     required final DateTime selectedDate,
     required final bool isRestoredSolvedSession,
     required final bool hasShownSolvedDialog,
@@ -80,6 +81,16 @@ abstract class PuzzleState with _$PuzzleState {
   bool get isShowSolutions => status == GameStatus.showingSolution;
 
   PuzzlePieceUI? get selectedPiece => pieces.firstWhereOrNull((final p) => p.id == selectedPieceId);
+
+  bool get isTrayPieceSelected => selectedPiece?.placeZone == PlaceZone.board;
+
+  /// Used for drawing and hit tests: the selected tray piece is enlarged.
+  PuzzlePieceUI shown(final PuzzlePieceUI piece) =>
+      piece.id == selectedPieceId && piece.placeZone == PlaceZone.board && !piece.isLifted && !trayArea.isEmpty
+      ? piece.enlargedWithin(trayArea)
+      : piece;
+
+  Iterable<PuzzlePieceUI> get shownPieces => pieces.map(shown);
 
   Iterable<PuzzlePieceUI> piecesByZone(final PlaceZone zone) => pieces.where((final p) => p.placeZone == zone);
 

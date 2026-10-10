@@ -7,6 +7,7 @@ import 'package:caesar_puzzle/domain/entities/puzzle_base_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:flutter/material.dart';
@@ -78,6 +79,7 @@ class LayoutService {
     return LayoutConfig(
       gridConfig: gridConfig,
       boardConfig: boardConfig,
+      trayArea: _trayArea(contentRect, gridConfig),
       pieces: [for (final p in [...gridPieces, ...boardPieces]) p.copyWith(trayScale: trayScale)],
     );
   }
@@ -115,7 +117,12 @@ class LayoutService {
       );
     });
 
-    return LayoutConfig(gridConfig: gridConfig, boardConfig: boardConfig, pieces: rebuilt.toList());
+    return LayoutConfig(
+      gridConfig: gridConfig,
+      boardConfig: boardConfig,
+      trayArea: _trayArea(contentRect, gridConfig),
+      pieces: rebuilt.toList(),
+    );
   }
 
   double _calcCellSize(final Size viewSize, final double maxCell, final double tray) {
@@ -129,6 +136,24 @@ class LayoutService {
         : viewSize.height / math.max(gridRows, trayRows * tray);
     final floored = math.min(math.min(mainAxisCellSize, crossAxisCellSize), maxCell).floor();
     return floored.isEven ? floored.toDouble() : floored - 1.0;
+  }
+
+  /// Room for the enlarged tray piece: the content area beside or below the board.
+  Rect _trayArea(final Rect contentRect, final PuzzleGridEntity grid) {
+    final board = grid.getBounds;
+    return contentRect.height > contentRect.width
+        ? Rect.fromLTRB(
+            contentRect.left + horizontalContentPadding,
+            board.bottom + horizontalContentPadding,
+            contentRect.right - horizontalContentPadding,
+            contentRect.bottom,
+          )
+        : Rect.fromLTRB(
+            board.right + horizontalContentPadding,
+            contentRect.top,
+            contentRect.right - horizontalContentPadding,
+            contentRect.bottom,
+          );
   }
 
   ({PuzzleGridEntity gridConfig, PuzzleBoardEntity boardConfig}) _buildConfigs(
@@ -184,9 +209,10 @@ class LayoutService {
 }
 
 class LayoutConfig {
-  LayoutConfig({required this.gridConfig, required this.boardConfig, required this.pieces});
+  LayoutConfig({required this.gridConfig, required this.boardConfig, required this.trayArea, required this.pieces});
 
   final PuzzleGridEntity gridConfig;
   final PuzzleBoardEntity boardConfig;
+  final Rect trayArea;
   final Iterable<PuzzlePieceUI> pieces;
 }

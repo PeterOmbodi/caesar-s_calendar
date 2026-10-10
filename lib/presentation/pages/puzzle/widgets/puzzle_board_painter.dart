@@ -25,6 +25,7 @@ class PuzzleBoardPainter extends CustomPainter {
     required this.borderColorMode,
     required this.selectedDate,
     this.isSolved = false,
+    this.trayDim = noTrayDim,
   });
 
   final Iterable<PuzzlePieceUI> pieces;
@@ -39,6 +40,7 @@ class PuzzleBoardPainter extends CustomPainter {
   final bool borderColorMode;
   final DateTime selectedDate;
   final bool isSolved;
+  final TrayDim trayDim;
 
   static const double boardRadius = PiecePaintHelper.radius + PiecePaintHelper.inset;
   static const double labelScale = 0.33;
@@ -66,6 +68,7 @@ class PuzzleBoardPainter extends CustomPainter {
       if (piece.isConfigItem && !isSelected) {
         continue;
       }
+      final dim = PiecePaintHelper.saveTrayDim(canvas, piece, trayDim);
       PiecePaintHelper.drawPiece(
         canvas,
         piece,
@@ -73,6 +76,9 @@ class PuzzleBoardPainter extends CustomPainter {
         look: isSelected ? PieceLook.selected : PieceLook.normal,
         showHintBadge: borderColorMode && !piece.isUsersItem,
       );
+      if (dim) {
+        canvas.restore();
+      }
     }
   }
 

@@ -127,4 +127,16 @@ void main() {
       }
     });
   });
+
+  group('tray area', () {
+    for (final size in [const Size(393, 640), const Size(852, 330), const Size(1032, 1300), const Size(1180, 700)]) {
+      test('holds the tray and stays clear of the board at $size', () {
+        final layout = layoutFor(size);
+        final area = layout.trayArea;
+        final tray = layout.boardConfig.getBounds;
+        expect(area.contains(tray.topLeft) && area.contains(tray.bottomRight - const Offset(0.01, 0.01)), isTrue);
+        expect(area.overlaps(layout.gridConfig.getBounds), isFalse);
+      });
+    }
+  });
 }

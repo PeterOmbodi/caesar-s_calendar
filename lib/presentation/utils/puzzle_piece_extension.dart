@@ -86,6 +86,14 @@ extension PuzzlePieceX on PuzzlePieceUI {
     return next.copyWith(position: anchor - (anchor - position) * (next.scale / scale));
   }
 
+  /// Board size, centred on the tray place, kept inside [area].
+  PuzzlePieceUI enlargedWithin(final Rect area) {
+    final small = getTransformedPath().getBounds();
+    final big = copyWith(isLifted: true);
+    final centred = big.copyWith(position: position + small.center - big.getTransformedPath().getBounds().center);
+    return centred.copyWith(position: centred.positionInside(area));
+  }
+
   Offset positionInside(final Rect bounds) {
     final shape = getTransformedPath().getBounds();
     var dx = 0.0;

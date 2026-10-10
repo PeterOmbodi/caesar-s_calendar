@@ -10,6 +10,11 @@ import 'package:flutter/material.dart';
 
 enum PieceLook { normal, selected, lifted }
 
+/// Tray fade 0..1; [exceptId] is not faded.
+typedef TrayDim = ({double amount, String? exceptId});
+
+const TrayDim noTrayDim = (amount: 0, exceptId: null);
+
 class PiecePaintHelper {
   static const double inset = 2;
   static const double radius = 6;
@@ -18,6 +23,17 @@ class PiecePaintHelper {
   static const double placedFillAlpha = 0.9;
   static const double selectedFillAlpha = 0.95;
   static const double selectionStroke = 2.5;
+  static const double dimmedTrayAlpha = 0.45;
+
+  /// Returns true if a layer was saved and must be restored.
+  static bool saveTrayDim(final Canvas canvas, final PuzzlePieceUI piece, final TrayDim dim) {
+    if (dim.amount <= 0 || piece.placeZone != PlaceZone.board || piece.id == dim.exceptId) {
+      return false;
+    }
+    final alpha = 1 - dim.amount * (1 - dimmedTrayAlpha);
+    canvas.saveLayer(null, Paint()..color = Color.fromRGBO(0, 0, 0, alpha));
+    return true;
+  }
   static const Offset selectionLift = Offset(0, -3);
 
   static const _hairline = Color(0x2E000000);

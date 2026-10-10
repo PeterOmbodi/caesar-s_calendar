@@ -73,7 +73,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     _selectedOnTapDownId = null;
     final piece = _findPieceAtPosition(event.localPosition) ?? state.pointerPiece;
     if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
-      final lifted = piece.rescaledAround(event.localPosition, isLifted: true);
+      final lifted = state.shown(piece).rescaledAround(event.localPosition, isLifted: true);
       final pieces = List<PuzzlePieceUI>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((final item) => item.id == piece.id);
       if (pieceIndex >= 0) {
@@ -277,10 +277,10 @@ extension PuzzleBlocDragPart on PuzzleBloc {
 
   PuzzlePieceUI? _findPieceAtPosition(final Offset position) {
     final selectedPiece = state.selectedPiece;
-    if (selectedPiece != null && selectedPiece.containsPoint(position)) {
+    if (selectedPiece != null && state.shown(selectedPiece).containsPoint(position)) {
       return selectedPiece;
     }
-    return state.pieces.lastWhereOrNull((final piece) => piece.containsPoint(position));
+    return state.pieces.lastWhereOrNull((final piece) => state.shown(piece).containsPoint(position));
   }
 
   bool _isTapOfDoubleTapFlip(final Offset position) {

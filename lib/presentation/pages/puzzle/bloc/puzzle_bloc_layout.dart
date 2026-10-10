@@ -38,6 +38,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
     final newState = state.copyWith(
       gridConfig: layout.gridConfig,
       boardConfig: layout.boardConfig,
+      trayArea: layout.trayArea,
       pieces: layout.pieces.toList(),
     );
 

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:flutter/material.dart';
@@ -13,16 +14,25 @@ class PiecesTweenPainter extends CustomPainter {
     required this.borderColorMode,
     required this.cellSize,
     required this.selectedPieceId,
+    this.pinned,
+    this.trayDim = noTrayDim,
   });
   final Map<PieceId, PieceTween> tweens;
   final double t;
   final bool borderColorMode;
   final double cellSize;
   final String? selectedPieceId;
+  final PuzzlePieceUI? pinned;
+  final TrayDim trayDim;
 
   @override
   void paint(final Canvas canvas, final Size size) {
-    for (final tw in tweens.values) {
+    final ordered = [
+      ...tweens.values.where((final tw) => tw.to.id != selectedPieceId),
+      ...tweens.values.where((final tw) => tw.to.id == selectedPieceId),
+    ];
+    for (final tw in ordered) {
+      final dim = PiecePaintHelper.saveTrayDim(canvas, tw.to, trayDim);
       final pos = tw.lerpPos(t);
       final rot = tw.lerpRot(t);
 
@@ -65,6 +75,20 @@ class PiecesTweenPainter extends CustomPainter {
       );
 
       canvas.restore();
+      if (dim) {
+        canvas.restore();
+      }
+    }
+
+    final pinned = this.pinned;
+    if (pinned != null) {
+      PiecePaintHelper.drawPiece(
+        canvas,
+        pinned,
+        cellSize: cellSize,
+        look: pinned.id == selectedPieceId ? PieceLook.selected : PieceLook.normal,
+        showHintBadge: borderColorMode && !pinned.isUsersItem,
+      );
     }
   }
 
@@ -74,5 +98,7 @@ class PiecesTweenPainter extends CustomPainter {
       old.t != t ||
       old.borderColorMode != borderColorMode ||
       old.cellSize != cellSize ||
-      old.selectedPieceId != selectedPieceId;
+      old.selectedPieceId != selectedPieceId ||
+      old.pinned != pinned ||
+      old.trayDim != trayDim;
 }

@@ -768,6 +768,54 @@ void main() {
       expect(bloc!.state.selectedPieceId, 'Square');
     });
 
+    test('selected tray piece is shown at board size inside the tray area', () async {
+      await ready();
+      bloc!.add(const PuzzleEvent.selectPiece('L-Shape'));
+      await _drain();
+
+      final state = bloc!.state;
+      final shown = state.shown(_piece(bloc!, 'L-Shape'));
+      final bounds = shown.getTransformedPath().getBounds();
+      final area = state.trayArea.inflate(0.01);
+      expect(shown.scale, 1.0);
+      expect(area.contains(bounds.topLeft) && area.contains(bounds.bottomRight), isTrue);
+      expect(bounds.overlaps(state.gridConfig.getBounds), isFalse);
+      expect(_piece(bloc!, 'L-Shape').isLifted, isFalse, reason: 'the model piece stays in the tray');
+    });
+
+    test('the enlarged tray piece is hit where it is shown', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
+      final rotation = _piece(bloc!, 'L-Shape').rotation;
+      final cell = bloc!.state.gridConfig.cellSize;
+      final corner = bloc!.state.shown(_piece(bloc!, 'L-Shape')).transformLocalPoint(Offset(3.7 * cell, 1.7 * cell));
+
+      await _tap(bloc!, corner);
+
+      expect(bloc!.state.selectedPieceId, 'L-Shape');
+      expect(_piece(bloc!, 'L-Shape').rotation, isNot(rotation));
+    });
+
+    test('a rejected drag of the enlarged tray piece returns it to its tray place', () async {
+      await ready();
+      final start = _piece(bloc!, 'L-Shape').position;
+      await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
+      final cell = bloc!.state.gridConfig.cellSize;
+      final grab = bloc!.state.shown(_piece(bloc!, 'L-Shape')).transformLocalPoint(Offset(cell / 2, cell / 2));
+
+      bloc!.add(PuzzleEvent.onPanStart(grab));
+      await _drain();
+      bloc!.add(const PuzzleEvent.onPanUpdate(Offset(-500, -500)));
+      await _drain();
+      bloc!.add(const PuzzleEvent.onPanEnd(Offset(-500, -500)));
+      await _drain();
+
+      final piece = _piece(bloc!, 'L-Shape');
+      expect(piece.position, start);
+      expect(piece.isLifted, isFalse);
+      expect(piece.placeZone, PlaceZone.board);
+    });
+
     test('deselectPiece clears the selection', () async {
       await ready();
       bloc!.add(const PuzzleEvent.selectPiece('Square'));

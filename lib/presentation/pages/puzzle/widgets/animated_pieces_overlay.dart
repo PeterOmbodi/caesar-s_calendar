@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/pieces_tween_painter.dart';
 import 'package:flutter/material.dart';
 
@@ -18,11 +19,13 @@ class AnimatedPiecesOverlay extends StatefulWidget {
     this.borderColorMode = false,
     this.instantIds = const {},
     this.selectedPiece,
+    this.pinnedId,
+    this.dimTray = false,
   });
   final Iterable<PuzzlePieceUI> pieces;
   final Duration duration;
   final Curve curve;
-  final Widget Function(Set<PieceId> hiddenIds) childBuilder;
+  final Widget Function(Set<PieceId> hiddenIds, TrayDim trayDim) childBuilder;
   final double cellSize;
   final bool borderColorMode;
 
@@ -30,13 +33,20 @@ class AnimatedPiecesOverlay extends StatefulWidget {
   final Set<PieceId> instantIds;
   final PuzzlePieceUI? selectedPiece;
 
+  /// Painted above moving pieces.
+  final PieceId? pinnedId;
+
+  final bool dimTray;
+
   @override
   State<AnimatedPiecesOverlay> createState() => _AnimatedPiecesOverlayState();
 }
 
-class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with SingleTickerProviderStateMixin {
+class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+  late AnimationController _dim;
+  PieceId? _dimExceptId;
 
   Map<PieceId, PuzzlePieceUI> _prevById = {};
   Map<PieceId, PieceTween> _tweens = {};
@@ -46,12 +56,26 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
     super.initState();
     _controller = AnimationController(vsync: this, duration: widget.duration);
     _animation = CurvedAnimation(parent: _controller, curve: widget.curve);
+    _controller.addStatusListener((final status) {
+      if (status == AnimationStatus.completed && mounted) {
+        setState(() => _tweens = {});
+      }
+    });
     _prevById = _indexById(widget.pieces);
+    _dim = AnimationController(vsync: this, duration: widget.duration, value: widget.dimTray ? 1 : 0);
+    _dimExceptId = widget.selectedPiece?.id;
   }
 
   @override
   void didUpdateWidget(covariant final AnimatedPiecesOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if (widget.dimTray) {
+      _dimExceptId = widget.selectedPiece?.id;
+    }
+    if (widget.dimTray != oldWidget.dimTray) {
+      _dim.animateTo(widget.dimTray ? 1 : 0, curve: widget.curve);
+    }
 
     final nextById = _indexById(widget.pieces);
 
@@ -77,20 +101,26 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
   @override
   void dispose() {
     _controller.dispose();
+    _dim.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(final BuildContext context) {
-    if (_tweens.isEmpty) {
-      return widget.childBuilder(const {});
-    }
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (_, _) => Stack(
+  Widget build(final BuildContext context) => AnimatedBuilder(
+    animation: Listenable.merge([_animation, _dim]),
+    builder: (_, _) {
+      final trayDim = (amount: _dim.value, exceptId: _dimExceptId);
+      if (_tweens.isEmpty) {
+        return widget.childBuilder(const {}, trayDim);
+      }
+      final pinnedId = widget.pinnedId;
+      final pinned = pinnedId == null || _tweens.containsKey(pinnedId)
+          ? null
+          : widget.pieces.where((final p) => p.id == pinnedId).firstOrNull;
+      return Stack(
         fit: StackFit.passthrough,
         children: [
-          widget.childBuilder(_tweens.keys.toSet()),
+          widget.childBuilder({..._tweens.keys, ?pinned?.id}, trayDim),
           IgnorePointer(
             child: CustomPaint(
               painter: PiecesTweenPainter(
@@ -99,13 +129,15 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
                 borderColorMode: widget.borderColorMode,
                 cellSize: widget.cellSize,
                 selectedPieceId: widget.selectedPiece?.id,
+                pinned: pinned,
+                trayDim: trayDim,
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
+      );
+    },
+  );
 
   static Map<PieceId, PuzzlePieceUI> _indexById(final Iterable<PuzzlePieceUI> list) => {for (final p in list) p.id: p};
 
