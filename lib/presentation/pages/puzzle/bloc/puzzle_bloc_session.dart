@@ -62,6 +62,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         selectedDate: DateTime(session.puzzleDate.year, session.puzzleDate.month, session.puzzleDate.day),
         pieces: restoredPieces,
         moveHistory: session.moveHistory,
+        hintedCells: _hintedCellsOf(session.moveHistory),
         moveIndex: session.moveIndex,
         firstMoveAt: session.firstMoveAt,
         lastResumedAt: !isSolvedSession && session.firstMoveAt != null ? nowMs : null,
@@ -105,6 +106,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         applicableSolutions: const [],
         moveHistory: const [],
         moveIndex: 0,
+        hintedCells: const {},
         firstMoveAt: null,
         lastResumedAt: null,
         activeElapsedMs: 0,
@@ -142,6 +144,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         selectedDate: snapshot.selectedDate,
         pieces: _applySnapshotPieces(snapshot.pieces),
         moveHistory: snapshot.moveHistory,
+        hintedCells: _hintedCellsOf(snapshot.moveHistory),
         moveIndex: snapshot.moveIndex,
         firstMoveAt: snapshot.firstMoveAt,
         lastResumedAt: snapshot.lastResumedAt,
@@ -246,11 +249,11 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     ),
     rotatePiece: (final rp) => piece.copyWith(
       rotation: rp.rotation,
-      position: _moveHistoryService.snapOffset(state.gridConfig, rp.snapCorrection, false) ?? piece.position,
+      position: _moveHistoryService.snapOffset(state.gridConfig, state.boardConfig, rp.snapCorrection, false) ?? piece.position,
     ),
     flipPiece: (final fp) => piece.copyWith(
       isFlipped: fp.isFlipped,
-      position: _moveHistoryService.snapOffset(state.gridConfig, fp.snapCorrection, false) ?? piece.position,
+      position: _moveHistoryService.snapOffset(state.gridConfig, state.boardConfig, fp.snapCorrection, false) ?? piece.position,
     ),
     hintMove: (final hm) =>
         _applySessionPlacement(piece: piece, placement: hm.to, rotation: hm.rotationTo, isFlipped: hm.flippedTo),

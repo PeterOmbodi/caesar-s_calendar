@@ -120,6 +120,7 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Sing
       final hasMeaningfulChange =
           !_offsetEq(prev.position, next.position) ||
           !_doubleEq(prev.rotation, next.rotation) ||
+          !_doubleEq(prev.scale, next.scale) ||
           (prev.isFlipped != next.isFlipped);
 
       if (!hasMeaningfulChange) continue;

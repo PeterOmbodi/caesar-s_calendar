@@ -39,7 +39,14 @@ class PuzzleView extends StatelessWidget {
         final contentInsets =
             EdgeInsets.only(top: headerHeight, bottom: statusGap + PuzzleStatusLine.height) +
             GameChrome.reservedInsets(context);
-        bloc.add(PuzzleEvent.setViewSize(constraints.biggest, maxCell: spec.maxCell, contentInsets: contentInsets));
+        bloc.add(
+          PuzzleEvent.setViewSize(
+            constraints.biggest,
+            maxCell: spec.maxCell,
+            trayScale: spec.trayScale,
+            contentInsets: contentInsets,
+          ),
+        );
         final settings = context.watch<SettingsCubit>().state;
         final borderColorMode = settings.separateMoveColors;
         final tray = state.boardConfig.getBounds;

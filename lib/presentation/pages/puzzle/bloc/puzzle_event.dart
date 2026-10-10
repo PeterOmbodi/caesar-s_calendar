@@ -8,6 +8,7 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.setViewSize(
     final Size viewSize, {
     required final double maxCell,
+    @Default(PuzzlePieceUI.defaultTrayScale) final double trayScale,
     @Default(EdgeInsets.zero) final EdgeInsets contentInsets,
   }) = _SetViewSize;
 

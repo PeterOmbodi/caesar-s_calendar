@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
@@ -221,7 +219,7 @@ class PuzzleBoardPainter extends CustomPainter {
 
   static Path _dashed(final Path source, final List<double> pattern) {
     final result = Path();
-    for (final ui.PathMetric metric in source.computeMetrics()) {
+    for (final metric in source.computeMetrics()) {
       var distance = 0.0;
       var draw = true;
       var i = 0;

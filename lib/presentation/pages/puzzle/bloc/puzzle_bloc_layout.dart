@@ -5,10 +5,12 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
     final hasChanged =
         _lastViewSize != event.viewSize ||
         _lastMaxCell != event.maxCell ||
+        _lastTrayScale != event.trayScale ||
         _lastContentInsets != event.contentInsets;
     if (hasChanged && event.viewSize.width > 0 && event.viewSize.height > 0) {
       _lastViewSize = event.viewSize;
       _lastMaxCell = event.maxCell;
+      _lastTrayScale = event.trayScale;
       _lastContentInsets = event.contentInsets;
       add(PuzzleEvent.configure());
     }
@@ -22,6 +24,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
         ? _layoutService.buildInitialLayout(
             contentRect,
             maxCell: _lastMaxCell,
+            trayScale: _lastTrayScale,
             configurationPieces: configurationPieces,
           )
         : _layoutService.rebuildLayout(
@@ -30,6 +33,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
             prevGrid: state.gridConfig,
             prevBoard: state.boardConfig,
             pieces: state.pieces,
+            trayScale: _lastTrayScale,
           );
     final newState = state.copyWith(
       gridConfig: layout.gridConfig,
@@ -46,6 +50,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
           solutionIdx: -1,
           selectedPieceId: null,
           moveHistory: [],
+          hintedCells: const {},
           moveIndex: 0,
           firstMoveAt: null,
           lastResumedAt: null,

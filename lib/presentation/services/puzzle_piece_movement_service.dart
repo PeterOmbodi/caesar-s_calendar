@@ -139,6 +139,7 @@ class PuzzlePieceMovementService {
     required final PuzzleBoardEntity boardConfig,
     required final Iterable<PuzzlePieceUI> pieces,
     required final bool preventOverlap,
+    final Offset? anchor,
   }) {
     final newZone =
         getZoneAtPosition(selectedPiece.position, gridConfig, boardConfig);
@@ -161,34 +162,12 @@ class PuzzlePieceMovementService {
           boardConfig: boardConfig,
         );
       case PlaceZone.board:
-        snappedPosition = selectedPiece.position;
-        final boardBounds = boardConfig.getBounds;
-        final pieceBounds = selectedPiece.getTransformedPath().getBounds();
-
-        if (pieceBounds.left < boardBounds.left) {
-          snappedPosition = Offset(
-            snappedPosition.dx + (boardBounds.left - pieceBounds.left),
-            snappedPosition.dy,
-          );
-        }
-        if (pieceBounds.right > boardBounds.right) {
-          snappedPosition = Offset(
-            snappedPosition.dx - (pieceBounds.right - boardBounds.right),
-            snappedPosition.dy,
-          );
-        }
-        if (pieceBounds.top < boardBounds.top) {
-          snappedPosition = Offset(
-            snappedPosition.dx,
-            snappedPosition.dy + (boardBounds.top - pieceBounds.top),
-          );
-        }
-        if (pieceBounds.bottom > boardBounds.bottom) {
-          snappedPosition = Offset(
-            snappedPosition.dx,
-            snappedPosition.dy - (pieceBounds.bottom - boardBounds.bottom),
-          );
-        }
+        final trayPiece = selectedPiece.rescaledAround(
+          anchor ?? selectedPiece.position,
+          isLifted: false,
+          placeZone: PlaceZone.board,
+        );
+        snappedPosition = trayPiece.positionInside(boardConfig.getBounds);
         collisionDetected = false;
     }
 

@@ -13,6 +13,8 @@ enum PieceLook { normal, selected, lifted }
 class PiecePaintHelper {
   static const double inset = 2;
   static const double radius = 6;
+  static const double trayInset = 2.5;
+  static const double trayRadius = 5;
   static const double placedFillAlpha = 0.9;
   static const double selectedFillAlpha = 0.95;
   static const double selectionStroke = 2.5;
@@ -21,16 +23,24 @@ class PiecePaintHelper {
   static const _hairline = Color(0x2E000000);
   static const _sheen = [Color(0x42FFFFFF), Color(0x0FFFFFFF), Color(0x1A000000)];
   static const _sheenStops = [0.0, 0.35, 1.0];
-  static const _hintBadgeFill = Color(0xFFFFFFFF);
-  static const _hintBadgeIcon = Color(0xFF2A2733);
+  static const _hintBadgeInk = Color(0xFFFFFFFF);
   static const _hintBadgeShadow = Color(0x59000000);
   // Badge geometry from the mockup, where the cell is 52 pt.
   static const double _mockupCell = 52;
-  static const double _hintBadgeRadius = 11;
+  static const double _hintBadgeRadius = 10.25;
+  static const double _hintBadgeStroke = 1.75;
+  static const double _hintBadgeShadowBlur = 1.25;
+  static const double _hintBadgeShadowDy = 0.5;
   static const double _hintBadgeCornerOffset = 15;
   static const double _hintIconSize = 16;
 
-  static final Map<(PieceType, double), _LocalShape> _shapes = {};
+  static final Map<(PieceType, double, double), _LocalShape> _shapes = {};
+
+  // Icons.lightbulb in a 24 × 24 box; a path because blurred glyphs render wrongly on Impeller.
+  static final Path _lightBulb = Path()
+    ..addOval(Rect.fromCircle(center: const Offset(12, 9), radius: 7))
+    ..addRRect(RRect.fromLTRBR(8, 11, 16, 18, const Radius.circular(1)))
+    ..addRRect(RRect.fromLTRBR(9, 19.5, 15, 22, const Radius.circular(1)));
 
   /// Visible outline of the piece at its current position: inset from the cell edges and rounded.
   static Path outlinePath(final PuzzlePieceUI piece, final double cellSize) =>
@@ -124,43 +134,55 @@ class PiecePaintHelper {
         .where((final c) => (c.dy - top).abs() < 0.5)
         .reduce((final a, final b) => a.dx > b.dx ? a : b);
 
-    final scale = cellSize / _mockupCell;
-    final toCorner = cellSize / 2 - _hintBadgeCornerOffset * scale;
+    final shownCell = cellSize * piece.scale;
+    final scale = shownCell / _mockupCell;
+    final toCorner = shownCell / 2 - _hintBadgeCornerOffset * scale;
     final center = topRight + Offset(toCorner, -toCorner) + lift;
     final badgeRadius = _hintBadgeRadius * scale;
 
+    final shadowOffset = Offset(0, _hintBadgeShadowDy * scale);
+    Paint ring(final Color color) => Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = _hintBadgeStroke * scale
+      ..color = color;
     canvas
       ..drawCircle(
-        center + Offset(0, scale),
+        center + shadowOffset,
         badgeRadius,
+        ring(_hintBadgeShadow)..maskFilter = MaskFilter.blur(BlurStyle.normal, _hintBadgeShadowBlur * scale),
+      )
+      ..drawCircle(center, badgeRadius, ring(_hintBadgeInk));
+
+    final iconScale = _hintIconSize * scale / 24;
+    final icon = _lightBulb.transform(
+      (Matrix4.translationValues(center.dx, center.dy, 0)
+            ..scaleByDouble(iconScale, iconScale, 1, 1)
+            ..translateByDouble(-12, -12, 0, 1))
+          .storage,
+    );
+    canvas
+      ..drawPath(
+        icon.shift(shadowOffset),
         Paint()
           ..color = _hintBadgeShadow
-          ..maskFilter = MaskFilter.blur(BlurStyle.normal, scale),
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, _hintBadgeShadowBlur * scale),
       )
-      ..drawCircle(center, badgeRadius, Paint()..color = _hintBadgeFill);
-
-    const icon = Icons.lightbulb;
-    final iconPainter = TextPainter(
-      text: TextSpan(
-        text: String.fromCharCode(icon.codePoint),
-        style: TextStyle(
-          fontFamily: icon.fontFamily,
-          package: icon.fontPackage,
-          fontSize: _hintIconSize * scale,
-          color: _hintBadgeIcon,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    iconPainter.paint(canvas, center - Offset(iconPainter.width / 2, iconPainter.height / 2));
+      ..drawPath(icon, Paint()..color = _hintBadgeInk);
   }
 
+  // Tray insets are divided by the scale to stay 2.5 pt on screen.
   static _LocalShape _localShape(final PuzzlePieceUI piece, final double cellSize) =>
-      _shapes.putIfAbsent((piece.type, cellSize), () {
+      _shapes.putIfAbsent((piece.type, cellSize, piece.scale), () {
         final origin = piece.originalPath.getBounds().topLeft;
         final cells = piece.relativeCells(cellSize);
+        final isTray = piece.scale < 1;
         return _LocalShape(
-          outline: cellOutlinePath(cells, cellSize, inset: inset, radius: radius).shift(origin),
+          outline: cellOutlinePath(
+            cells,
+            cellSize,
+            inset: isTray ? trayInset / piece.scale : inset,
+            radius: isTray ? trayRadius / piece.scale : radius,
+          ).shift(origin),
           cellCenters: [
             for (final c in cells) origin + Offset((c.col + 0.5) * cellSize, (c.row + 0.5) * cellSize),
           ],

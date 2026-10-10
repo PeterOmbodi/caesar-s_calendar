@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:caesar_puzzle/core/models/cell.dart';
+import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:flutter/material.dart';
@@ -79,6 +80,31 @@ extension PuzzlePieceX on PuzzlePieceUI {
 
   Offset transformLocalPoint(final Offset localPoint) => MatrixUtils.transformPoint(_getMatrix(), localPoint);
 
+  /// Keeps [anchor] over the same point of the piece.
+  PuzzlePieceUI rescaledAround(final Offset anchor, {required final bool isLifted, final PlaceZone? placeZone}) {
+    final next = copyWith(isLifted: isLifted, placeZone: placeZone);
+    return next.copyWith(position: anchor - (anchor - position) * (next.scale / scale));
+  }
+
+  Offset positionInside(final Rect bounds) {
+    final shape = getTransformedPath().getBounds();
+    var dx = 0.0;
+    var dy = 0.0;
+    if (shape.left < bounds.left) {
+      dx += bounds.left - shape.left;
+    }
+    if (shape.right > bounds.right) {
+      dx -= shape.right - bounds.right;
+    }
+    if (shape.top < bounds.top) {
+      dy += bounds.top - shape.top;
+    }
+    if (shape.bottom > bounds.bottom) {
+      dy -= shape.bottom - bounds.bottom;
+    }
+    return position + Offset(dx, dy);
+  }
+
   bool containsPoint(final Offset point) {
     final invertedMatrix = Matrix4.inverted(_getMatrix());
     final transformedPoint = Offset(
@@ -94,6 +120,7 @@ extension PuzzlePieceX on PuzzlePieceUI {
   Matrix4 _getMatrix() {
     final matrix = Matrix4.identity()
       ..translateByDouble(position.dx, position.dy, 0, 1)
+      ..scaleByDouble(scale, scale, 1, 1)
       ..translateByDouble(centerPoint.dx, centerPoint.dy, 0, 1);
 
     if (isFlipped) {

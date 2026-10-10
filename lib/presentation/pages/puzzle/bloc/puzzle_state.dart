@@ -35,6 +35,8 @@ abstract class PuzzleState with _$PuzzleState {
     required final bool previewCollision,
     required final List<Move> moveHistory,
     required final int moveIndex,
+    // Survives undo: a piece put back on a hinted place stays hinted.
+    @Default(<String, List<Set<Cell>>>{}) final Map<String, List<Set<Cell>>> hintedCells,
     required final DateTime selectedDate,
     required final bool isRestoredSolvedSession,
     required final bool hasShownSolvedDialog,

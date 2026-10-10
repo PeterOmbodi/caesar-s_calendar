@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
@@ -43,9 +44,13 @@ class PiecesTweenPainter extends CustomPainter {
 
       final squash = flipping ? 1.0 - 0.12 * (math.sin(t * math.pi)) : 1.0;
 
-      final centerWorld = pos + tw.to.centerPoint;
+      final scale = ui.lerpDouble(tw.from.scale, tw.to.scale, t)! / tw.to.scale;
+      final centerWorld = pos + tw.to.centerPoint * tw.to.scale;
       canvas
         ..save()
+        ..translate(pos.dx, pos.dy)
+        ..scale(scale)
+        ..translate(-pos.dx, -pos.dy)
         ..translate(centerWorld.dx, centerWorld.dy)
         ..scale(sx, squash)
         ..translate(-centerWorld.dx, -centerWorld.dy);

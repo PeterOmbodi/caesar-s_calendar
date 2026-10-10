@@ -313,4 +313,51 @@ void main() {
 
     await bloc.close();
   });
+
+  test('a piece put back at a hinted place is hinted even after the hint was undone', () async {
+    final bloc = _TestPuzzleBloc(
+      settings: _FakeSettingsQuery(),
+      solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
+      historyUseCase: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
+    );
+    const grid = PuzzleGridEntity(cellSize: 10, rows: 7, columns: 7, origin: Position(dx: 0, dy: 0));
+    const board = PuzzleBoardEntity(cellSize: 10, rows: 7, columns: 7, origin: Position(dx: 100, dy: 0));
+    final square = _piece(id: 'Square', type: PieceType.square, position: const Offset(110, 10), zone: PlaceZone.board);
+    final solution = <String, PlacementParams>{'Square': PlacementParams('Square', 2, 2, 0, false)};
+    bloc.emitForTest(
+      PuzzleState.initial().copyWith(
+        status: GameStatus.playing,
+        gridConfig: grid,
+        boardConfig: board,
+        pieces: [square],
+        solutions: [solution],
+        applicableSolutions: [solution],
+      ),
+    );
+
+    Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 50));
+    PuzzlePieceUI current() => bloc.state.pieces.firstWhere((final p) => p.id == 'Square');
+
+    bloc.add(const PuzzleEvent.showHint());
+    await settle();
+    bloc.add(const PuzzleEvent.undo());
+    await settle();
+    expect(current().placeZone, PlaceZone.board);
+    expect(bloc.state.selectedPieceId, 'Square', reason: 'undo selects the piece it moved');
+
+    const grab = Offset(112, 12);
+    bloc.add(const PuzzleEvent.onPanStart(grab));
+    await settle();
+    final target = const Offset(20, 20) + bloc.state.dragStartOffset!;
+    bloc.add(PuzzleEvent.onPanUpdate(target));
+    await settle();
+    bloc.add(PuzzleEvent.onPanEnd(target));
+    await settle();
+
+    expect(current().placeZone, PlaceZone.grid);
+    expect(current().position, const Offset(20, 20));
+    expect(current().isUsersItem, isFalse);
+
+    await bloc.close();
+  });
 }

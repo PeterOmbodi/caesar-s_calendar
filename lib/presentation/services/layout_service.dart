@@ -3,11 +3,10 @@ import 'dart:math' as math;
 import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_base_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
-import 'package:caesar_puzzle/presentation/utils/puzzle_board_extension.dart';
-import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:flutter/material.dart';
@@ -18,73 +17,45 @@ class LayoutService {
   static const double collisionTolerance = 2;
   static const double intersectionWidthThreshold = 2;
   static const double gridEdgeTolerance = 5;
-  static const double boardToGridSizeRatio = 1.2;
   static const double horizontalContentPadding = 8.0;
   static const int gridRows = 7;
   static const int gridColumns = 7;
+  static const int trayRows = 6;
+  static const int trayColumns = 7;
   static const double defaultPadding = 16.0;
-  static const double wideScreenPadding = 24.0;
-  static const double boardExtraX = 1.5;
   static const double gridCenterOffset = 0.5;
+
+  /// Top-left tray cell of each piece; together they fill the 7×6 tray.
+  static const Map<PieceType, (int col, int row)> traySlots = {
+    PieceType.lShape: (0, 4),
+    PieceType.square: (5, 2),
+    PieceType.zShape: (4, 0),
+    PieceType.yShape: (0, 2),
+    PieceType.uShape: (1, 3),
+    PieceType.pShape: (0, 0),
+    PieceType.nShape: (2, 0),
+    PieceType.vShape: (4, 3),
+  };
 
   LayoutConfig buildInitialLayout(
     final Rect contentRect, {
     required final double maxCell,
+    final double trayScale = PuzzlePieceUI.defaultTrayScale,
     final Iterable<PuzzlePieceUI> configurationPieces = const [],
   }) {
-    final gCellSize = _calcCellSize(contentRect.size, maxCell);
-    final boardCellSize = _calcBoardCellSize(gCellSize);
-    final positions = _calcLayoutPositions(contentRect, gCellSize, boardCellSize);
-
-    final gridConfig = PuzzleGridEntity(
-      cellSize: gCellSize,
-      rows: gridRows,
-      columns: gridColumns,
-      origin: Position(dx: positions.grid.dx, dy: positions.grid.dy),
-    );
-
-    final boardConfig = PuzzleBoardEntity(
-      cellSize: boardCellSize,
-      rows: gridRows,
-      columns: gridColumns,
-      origin: Position(dx: positions.board.dx, dy: positions.board.dy),
-    );
-
-    final boardInitialOrigin = _initialBoardPieceOrigin(boardConfig, gCellSize);
-    final boardX = boardInitialOrigin.dx;
-    final boardY = boardInitialOrigin.dy;
-    final cellXOffset = gCellSize + boardExtraX;
-
+    final gCellSize = _calcCellSize(contentRect.size, maxCell, trayScale);
+    final (:gridConfig, :boardConfig) = _buildConfigs(contentRect, gCellSize, trayScale);
     final centerPoint = Offset(gCellSize * gridCenterOffset, gCellSize * gridCenterOffset);
+    final trayCell = boardConfig.cellSize;
+
     final boardPieces = [
-      PuzzlePieceUI.fromType(PieceType.lShape, Offset(boardX, boardY + gCellSize * 4), centerPoint, gCellSize),
-      PuzzlePieceUI.fromType(
-        PieceType.square,
-        Offset(boardX + cellXOffset * 5 + boardExtraX, boardY + gCellSize * 2),
-        centerPoint,
-        gCellSize,
-      ),
-      PuzzlePieceUI.fromType(PieceType.zShape, Offset(boardX + cellXOffset * 4, boardY), centerPoint, gCellSize),
-      PuzzlePieceUI.fromType(
-        PieceType.yShape,
-        Offset(boardX + boardExtraX * 2, boardY + gCellSize * 2),
-        centerPoint,
-        gCellSize,
-      ),
-      PuzzlePieceUI.fromType(
-        PieceType.uShape,
-        Offset(boardX + cellXOffset + boardExtraX, boardY + gCellSize * 3),
-        centerPoint,
-        gCellSize,
-      ),
-      PuzzlePieceUI.fromType(PieceType.pShape, Offset(boardX, boardY), centerPoint, gCellSize),
-      PuzzlePieceUI.fromType(PieceType.nShape, Offset(boardX + 2 * cellXOffset, boardY), centerPoint, gCellSize),
-      PuzzlePieceUI.fromType(
-        PieceType.vShape,
-        Offset(boardX + cellXOffset * 4, boardY + gCellSize * 3),
-        centerPoint,
-        gCellSize,
-      ),
+      for (final MapEntry(key: type, value: (col, row)) in traySlots.entries)
+        PuzzlePieceUI.fromType(
+          type,
+          Offset(boardConfig.origin.dx + col * trayCell, boardConfig.origin.dy + row * trayCell),
+          centerPoint,
+          gCellSize,
+        ),
     ];
 
     final gridPieces = configurationPieces.isNotEmpty
@@ -104,7 +75,11 @@ class LayoutService {
             ),
           ];
 
-    return LayoutConfig(gridConfig: gridConfig, boardConfig: boardConfig, pieces: [...gridPieces, ...boardPieces]);
+    return LayoutConfig(
+      gridConfig: gridConfig,
+      boardConfig: boardConfig,
+      pieces: [for (final p in [...gridPieces, ...boardPieces]) p.copyWith(trayScale: trayScale)],
+    );
   }
 
   LayoutConfig rebuildLayout({
@@ -113,123 +88,99 @@ class LayoutService {
     required final PuzzleGridEntity prevGrid,
     required final PuzzleBoardEntity prevBoard,
     required final Iterable<PuzzlePieceUI> pieces,
+    final double trayScale = PuzzlePieceUI.defaultTrayScale,
   }) {
-    final gCellSize = _calcCellSize(contentRect.size, maxCell);
-    final boardCellSize = _calcBoardCellSize(gCellSize);
-    final positions = _calcLayoutPositions(contentRect, gCellSize, boardCellSize);
-
-    final gridConfig = PuzzleGridEntity(
-      cellSize: gCellSize,
-      rows: gridRows,
-      columns: gridColumns,
-      origin: Position(dx: positions.grid.dx, dy: positions.grid.dy),
-    );
-
-    final boardConfig = PuzzleBoardEntity(
-      cellSize: boardCellSize,
-      rows: gridRows,
-      columns: gridColumns,
-      origin: Position(dx: positions.board.dx, dy: positions.board.dy),
-    );
-
-    final boardInitialOrigin = _initialBoardPieceOrigin(boardConfig, gCellSize);
-
-    final gridCellMod = gCellSize / prevGrid.cellSize;
-
-    final prevGridX = prevGrid.origin.dx;
-    final prevGridY = prevGrid.origin.dy;
-    final gridDeltaX = gridConfig.origin.dx - prevGridX * gridCellMod;
-    final gridDeltaY = gridConfig.origin.dy - prevGridY * gridCellMod;
-
+    final gCellSize = _calcCellSize(contentRect.size, maxCell, trayScale);
+    final (:gridConfig, :boardConfig) = _buildConfigs(contentRect, gCellSize, trayScale);
     final centerPoint = Offset(gCellSize * gridCenterOffset, gCellSize * gridCenterOffset);
 
-    final gridPieces = pieces
-        .where((final p) => p.placeZone == PlaceZone.grid)
-        .map(
-          (final p) => p.copyWith(
-            originalPath: generatePathForType(p.type, gCellSize),
-            position: gridConfig.snapToGrid(
-              Offset(p.position.dx * gridCellMod + gridDeltaX, p.position.dy * gridCellMod + gridDeltaY),
-            ),
-            centerPoint: centerPoint,
-          ),
-        )
-        .toList();
+    Offset remap(final Offset position, final PuzzleBaseEntity from, final PuzzleBaseEntity to) {
+      final mod = to.cellSize / from.cellSize;
+      return Offset(
+        to.origin.dx + (position.dx - from.origin.dx) * mod,
+        to.origin.dy + (position.dy - from.origin.dy) * mod,
+      );
+    }
 
-    final prevBoardInitialOrigin = _initialBoardPieceOrigin(prevBoard, prevGrid.cellSize);
-    final boardDeltaX = boardInitialOrigin.dx - prevBoardInitialOrigin.dx * gridCellMod;
-    final boardDeltaY = boardInitialOrigin.dy - prevBoardInitialOrigin.dy * gridCellMod;
+    final rebuilt = pieces.map((final p) {
+      final onGrid = p.placeZone == PlaceZone.grid;
+      final position = onGrid
+          ? gridConfig.snapToGrid(remap(p.position, prevGrid, gridConfig))
+          : remap(p.position, prevBoard, boardConfig);
+      return p.copyWith(
+        originalPath: generatePathForType(p.type, gCellSize),
+        position: position,
+        centerPoint: centerPoint,
+        trayScale: trayScale,
+      );
+    });
 
-    final boardPieces = pieces
-        .where((final p) => p.placeZone == PlaceZone.board)
-        .map(
-          (final p) => p.copyWith(
-            originalPath: generatePathForType(p.type, gCellSize),
-            position: Offset(p.position.dx * gridCellMod + boardDeltaX, p.position.dy * gridCellMod + boardDeltaY),
-            centerPoint: centerPoint,
-          ),
-        )
-        .toList();
-
-    return LayoutConfig(gridConfig: gridConfig, boardConfig: boardConfig, pieces: [...gridPieces, ...boardPieces]);
+    return LayoutConfig(gridConfig: gridConfig, boardConfig: boardConfig, pieces: rebuilt.toList());
   }
 
-  double _calcCellSize(final Size viewSize, final double maxCell) {
+  double _calcCellSize(final Size viewSize, final double maxCell, final double tray) {
     final isPortrait = viewSize.height > viewSize.width;
-    final gridAndBoardCells = gridRows * (1 + boardToGridSizeRatio);
     final horizontalInsets = horizontalContentPadding * 2;
-    final mainAxisAvailable = isPortrait
-        ? viewSize.height - defaultPadding
-        : viewSize.width - defaultPadding - horizontalInsets;
-    final mainAxisCellSize = mainAxisAvailable / gridAndBoardCells;
+    final mainAxisCellSize = isPortrait
+        ? (viewSize.height - defaultPadding) / (gridRows + trayRows * tray)
+        : (viewSize.width - defaultPadding - horizontalInsets) / (gridColumns + trayColumns * tray);
     final crossAxisCellSize = isPortrait
-        ? (viewSize.width - horizontalInsets) / (gridColumns * boardToGridSizeRatio)
-        : viewSize.height / (gridRows * boardToGridSizeRatio);
+        ? (viewSize.width - horizontalInsets) / gridColumns
+        : viewSize.height / math.max(gridRows, trayRows * tray);
     final floored = math.min(math.min(mainAxisCellSize, crossAxisCellSize), maxCell).floor();
     return floored.isEven ? floored.toDouble() : floored - 1.0;
   }
 
-  double _calcBoardCellSize(final double gridCellSize) => gridCellSize * boardToGridSizeRatio;
-
-  ({Offset grid, Offset board}) _calcLayoutPositions(
+  ({PuzzleGridEntity gridConfig, PuzzleBoardEntity boardConfig}) _buildConfigs(
     final Rect contentRect,
     final double gridCellSize,
-    final double boardCellSize,
+    final double trayScale,
   ) {
+    final trayCellSize = gridCellSize * trayScale;
     final viewSize = contentRect.size;
-    final gridWidth = gridColumns * gridCellSize;
-    final gridHeight = gridRows * gridCellSize;
-    final boardWidth = gridColumns * boardCellSize;
-    final boardHeight = gridRows * boardCellSize;
+    final gridSize = Size(gridColumns * gridCellSize, gridRows * gridCellSize);
+    final traySize = Size(trayColumns * trayCellSize, trayRows * trayCellSize);
     final isPortrait = viewSize.height > viewSize.width;
 
+    final Offset grid;
+    final Offset tray;
     if (isPortrait) {
-      final contentWidth = math.max(gridWidth, boardWidth);
-      final contentHeight = gridHeight + defaultPadding + boardHeight;
+      final contentWidth = math.max(gridSize.width, traySize.width);
+      final contentHeight = gridSize.height + defaultPadding + traySize.height;
       final left =
           contentRect.left +
           horizontalContentPadding +
           (viewSize.width - horizontalContentPadding * 2 - contentWidth) / 2;
       final top = contentRect.top + (viewSize.height - contentHeight) / 2;
-      return (
-        grid: Offset(left + (contentWidth - gridWidth) / 2, top),
-        board: Offset(left + (contentWidth - boardWidth) / 2, top + gridHeight + defaultPadding),
-      );
+      grid = Offset(left + (contentWidth - gridSize.width) / 2, top);
+      tray = Offset(left + (contentWidth - traySize.width) / 2, top + gridSize.height + defaultPadding);
+    } else {
+      final contentWidth = gridSize.width + defaultPadding + traySize.width;
+      final contentHeight = math.max(gridSize.height, traySize.height);
+      final left =
+          contentRect.left +
+          horizontalContentPadding +
+          (viewSize.width - horizontalContentPadding * 2 - contentWidth) / 2;
+      final top = contentRect.top + (viewSize.height - contentHeight) / 2;
+      grid = Offset(left, top + (contentHeight - gridSize.height) / 2);
+      tray = Offset(left + gridSize.width + defaultPadding, top + (contentHeight - traySize.height) / 2);
     }
 
-    final contentWidth = gridWidth + defaultPadding + boardWidth;
-    final contentHeight = math.max(gridHeight, boardHeight);
-    final left =
-        contentRect.left + horizontalContentPadding + (viewSize.width - horizontalContentPadding * 2 - contentWidth) / 2;
-    final top = contentRect.top + (viewSize.height - contentHeight) / 2;
     return (
-      grid: Offset(left, top + (contentHeight - gridHeight) / 2),
-      board: Offset(left + gridWidth + defaultPadding, top + (contentHeight - boardHeight) / 2),
+      gridConfig: PuzzleGridEntity(
+        cellSize: gridCellSize,
+        rows: gridRows,
+        columns: gridColumns,
+        origin: Position(dx: grid.dx, dy: grid.dy),
+      ),
+      boardConfig: PuzzleBoardEntity(
+        cellSize: trayCellSize,
+        rows: trayRows,
+        columns: trayColumns,
+        origin: Position(dx: tray.dx, dy: tray.dy),
+      ),
     );
   }
-
-  Offset _initialBoardPieceOrigin(final PuzzleBoardEntity board, final double cellSize) =>
-      Offset(board.getBounds.center.dx - (7 * cellSize + 6 * boardExtraX) / 2, board.initialY(cellSize));
 }
 
 class LayoutConfig {

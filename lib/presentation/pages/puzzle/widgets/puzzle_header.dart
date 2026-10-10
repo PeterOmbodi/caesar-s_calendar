@@ -183,38 +183,36 @@ class _SettingsButton extends StatelessWidget {
     final colors = GameColors.of(context);
     return BlocBuilder<AuthCubit, AuthState>(
       buildWhen: (final p, final n) => p.user?.uid != n.user?.uid,
-      builder: (final context, final auth) => GlassCircleButton(
-        tooltip: S.current.settings,
-        onPressed: onPressed,
-        child: _content(auth.user, colors),
-      ),
-    );
-  }
-
-  Widget _content(final dynamic user, final GameColors colors) {
-    if (user == null) {
-      return Icon(Icons.settings, size: 22, color: colors.icon);
-    }
-    final displayName = AccountDisplay.bestDisplayName(user);
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        AccountAvatar(
-          photoUrl: AccountDisplay.bestPhotoUrl(user),
-          fallbackLabel: AccountDisplay.avatarInitial(displayName),
-          radius: 15,
-        ),
-        Positioned(
-          right: -7,
-          bottom: -7,
-          child: Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(color: colors.background, shape: BoxShape.circle),
+      builder: (final context, final auth) {
+        final user = auth.user;
+        if (user == null) {
+          return GlassCircleButton(
+            tooltip: S.current.settings,
+            onPressed: onPressed,
+            child: Icon(Icons.settings, size: 22, color: colors.icon),
+          );
+        }
+        final displayName = AccountDisplay.bestDisplayName(user);
+        return GlassCircleButton(
+          tooltip: S.current.settings,
+          onPressed: onPressed,
+          badge: Container(
+            width: 18,
+            height: 18,
+            decoration: BoxDecoration(
+              color: colors.background,
+              shape: BoxShape.circle,
+              border: Border.all(color: colors.glassLine),
+            ),
             child: Icon(Icons.settings, size: 12, color: colors.icon),
           ),
-        ),
-      ],
+          child: AccountAvatar(
+            photoUrl: AccountDisplay.bestPhotoUrl(user),
+            fallbackLabel: AccountDisplay.avatarInitial(displayName),
+            radius: 15,
+          ),
+        );
+      },
     );
   }
 }

@@ -11,6 +11,7 @@ class GlassCircleButton extends StatelessWidget {
     required this.onPressed,
     required this.child,
     this.size = 44,
+    this.badge,
   });
 
   final String tooltip;
@@ -18,11 +19,14 @@ class GlassCircleButton extends StatelessWidget {
   final Widget child;
   final double size;
 
+  /// Drawn outside the round clip.
+  final Widget? badge;
+
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     final chrome = ChromeTheme.of(context);
-    return Tooltip(
+    final button = Tooltip(
       message: tooltip,
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -44,6 +48,17 @@ class GlassCircleButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+    final badge = this.badge;
+    if (badge == null) {
+      return button;
+    }
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        button,
+        Positioned(right: -2, bottom: -2, child: IgnorePointer(child: badge)),
+      ],
     );
   }
 }

@@ -32,6 +32,7 @@ import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/gestures.dart' show kDoubleTapSlop, kDoubleTapTimeout;
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -88,7 +89,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   static const int gridColumns = 7;
   static const double defaultPadding = 16.0;
   static const double wideScreenPadding = 24.0;
-  static const double boardExtraX = 1.5;
   static const double rotationStep = math.pi / 2;
   static const double fullRotation = math.pi * 2;
 
@@ -105,12 +105,15 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   Size? _lastViewSize;
   double _lastMaxCell = double.infinity;
+  double _lastTrayScale = PuzzlePieceUI.defaultTrayScale;
   EdgeInsets _lastContentInsets = EdgeInsets.zero;
   // Piece that the current tap down selected; such a tap must not rotate or flip it.
   String? _selectedOnTapDownId;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
   bool _isOnboardingSession = false;
   int? _suppressTapAfterDrawnCommitAtMs;
+  // A late tap of the flipping double tap must not select the piece the flip uncovered.
+  ({int atMs, Offset position})? _lastDoubleTapFlip;
 
   @override
   Future<void> close() {

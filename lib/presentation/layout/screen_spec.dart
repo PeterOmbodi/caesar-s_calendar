@@ -64,6 +64,9 @@ class ScreenSpec {
   static const double mediumMaxCell = 72;
   static const double expandedMaxCell = 80;
 
+  static const double compactTrayScale = 0.7;
+  static const double tabletTrayScale = 0.75;
+
   final Size size;
   final ChromeFamily family;
 
@@ -84,6 +87,8 @@ class ScreenSpec {
     WindowClass.medium => mediumMaxCell,
     WindowClass.expanded => expandedMaxCell,
   };
+
+  double get trayScale => window == WindowClass.compact ? compactTrayScale : tabletTrayScale;
 
   bool get settingsDocked => size.width >= dockedSettingsMinWidth;
 

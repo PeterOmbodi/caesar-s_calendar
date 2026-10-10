@@ -20,6 +20,7 @@ import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
@@ -134,7 +135,7 @@ PuzzlePieceUI _piece(final PuzzleBloc bloc, final String id) => bloc.state.piece
 
 Offset _pieceAnchor(final PuzzleBloc bloc, final String id) {
   final piece = _piece(bloc, id);
-  return piece.position + piece.centerPoint;
+  return piece.transformLocalPoint(piece.centerPoint);
 }
 
 Offset _cellCenter(final PuzzleBloc bloc, final int row, final int col) {
@@ -619,6 +620,20 @@ void main() {
       expect(bloc!.state.selectedPieceId, 'Square');
     });
 
+    test('a late tap event of the double tap that flipped a piece changes nothing', () async {
+      await ready();
+      final anchor = _pieceAnchor(bloc!, 'Square');
+      await _tap(bloc!, anchor);
+      await _doubleTap(bloc!, anchor);
+      final flipped = _piece(bloc!, 'Square');
+
+      await _tap(bloc!, anchor);
+
+      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(_piece(bloc!, 'Square').rotation, flipped.rotation);
+      expect(bloc!.state.moveHistory.single, isA<FlipPiece>());
+    });
+
     test('tap on another piece moves the selection without rotating', () async {
       await ready();
       await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
@@ -692,6 +707,36 @@ void main() {
       expect(bloc!.state.moveHistory, hasLength(2));
     });
 
+    test('rotate and flip in the tray keep the piece inside the tray, undo restores it', () async {
+      await ready();
+      final tray = bloc!.state.boardConfig.getBounds.inflate(0.01);
+      bool insideTray(final PuzzlePieceUI piece) {
+        final bounds = piece.getTransformedPath().getBounds();
+        return tray.contains(bounds.topLeft) && tray.contains(bounds.bottomRight);
+      }
+
+      final start = _piece(bloc!, 'P-Shape');
+      bloc!.add(const PuzzleEvent.selectPiece('P-Shape'));
+      await _drain();
+      for (var i = 0; i < 4; i++) {
+        bloc!.add(const PuzzleEvent.rotateSelected());
+        await _drain();
+        expect(insideTray(_piece(bloc!, 'P-Shape')), isTrue, reason: 'after rotation ${i + 1}');
+        bloc!.add(const PuzzleEvent.flipSelected());
+        await _drain();
+        expect(insideTray(_piece(bloc!, 'P-Shape')), isTrue, reason: 'after flip ${i + 1}');
+      }
+
+      for (var i = 0; i < 8; i++) {
+        bloc!.add(const PuzzleEvent.undo());
+        await _drain();
+      }
+      final restored = _piece(bloc!, 'P-Shape');
+      expect(restored.position.dx, closeTo(start.position.dx, 1e-6));
+      expect(restored.position.dy, closeTo(start.position.dy, 1e-6));
+      expect(restored.isFlipped, start.isFlipped);
+    });
+
     test('undo and redo keep the selection', () async {
       await ready();
       await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
@@ -701,6 +746,23 @@ void main() {
       await _drain();
       expect(bloc!.state.selectedPieceId, 'Square');
 
+      bloc!.add(const PuzzleEvent.redo());
+      await _drain();
+      expect(bloc!.state.selectedPieceId, 'Square');
+    });
+
+    test('undo and redo select the piece they move', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
+      expect(bloc!.state.selectedPieceId, 'L-Shape');
+
+      bloc!.add(const PuzzleEvent.undo());
+      await _drain();
+      expect(bloc!.state.selectedPieceId, 'Square');
+
+      await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
       bloc!.add(const PuzzleEvent.redo());
       await _drain();
       expect(bloc!.state.selectedPieceId, 'Square');

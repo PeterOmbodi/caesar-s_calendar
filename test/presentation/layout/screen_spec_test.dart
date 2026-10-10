@@ -91,6 +91,11 @@ void main() {
         expect(spec.arrangement, expected.arrangement, reason: 'arrangement');
         expect(spec.toolbar, expected.toolbar, reason: 'toolbar');
         expect(spec.maxCell, expected.maxCell, reason: 'maxCell');
+        expect(
+          spec.trayScale,
+          expected.window == WindowClass.compact ? ScreenSpec.compactTrayScale : ScreenSpec.tabletTrayScale,
+          reason: 'trayScale',
+        );
         expect(spec.settingsDocked, expected.settingsDocked, reason: 'settingsDocked');
       });
     }

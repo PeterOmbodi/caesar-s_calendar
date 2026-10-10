@@ -3,7 +3,7 @@ part of 'puzzle_bloc.dart';
 extension PuzzleBlocDragPart on PuzzleBloc {
   FutureOr<void> _onTapDown(final _OnTapDown event, final Emitter<PuzzleState> emit) {
     _selectedOnTapDownId = null;
-    if (_consumeTapAfterDrawnCommitSuppression()) {
+    if (_consumeTapAfterDrawnCommitSuppression() || _isTapOfDoubleTapFlip(event.localPosition)) {
       emit(state.copyWith(pointerPiece: null));
       return Future<void>.value();
     }
@@ -26,7 +26,9 @@ extension PuzzleBlocDragPart on PuzzleBloc {
   }
 
   FutureOr<void> _onTapUp(final _OnTapUp event, final Emitter<PuzzleState> emit) {
-    if (_consumeTapAfterDrawnCommitSuppression()) {
+    final isTapOfDoubleTapFlip = _isTapOfDoubleTapFlip(event.localPosition);
+    _lastDoubleTapFlip = null;
+    if (_consumeTapAfterDrawnCommitSuppression() || isTapOfDoubleTapFlip) {
       emit(state.copyWith(pointerPiece: null, isDragging: false));
       return Future<void>.value();
     }
@@ -71,20 +73,21 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     _selectedOnTapDownId = null;
     final piece = _findPieceAtPosition(event.localPosition) ?? state.pointerPiece;
     if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
+      final lifted = piece.rescaledAround(event.localPosition, isLifted: true);
       final pieces = List<PuzzlePieceUI>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((final item) => item.id == piece.id);
       if (pieceIndex >= 0) {
         pieces.removeAt(pieceIndex);
-        pieces.add(piece);
+        pieces.add(lifted);
       } else {
         debugPrint('_onPanStart, piece not found!');
       }
       emit(
         state.copyWith(
           pieces: pieces,
-          pointerPiece: piece,
+          pointerPiece: lifted,
           selectedPieceId: piece.id,
-          dragStartOffset: event.localPosition - piece.position,
+          dragStartOffset: event.localPosition - lifted.position,
           pieceStartPosition: piece.position,
           dragStartZone: _movementHandler.getZoneAtPosition(piece.position, state.gridConfig, state.boardConfig),
           isDragging: true,
@@ -198,12 +201,14 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         boardConfig: state.boardConfig,
         pieces: state.pieces,
         preventOverlap: _settings.preventOverlap || selectedPiece.isConfigItem,
+        anchor: state.dragStartOffset == null ? null : selectedPiece.position + state.dragStartOffset!,
       );
 
       if (dropResult.accepted) {
         final movedPiece = selectedPiece.copyWith(
           position: dropResult.snappedPosition!,
           placeZone: dropResult.zone!,
+          isLifted: false,
           isUsersItem: selectedPiece.isConfigItem ? selectedPiece.isUsersItem : true,
         );
         final move = dropResult.move!;
@@ -212,7 +217,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           moveHistory.removeRange(state.moveIndex, moveHistory.length);
         }
         moveHistory.add(move);
-        final pieces = _updatePieceInList(_withHintFlag(movedPiece, appliedMoves: state.moveIndex));
+        final pieces = _updatePieceInList(_withHintFlag(movedPiece));
         final shouldResolve = movedPiece.isConfigItem;
         final applicableSolutions = shouldResolve
             ? <Map<String, PlacementParams>>[]
@@ -241,7 +246,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         debugPrint(
           'Collision detected, returning to original position, pieceStartPosition: ${state.pieceStartPosition}',
         );
-        final resetPiece = state.pointerPiece!.copyWith(position: state.pieceStartPosition);
+        final resetPiece = state.pointerPiece!.copyWith(position: state.pieceStartPosition, isLifted: false);
         emit(
           state.copyWith(
             pieces: _updatePieceInList(resetPiece),
@@ -276,6 +281,17 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       return selectedPiece;
     }
     return state.pieces.lastWhereOrNull((final piece) => piece.containsPoint(position));
+  }
+
+  bool _isTapOfDoubleTapFlip(final Offset position) {
+    final flip = _lastDoubleTapFlip;
+    if (flip == null) {
+      return false;
+    }
+    final elapsedMs = DateTime.now().millisecondsSinceEpoch - flip.atMs;
+    return elapsedMs >= 0 &&
+        elapsedMs <= kDoubleTapTimeout.inMilliseconds &&
+        (position - flip.position).distance <= kDoubleTapSlop;
   }
 
   bool _consumeTapAfterDrawnCommitSuppression() {

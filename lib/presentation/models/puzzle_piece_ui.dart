@@ -24,6 +24,8 @@ class PuzzlePieceUI {
     this.borderRadius = 8.0,
     this.isConfigItem = false,
     this.isUsersItem = true,
+    this.isLifted = false,
+    this.trayScale = defaultTrayScale,
   });
 
   factory PuzzlePieceUI.fromType(
@@ -46,6 +48,8 @@ class PuzzlePieceUI {
     );
   }
 
+  static const double defaultTrayScale = 0.7;
+
   final PieceType type;
   final Path originalPath;
   final GetPieceColor color;
@@ -59,6 +63,14 @@ class PuzzlePieceUI {
   final bool isFlipped;
   final PlaceZone placeZone;
 
+  /// Picked up: drawn at board size while still in the tray.
+  final bool isLifted;
+
+  /// Tray pieces are scaled around [position].
+  final double trayScale;
+
+  double get scale => placeZone == PlaceZone.board && !isLifted ? trayScale : 1.0;
+
   PuzzlePieceUI copyWith({
     final Offset? position,
     final Offset? centerPoint,
@@ -68,6 +80,8 @@ class PuzzlePieceUI {
     final Path? originalPath,
     final PlaceZone? placeZone,
     final bool? isUsersItem,
+    final bool? isLifted,
+    final double? trayScale,
   }) => PuzzlePieceUI(
     type: type,
     originalPath: originalPath ?? this.originalPath,
@@ -81,6 +95,8 @@ class PuzzlePieceUI {
     isConfigItem: isForbidden ?? isConfigItem,
     placeZone: placeZone ?? this.placeZone,
     isUsersItem: isUsersItem ?? this.isUsersItem,
+    isLifted: isLifted ?? this.isLifted,
+    trayScale: trayScale ?? this.trayScale,
   );
 
   Color borderColor(final bool borderColorMode) =>

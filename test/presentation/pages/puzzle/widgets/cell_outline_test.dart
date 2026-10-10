@@ -1,5 +1,6 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/piece_type.dart';
+import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/cell_outline.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
@@ -49,7 +50,12 @@ void main() {
   });
 
   test('piece outline is placed at the piece position', () {
-    final piece = PuzzlePieceUI.fromType(PieceType.square, const Offset(100, 40), const Offset(cell / 2, cell / 2), cell);
+    final piece = PuzzlePieceUI.fromType(
+      PieceType.square,
+      const Offset(100, 40),
+      const Offset(cell / 2, cell / 2),
+      cell,
+    ).copyWith(placeZone: PlaceZone.grid);
 
     final bounds = PiecePaintHelper.outlinePath(piece, cell).getBounds();
 
