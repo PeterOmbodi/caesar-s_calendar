@@ -20,6 +20,7 @@ import 'package:caesar_puzzle/presentation/onboarding/models/puzzle_local_snapsh
 import 'package:caesar_puzzle/presentation/onboarding/utils/onboarding_target_resolver.dart';
 import 'package:caesar_puzzle/presentation/onboarding/utils/puzzle_local_snapshot_mapper.dart';
 import 'package:caesar_puzzle/presentation/onboarding/widgets/onboarding_overlay.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
@@ -247,7 +248,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeOutCubic,
-                  left: gameplayInsets.left,
+                  left: gameplayInsets.left + GameChrome.reservedInsets(context).left,
                   top: 0,
                   right: gameplayInsets.right,
                   child: MeasureSize(

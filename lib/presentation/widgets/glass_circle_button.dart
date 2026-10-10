@@ -10,9 +10,11 @@ class GlassCircleButton extends StatelessWidget {
     required this.tooltip,
     required this.onPressed,
     required this.child,
-    this.size = 44,
+    this.size = defaultSize,
     this.badge,
   });
+
+  static const double defaultSize = 44;
 
   final String tooltip;
   final VoidCallback onPressed;

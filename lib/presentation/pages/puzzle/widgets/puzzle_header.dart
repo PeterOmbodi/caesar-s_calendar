@@ -44,11 +44,15 @@ class PuzzleHeader extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final type = _typeFor(ScreenSpec.of(context));
+    final spec = ScreenSpec.of(context);
+    final type = _typeFor(spec);
+    final buttonsRight = spec.toolbar == ToolbarPlacement.labeledRail;
     final indicator = context.select<SettingsCubit, SolutionIndicator>((final c) => c.state.solutionIndicator);
     final (date, isCustomConfig) = context.select<PuzzleBloc, (DateTime, bool)>(
       (final bloc) => (bloc.state.selectedDate, bloc.state.isCustomConfig),
     );
+    final layouts = _LayoutsButton(isCustomConfig: isCustomConfig, onPressed: onLayoutsPressed);
+    const buttonGap = 12.0;
     final month = intl.DateFormat('MMM').format(date);
     final day = '${date.day}';
 
@@ -57,7 +61,10 @@ class PuzzleHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _LayoutsButton(isCustomConfig: isCustomConfig, onPressed: onLayoutsPressed),
+          if (buttonsRight)
+            const SizedBox(width: GlassCircleButton.defaultSize * 2 + buttonGap)
+          else
+            layouts,
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -98,6 +105,7 @@ class PuzzleHeader extends StatelessWidget {
               ),
             ),
           ),
+          if (buttonsRight) ...[layouts, const SizedBox(width: buttonGap)],
           _SettingsButton(onPressed: onSettingsPressed),
         ],
       ),

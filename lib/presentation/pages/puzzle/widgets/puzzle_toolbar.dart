@@ -9,6 +9,7 @@ import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/actions_for.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visuals.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
@@ -248,10 +249,25 @@ class PuzzleToolbar extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
-    builder: (final context, final state) => GameChrome.forSpec(
-      actions: actionsFor(state, context.watch<SettingsCubit>().state.solutionIndicator),
-      spec: ScreenSpec.of(context),
-      onInvoke: (final action) => _invoke(context, state, action),
-    ),
+    builder: (final context, final state) {
+      final actions = actionsFor(state, context.watch<SettingsCubit>().state.solutionIndicator);
+      final platform = Theme.of(context).platform;
+      final apple = platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+      return CallbackShortcuts(
+        bindings: {
+          for (final action in actions)
+            if (action.enabled && action.id.shortcut(apple: apple) != null)
+              action.id.shortcut(apple: apple)!: () => _invoke(context, state, action),
+        },
+        child: Focus(
+          autofocus: true,
+          child: GameChrome.forSpec(
+            actions: actions,
+            spec: ScreenSpec.of(context),
+            onInvoke: (final action) => _invoke(context, state, action),
+          ),
+        ),
+      );
+    },
   );
 }

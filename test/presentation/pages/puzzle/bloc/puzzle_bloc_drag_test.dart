@@ -737,10 +737,20 @@ void main() {
       expect(restored.isFlipped, start.isFlipped);
     });
 
-    test('undo and redo keep the selection', () async {
+    test('undo and redo keep a piece on the board selected', () async {
       await ready();
+      final grid = bloc!.state.gridConfig;
+      bloc!.add(PuzzleEvent.onPanStart(_pieceAnchor(bloc!, 'Square')));
+      await _drain();
+      final target = grid.cellTopLeft(Cell(2, 2)) + bloc!.state.dragStartOffset!;
+      bloc!.add(PuzzleEvent.onPanUpdate(target));
+      await _drain();
+      bloc!.add(PuzzleEvent.onPanEnd(target));
+      await _drain();
+      expect(_piece(bloc!, 'Square').placeZone, PlaceZone.grid);
+
       await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
-      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      expect(bloc!.state.moveHistory.last, isA<RotatePiece>());
 
       bloc!.add(const PuzzleEvent.undo());
       await _drain();
@@ -751,7 +761,7 @@ void main() {
       expect(bloc!.state.selectedPieceId, 'Square');
     });
 
-    test('undo and redo select the piece they move', () async {
+    test('undo and redo clear the selection when the piece ends in the tray', () async {
       await ready();
       await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
       await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
@@ -760,12 +770,12 @@ void main() {
 
       bloc!.add(const PuzzleEvent.undo());
       await _drain();
-      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(bloc!.state.selectedPieceId, isNull);
 
       await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
       bloc!.add(const PuzzleEvent.redo());
       await _drain();
-      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(bloc!.state.selectedPieceId, isNull);
     });
 
     test('selected tray piece is shown at board size inside the tray area', () async {

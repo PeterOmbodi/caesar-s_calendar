@@ -343,7 +343,7 @@ void main() {
     bloc.add(const PuzzleEvent.undo());
     await settle();
     expect(current().placeZone, PlaceZone.board);
-    expect(bloc.state.selectedPieceId, 'Square', reason: 'undo selects the piece it moved');
+    expect(bloc.state.selectedPieceId, isNull, reason: 'a piece undone back to the tray is not selected');
 
     const grab = Offset(112, 12);
     bloc.add(const PuzzleEvent.onPanStart(grab));

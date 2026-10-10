@@ -15,18 +15,32 @@ class GlassChrome extends GameChrome {
   static const double barMaxWidth = 480;
   static const double slotWidth = 64;
   static const double slotHeight = 54;
+  static const double sideRailMargin = 24;
+  static const double sideRailWidth = 226;
+  static const double sideRailGap = 20;
 
   static EdgeInsets reservedInsets(final BuildContext context) {
     final extent = ChromeTheme.of(context).barHeight + edgeMargin;
-    return ScreenSpec.of(context).toolbar == ToolbarPlacement.compactRail
-        ? EdgeInsets.only(right: extent)
-        : EdgeInsets.only(bottom: extent);
+    return switch (ScreenSpec.of(context).toolbar) {
+      ToolbarPlacement.compactRail => EdgeInsets.only(right: extent),
+      ToolbarPlacement.labeledRail => const EdgeInsets.only(left: sideRailMargin + sideRailWidth + sideRailGap),
+      ToolbarPlacement.bottomBar => EdgeInsets.only(bottom: extent),
+    };
   }
 
   bool get _isRail => spec.toolbar == ToolbarPlacement.compactRail;
 
   @override
   Widget build(final BuildContext context) {
+    if (spec.toolbar == ToolbarPlacement.labeledRail) {
+      return Align(
+        alignment: Alignment.topLeft,
+        child: Padding(
+          padding: const EdgeInsets.all(sideRailMargin),
+          child: _LabeledRail(actions: actions, onInvoke: onInvoke),
+        ),
+      );
+    }
     final chrome = ChromeTheme.of(context);
     final overflow = actions.where((final a) => a.slot == ActionSlot.overflow).toList();
     final slots = <Widget>[
@@ -308,6 +322,184 @@ class _MoreMenu extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LabeledRail extends StatelessWidget {
+  const _LabeledRail({required this.actions, required this.onInvoke});
+
+  final List<GameAction> actions;
+  final ValueChanged<GameAction> onInvoke;
+
+  String get _title {
+    final ids = actions.map((final a) => a.id);
+    if (ids.contains(GameActionId.solutionCounter)) {
+      return S.current.railSectionSolutions;
+    }
+    return ids.contains(GameActionId.rotate) ? S.current.railSectionPiece : S.current.railSectionGame;
+  }
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final platform = Theme.of(context).platform;
+    final apple = platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+    final primary = actions.where((final a) => a.slot == ActionSlot.primary);
+    final overflow = actions.where((final a) => a.slot == ActionSlot.overflow);
+
+    Widget row(final GameAction action) => _RailRow(
+      action: action,
+      shortcut: action.id.shortcutLabel(apple: apple),
+      onPressed: () => onInvoke(action),
+    );
+
+    return SizedBox(
+      width: GlassChrome.sideRailWidth,
+      child: GlassSurface(
+        borderRadius: const BorderRadius.all(Radius.circular(24)),
+        child: Material(
+          type: MaterialType.transparency,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 2,
+              children: [
+                _RailHeader(_title),
+                for (final action in primary) row(action),
+                if (overflow.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    child: Divider(height: 1, thickness: 1, color: colors.gridLine),
+                  ),
+                  _RailHeader(S.current.railSectionPuzzle),
+                  for (final action in overflow) row(action),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RailHeader extends StatelessWidget {
+  const _RailHeader(this.text);
+
+  final String text;
+
+  @override
+  Widget build(final BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+    child: Text(
+      text.toUpperCase(),
+      style: TextStyle(
+        fontSize: 11,
+        height: 1,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.9,
+        color: GameColors.of(context).textSecondary,
+      ),
+    ),
+  );
+}
+
+class _RailRow extends StatelessWidget {
+  const _RailRow({required this.action, required this.shortcut, required this.onPressed});
+
+  final GameAction action;
+  final String? shortcut;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final isCounter = action.id == GameActionId.solutionCounter;
+    final foreground = !action.enabled
+        ? colors.iconDisabled
+        : action.active
+        ? colors.onActive
+        : colors.icon;
+    final meta = isCounter
+        ? '${action.count} / ${action.total}'
+        : action.count != null
+        ? '${action.count}'
+        : null;
+    const radius = BorderRadius.all(Radius.circular(12));
+    return Material(
+      color: action.active ? colors.active : Colors.transparent,
+      borderRadius: radius,
+      child: InkWell(
+        borderRadius: radius,
+        onTap: action.enabled && !isCounter ? onPressed : null,
+        child: SizedBox(
+          height: 44,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              spacing: 12,
+              children: [
+                SizedBox.square(
+                  dimension: 22,
+                  child: isCounter
+                      ? null
+                      : action.busy
+                      ? Padding(
+                          padding: const EdgeInsets.all(3),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
+                        )
+                      : Icon(action.id.icon, size: 22, color: foreground),
+                ),
+                Expanded(
+                  child: Text(
+                    isCounter ? S.current.railSolution : action.id.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w500, color: foreground),
+                  ),
+                ),
+                if (meta != null)
+                  Text(
+                    meta,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colors.textSecondary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  )
+                else if (shortcut != null)
+                  _Kbd(shortcut!, active: action.active),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Kbd extends StatelessWidget {
+  const _Kbd(this.text, {required this.active});
+
+  final String text;
+  final bool active;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final color = active ? colors.onActive : colors.textSecondary;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(6)),
+        border: Border.all(color: active ? colors.onActive.withValues(alpha: 0.4) : colors.gridLine),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        child: Text(text, style: TextStyle(fontSize: 12, height: 1, fontWeight: FontWeight.w500, color: color)),
       ),
     );
   }

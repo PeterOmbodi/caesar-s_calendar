@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 extension GameActionIdVisuals on GameActionId {
   IconData get icon => switch (this) {
@@ -41,5 +42,36 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.prevSolution => S.current.prevSolution,
     GameActionId.nextSolution => S.current.nextSolution,
     _ => label,
+  };
+
+  /// [apple] uses ⌘ instead of Ctrl.
+  ShortcutActivator? shortcut({required final bool apple}) => switch (this) {
+    GameActionId.history => const SingleActivator(LogicalKeyboardKey.keyH),
+    GameActionId.hint => const CharacterActivator('?'),
+    GameActionId.undo => SingleActivator(LogicalKeyboardKey.keyZ, meta: apple, control: !apple),
+    GameActionId.redo => SingleActivator(LogicalKeyboardKey.keyZ, meta: apple, control: !apple, shift: true),
+    GameActionId.rotate => const SingleActivator(LogicalKeyboardKey.keyR),
+    GameActionId.flip => const SingleActivator(LogicalKeyboardKey.keyF),
+    GameActionId.prevSolution => const SingleActivator(LogicalKeyboardKey.arrowLeft),
+    GameActionId.nextSolution => const SingleActivator(LogicalKeyboardKey.arrowRight),
+    GameActionId.closeSolutions => const SingleActivator(LogicalKeyboardKey.escape),
+    GameActionId.showSolutions => const SingleActivator(LogicalKeyboardKey.keyS),
+    GameActionId.restart => SingleActivator(LogicalKeyboardKey.backspace, meta: apple, control: !apple),
+    GameActionId.solutionCounter || GameActionId.howToPlay => null,
+  };
+
+  String? shortcutLabel({required final bool apple}) => switch (this) {
+    GameActionId.history => 'H',
+    GameActionId.hint => '?',
+    GameActionId.undo => apple ? '⌘Z' : 'Ctrl+Z',
+    GameActionId.redo => apple ? '⇧⌘Z' : 'Ctrl+Shift+Z',
+    GameActionId.rotate => 'R',
+    GameActionId.flip => 'F',
+    GameActionId.prevSolution => '←',
+    GameActionId.nextSolution => '→',
+    GameActionId.closeSolutions => 'Esc',
+    GameActionId.showSolutions => 'S',
+    GameActionId.restart => apple ? '⌘⌫' : 'Ctrl+⌫',
+    GameActionId.solutionCounter || GameActionId.howToPlay => null,
   };
 }

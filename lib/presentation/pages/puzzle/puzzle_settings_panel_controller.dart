@@ -23,14 +23,10 @@ class PuzzleSettingsPanelController {
     required final bool isWideScreen,
     required final double sidePanelWidth,
   }) {
-    if (!isWideScreen) {
+    if (!isWideScreen || !isInlinePanelVisible) {
       return (left: 0, right: 0);
     }
-    if (isInlinePanelVisible) {
-      return (left: 0, right: sidePanelWidth);
-    }
-    final centeredInset = sidePanelWidth / 2;
-    return (left: centeredInset, right: centeredInset);
+    return (left: 0, right: sidePanelWidth);
   }
 
   Offset onboardingCoordinateOffset({required final bool isWideScreen, required final double sidePanelWidth}) {

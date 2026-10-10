@@ -325,8 +325,9 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     _persistHistoryChange(prevState: prevState, nextState: timedState);
   }
 
+  // Back in the tray: the next move usually takes another piece.
   String? _selectableId(final PuzzlePieceUI piece) =>
-      piece.isConfigItem && !_settings.unlockConfig ? null : piece.id;
+      piece.placeZone != PlaceZone.grid || (piece.isConfigItem && !_settings.unlockConfig) ? null : piece.id;
 
   FutureOr<void> _undoMove(final _Undo event, final Emitter<PuzzleState> emit) {
     if (state.moveHistory.isNotEmpty && state.moveIndex > 0) {
