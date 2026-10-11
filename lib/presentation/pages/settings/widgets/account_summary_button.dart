@@ -13,21 +13,23 @@ class AccountSummaryButton extends StatelessWidget {
   final AuthState auth;
   final VoidCallback onPressed;
 
+  static ({String title, String subtitle}) textFor(final AuthState auth) {
+    final user = auth.user;
+    if (user != null) {
+      return (title: AccountDisplay.bestDisplayName(user) ?? S.current.accountSignedInFallback, subtitle: '');
+    }
+    return (
+      title: auth.isLoading ? S.current.accountSigningIn : S.current.accountLocalProfile,
+      subtitle: auth.isAvailable ? S.current.accountTapToSignInAndSync : S.current.accountSignInUnavailable,
+    );
+  }
+
   @override
   Widget build(final BuildContext context) {
     final user = auth.user;
     final displayName = AccountDisplay.bestDisplayName(user);
     final photoUrl = AccountDisplay.bestPhotoUrl(user);
-    final title = user == null
-        ? auth.isLoading
-            ? S.current.accountSigningIn
-            : S.current.accountLocalProfile
-        : displayName ?? S.current.accountSignedInFallback;
-    final subtitle = user == null
-        ? auth.isAvailable
-            ? S.current.accountTapToSignInAndSync
-            : S.current.accountSignInUnavailable
-        : '';
+    final (:title, :subtitle) = textFor(auth);
 
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),

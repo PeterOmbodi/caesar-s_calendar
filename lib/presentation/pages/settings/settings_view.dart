@@ -1,46 +1,27 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/locale_labels.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summary_button.dart';
-
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/cupertino_settings_panel.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-typedef _LocaleLabel = ({String native, String english});
-
-const Map<String, _LocaleLabel> _localeLabels = {
-  'bg': (native: 'Български', english: 'Bulgarian'),
-  'cs': (native: 'Čeština', english: 'Czech'),
-  'da': (native: 'Dansk', english: 'Danish'),
-  'de': (native: 'Deutsch', english: 'German'),
-  'en': (native: 'English', english: 'English'),
-  'es': (native: 'Español', english: 'Spanish'),
-  'et': (native: 'Eesti', english: 'Estonian'),
-  'fi': (native: 'Suomi', english: 'Finnish'),
-  'fr': (native: 'Français', english: 'French'),
-  'hr': (native: 'Hrvatski', english: 'Croatian'),
-  'hu': (native: 'Magyar', english: 'Hungarian'),
-  'is': (native: 'Íslenska', english: 'Icelandic'),
-  'it': (native: 'Italiano', english: 'Italian'),
-  'lt': (native: 'Lietuvių', english: 'Lithuanian'),
-  'lv': (native: 'Latviešu', english: 'Latvian'),
-  'mk': (native: 'Македонски', english: 'Macedonian'),
-  'nb': (native: 'Norsk Bokmal', english: 'Norwegian Bokmal'),
-  'nl': (native: 'Nederlands', english: 'Dutch'),
-  'pl': (native: 'Polski', english: 'Polish'),
-  'pt': (native: 'Português', english: 'Portuguese'),
-  'ro': (native: 'Română', english: 'Romanian'),
-  'sk': (native: 'Slovenčina', english: 'Slovak'),
-  'sl': (native: 'Slovenščina', english: 'Slovenian'),
-  'sq': (native: 'Shqip', english: 'Albanian'),
-  'sv': (native: 'Svenska', english: 'Swedish'),
-  'uk': (native: 'Українська', english: 'Ukrainian'),
-};
-
 class SettingsPanel extends StatelessWidget {
   const SettingsPanel({super.key});
+
+  @override
+  Widget build(final BuildContext context) =>
+      ScreenSpec.of(context).family == ChromeFamily.glass ? const CupertinoSettingsPanel() : const _MaterialSettings();
+}
+
+class _MaterialSettings extends StatelessWidget {
+  const _MaterialSettings();
 
   @override
   Widget build(final BuildContext context) {
@@ -116,19 +97,19 @@ class SettingsPanel extends StatelessWidget {
                     child: Column(
                       children: [
                         RadioListTile<SolutionIndicator>(
-                          title: Text(S.current.solutionIndicatorHiddenTitle),
+                          title: Text(SolutionIndicator.none.sessionDifficulty.label),
                           subtitle: Text(S.current.solutionIndicatorHiddenSubtitle),
                           value: SolutionIndicator.none,
                           controlAffinity: ListTileControlAffinity.trailing,
                         ),
                         RadioListTile<SolutionIndicator>(
-                          title: Text(S.current.solutionIndicatorSolvabilityTitle),
+                          title: Text(SolutionIndicator.solvability.sessionDifficulty.label),
                           subtitle: Text(S.current.solutionIndicatorSolvabilitySubtitle),
                           value: SolutionIndicator.solvability,
                           controlAffinity: ListTileControlAffinity.trailing,
                         ),
                         RadioListTile<SolutionIndicator>(
-                          title: Text(S.current.solutionIndicatorCountTitle),
+                          title: Text(SolutionIndicator.countSolutions.sessionDifficulty.label),
                           subtitle: Text(S.current.solutionIndicatorCountSubtitle),
                           value: SolutionIndicator.countSolutions,
                           controlAffinity: ListTileControlAffinity.trailing,
@@ -183,7 +164,7 @@ class SettingsPanel extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_buildLanguageSectionTitle(currentLocale), style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text(languageSectionTitle(currentLocale), style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String?>(
                     key: ValueKey(localeState.localeCode),
@@ -193,7 +174,7 @@ class SettingsPanel extends StatelessWidget {
                       Text(S.current.auto, overflow: TextOverflow.ellipsis),
                       ...supportedLocales.map(
                         (final locale) => Text(
-                          _localeLabels[locale.languageCode]?.native ?? locale.languageCode.toUpperCase(),
+                          localeLabels[locale.languageCode]?.native ?? locale.languageCode.toUpperCase(),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -209,10 +190,10 @@ class SettingsPanel extends StatelessWidget {
                         (final locale) => DropdownMenuItem<String?>(
                           value: locale.languageCode,
                           child: _LocaleDropdownItem(
-                            title: _localeLabels[locale.languageCode]?.native ?? locale.languageCode.toUpperCase(),
+                            title: localeLabels[locale.languageCode]?.native ?? locale.languageCode.toUpperCase(),
                             subtitle: currentLocale.languageCode == 'en'
                                 ? null
-                                : _localeLabels[locale.languageCode]?.english,
+                                : localeLabels[locale.languageCode]?.english,
                           ),
                         ),
                       ),
@@ -239,11 +220,6 @@ class SettingsPanel extends StatelessWidget {
       ),
     );
   }
-}
-
-String _buildLanguageSectionTitle(final Locale currentLocale) {
-  if (currentLocale.languageCode == 'en') return S.current.language;
-  return '${S.current.language} (Language)';
 }
 
 class _LocaleDropdownItem extends StatelessWidget {
