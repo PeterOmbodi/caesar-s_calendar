@@ -338,6 +338,9 @@ class _LabeledRail extends StatelessWidget {
     if (ids.contains(GameActionId.solutionCounter)) {
       return S.current.railSectionSolutions;
     }
+    if (ids.contains(GameActionId.saveLayout)) {
+      return S.current.railSectionLayout;
+    }
     return ids.contains(GameActionId.rotate) ? S.current.railSectionPiece : S.current.railSectionGame;
   }
 

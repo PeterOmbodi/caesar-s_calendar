@@ -21,12 +21,14 @@ import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/onboarding/models/puzzle_local_snapshot.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_config_classifier.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/layout_edit.dart';
 import 'package:caesar_puzzle/presentation/services/drawn_group_service.dart';
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/services/lifecycle_service.dart';
 import 'package:caesar_puzzle/presentation/services/move_history_service.dart';
 import 'package:caesar_puzzle/presentation/services/piece_shape_matcher.dart';
 import 'package:caesar_puzzle/presentation/services/puzzle_piece_movement_service.dart';
+import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
@@ -83,6 +85,9 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_SetPuzzleDate>((final event, final emit) => _setPuzzleDate(event, emit));
     on<_MarkSolvedDialogShown>((final event, final emit) => _markSolvedDialogShown(event, emit));
     on<_ApplyLayout>((final event, final emit) => _applyLayout(event, emit));
+    on<_StartLayoutEdit>((final event, final emit) => _startLayoutEdit(event, emit));
+    on<_ResetLayoutEdit>((final event, final emit) => _resetLayoutEdit(event, emit));
+    on<_CancelLayoutEdit>((final event, final emit) => _cancelLayoutEdit(event, emit));
   }
 
   static const int gridRows = 7;
@@ -115,6 +120,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   int? _suppressTapAfterDrawnCommitAtMs;
   // A late tap of the flipping double tap must not select the piece the flip uncovered.
   ({int atMs, Offset position})? _lastDoubleTapFlip;
+  // Only the latest solver run may deliver results.
+  int _solveRun = 0;
 
   @override
   Future<void> close() {

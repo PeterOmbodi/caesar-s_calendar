@@ -5,6 +5,7 @@ import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/layout_edit.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/status/status_for.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:flutter/material.dart';
@@ -133,6 +134,31 @@ void main() {
 
     test('drag outside the grid falls back to the level status', () {
       expect(statusFor(_state(isDragging: true), _medium).message, StatusMessage.readyToPlay);
+    });
+  });
+
+  group('layout edit', () {
+    PuzzleState editing({final int solutions = 50, final GameStatus status = GameStatus.solutionsReady}) =>
+        _state(status: status).copyWith(
+          solutions: List.generate(solutions, (_) => <String, PlacementParams>{}),
+          layoutEdit: const LayoutEdit(start: []),
+        );
+
+    test('shows the count for today on every level', () {
+      for (final level in [_easy, _medium, _hard]) {
+        expect(
+          statusFor(editing(), level),
+          const PuzzleStatus(StatusMessage.layoutSolutions, tone: StatusTone.ok, count: 50),
+        );
+        expect(
+          statusFor(editing(solutions: 0), level),
+          const PuzzleStatus(StatusMessage.layoutNoSolution, tone: StatusTone.bad),
+        );
+      }
+    });
+
+    test('searching while the solver runs', () {
+      expect(statusFor(editing(status: GameStatus.searchingSolutions), _hard).message, StatusMessage.searching);
     });
   });
 }

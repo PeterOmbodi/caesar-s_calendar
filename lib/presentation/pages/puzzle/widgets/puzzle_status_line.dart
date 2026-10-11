@@ -57,7 +57,7 @@ class PuzzleStatusLine extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
-              child: state.isShowSolutions ? const Text('—') : _ElapsedTime(state: state),
+              child: state.isShowSolutions || state.isEditingLayout ? const Text('—') : _ElapsedTime(state: state),
             ),
           ],
         ],
@@ -81,6 +81,8 @@ class PuzzleStatusLine extends StatelessWidget {
     StatusMessage.noMatchingShape => S.current.statusNoMatchingShape,
     StatusMessage.solved => S.current.statusSolved,
     StatusMessage.viewingSolution => S.current.statusViewingSolution(status.count!, status.total!),
+    StatusMessage.layoutSolutions => S.current.layoutsSolutionsToday(status.count!),
+    StatusMessage.layoutNoSolution => S.current.layoutsNoSolutionToday,
   };
 }
 

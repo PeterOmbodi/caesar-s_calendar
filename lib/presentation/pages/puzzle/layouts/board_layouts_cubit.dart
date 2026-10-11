@@ -62,8 +62,17 @@ class BoardLayoutsCubit extends Cubit<BoardLayoutsState> {
     }
   }
 
-  Future<void> save(final String name, final List<PlacementParams> placements) =>
-      _repository.saveLayout(name: name, placements: placements);
+  /// Saving moved blocks gives a new id, so the edited layout is replaced.
+  Future<void> saveEdited({
+    required final String? replacedId,
+    required final String name,
+    required final List<PlacementParams> placements,
+  }) async {
+    final id = await _repository.saveLayout(name: name, placements: placements);
+    if (replacedId != null && replacedId != id) {
+      await _repository.deleteLayout(replacedId);
+    }
+  }
 
   Future<void> rename(final BoardLayout layout, final String name) => _repository.renameLayout(layout.id, name);
 

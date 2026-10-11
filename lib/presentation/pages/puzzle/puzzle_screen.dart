@@ -126,17 +126,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         body: SafeArea(
           child: MultiBlocListener(
             listeners: [
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final ps, final cs) =>
-                    cs.moveIndex == ps.moveIndex + 1 && cs.isPieceInGrid(cs.moveHistory.last.pieceId),
-                listener: (final context, final state) {
-                  final settingsCubit = context.read<SettingsCubit>();
-                  final settings = settingsCubit.state;
-                  if (settings.unlockConfig && settings.autoLockConfig) {
-                    settingsCubit.toggleUnlockConfig(false);
-                  }
-                },
-              ),
               BlocListener<SettingsCubit, SettingsState>(
                 listenWhen: (final previous, final current) => previous.solutionIndicator != current.solutionIndicator,
                 listener: (final context, final state) {
@@ -266,7 +255,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     },
                     child: Builder(
                       builder: (final headerContext) => PuzzleHeader(
-                        onLayoutsPressed: () => showBoardLayoutsSheet(headerContext),
+                        onLayoutsPressed: () {
+                          if (!_puzzleBloc.state.isEditingLayout) {
+                            showBoardLayoutsSheet(headerContext);
+                          }
+                        },
                         onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
                       ),
                     ),

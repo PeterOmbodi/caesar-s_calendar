@@ -62,21 +62,40 @@ class PiecePaintHelper {
   static Path outlinePath(final PuzzlePieceUI piece, final double cellSize) =>
       piece.transformLocalPath(_localShape(piece, cellSize).outline);
 
+  static const double _hatchGap = 6;
+
+  static void _drawHatch(final Canvas canvas, final Path path, final Color color) {
+    final bounds = path.getBounds();
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.7)
+      ..strokeWidth = 1.5;
+    canvas
+      ..save()
+      ..clipPath(path);
+    for (var x = bounds.left - bounds.height; x < bounds.right; x += _hatchGap) {
+      canvas.drawLine(Offset(x, bounds.bottom), Offset(x + bounds.height, bounds.top), paint);
+    }
+    canvas.restore();
+  }
+
   static void drawPiece(
     final Canvas canvas,
     final PuzzlePieceUI piece, {
     required final double cellSize,
     final PieceLook look = PieceLook.normal,
     final bool showHintBadge = false,
+    final bool hatched = false,
   }) {
     final colors = AppColors.current.game;
     final isHighlighted = look != PieceLook.normal;
 
     if (piece.isConfigItem) {
       final path = outlinePath(piece, cellSize);
-      canvas
-        ..drawPath(path, Paint()..color = colors.blockedCell)
-        ..drawPath(
+      canvas.drawPath(path, Paint()..color = colors.blockedCell);
+      if (hatched) {
+        _drawHatch(canvas, path, colors.customConfig);
+      }
+      canvas.drawPath(
           path,
           Paint()
             ..style = PaintingStyle.stroke

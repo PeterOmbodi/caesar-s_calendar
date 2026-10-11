@@ -86,6 +86,9 @@ class PuzzleView extends StatelessWidget {
               tappedPiece.containsPoint(position);
         }
 
+        final shownPieces = state.isEditingLayout
+            ? state.shownPieces.where((final p) => p.isConfigItem)
+            : state.shownPieces;
         return state.status == GameStatus.initializing
             ? Center(child: CircularProgressIndicator())
             : SizedBox(
@@ -143,7 +146,7 @@ class PuzzleView extends StatelessWidget {
                         bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition));
                       },
                       child: AnimatedPiecesOverlay(
-                        pieces: state.shownPieces,
+                        pieces: shownPieces,
                         duration: const Duration(milliseconds: 220),
                         curve: Curves.easeInOut,
                         borderColorMode: borderColorMode,
@@ -154,7 +157,7 @@ class PuzzleView extends StatelessWidget {
                         dimTray: state.isTrayPieceSelected,
                         childBuilder: (final hiddenIds, final trayDim) => CustomPaint(
                           painter: PuzzleBoardPainter(
-                            pieces: state.shownPieces.where(
+                            pieces: shownPieces.where(
                               (final p) =>
                                   (!hiddenIds.contains(p.id) || p.isConfigItem) &&
                                   (!state.isDragging || p.id != state.pointerPiece?.id),
@@ -170,6 +173,7 @@ class PuzzleView extends StatelessWidget {
                             selectedDate: state.selectedDate,
                             isSolved: state.isSolved,
                             trayDim: trayDim,
+                            editingLayout: state.isEditingLayout,
                           ),
                         ),
                       ),
@@ -268,7 +272,7 @@ class _DraggedPiecePainter extends CustomPainter {
 
   @override
   void paint(final Canvas canvas, final Size size) =>
-      PiecePaintHelper.drawPiece(canvas, piece, cellSize: cellSize, look: PieceLook.lifted);
+      PiecePaintHelper.drawPiece(canvas, piece, cellSize: cellSize, look: PieceLook.lifted, hatched: piece.isConfigItem);
 
   @override
   bool shouldRepaint(covariant final _DraggedPiecePainter oldDelegate) =>

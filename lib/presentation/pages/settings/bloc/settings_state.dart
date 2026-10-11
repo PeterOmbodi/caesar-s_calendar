@@ -7,9 +7,7 @@ abstract class SettingsState with _$SettingsState {
   const factory SettingsState({
     @Default(AppTheme.system) final AppTheme theme,
     final String? localeCode,
-    @Default(false) final bool unlockConfig,
     @Default(true) final bool preventOverlap,
-    @Default(true) final bool autoLockConfig,
     @Default(true) final bool separateMoveColors,
     @Default(true) final bool snapToGridOnTransform,
     @Default(SolutionIndicator.none) final SolutionIndicator solutionIndicator,

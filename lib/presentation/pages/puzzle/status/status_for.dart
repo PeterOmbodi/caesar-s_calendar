@@ -22,6 +22,8 @@ enum StatusMessage {
   noMatchingShape,
   solved,
   viewingSolution,
+  layoutSolutions,
+  layoutNoSolution,
 }
 
 @immutable
@@ -77,10 +79,21 @@ PuzzleStatus statusFor(final PuzzleState state, final SolutionIndicator indicato
     };
   }
 
+  final isSearching = state.isSolving || state.status == GameStatus.initialized;
+  // Design time: the count is shown on every level.
+  if (state.isEditingLayout) {
+    if (isSearching) {
+      return const PuzzleStatus(StatusMessage.searching);
+    }
+    final total = state.solutions.length;
+    return total == 0
+        ? const PuzzleStatus(StatusMessage.layoutNoSolution, tone: StatusTone.bad)
+        : PuzzleStatus(StatusMessage.layoutSolutions, tone: StatusTone.ok, count: total);
+  }
+
   final gamePieces = state.pieces.where((final p) => !p.isConfigItem);
   final placed = gamePieces.where((final p) => p.placeZone == PlaceZone.grid).length;
   final solutions = state.applicableSolutions.length;
-  final isSearching = state.isSolving || state.status == GameStatus.initialized;
 
   switch (indicator) {
     case SolutionIndicator.countSolutions:

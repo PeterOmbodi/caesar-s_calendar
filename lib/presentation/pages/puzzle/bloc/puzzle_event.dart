@@ -70,4 +70,10 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.markSolvedDialogShown() = _MarkSolvedDialogShown;
 
   const factory PuzzleEvent.applyLayout(final List<PlacementParams> placements) = _ApplyLayout;
+
+  const factory PuzzleEvent.startLayoutEdit({final String? layoutId, final String? name}) = _StartLayoutEdit;
+
+  const factory PuzzleEvent.resetLayoutEdit() = _ResetLayoutEdit;
+
+  const factory PuzzleEvent.cancelLayoutEdit() = _CancelLayoutEdit;
 }

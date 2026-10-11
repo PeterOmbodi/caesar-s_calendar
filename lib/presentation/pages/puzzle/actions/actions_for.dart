@@ -5,6 +5,22 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.da
 List<GameAction> actionsFor(final PuzzleState state, final SolutionIndicator indicator) {
   const history = GameAction(GameActionId.history, slot: ActionSlot.primary);
 
+  if (state.isEditingLayout) {
+    final canTransform = state.selectedPiece != null && !state.isSolving;
+    return [
+      const GameAction(GameActionId.cancelEdit, slot: ActionSlot.primary),
+      GameAction(GameActionId.rotate, slot: ActionSlot.primary, enabled: canTransform),
+      GameAction(GameActionId.resetLayout, slot: ActionSlot.primary, enabled: state.isLayoutChanged),
+      GameAction(GameActionId.flip, slot: ActionSlot.primary, enabled: canTransform),
+      GameAction(
+        GameActionId.saveLayout,
+        slot: ActionSlot.primary,
+        enabled: state.isLayoutChanged && !state.isDragging,
+        active: true,
+      ),
+    ];
+  }
+
   if (state.isShowSolutions) {
     final total = state.applicableSolutions.length;
     return [

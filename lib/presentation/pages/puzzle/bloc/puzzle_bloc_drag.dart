@@ -15,7 +15,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     }
 
     final piece = _findPieceAtPosition(event.localPosition);
-    if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
+    if (piece != null && _canTouch(piece)) {
       if (piece.id != state.selectedPieceId) {
         _selectedOnTapDownId = piece.id;
       }
@@ -72,7 +72,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
   FutureOr<void> _onPanStart(final _OnPanStart event, final Emitter<PuzzleState> emit) {
     _selectedOnTapDownId = null;
     final piece = _findPieceAtPosition(event.localPosition) ?? state.pointerPiece;
-    if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
+    if (piece != null && _canTouch(piece)) {
       final lifted = state.shown(piece).rescaledAround(event.localPosition, isLifted: true);
       final pieces = List<PuzzlePieceUI>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((final item) => item.id == piece.id);
@@ -100,7 +100,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     }
 
     final cell = state.gridConfig.cellAt(event.localPosition);
-    if (cell == null) {
+    if (cell == null || state.isEditingLayout) {
       return Future<void>.value();
     }
 
@@ -170,8 +170,8 @@ extension PuzzleBlocDragPart on PuzzleBloc {
                 piece: piece,
                 newPosition: previewPosition,
                 zone: currentZone!,
-                preventOverlap: _settings.preventOverlap,
-                pieces: pieces,
+                preventOverlap: _settings.preventOverlap || piece.isConfigItem,
+                pieces: _obstacles(pieces),
                 gridConfig: state.gridConfig,
                 boardConfig: state.boardConfig,
               ),
@@ -199,12 +199,12 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         dragStartZone: state.dragStartZone,
         gridConfig: state.gridConfig,
         boardConfig: state.boardConfig,
-        pieces: state.pieces,
+        pieces: _obstacles(state.pieces),
         preventOverlap: _settings.preventOverlap || selectedPiece.isConfigItem,
         anchor: state.dragStartOffset == null ? null : selectedPiece.position + state.dragStartOffset!,
       );
 
-      if (dropResult.accepted) {
+      if (dropResult.accepted && (!selectedPiece.isConfigItem || dropResult.zone == PlaceZone.grid)) {
         final movedPiece = selectedPiece.copyWith(
           position: dropResult.snappedPosition!,
           placeZone: dropResult.zone!,
@@ -280,7 +280,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     if (selectedPiece != null && state.shown(selectedPiece).containsPoint(position)) {
       return selectedPiece;
     }
-    return state.pieces.lastWhereOrNull((final piece) => state.shown(piece).containsPoint(position));
+    return state.pieces.lastWhereOrNull((final piece) => _canTouch(piece) && state.shown(piece).containsPoint(position));
   }
 
   bool _isTapOfDoubleTapFlip(final Offset position) {
@@ -311,4 +311,10 @@ extension PuzzleBlocDragPart on PuzzleBloc {
   List<PuzzlePieceUI> _updatePieceInList(final PuzzlePieceUI piece) => List<PuzzlePieceUI>.from(state.pieces)
     ..removeWhere((final p) => p.id == piece.id)
     ..add(piece);
+
+  bool _canTouch(final PuzzlePieceUI piece) => piece.isConfigItem == state.isEditingLayout;
+
+  // Game pieces are hidden while a layout is edited, so blocks may lie over them.
+  Iterable<PuzzlePieceUI> _obstacles(final Iterable<PuzzlePieceUI> pieces) =>
+      state.isEditingLayout ? pieces.where((final p) => p.isConfigItem) : pieces;
 }

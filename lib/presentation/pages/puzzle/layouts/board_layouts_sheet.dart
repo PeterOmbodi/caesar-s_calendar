@@ -47,6 +47,9 @@ Future<void> showBoardLayoutsSheet(final BuildContext context) {
   );
 }
 
+Future<String?> showLayoutNameDialog(final BuildContext context, final String title, final String initial) =>
+    showDialog<String>(context: context, builder: (_) => _NameDialog(title: title, initial: initial));
+
 class _BoardLayoutsPanel extends StatefulWidget {
   const _BoardLayoutsPanel({required this.isSheet});
 
@@ -66,6 +69,7 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
     final layouts = context.watch<BoardLayoutsCubit>().state;
     final indicator = context.select<SettingsCubit, SolutionIndicator>((final c) => c.state.solutionIndicator);
     final currentKey = context.select<PuzzleBloc, String>((final b) => cellsKey(b.state.blockedCells));
+    final canEdit = context.select<PuzzleBloc, bool>((final b) => !b.state.isShowSolutions);
     final current = layouts.entryWithKey(currentKey);
     final unsaved = current == null
         ? LayoutEntry(
@@ -118,7 +122,7 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
                         ),
                       ),
                       TextButton.icon(
-                        onPressed: unsaved == null ? null : () => _saveCurrent(unsaved.layout),
+                        onPressed: canEdit ? () => _startEdit(null) : null,
                         icon: const Icon(Icons.add, size: 20),
                         label: Text(S.current.layoutsNew),
                         style: TextButton.styleFrom(
@@ -157,6 +161,18 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
                 const SizedBox(height: 8),
                 Divider(height: 1, color: colors.gridLine),
                 const _PieceSetRow(),
+                const SizedBox(height: 6),
+                FilledButton(
+                  onPressed: canEdit ? () => _startEdit(current?.layout) : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: colors.active,
+                    foregroundColor: colors.onActive,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  child: Text(S.current.layoutsEditCurrent),
+                ),
               ],
             ),
           ),
@@ -211,15 +227,16 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
     bloc.add(PuzzleEvent.applyLayout(entry.layout.placements));
   }
 
-  Future<void> _saveCurrent(final BoardLayout layout) async {
-    final name = await _askName(S.current.layoutsSaveTitle, '');
-    if (name != null && mounted) {
-      await context.read<BoardLayoutsCubit>().save(name, layout.placements);
-    }
+  /// Standard is read-only: its edit saves a new layout.
+  void _startEdit(final BoardLayout? layout) {
+    final saved = layout == null || layout.isStandard ? null : layout;
+    final bloc = context.read<PuzzleBloc>();
+    Navigator.of(context).pop();
+    bloc.add(PuzzleEvent.startLayoutEdit(layoutId: saved?.id, name: saved?.name));
   }
 
   Future<void> _rename(final BoardLayout layout) async {
-    final name = await _askName(S.current.layoutsRenameTitle, layout.name);
+    final name = await showLayoutNameDialog(context, S.current.layoutsRenameTitle, layout.name);
     if (name != null && mounted) {
       await context.read<BoardLayoutsCubit>().rename(layout, name);
     }
@@ -263,8 +280,6 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
       ) ??
       false;
 
-  Future<String?> _askName(final String title, final String initial) =>
-      showDialog<String>(context: context, builder: (_) => _NameDialog(title: title, initial: initial));
 }
 
 class _LayoutRow extends StatelessWidget {

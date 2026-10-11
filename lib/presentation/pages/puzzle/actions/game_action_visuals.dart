@@ -18,6 +18,9 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.showSolutions => Icons.auto_awesome_motion,
     GameActionId.howToPlay => Icons.help_outline,
     GameActionId.restart => Icons.restart_alt,
+    GameActionId.cancelEdit => Icons.close,
+    GameActionId.resetLayout => Icons.restart_alt,
+    GameActionId.saveLayout => Icons.check,
   };
 
   /// Short label under the icon in the toolbar, or the item text in a menu.
@@ -35,6 +38,9 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.showSolutions => S.current.menuShowAllSolutions,
     GameActionId.howToPlay => S.current.howToPlayTitle,
     GameActionId.restart => S.current.menuStartOver,
+    GameActionId.cancelEdit => S.current.layoutsCancel,
+    GameActionId.resetLayout => S.current.reset,
+    GameActionId.saveLayout => S.current.layoutsSave,
   };
 
   String get tooltip => switch (this) {
@@ -56,7 +62,10 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.nextSolution => const SingleActivator(LogicalKeyboardKey.arrowRight),
     GameActionId.closeSolutions => const SingleActivator(LogicalKeyboardKey.escape),
     GameActionId.showSolutions => const SingleActivator(LogicalKeyboardKey.keyS),
-    GameActionId.restart => SingleActivator(LogicalKeyboardKey.backspace, meta: apple, control: !apple),
+    GameActionId.restart ||
+    GameActionId.resetLayout => SingleActivator(LogicalKeyboardKey.backspace, meta: apple, control: !apple),
+    GameActionId.cancelEdit => const SingleActivator(LogicalKeyboardKey.escape),
+    GameActionId.saveLayout => SingleActivator(LogicalKeyboardKey.keyS, meta: apple, control: !apple),
     GameActionId.solutionCounter || GameActionId.howToPlay => null,
   };
 
@@ -71,7 +80,9 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.nextSolution => '→',
     GameActionId.closeSolutions => 'Esc',
     GameActionId.showSolutions => 'S',
-    GameActionId.restart => apple ? '⌘⌫' : 'Ctrl+⌫',
+    GameActionId.restart || GameActionId.resetLayout => apple ? '⌘⌫' : 'Ctrl+⌫',
+    GameActionId.cancelEdit => 'Esc',
+    GameActionId.saveLayout => apple ? '⌘S' : 'Ctrl+S',
     GameActionId.solutionCounter || GameActionId.howToPlay => null,
   };
 }

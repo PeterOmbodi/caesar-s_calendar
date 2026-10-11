@@ -44,6 +44,7 @@ abstract class PuzzleState with _$PuzzleState {
     final int? firstMoveAt,
     final int? lastResumedAt,
     required final int activeElapsedMs,
+    final LayoutEdit? layoutEdit,
   }) = _PuzzleState;
 
   const PuzzleState._();
@@ -103,6 +104,13 @@ abstract class PuzzleState with _$PuzzleState {
   bool get isUndoEnabled => !isSolving && moveHistory.isNotEmpty && moveIndex > 0;
 
   bool get isCustomConfig => PuzzleConfigClassifier.isCustomConfig(pieces: pieces, gridConfig: gridConfig);
+
+  bool get isEditingLayout => layoutEdit != null;
+
+  bool get isLayoutChanged {
+    final start = layoutEdit?.start;
+    return start != null && cellsKey(blockedCells) != cellsKey(blockedCellsOf(start));
+  }
 
   Set<Cell> get blockedCells => {
     for (final piece in pieces.where((final p) => p.isConfigItem)) ...piece.cells(gridConfig.origin, gridConfig.cellSize),

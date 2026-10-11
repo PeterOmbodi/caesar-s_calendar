@@ -7,7 +7,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     add(
       PuzzleEvent.configure(
         toInitial: true,
-        configurationPieces: _settings.unlockConfig ? [] : state.gridPieces.where((final e) => e.isConfigItem),
+        configurationPieces: state.gridPieces.where((final e) => e.isConfigItem),
       ),
     );
     if (state.solutions.isEmpty && _settings.requireSolutions) {
@@ -16,6 +16,9 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
   }
 
   FutureOr<void> _timerStateChanged(final _SetTimer event, final Emitter<PuzzleState> emit) {
+    if (state.isEditingLayout) {
+      return Future.value();
+    }
     if (event.running) {
       if (state.status == GameStatus.paused) {
         final prevState = state;
@@ -95,7 +98,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     emit,
     date: event.date,
     onboarding: event.onboarding,
-    configurationPieces: _settings.unlockConfig ? [] : state.gridPieces.where((final e) => e.isConfigItem),
+    configurationPieces: state.gridPieces.where((final e) => e.isConfigItem),
   );
 
   void _applyLayout(final _ApplyLayout event, final Emitter<PuzzleState> emit) => _startNewGame(
@@ -103,6 +106,68 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     date: DateTime.now(),
     configurationPieces: _withLayout(event.placements).where((final p) => p.isConfigItem),
   );
+
+  void _startLayoutEdit(final _StartLayoutEdit event, final Emitter<PuzzleState> emit) {
+    if (state.isEditingLayout || state.isShowSolutions) {
+      return;
+    }
+    final resumedAt = state.lastResumedAt;
+    final elapsedMs = resumedAt == null ? 0 : DateTime.now().millisecondsSinceEpoch - resumedAt;
+    emit(
+      state.copyWith(
+        layoutEdit: LayoutEdit(
+          start: state.configPlacements,
+          status: state.status,
+          layoutId: event.layoutId,
+          name: event.name,
+          moveHistory: state.moveHistory,
+          moveIndex: state.moveIndex,
+          solutions: state.solutions,
+          applicableSolutions: state.applicableSolutions,
+          wasTimerRunning: resumedAt != null,
+        ),
+        activeElapsedMs: state.activeElapsedMs + elapsedMs,
+        lastResumedAt: null,
+        selectedPieceId: null,
+        pointerPiece: null,
+        drawnGroup: null,
+        isDrawingGroup: false,
+      ),
+    );
+  }
+
+  void _resetLayoutEdit(final _ResetLayoutEdit event, final Emitter<PuzzleState> emit) {
+    final edit = state.layoutEdit;
+    if (edit != null) {
+      emit(state.copyWith(pieces: _withLayout(edit.start), selectedPieceId: null));
+      add(const PuzzleEvent.solve(showResult: false));
+    }
+  }
+
+  void _cancelLayoutEdit(final _CancelLayoutEdit event, final Emitter<PuzzleState> emit) {
+    final edit = state.layoutEdit;
+    if (edit == null) {
+      return;
+    }
+    _solveRun++;
+    emit(
+      state.copyWith(
+        pieces: _withLayout(edit.start),
+        moveHistory: edit.moveHistory,
+        moveIndex: edit.moveIndex,
+        solutions: edit.solutions,
+        applicableSolutions: edit.applicableSolutions,
+        status: edit.status,
+        lastResumedAt: edit.wasTimerRunning ? DateTime.now().millisecondsSinceEpoch : null,
+        selectedPieceId: null,
+        pointerPiece: null,
+        layoutEdit: null,
+      ),
+    );
+    if (edit.status == GameStatus.searchingSolutions) {
+      add(const PuzzleEvent.solve(showResult: false));
+    }
+  }
 
   List<PuzzlePieceUI> _withLayout(final List<PlacementParams> placements) {
     final byId = {for (final p in placements) p.pieceId: p};
@@ -151,6 +216,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         isRestoredSolvedSession: false,
         hasShownSolvedDialog: false,
         status: GameStatus.paused,
+        layoutEdit: null,
       ),
     );
     add(PuzzleEvent.configure(toInitial: true, skipSolve: onboarding, configurationPieces: configurationPieces));

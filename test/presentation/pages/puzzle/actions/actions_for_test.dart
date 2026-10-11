@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/actions_for.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/layout_edit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -167,6 +168,36 @@ void main() {
         expect(_action(actions, GameActionId.undo).enabled, isTrue);
         expect(_action(actions, GameActionId.redo).enabled, isTrue);
       }
+    });
+  });
+
+  group('layout edit', () {
+    PuzzleState editing({final bool selected = false}) =>
+        _state(selected: selected).copyWith(layoutEdit: const LayoutEdit(start: []));
+
+    test('Cancel · Rotate · Reset · Flip · Save on every level, nothing in More', () {
+      for (final level in [_easy, _medium, _hard]) {
+        final actions = actionsFor(editing(), level);
+        expect(_ids(actions, ActionSlot.primary), [
+          GameActionId.cancelEdit,
+          GameActionId.rotate,
+          GameActionId.resetLayout,
+          GameActionId.flip,
+          GameActionId.saveLayout,
+        ]);
+        expect(_ids(actions, ActionSlot.overflow), isEmpty);
+      }
+    });
+
+    test('rotate and flip need a selected block', () {
+      expect(_action(actionsFor(editing(), _easy), GameActionId.rotate).enabled, isFalse);
+      expect(_action(actionsFor(editing(selected: true), _easy), GameActionId.flip).enabled, isTrue);
+    });
+
+    test('Reset and Save wait for a change', () {
+      final actions = actionsFor(editing(), _easy);
+      expect(_action(actions, GameActionId.resetLayout).enabled, isFalse);
+      expect(_action(actions, GameActionId.saveLayout).enabled, isFalse);
     });
   });
 }

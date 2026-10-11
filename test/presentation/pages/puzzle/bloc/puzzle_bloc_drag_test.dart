@@ -28,9 +28,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 class _FakeSettingsQuery implements SettingsQuery {
   @override
-  bool get autoLockConfig => false;
-
-  @override
   bool get preventOverlap => false;
 
   @override
@@ -44,9 +41,6 @@ class _FakeSettingsQuery implements SettingsQuery {
 
   @override
   bool get snapToGridOnTransform => false;
-
-  @override
-  bool get unlockConfig => true;
 }
 
 class _FakeSolverService implements PuzzleSolverService {

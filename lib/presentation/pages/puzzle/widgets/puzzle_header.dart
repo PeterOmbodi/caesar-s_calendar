@@ -54,6 +54,7 @@ class PuzzleHeader extends StatelessWidget {
       (final bloc) => (bloc.state.selectedDate, bloc.state.isCustomConfig ? cellsKey(bloc.state.blockedCells) : null),
     );
     final isCustomConfig = customKey != null;
+    final isEditing = context.select<PuzzleBloc, bool>((final bloc) => bloc.state.isEditingLayout);
     final layoutName = context.select<BoardLayoutsCubit, String?>(
       (final cubit) => customKey == null ? null : cubit.state.entryWithKey(customKey)?.layout.name,
     );
@@ -85,8 +86,11 @@ class PuzzleHeader extends StatelessWidget {
                     TextSpan(
                       style: type.subtitle.copyWith(color: colors.textSecondary),
                       children: [
-                        TextSpan(text: '${S.current.headerDailyPuzzle} · ${indicator.sessionDifficulty.label}'),
-                        if (isCustomConfig)
+                        if (isEditing)
+                          TextSpan(text: S.current.headerEditingLayout, style: TextStyle(color: colors.customConfig))
+                        else
+                          TextSpan(text: '${S.current.headerDailyPuzzle} · ${indicator.sessionDifficulty.label}'),
+                        if (isCustomConfig && !isEditing)
                           TextSpan(
                             text: ' · ${layoutName ?? S.current.historyConfigCustom}',
                             style: TextStyle(color: colors.customConfig),

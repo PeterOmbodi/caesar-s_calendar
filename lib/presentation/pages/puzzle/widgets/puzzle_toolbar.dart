@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/models/board_layout.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
@@ -12,8 +13,11 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visuals.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cubit.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_cupertino_alert_dialog.dart';
@@ -244,8 +248,59 @@ class PuzzleToolbar extends StatelessWidget {
         );
       case GameActionId.howToPlay:
         await _showHowToPlayDialog(context);
+      case GameActionId.cancelEdit:
+        puzzleBloc.add(const PuzzleEvent.cancelLayoutEdit());
+      case GameActionId.resetLayout:
+        puzzleBloc.add(const PuzzleEvent.resetLayoutEdit());
+      case GameActionId.saveLayout:
+        await _saveLayout(context, state);
     }
   }
+
+  Future<void> _saveLayout(final BuildContext context, final PuzzleState state) async {
+    final edit = state.layoutEdit;
+    if (edit == null) {
+      return;
+    }
+    final bloc = context.read<PuzzleBloc>();
+    final layouts = context.read<BoardLayoutsCubit>();
+    final existing = layouts.state.entryWithKey(cellsKey(state.blockedCells))?.layout;
+    if (existing != null) {
+      if (await _confirmPlayExisting(context, existing)) {
+        bloc.add(PuzzleEvent.applyLayout(existing.placements));
+      }
+      return;
+    }
+    final placements = state.configPlacements;
+    final name = edit.name ?? await showLayoutNameDialog(context, S.current.layoutsSaveTitle, '');
+    if (name == null || !context.mounted) {
+      return;
+    }
+    await layouts.saveEdited(replacedId: edit.layoutId, name: name, placements: placements);
+    bloc.add(PuzzleEvent.applyLayout(placements));
+  }
+
+  Future<bool> _confirmPlayExisting(final BuildContext context, final BoardLayout layout) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (final dialogContext) => PlatformAlertDialog(
+          title: Text(S.current.layoutsDuplicateTitle),
+          content: Text(
+            S.current.layoutsDuplicateMessage(layout.isStandard ? S.current.historyConfigStandard : layout.name),
+          ),
+          actions: [
+            PlatformDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(S.current.layoutsCancel),
+            ),
+            PlatformDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(S.current.layoutsDuplicatePlay),
+            ),
+          ],
+        ),
+      ) ??
+      false;
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(

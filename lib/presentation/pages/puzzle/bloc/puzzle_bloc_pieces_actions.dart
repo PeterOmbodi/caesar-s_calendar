@@ -14,7 +14,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     final piece = _findPieceAtPosition(event.localPosition);
     final wasSelectedOnTapDown = piece != null && _selectedOnTapDownId == piece.id;
     _selectedOnTapDownId = null;
-    if (piece == null || (piece.isConfigItem && !_settings.unlockConfig)) {
+    if (piece == null || !_canTouch(piece)) {
       emit(state.copyWith(pointerPiece: null, selectedPieceId: null));
       return;
     }
@@ -35,14 +35,14 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
 
   FutureOr<void> _rotateSelected(final _RotateSelected event, final Emitter<PuzzleState> emit) async {
     final piece = state.selectedPiece;
-    if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
+    if (piece != null && _canTouch(piece)) {
       await _rotatePiece(piece, emit);
     }
   }
 
   FutureOr<void> _flipSelected(final _FlipSelected event, final Emitter<PuzzleState> emit) async {
     final piece = state.selectedPiece;
-    if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
+    if (piece != null && _canTouch(piece)) {
       await _flipPiece(piece, emit);
     }
   }
@@ -66,7 +66,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
               newPosition: pieceToSave.position,
               zone: pieceToSave.placeZone,
               preventOverlap: true,
-              pieces: state.pieces,
+              pieces: _obstacles(state.pieces),
               gridConfig: state.gridConfig,
               boardConfig: state.boardConfig,
             ) ||
@@ -245,7 +245,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
               newPosition: pieceToSave.position,
               zone: pieceToSave.placeZone,
               preventOverlap: true,
-              pieces: state.pieces,
+              pieces: _obstacles(state.pieces),
               gridConfig: state.gridConfig,
               boardConfig: state.boardConfig,
             ) ||
@@ -327,7 +327,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
 
   // Back in the tray: the next move usually takes another piece.
   String? _selectableId(final PuzzlePieceUI piece) =>
-      piece.placeZone != PlaceZone.grid || (piece.isConfigItem && !_settings.unlockConfig) ? null : piece.id;
+      piece.placeZone != PlaceZone.grid || !_canTouch(piece) ? null : piece.id;
 
   FutureOr<void> _undoMove(final _Undo event, final Emitter<PuzzleState> emit) {
     if (state.moveHistory.isNotEmpty && state.moveIndex > 0) {
@@ -498,6 +498,9 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     required final PuzzleState prevState,
     required final PuzzleState nextState,
   }) {
+    if (nextState.isEditingLayout) {
+      return nextState;
+    }
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     if (_isCurrentMoveConfigAction(nextState)) {
       return nextState.copyWith(firstMoveAt: null, lastResumedAt: null, activeElapsedMs: 0);
@@ -538,7 +541,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   }
 
   void _persistHistoryChange({required final PuzzleState prevState, required final PuzzleState nextState}) {
-    if (_isOnboardingSession || nextState.isRestoredSolvedSession) {
+    if (_isOnboardingSession || nextState.isRestoredSolvedSession || nextState.isEditingLayout) {
       return;
     }
     final isFirstSessionMove = prevState.firstMoveAt == null && nextState.firstMoveAt != null;

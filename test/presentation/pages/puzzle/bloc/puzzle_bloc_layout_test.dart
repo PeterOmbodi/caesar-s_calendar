@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
+import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
@@ -18,15 +19,13 @@ import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/layout_edit.dart';
 import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeSettingsQuery implements SettingsQuery {
-  @override
-  bool get autoLockConfig => false;
-
   @override
   bool get preventOverlap => false;
 
@@ -41,13 +40,11 @@ class _FakeSettingsQuery implements SettingsQuery {
 
   @override
   bool get snapToGridOnTransform => false;
-
-  @override
-  bool get unlockConfig => true;
 }
 
 class _FakeSolverService implements PuzzleSolverService {
   List<PuzzlePieceEntity> lastPieces = const [];
+  Completer<void>? gate;
 
   @override
   Future<Iterable<List<String>>> solve({
@@ -57,6 +54,7 @@ class _FakeSolverService implements PuzzleSolverService {
     final DateTime? date,
   }) async {
     lastPieces = pieces.toList();
+    await gate?.future;
     return const [<String>[], <String>[]];
   }
 }
@@ -223,5 +221,106 @@ void main() {
     expect(blocked, blockedCellsOf(layout));
     expect(bloc.state.blockedCells, blockedCellsOf([PlacementParams('zone1', 0, 6, 0, false), PlacementParams('zone2', 6, 3, 0, false)]));
     await bloc.close();
+  });
+
+  group('layout edit', () {
+    late _FakeSolverService solver;
+    late _TestPuzzleBloc bloc;
+    const grid = PuzzleGridEntity(cellSize: 10, rows: 7, columns: 7, origin: Position(dx: 0, dy: 0));
+    final gameMove = MovePiece(
+      'Square',
+      from: MovePlacement(position: const Position.zero()),
+      to: MovePlacement(zone: PlaceZone.grid, position: const Position.zero()),
+    );
+    final solution = {'Square': PlacementParams('Square', 0, 0, 0, false)};
+
+    setUp(() {
+      solver = _FakeSolverService();
+      bloc = _TestPuzzleBloc(
+        settings: _FakeSettingsQuery(),
+        solvePuzzleUseCase: SolvePuzzleUseCase(solver),
+        historyUseCase: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
+      );
+      bloc.emitForTest(
+        PuzzleState.initial().copyWith(
+          status: GameStatus.playing,
+          gridConfig: grid,
+          pieces: [
+            _piece(id: 'zone1', type: PieceType.zone1, position: const Offset(60, 0), zone: PlaceZone.grid, isConfigItem: true),
+            _piece(id: 'zone2', type: PieceType.zone2, position: const Offset(30, 60), zone: PlaceZone.grid, isConfigItem: true),
+            _piece(id: 'Square', type: PieceType.square, position: Offset.zero, zone: PlaceZone.grid),
+          ],
+          moveHistory: [gameMove],
+          moveIndex: 1,
+          solutions: [solution],
+          applicableSolutions: [solution],
+          firstMoveAt: DateTime.now().millisecondsSinceEpoch - 5000,
+          lastResumedAt: DateTime.now().millisecondsSinceEpoch - 1000,
+          activeElapsedMs: 4000,
+        ),
+      );
+    });
+
+    tearDown(() => bloc.close());
+
+    Future<void> moveBlocks() async {
+      bloc.emitForTest(
+        bloc.state.copyWith(
+          pieces: [
+            for (final p in bloc.state.pieces) p.id == 'zone1' ? p.copyWith(position: const Offset(0, 30)) : p,
+          ],
+          moveHistory: [...bloc.state.moveHistory, gameMove],
+          moveIndex: 2,
+          status: GameStatus.playing,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    test('start keeps the game pieces in place and stops the timer', () async {
+      bloc.add(const PuzzleEvent.startLayoutEdit());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.isEditingLayout, isTrue);
+      expect(bloc.state.isPieceInGrid('Square'), isTrue);
+      expect(bloc.state.lastResumedAt, isNull);
+      expect(bloc.state.activeElapsedMs, greaterThanOrEqualTo(5000));
+    });
+
+    test('cancel puts back the blocks, the move history and the timer', () async {
+      final blocked = bloc.state.blockedCells;
+      bloc.add(const PuzzleEvent.startLayoutEdit());
+      await Future<void>.delayed(Duration.zero);
+      await moveBlocks();
+      expect(bloc.state.isLayoutChanged, isTrue);
+
+      bloc.add(const PuzzleEvent.cancelLayoutEdit());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.isEditingLayout, isFalse);
+      expect(bloc.state.blockedCells, blocked);
+      expect(bloc.state.moveIndex, 1);
+      expect(bloc.state.moveHistory, hasLength(1));
+      expect(bloc.state.solutions, [solution]);
+      expect(bloc.state.status, GameStatus.playing);
+      expect(bloc.state.lastResumedAt, isNotNull);
+    });
+
+    test('a solver run from the edit does not reach the game after cancel', () async {
+      bloc.add(const PuzzleEvent.startLayoutEdit());
+      await Future<void>.delayed(Duration.zero);
+      await moveBlocks();
+      solver.gate = Completer<void>();
+      bloc.add(const PuzzleEvent.solve(showResult: false));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      bloc.add(const PuzzleEvent.cancelLayoutEdit());
+      await Future<void>.delayed(Duration.zero);
+      solver.gate!.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(bloc.state.solutions, [solution]);
+      expect(bloc.state.status, GameStatus.playing);
+    });
   });
 }

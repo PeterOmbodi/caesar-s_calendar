@@ -14,6 +14,9 @@ enum GameActionId {
   showSolutions,
   howToPlay,
   restart,
+  cancelEdit,
+  resetLayout,
+  saveLayout,
 }
 
 enum ActionSlot { primary, overflow }

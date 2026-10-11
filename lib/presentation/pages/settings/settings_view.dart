@@ -153,25 +153,6 @@ class SettingsPanel extends StatelessWidget {
               Text(S.current.general, style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               BlocBuilder<SettingsCubit, SettingsState>(
-                buildWhen: (final p, final n) => p.unlockConfig != n.unlockConfig,
-                builder: (final context, final state) => SwitchListTile(
-                  title: Text(S.current.unlockConfig),
-                  subtitle: Text(S.current.unlockConfigDescription),
-                  value: state.unlockConfig,
-                  onChanged: cubit.toggleUnlockConfig,
-                ),
-              ),
-              BlocBuilder<SettingsCubit, SettingsState>(
-                buildWhen: (final p, final n) =>
-                    p.unlockConfig != n.unlockConfig || p.autoLockConfig != n.autoLockConfig,
-                builder: (final context, final state) => SwitchListTile(
-                  title: Text(S.current.autoLockConfig),
-                  subtitle: Text(S.current.autoLockConfigDescription),
-                  value: state.autoLockConfig,
-                  onChanged: cubit.state.unlockConfig ? cubit.toggleAutoLockConfig : null,
-                ),
-              ),
-              BlocBuilder<SettingsCubit, SettingsState>(
                 buildWhen: (final p, final n) => p.preventOverlap != n.preventOverlap,
                 builder: (final context, final state) => SwitchListTile(
                   title: Text(S.current.preventOverlapping),
