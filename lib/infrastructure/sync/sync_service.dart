@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:caesar_puzzle/application/models/board_layout.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
@@ -79,6 +80,8 @@ class SyncService {
         {
           'id': row.id,
           'configJson': row.configJson,
+          'name': row.layoutName,
+          'pieceSetId': row.pieceSetId,
           'createdAt': row.createdAt,
           'updatedAt': row.updatedAt,
         },
@@ -265,6 +268,8 @@ class SyncService {
         PuzzleConfigsCompanion.insert(
           id: doc.id,
           configJson: (data['configJson'] as String?) ?? '[]',
+          layoutName: Value(data['name'] as String?),
+          pieceSetId: Value((data['pieceSetId'] as String?) ?? BoardLayout.classicPieceSet),
           createdAt: (data['createdAt'] as int?) ?? remoteUpdatedAt,
           updatedAt: remoteUpdatedAt,
           remoteId: Value(doc.id),

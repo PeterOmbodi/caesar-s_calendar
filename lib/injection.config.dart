@@ -9,6 +9,8 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:caesar_puzzle/application/contracts/board_layout_repository.dart'
+    as _i1059;
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart'
     as _i735;
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart'
@@ -24,6 +26,8 @@ import 'package:caesar_puzzle/infrastructure/exact_cover/exact_cover_dlx_solver_
     as _i761;
 import 'package:caesar_puzzle/infrastructure/firebase/firebase_module.dart'
     as _i905;
+import 'package:caesar_puzzle/infrastructure/persistence/board_layout_repository_impl.dart'
+    as _i444;
 import 'package:caesar_puzzle/infrastructure/persistence/drift/app_database.dart'
     as _i616;
 import 'package:caesar_puzzle/infrastructure/persistence/drift/daos/puzzle_history_dao.dart'
@@ -111,6 +115,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i196.PuzzleHistoryUseCase>(
       () => _i196.PuzzleHistoryUseCase(gh<_i735.PuzzleHistoryRepository>()),
+    );
+    gh.lazySingleton<_i1059.BoardLayoutRepository>(
+      () => _i444.BoardLayoutRepositoryImpl(gh<_i947.PuzzleHistoryDao>()),
     );
     gh.lazySingleton<_i116.AuthCubit>(
       () => _i116.AuthCubit(

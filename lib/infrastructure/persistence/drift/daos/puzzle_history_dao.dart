@@ -86,6 +86,23 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  Stream<List<PuzzleConfig>> watchNamedConfigs() =>
+      (select(puzzleConfigs)
+            ..where((final row) => row.layoutName.isNotNull())
+            ..orderBy([(final row) => OrderingTerm.desc(row.updatedAt)]))
+          .watch();
+
+  /// A null [name] removes the layout but keeps the row for sessions.
+  Future<void> setConfigName(final String configId, final String? name, final int updatedAt) async {
+    await (update(puzzleConfigs)..where((final row) => row.id.equals(configId))).write(
+      PuzzleConfigsCompanion(
+        layoutName: Value(name),
+        syncState: const Value(1),
+        updatedAt: Value(updatedAt),
+      ),
+    );
+  }
+
   Future<PuzzleConfig?> getConfigById(final String id) =>
       (select(puzzleConfigs)..where((final row) => row.id.equals(id))).getSingleOrNull();
 

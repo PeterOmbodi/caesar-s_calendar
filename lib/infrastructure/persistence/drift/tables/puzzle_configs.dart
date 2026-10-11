@@ -8,6 +8,10 @@ class PuzzleConfigs extends Table {
   IntColumn get syncState => integer().withDefault(const Constant(0))();
   IntColumn get updatedAt => integer()();
 
+  /// Null unless the config is a saved layout.
+  TextColumn get layoutName => text().nullable()();
+  TextColumn get pieceSetId => text().withDefault(const Constant('classic8'))();
+
   @override
   Set<Column> get primaryKey => {id};
 }

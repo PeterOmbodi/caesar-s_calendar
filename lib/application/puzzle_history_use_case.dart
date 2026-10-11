@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart';
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
@@ -10,6 +9,7 @@ import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/application/models/stats_period.dart';
+import 'package:caesar_puzzle/application/puzzle_config_json.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
@@ -256,7 +256,7 @@ class PuzzleHistoryUseCase {
     required final List<Map<String, PlacementParams>> applicableSolutions,
     required final bool solvedTransition,
   }) async {
-    final configJson = _buildConfigJson(configPlacements);
+    final configJson = PuzzleConfigJson.encode(configPlacements);
     final configId = await _historyRepository.upsertConfig(configJson: configJson);
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     final startedAt = _currentSessionStartedAt ?? nowMs;
@@ -323,21 +323,6 @@ class PuzzleHistoryUseCase {
         ..requestSync()
         ..publishProfileNow();
     }
-  }
-
-  String _buildConfigJson(final List<PlacementParams> configPlacements) {
-    final payload = configPlacements
-        .map(
-          (final placement) => {
-            'pieceId': placement.pieceId,
-            'row': placement.row,
-            'col': placement.col,
-            'rot': placement.rotationSteps,
-            'flip': placement.isFlipped,
-          },
-        )
-        .toList();
-    return jsonEncode(payload);
   }
 
   List<String> _solutionSignatures({
