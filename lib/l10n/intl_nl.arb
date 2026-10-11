@@ -47,6 +47,8 @@
   "checkSolvability": "Oplosbaarheid controleren",
   "dark": "Donker",
   "general": "Algemeen",
+  "hapticsSubtitle": "Lichte feedback als een stuk vastklikt, draait of de puzzel is opgelost",
+  "hapticsTitle": "Trillen",
   "headerDailyPuzzle": "Dagpuzzel",
   "headerEditingLayout": "Indeling bewerken",
   "headerGoal": "Laat {month} en {day} vrij",

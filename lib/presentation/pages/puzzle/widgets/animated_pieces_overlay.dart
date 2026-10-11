@@ -69,6 +69,8 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Tick
   @override
   void didUpdateWidget(covariant final AnimatedPiecesOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _controller.duration = widget.duration;
+    _dim.duration = widget.duration;
 
     if (widget.dimTray) {
       _dimExceptId = widget.selectedPiece?.id;
@@ -80,7 +82,7 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Tick
     final nextById = _indexById(widget.pieces);
 
     if (mounted) {
-      _tweens = _buildTweens(_prevById, nextById);
+      _tweens = widget.duration == Duration.zero ? {} : _buildTweens(_prevById, nextById);
       if (_tweens.isNotEmpty) {
         _controller
           ..stop()

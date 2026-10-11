@@ -47,6 +47,8 @@
   "checkSolvability": "Провери решливост",
   "dark": "Темна",
   "general": "Општо",
+  "hapticsSubtitle": "Лесен одзив кога фигурата ќе легне на место, ќе се сврти или загатката е решена",
+  "hapticsTitle": "Вибрација",
   "headerDailyPuzzle": "Дневна загатка",
   "headerEditingLayout": "Уредување распоред",
   "headerGoal": "Остави ги {month} и {day} непокриени",

@@ -47,6 +47,8 @@
   "checkSolvability": "Preveri rešljvost",
   "dark": "Temna",
   "general": "Splošno",
+  "hapticsSubtitle": "Rahel odziv, ko se del zaskoči, obrne ali je uganka rešena",
+  "hapticsTitle": "Vibriranje",
   "headerDailyPuzzle": "Dnevna uganka",
   "headerEditingLayout": "Urejanje postavitve",
   "headerGoal": "Pusti {month} in {day} nepokrita",

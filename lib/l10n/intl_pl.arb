@@ -47,6 +47,8 @@
   "checkSolvability": "Sprawdź rozwiązywalność",
   "dark": "Ciemny",
   "general": "Ogólne",
+  "hapticsSubtitle": "Lekka odpowiedź, gdy klocek wskoczy na miejsce, obróci się lub łamigłówka zostanie rozwiązana",
+  "hapticsTitle": "Wibracje",
   "headerDailyPuzzle": "Łamigłówka dnia",
   "headerEditingLayout": "Edycja układu",
   "headerGoal": "Zostaw {month} i {day} odkryte",

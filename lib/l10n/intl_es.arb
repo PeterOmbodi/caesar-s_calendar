@@ -47,6 +47,8 @@
   "checkSolvability": "Comprobar solvencia",
   "dark": "Oscuro",
   "general": "Generales",
+  "hapticsSubtitle": "Respuesta suave al encajar o girar una pieza y al resolver el puzle",
+  "hapticsTitle": "Vibración",
   "headerDailyPuzzle": "Puzle diario",
   "headerEditingLayout": "Editando diseño",
   "headerGoal": "Deja {month} y {day} sin cubrir",

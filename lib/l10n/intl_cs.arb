@@ -47,6 +47,8 @@
   "checkSolvability": "Zkontrolovat řešitelnost",
   "dark": "Tmavý",
   "general": "Obecné",
+  "hapticsSubtitle": "Lehká odezva, když dílek zapadne, otočí se nebo je hádanka vyřešena",
+  "hapticsTitle": "Vibrace",
   "headerDailyPuzzle": "Denní hlavolam",
   "headerEditingLayout": "Úprava rozložení",
   "headerGoal": "Nech {month} a {day} nezakryté",

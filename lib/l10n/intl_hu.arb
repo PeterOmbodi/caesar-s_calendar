@@ -47,6 +47,8 @@
   "checkSolvability": "Megoldhatóság ellenőrzése",
   "dark": "Sötét",
   "general": "Általános",
+  "hapticsSubtitle": "Enyhe visszajelzés, ha egy elem a helyére kerül, elfordul, vagy kész a feladvány",
+  "hapticsTitle": "Rezgés",
   "headerDailyPuzzle": "Napi rejtvény",
   "headerEditingLayout": "Elrendezés szerkesztése",
   "headerGoal": "Hagyd szabadon: {month} és {day}",

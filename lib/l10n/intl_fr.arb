@@ -47,6 +47,8 @@
   "checkSolvability": "Vérifier la solvabilité",
   "dark": "Sombre",
   "general": "Général",
+  "hapticsSubtitle": "Retour léger quand une pièce s’emboîte, pivote ou que le puzzle est résolu",
+  "hapticsTitle": "Vibration",
   "headerDailyPuzzle": "Puzzle du jour",
   "headerEditingLayout": "Modification de la disposition",
   "headerGoal": "Laissez {month} et {day} découverts",

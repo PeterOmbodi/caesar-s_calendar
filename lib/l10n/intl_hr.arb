@@ -47,6 +47,8 @@
   "checkSolvability": "Provjeri rješivost",
   "dark": "Tamna",
   "general": "Općenito",
+  "hapticsSubtitle": "Lagani odziv kad dio sjedne na mjesto, okrene se ili je zagonetka riješena",
+  "hapticsTitle": "Vibracija",
   "headerDailyPuzzle": "Dnevna zagonetka",
   "headerEditingLayout": "Uređivanje rasporeda",
   "headerGoal": "Ostavi {month} i {day} nepokrivene",

@@ -47,6 +47,8 @@
   "checkSolvability": "Kontrolli lahendatavust",
   "dark": "Tume",
   "general": "Üldine",
+  "hapticsSubtitle": "Kerge tagasiside, kui nupp paika läheb, pöörab või mõistatus on lahendatud",
+  "hapticsTitle": "Vibratsioon",
   "headerDailyPuzzle": "Päeva mõistatus",
   "headerEditingLayout": "Paigutuse muutmine",
   "headerGoal": "Jäta {month} ja {day} katmata",

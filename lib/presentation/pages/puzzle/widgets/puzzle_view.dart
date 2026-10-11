@@ -147,7 +147,9 @@ class PuzzleView extends StatelessWidget {
                       },
                       child: AnimatedPiecesOverlay(
                         pieces: shownPieces,
-                        duration: const Duration(milliseconds: 220),
+                        duration: MediaQuery.disableAnimationsOf(context)
+                            ? Duration.zero
+                            : const Duration(milliseconds: 220),
                         curve: Curves.easeInOut,
                         borderColorMode: borderColorMode,
                         cellSize: state.gridConfig.cellSize,

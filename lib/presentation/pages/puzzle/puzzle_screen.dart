@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:caesar_puzzle/application/contracts/board_layout_repository.dart';
 import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
@@ -24,6 +26,7 @@ import 'package:caesar_puzzle/presentation/onboarding/widgets/onboarding_overlay
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_sheet.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_haptics.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
@@ -60,6 +63,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   late final PuzzleBloc _puzzleBloc;
   late final OnboardingBloc _onboardingBloc;
   late final BoardLayoutsCubit _layoutsCubit;
+  late final StreamSubscription<PuzzleState> _hapticsSubscription;
   PuzzleLocalSnapshot? _preOnboardingSnapshot;
   PuzzleLocalSnapshot? _tutorialBaseSnapshot;
   String? _tutorialPShapeId;
@@ -83,6 +87,15 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     );
     _onboardingBloc = OnboardingBloc();
     _layoutsCubit = BoardLayoutsCubit(getIt<BoardLayoutRepository>());
+    final settings = context.read<SettingsCubit>();
+    var previous = _puzzleBloc.state;
+    _hapticsSubscription = _puzzleBloc.stream.listen((final next) {
+      final haptic = hapticFor(previous, next);
+      previous = next;
+      if (haptic != null && settings.state.haptics) {
+        playHaptic(haptic);
+      }
+    });
     _isInitialized = true;
 
     WidgetsBinding.instance.addPostFrameCallback((final _) {
@@ -99,6 +112,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     if (_isInitialized) {
       _puzzleBloc.close();
       _onboardingBloc.close();
+      _hapticsSubscription.cancel();
       _layoutsCubit.close();
     }
     super.dispose();
@@ -273,7 +287,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                         (ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser ||
                             ps.status == GameStatus.solvedByUser && ps.status != cs.status),
                     builder: (final BuildContext context, final PuzzleState state) =>
-                        !state.isRestoredSolvedSession && state.status == GameStatus.solvedByUser
+                        !state.isRestoredSolvedSession &&
+                            state.status == GameStatus.solvedByUser &&
+                            !MediaQuery.disableAnimationsOf(context)
                         ? const ConfettiView()
                         : SizedBox.shrink(),
                   ),

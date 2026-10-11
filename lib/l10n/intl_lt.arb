@@ -47,6 +47,8 @@
   "checkSolvability": "Patikrinti išsprendžiamumą",
   "dark": "Tamsi",
   "general": "Bendra",
+  "hapticsSubtitle": "Lengvas atsakas, kai detalė atsistoja į vietą, pasisuka arba galvosūkis išspręstas",
+  "hapticsTitle": "Vibracija",
   "headerDailyPuzzle": "Dienos galvosūkis",
   "headerEditingLayout": "Išdėstymo redagavimas",
   "headerGoal": "Palik {month} ir {day} neuždengtus",

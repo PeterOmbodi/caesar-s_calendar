@@ -47,6 +47,8 @@
   "checkSolvability": "Pārbaudīt atrisināmību",
   "dark": "Tumša",
   "general": "Vispārīgi",
+  "hapticsSubtitle": "Viegla atsauce, kad figūra nostājas vietā, pagriežas vai mīkla ir atrisināta",
+  "hapticsTitle": "Vibrācija",
   "headerDailyPuzzle": "Dienas mīkla",
   "headerEditingLayout": "Izkārtojuma rediģēšana",
   "headerGoal": "Atstāj {month} un {day} neaizsegtus",

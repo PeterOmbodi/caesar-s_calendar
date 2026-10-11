@@ -47,6 +47,8 @@
   "checkSolvability": "Kontrollo zgjidhshmërinë",
   "dark": "E errët",
   "general": "Të përgjithshme",
+  "hapticsSubtitle": "Reagim i lehtë kur një pjesë vendoset, rrotullohet ose enigma zgjidhet",
+  "hapticsTitle": "Dridhja",
   "headerDailyPuzzle": "Enigma e ditës",
   "headerEditingLayout": "Po ndryshohet paraqitja",
   "headerGoal": "Lëri {month} dhe {day} të pambuluara",

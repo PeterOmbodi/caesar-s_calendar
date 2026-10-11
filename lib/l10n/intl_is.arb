@@ -47,6 +47,8 @@
   "checkSolvability": "Athuga leysanleika",
   "dark": "Dökkt",
   "general": "Almennt",
+  "hapticsSubtitle": "Létt svörun þegar kubbur smellur, snýst eða þrautin er leyst",
+  "hapticsTitle": "Titringur",
   "headerDailyPuzzle": "Þraut dagsins",
   "headerEditingLayout": "Breyti uppsetningu",
   "headerGoal": "Láttu {month} og {day} vera óhulin",

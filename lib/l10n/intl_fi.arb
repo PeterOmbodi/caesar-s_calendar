@@ -47,6 +47,8 @@
   "checkSolvability": "Tarkista ratkaistavuus",
   "dark": "Tumma",
   "general": "Yleiset",
+  "hapticsSubtitle": "Kevyt palaute, kun pala napsahtaa paikalleen, kääntyy tai pulma ratkeaa",
+  "hapticsTitle": "Värinä",
   "headerDailyPuzzle": "Päivän pulma",
   "headerEditingLayout": "Asettelun muokkaus",
   "headerGoal": "Jätä {month} ja {day} peittämättä",

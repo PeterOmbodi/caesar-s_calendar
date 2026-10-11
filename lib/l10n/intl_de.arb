@@ -47,6 +47,8 @@
   "checkSolvability": "Lösbarkeit prüfen",
   "dark": "Dunkel",
   "general": "Allgemein",
+  "hapticsSubtitle": "Leichtes Feedback, wenn ein Teil einrastet, sich dreht oder das Rätsel gelöst ist",
+  "hapticsTitle": "Vibration",
   "headerDailyPuzzle": "Tagesrätsel",
   "headerEditingLayout": "Layout bearbeiten",
   "headerGoal": "Lass {month} und {day} frei",

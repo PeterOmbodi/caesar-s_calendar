@@ -47,6 +47,8 @@
   "checkSolvability": "Verifică solvabilitatea",
   "dark": "Întunecat",
   "general": "Generale",
+  "hapticsSubtitle": "Răspuns ușor când o piesă se fixează, se rotește sau puzzle-ul este rezolvat",
+  "hapticsTitle": "Vibrație",
   "headerDailyPuzzle": "Puzzle-ul zilei",
   "headerEditingLayout": "Editare aranjament",
   "headerGoal": "Lasă {month} și {day} neacoperite",

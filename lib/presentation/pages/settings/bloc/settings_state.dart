@@ -12,6 +12,7 @@ abstract class SettingsState with _$SettingsState {
     @Default(true) final bool snapToGridOnTransform,
     @Default(SolutionIndicator.none) final SolutionIndicator solutionIndicator,
     @Default(true) final bool showTimer,
+    @Default(true) final bool haptics,
     @Default(0) final int completedOnboardingVersion,
     @Default(0) final int offeredOnboardingVersion,
   }) = _SettingsState;

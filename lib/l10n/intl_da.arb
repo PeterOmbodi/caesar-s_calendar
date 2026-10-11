@@ -47,6 +47,8 @@
   "checkSolvability": "Kontrollér løselighed",
   "dark": "Mørk",
   "general": "Generelt",
+  "hapticsSubtitle": "Let feedback, når en brik falder på plads, drejes, eller puslespillet er løst",
+  "hapticsTitle": "Vibration",
   "headerDailyPuzzle": "Dagens puslespil",
   "headerEditingLayout": "Redigerer layout",
   "headerGoal": "Lad {month} og {day} være utildækket",

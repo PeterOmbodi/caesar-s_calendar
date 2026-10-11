@@ -47,6 +47,8 @@
   "checkSolvability": "Verifica risolvibilità",
   "dark": "Scuro",
   "general": "Generale",
+  "hapticsSubtitle": "Risposta leggera quando un pezzo si aggancia, ruota o il puzzle è risolto",
+  "hapticsTitle": "Vibrazione",
   "headerDailyPuzzle": "Puzzle del giorno",
   "headerEditingLayout": "Modifica disposizione",
   "headerGoal": "Lascia scoperti {month} e {day}",

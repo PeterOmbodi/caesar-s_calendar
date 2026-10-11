@@ -47,6 +47,8 @@
   "checkSolvability": "Перевірити розв'язність",
   "dark": "Темна",
   "general": "Загальні",
+  "hapticsSubtitle": "Легкий відгук, коли фігура стає на місце, обертається або головоломку розв’язано",
+  "hapticsTitle": "Вібрація",
   "headerDailyPuzzle": "Щоденна головоломка",
   "headerEditingLayout": "Редагування розкладки",
   "headerGoal": "Залиш {month} і {day} відкритими",

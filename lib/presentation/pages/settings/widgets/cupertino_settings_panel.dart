@@ -86,6 +86,12 @@ class CupertinoSettingsPanel extends StatelessWidget {
                           value: state.showTimer,
                           onChanged: cubit.toggleShowTimer,
                         ),
+                        _SwitchRow(
+                          title: S.current.hapticsTitle,
+                          subtitle: S.current.hapticsSubtitle,
+                          value: state.haptics,
+                          onChanged: cubit.toggleHaptics,
+                        ),
                       ],
                     ),
                     CupertinoListSection.insetGrouped(

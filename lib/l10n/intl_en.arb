@@ -47,6 +47,8 @@
   "checkSolvability": "Check solvability",
   "dark": "Dark",
   "general": "General",
+  "hapticsSubtitle": "Light feedback when a piece snaps, turns or the puzzle is solved",
+  "hapticsTitle": "Vibration",
   "headerDailyPuzzle": "Daily puzzle",
   "headerEditingLayout": "Editing layout",
   "headerGoal": "Leave {month} and {day} uncovered",

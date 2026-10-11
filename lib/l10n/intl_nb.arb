@@ -47,6 +47,8 @@
   "checkSolvability": "Sjekk løsbarhet",
   "dark": "Mørk",
   "general": "Generelt",
+  "hapticsSubtitle": "Lett tilbakemelding når en brikke faller på plass, snus eller puslespillet er løst",
+  "hapticsTitle": "Vibrasjon",
   "headerDailyPuzzle": "Dagens puslespill",
   "headerEditingLayout": "Redigerer oppsett",
   "headerGoal": "La {month} og {day} være utildekket",

@@ -47,6 +47,8 @@
   "checkSolvability": "Kontrollera lösbarhet",
   "dark": "Mörk",
   "general": "Allmänt",
+  "hapticsSubtitle": "Lätt återkoppling när en bit snäpper fast, vrids eller pusslet är löst",
+  "hapticsTitle": "Vibration",
   "headerDailyPuzzle": "Dagens pussel",
   "headerEditingLayout": "Redigerar layout",
   "headerGoal": "Lämna {month} och {day} otäckta",

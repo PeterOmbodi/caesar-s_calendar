@@ -47,6 +47,8 @@
   "checkSolvability": "Провери решимост",
   "dark": "Тъмна",
   "general": "Общи",
+  "hapticsSubtitle": "Лек отклик, когато фигура застане на място, се завърти или пъзелът е решен",
+  "hapticsTitle": "Вибрация",
   "headerDailyPuzzle": "Пъзел на деня",
   "headerEditingLayout": "Редактиране на подредбата",
   "headerGoal": "Остави {month} и {day} непокрити",
