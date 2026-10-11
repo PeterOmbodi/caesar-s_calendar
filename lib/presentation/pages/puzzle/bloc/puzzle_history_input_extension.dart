@@ -22,6 +22,8 @@ extension PuzzleHistoryInputX on PuzzleState {
     applicableSolutions: applicableSolutions,
   );
 
+  List<PlacementParams> get configPlacements => _configPlacements(PuzzleBloc.rotationStep);
+
   bool _shouldPersist() {
     if (status == GameStatus.initializing ||
         status == GameStatus.initialized ||

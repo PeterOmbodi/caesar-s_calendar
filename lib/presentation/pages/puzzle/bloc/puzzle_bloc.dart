@@ -82,6 +82,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_RestoreLocalSnapshot>((final event, final emit) => _restoreLocalSnapshot(event, emit));
     on<_SetPuzzleDate>((final event, final emit) => _setPuzzleDate(event, emit));
     on<_MarkSolvedDialogShown>((final event, final emit) => _markSolvedDialogShown(event, emit));
+    on<_ApplyLayout>((final event, final emit) => _applyLayout(event, emit));
   }
 
   static const int gridRows = 7;
@@ -134,4 +135,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   PuzzleSessionDifficulty get currentSessionDifficulty => _currentSessionDifficulty ?? _difficultyFromSettings();
+
+  Future<int> countSolutionsFor(final List<PlacementParams> placements, final DateTime date) async {
+    final pieces = _withLayout(placements).map((final p) => p.toDomain(state.gridConfig));
+    final solutions = await _solvePuzzleUseCase(pieces: pieces, grid: state.gridConfig, date: date);
+    return solutions.length;
+  }
 }

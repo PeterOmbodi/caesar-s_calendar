@@ -104,6 +104,10 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isCustomConfig => PuzzleConfigClassifier.isCustomConfig(pieces: pieces, gridConfig: gridConfig);
 
+  Set<Cell> get blockedCells => {
+    for (final piece in pieces.where((final p) => p.isConfigItem)) ...piece.cells(gridConfig.origin, gridConfig.cellSize),
+  };
+
   bool isPieceInGrid(final String pieceId) => gridPieces.any((final e) => !e.isConfigItem && e.id == pieceId);
 
   List<Cell> get sortedConfigCells {

@@ -2,10 +2,12 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_circle_button.dart';
 import 'package:flutter/material.dart';
@@ -48,8 +50,12 @@ class PuzzleHeader extends StatelessWidget {
     final type = _typeFor(spec);
     final buttonsRight = spec.toolbar == ToolbarPlacement.labeledRail;
     final indicator = context.select<SettingsCubit, SolutionIndicator>((final c) => c.state.solutionIndicator);
-    final (date, isCustomConfig) = context.select<PuzzleBloc, (DateTime, bool)>(
-      (final bloc) => (bloc.state.selectedDate, bloc.state.isCustomConfig),
+    final (date, customKey) = context.select<PuzzleBloc, (DateTime, String?)>(
+      (final bloc) => (bloc.state.selectedDate, bloc.state.isCustomConfig ? cellsKey(bloc.state.blockedCells) : null),
+    );
+    final isCustomConfig = customKey != null;
+    final layoutName = context.select<BoardLayoutsCubit, String?>(
+      (final cubit) => customKey == null ? null : cubit.state.entryWithKey(customKey)?.layout.name,
     );
     final layouts = _LayoutsButton(isCustomConfig: isCustomConfig, onPressed: onLayoutsPressed);
     const buttonGap = 12.0;
@@ -82,7 +88,7 @@ class PuzzleHeader extends StatelessWidget {
                         TextSpan(text: '${S.current.headerDailyPuzzle} · ${indicator.sessionDifficulty.label}'),
                         if (isCustomConfig)
                           TextSpan(
-                            text: ' · ${S.current.historyConfigCustom}',
+                            text: ' · ${layoutName ?? S.current.historyConfigCustom}',
                             style: TextStyle(color: colors.customConfig),
                           ),
                       ],

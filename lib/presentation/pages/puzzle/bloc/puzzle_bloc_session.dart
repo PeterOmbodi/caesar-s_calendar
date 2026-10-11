@@ -91,10 +91,36 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     add(const PuzzleEvent.solve(showResult: false));
   }
 
-  FutureOr<void> _setPuzzleDate(final _SetPuzzleDate event, final Emitter<PuzzleState> emit) {
-    final nextDate = DateTime(event.date.year, event.date.month, event.date.day);
-    _isOnboardingSession = event.onboarding;
-    if (!event.onboarding) {
+  void _setPuzzleDate(final _SetPuzzleDate event, final Emitter<PuzzleState> emit) => _startNewGame(
+    emit,
+    date: event.date,
+    onboarding: event.onboarding,
+    configurationPieces: _settings.unlockConfig ? [] : state.gridPieces.where((final e) => e.isConfigItem),
+  );
+
+  void _applyLayout(final _ApplyLayout event, final Emitter<PuzzleState> emit) => _startNewGame(
+    emit,
+    date: DateTime.now(),
+    configurationPieces: _withLayout(event.placements).where((final p) => p.isConfigItem),
+  );
+
+  List<PuzzlePieceUI> _withLayout(final List<PlacementParams> placements) {
+    final byId = {for (final p in placements) p.pieceId: p};
+    return [
+      for (final piece in state.pieces)
+        if (piece.isConfigItem && byId[piece.id] != null) _applyPlacementToPiece(piece, byId[piece.id]!) else piece,
+    ];
+  }
+
+  void _startNewGame(
+    final Emitter<PuzzleState> emit, {
+    required final DateTime date,
+    required final Iterable<PuzzlePieceUI> configurationPieces,
+    final bool onboarding = false,
+  }) {
+    final nextDate = DateTime(date.year, date.month, date.day);
+    _isOnboardingSession = onboarding;
+    if (!onboarding) {
       _historyUseCase.resetSession();
       _currentSessionDifficulty = null;
     }
@@ -127,13 +153,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         status: GameStatus.paused,
       ),
     );
-    add(
-      PuzzleEvent.configure(
-        toInitial: true,
-        skipSolve: event.onboarding,
-        configurationPieces: _settings.unlockConfig ? [] : state.gridPieces.where((final e) => e.isConfigItem),
-      ),
-    );
+    add(PuzzleEvent.configure(toInitial: true, skipSolve: onboarding, configurationPieces: configurationPieces));
   }
 
   FutureOr<void> _restoreLocalSnapshot(final _RestoreLocalSnapshot event, final Emitter<PuzzleState> emit) {

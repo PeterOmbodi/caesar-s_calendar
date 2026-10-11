@@ -5,9 +5,9 @@ abstract class BoardLayoutRepository {
   Stream<List<BoardLayout>> watchLayouts();
 
   /// Standard placements are not saved; their id is returned.
-  Future<String> saveLayout({required String name, required List<PlacementParams> placements});
+  Future<String> saveLayout({required final String name, required final List<PlacementParams> placements});
 
-  Future<void> renameLayout(String id, String name);
+  Future<void> renameLayout(final String id, final String name);
 
-  Future<void> deleteLayout(String id);
+  Future<void> deleteLayout(final String id);
 }

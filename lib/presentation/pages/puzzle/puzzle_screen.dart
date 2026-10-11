@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/contracts/board_layout_repository.dart';
 import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
@@ -21,6 +22,8 @@ import 'package:caesar_puzzle/presentation/onboarding/utils/onboarding_target_re
 import 'package:caesar_puzzle/presentation/onboarding/utils/puzzle_local_snapshot_mapper.dart';
 import 'package:caesar_puzzle/presentation/onboarding/widgets/onboarding_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cubit.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
@@ -56,6 +59,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   late final PuzzleBloc _puzzleBloc;
   late final OnboardingBloc _onboardingBloc;
+  late final BoardLayoutsCubit _layoutsCubit;
   PuzzleLocalSnapshot? _preOnboardingSnapshot;
   PuzzleLocalSnapshot? _tutorialBaseSnapshot;
   String? _tutorialPShapeId;
@@ -78,6 +82,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       historyUseCase: getIt<PuzzleHistoryUseCase>(),
     );
     _onboardingBloc = OnboardingBloc();
+    _layoutsCubit = BoardLayoutsCubit(getIt<BoardLayoutRepository>());
     _isInitialized = true;
 
     WidgetsBinding.instance.addPostFrameCallback((final _) {
@@ -94,6 +99,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     if (_isInitialized) {
       _puzzleBloc.close();
       _onboardingBloc.close();
+      _layoutsCubit.close();
     }
     super.dispose();
   }
@@ -114,6 +120,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       providers: [
         BlocProvider<PuzzleBloc>.value(value: _puzzleBloc),
         BlocProvider<OnboardingBloc>.value(value: _onboardingBloc),
+        BlocProvider<BoardLayoutsCubit>.value(value: _layoutsCubit),
       ],
       child: Scaffold(
         body: SafeArea(
@@ -259,7 +266,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     },
                     child: Builder(
                       builder: (final headerContext) => PuzzleHeader(
-                        onLayoutsPressed: () => _openSettings(headerContext, settingsDocked),
+                        onLayoutsPressed: () => showBoardLayoutsSheet(headerContext),
                         onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
                       ),
                     ),

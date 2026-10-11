@@ -68,4 +68,6 @@ sealed class PuzzleEvent with _$PuzzleEvent {
       _SetPuzzleDate;
 
   const factory PuzzleEvent.markSolvedDialogShown() = _MarkSolvedDialogShown;
+
+  const factory PuzzleEvent.applyLayout(final List<PlacementParams> placements) = _ApplyLayout;
 }
