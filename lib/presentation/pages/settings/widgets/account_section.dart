@@ -4,9 +4,14 @@ import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/profile/profile_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const _webVersionUri = 'https://peterombodi.github.io/caesar-s_calendar/';
@@ -21,10 +26,7 @@ class AccountSection extends StatefulWidget {
 }
 
 class _AccountSectionState extends State<AccountSection> {
-  @override
-  void initState() {
-    super.initState();
-  }
+  static const _sectionGap = SizedBox(height: 28);
 
   @override
   void didUpdateWidget(covariant final AccountSection oldWidget) {
@@ -43,12 +45,19 @@ class _AccountSectionState extends State<AccountSection> {
     final cubit = context.read<AuthCubit>();
     final shouldContinue = await showDialog<bool>(
       context: context,
-      builder: (final context) => AlertDialog(
+      builder: (final dialogContext) => PlatformAlertDialog(
         title: Text(S.current.accountCloudReplaceTitle),
         content: Text(S.current.accountCloudReplaceMessage),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(S.current.accountCloudReplaceCancel)),
-          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(S.current.accountCloudReplaceContinue)),
+          PlatformDialogAction(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(S.current.accountCloudReplaceCancel),
+          ),
+          PlatformDialogAction(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            cupertino: (_, _) => CupertinoDialogActionData(isDefaultAction: true),
+            child: Text(S.current.accountCloudReplaceContinue),
+          ),
         ],
       ),
     );
@@ -62,44 +71,30 @@ class _AccountSectionState extends State<AccountSection> {
 
   Future<void> _showDeleteAccountDialog() async {
     final cubit = context.read<AuthCubit>();
-    final providerLabel = _deleteConfirmationProviderLabel(widget.auth.user);
-    var confirmed = false;
+    final provider = _providerLabel(widget.auth.user);
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (final context) => StatefulBuilder(
-        builder: (final context, final setState) => AlertDialog(
-          title: Text(S.current.accountDeleteTitle),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(S.current.accountDeleteMessage),
-              if (providerLabel != null) ...[
-                const SizedBox(height: 12),
-                Text(S.current.accountDeleteConfirmIdentityMessage(providerLabel)),
-              ],
-              const SizedBox(height: 12),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                value: confirmed,
-                controlAffinity: ListTileControlAffinity.leading,
-                title: Text(S.current.accountUnderstandDelete),
-                onChanged: (final value) => setState(() => confirmed = value ?? false),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(S.current.historySessionDialogCancel)),
-            FilledButton(
-              onPressed: confirmed ? () => Navigator.of(context).pop(true) : null,
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-                foregroundColor: Theme.of(context).colorScheme.onError,
-              ),
-              child: Text(providerLabel == null ? S.current.accountDeleteAction : S.current.accountDeleteContinueToProvider(providerLabel)),
-            ),
-          ],
+      builder: (final dialogContext) => PlatformAlertDialog(
+        title: Text(S.current.accountDeleteTitle),
+        content: Text(
+          [
+            S.current.accountDeleteMessage,
+            if (provider != null) S.current.accountDeleteConfirmIdentityMessage(provider),
+          ].join('\n\n'),
         ),
+        actions: [
+          PlatformDialogAction(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(S.current.historySessionDialogCancel),
+          ),
+          PlatformDialogAction(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            cupertino: (_, _) => CupertinoDialogActionData(isDestructiveAction: true),
+            child: Text(
+              provider == null ? S.current.accountDeleteAction : S.current.accountDeleteContinueToProvider(provider),
+            ),
+          ),
+        ],
       ),
     );
     if (!mounted || shouldDelete != true) return;
@@ -107,8 +102,7 @@ class _AccountSectionState extends State<AccountSection> {
   }
 
   Future<void> _openWebVersion() async {
-    final uri = Uri.parse(_webVersionUri);
-    final didLaunch = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final didLaunch = await launchUrl(Uri.parse(_webVersionUri), mode: LaunchMode.externalApplication);
     if (!mounted || didLaunch) {
       return;
     }
@@ -118,138 +112,148 @@ class _AccountSectionState extends State<AccountSection> {
   @override
   Widget build(final BuildContext context) {
     final auth = widget.auth;
-    final cubit = context.read<AuthCubit>();
+    final colors = GameColors.of(context);
+    if (!auth.isAvailable) {
+      return _note(S.current.accountFirebaseUnavailable, colors.textSecondary);
+    }
     final publicProfile = context.watch<PublicProfileCubit>().state;
+    final syncError = publicProfile.syncStatus.lastError;
+    final errors = [
+      auth.errorMessage,
+      publicProfile.errorMessage,
+      if (syncError != null) S.current.accountSyncLastError(syncError),
+    ].nonNulls;
     final user = auth.user;
-    final canStartProviderSignIn = !auth.isLoading && user == null;
-    final displayName = AccountDisplay.bestDisplayName(user);
-    final photoUrl = AccountDisplay.bestPhotoUrl(user);
-
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(S.current.accountAndSyncTitle, style: const TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 4),
-        Text(S.current.accountAndSyncDescription, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 8),
-        if (!auth.isAvailable)
-          Text(S.current.accountFirebaseUnavailable)
-        else ...[
-          if (user != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  AccountAvatar(photoUrl: photoUrl, fallbackLabel: AccountDisplay.avatarInitial(displayName)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          displayName ?? S.current.accountSignedInFallback,
-                          style: Theme.of(context).textTheme.titleMedium,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(height: 8),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(S.current.accountPublicProfileTitle),
-            subtitle: Text(S.current.accountPublicProfileSubtitle),
-            value: publicProfile.enabled,
-            onChanged: (user == null || publicProfile.isUpdating || publicProfile.isLoading)
-                ? null
-                : context.read<PublicProfileCubit>().toggleEnabled,
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              onPressed: user == null || auth.isLoading ? null : context.read<PublicProfileCubit>().requestSyncNow,
-              icon: const Icon(Icons.cloud_sync),
-              label: Text(S.current.accountSyncNow),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(publicProfile.syncStatus.isSyncing ? S.current.accountSyncSyncing : S.current.accountSyncIdle),
-                Text(
-                  S.current.accountSyncLastSuccess(_lastSyncLabel(publicProfile.syncStatus)),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                if (publicProfile.syncStatus.lastError != null)
-                  Text(
-                    S.current.accountSyncLastError(publicProfile.syncStatus.lastError!),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.error),
-                  ),
-              ],
-            ),
-          ),
-          if (auth.errorMessage != null) ...[Text(auth.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error))],
-          if (publicProfile.errorMessage != null) ...[
-            Text(publicProfile.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ],
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+        if (user == null) ..._signedOut(colors, auth) else ..._signedIn(colors, auth, publicProfile, user),
+        for (final error in errors) Padding(padding: const EdgeInsets.only(top: 12), child: _note(error, colors.bad)),
+        if (!kIsWeb) ...[
+          _sectionGap,
+          InsetSection(
             children: [
-              if (_supportsAppleSignIn(context))
-                FilledButton(
-                  onPressed: canStartProviderSignIn ? cubit.signInWithApple : null,
-                  child: Text(S.current.accountContinueWithApple),
-                ),
-              FilledButton(
-                onPressed: canStartProviderSignIn ? cubit.signInWithGoogle : null,
-                child: Text(S.current.accountContinueWithGoogle),
-              ),
-              OutlinedButton(
-                onPressed: (user == null || !publicProfile.enabled)
-                    ? null
-                    : () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProfileScreen(uid: user.uid))),
-                child: Text(S.current.accountOpenProfile),
-              ),
-              OutlinedButton(onPressed: auth.isLoading || user == null ? null : cubit.signOut, child: Text(S.current.accountSignOut)),
-              OutlinedButton(
-                onPressed: auth.isLoading || user == null ? null : _showDeleteAccountDialog,
-                style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-                child: Text(S.current.accountDeleteAction),
-              ),
+              InsetRow(icon: Icons.open_in_new, title: S.current.accountOpenWebVersion, onTap: _openWebVersion),
             ],
           ),
-          if (!kIsWeb) ...[
-            const SizedBox(height: 12),
-            const Divider(),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: OutlinedButton.icon(
-                onPressed: _openWebVersion,
-                icon: const Icon(Icons.open_in_new),
-                label: Text(S.current.accountOpenWebVersion),
-              ),
-            ),
-          ],
         ],
       ],
     );
   }
 
-  bool _supportsAppleSignIn(final BuildContext context) {
+  List<Widget> _signedOut(final GameColors colors, final AuthState auth) {
+    final cubit = context.read<AuthCubit>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return [
+      _note(S.current.accountAndSyncDescription, colors.textSecondary),
+      const SizedBox(height: 16),
+      if (_supportsAppleSignIn) ...[
+        // Apple's button style: black on light, white on dark.
+        _SignInButton(
+          label: S.current.accountContinueWithApple,
+          icon: Icons.apple,
+          background: isDark ? Colors.white : Colors.black,
+          foreground: isDark ? Colors.black : Colors.white,
+          onPressed: auth.isLoading ? null : cubit.signInWithApple,
+        ),
+        const SizedBox(height: 10),
+      ],
+      _SignInButton(
+        label: S.current.accountContinueWithGoogle,
+        background: colors.board,
+        foreground: colors.text,
+        border: colors.boardBorder,
+        onPressed: auth.isLoading ? null : cubit.signInWithGoogle,
+      ),
+      if (auth.isLoading) const Padding(padding: EdgeInsets.only(top: 16), child: CupertinoActivityIndicator()),
+    ];
+  }
+
+  List<Widget> _signedIn(
+    final GameColors colors,
+    final AuthState auth,
+    final PublicProfileState publicProfile,
+    final dynamic user,
+  ) {
+    final cubit = context.read<AuthCubit>();
+    final profileCubit = context.read<PublicProfileCubit>();
+    final sync = publicProfile.syncStatus;
+    final displayName = AccountDisplay.bestDisplayName(user);
+    final provider = _providerLabel(user);
+    return [
+      InsetSection(
+        children: [
+          InsetRow(
+            leading: AccountAvatar(
+              photoUrl: AccountDisplay.bestPhotoUrl(user),
+              fallbackLabel: AccountDisplay.avatarInitial(displayName),
+              radius: 18,
+            ),
+            title: displayName ?? S.current.accountSignedInFallback,
+            subtitle: provider == null ? null : S.current.accountSignedInWith(provider),
+          ),
+        ],
+      ),
+      _sectionGap,
+      InsetSection(
+        children: [
+          InsetRow(
+            icon: Icons.sync,
+            title: S.current.accountSyncNow,
+            subtitle: sync.isSyncing ? S.current.accountSyncInProgress : _syncedLabel(sync),
+            trailing: sync.isSyncing ? const CupertinoActivityIndicator(radius: 9) : null,
+            onTap: sync.isSyncing || auth.isLoading ? null : profileCubit.requestSyncNow,
+          ),
+          InsetRow(
+            icon: Icons.public,
+            title: S.current.accountPublicProfileTitle,
+            subtitle: S.current.accountPublicProfileSubtitle,
+            trailing: CupertinoSwitch(
+              value: publicProfile.enabled,
+              onChanged: publicProfile.isUpdating || publicProfile.isLoading ? null : profileCubit.toggleEnabled,
+            ),
+          ),
+          if (publicProfile.enabled)
+            InsetRow(
+              icon: Icons.person_outline,
+              title: S.current.accountOpenProfile,
+              trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProfileScreen(uid: user.uid))),
+            ),
+        ],
+      ),
+      _sectionGap,
+      InsetSection(
+        children: [
+          InsetRow(
+            icon: Icons.logout,
+            title: S.current.accountSignOut,
+            titleColor: colors.accent,
+            onTap: auth.isLoading ? null : cubit.signOut,
+          ),
+          InsetRow(
+            icon: Icons.delete_outline,
+            title: S.current.accountDeleteAction,
+            titleColor: colors.bad,
+            onTap: auth.isLoading ? null : _showDeleteAccountDialog,
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Widget _note(final String text, final Color color) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 4),
+    child: Text(text, style: TextStyle(fontSize: 15, height: 20 / 15, color: color)),
+  );
+
+  bool get _supportsAppleSignIn {
     if (kIsWeb) return true;
     final platform = Theme.of(context).platform;
     return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
   }
 
-  String? _deleteConfirmationProviderLabel(final dynamic user) {
+  String? _providerLabel(final dynamic user) {
     for (final profile in user?.providerData ?? const []) {
       switch (profile.providerId) {
         case 'google.com':
@@ -261,8 +265,59 @@ class _AccountSectionState extends State<AccountSection> {
     return null;
   }
 
-  String _lastSyncLabel(final SyncStatus status) {
-    final last = status.lastSuccessAtMs == null ? null : DateTime.fromMillisecondsSinceEpoch(status.lastSuccessAtMs!);
-    return last == null ? S.current.accountSyncNever : '${last.toLocal()}';
+  String _syncedLabel(final SyncStatus status) {
+    final ms = status.lastSuccessAtMs;
+    if (ms == null) {
+      return S.current.accountNotSyncedYet;
+    }
+    final at = DateTime.fromMillisecondsSinceEpoch(ms);
+    final time = MaterialLocalizations.of(context).formatTimeOfDay(
+      TimeOfDay.fromDateTime(at),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    final isToday = DateUtils.isSameDay(at, DateTime.now());
+    return S.current.accountSyncedAt(isToday ? time : '${DateFormat.MMMd().format(at)}, $time');
   }
+}
+
+class _SignInButton extends StatelessWidget {
+  const _SignInButton({
+    required this.label,
+    required this.background,
+    required this.foreground,
+    required this.onPressed,
+    this.icon,
+    this.border,
+  });
+
+  final String label;
+  final IconData? icon;
+  final Color background;
+  final Color foreground;
+  final Color? border;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(final BuildContext context) => SizedBox(
+    height: 50,
+    child: FilledButton(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: background,
+        foregroundColor: foreground,
+        disabledBackgroundColor: background.withValues(alpha: 0.5),
+        disabledForegroundColor: foreground.withValues(alpha: 0.6),
+        side: border == null ? null : BorderSide(color: border!),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (icon != null) ...[Icon(icon, size: 22), const SizedBox(width: 8)],
+          Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis)),
+        ],
+      ),
+    ),
+  );
 }

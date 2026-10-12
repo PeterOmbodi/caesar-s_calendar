@@ -11,8 +11,6 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_status_li
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
-import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
-import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

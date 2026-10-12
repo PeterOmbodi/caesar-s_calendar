@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 class PuzzleSettingsPanelController {
   const PuzzleSettingsPanelController({this.isInlinePanelVisible = false});

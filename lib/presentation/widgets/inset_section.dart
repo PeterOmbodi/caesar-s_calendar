@@ -59,6 +59,7 @@ class InsetRow extends StatelessWidget {
     super.key,
     required this.title,
     this.icon,
+    this.leading,
     this.subtitle,
     this.trailing,
     this.onTap,
@@ -71,6 +72,9 @@ class InsetRow extends StatelessWidget {
 
   final String title;
   final IconData? icon;
+
+  /// Shown instead of [icon], e.g. an avatar.
+  final Widget? leading;
   final String? subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
@@ -92,7 +96,7 @@ class InsetRow extends StatelessWidget {
             width: textIndent - 16,
             child: Align(
               alignment: AlignmentDirectional.centerStart,
-              child: Icon(icon, size: 24, color: titleColor ?? colors.icon),
+              child: leading ?? Icon(icon, size: 24, color: titleColor ?? colors.icon),
             ),
           ),
           Expanded(
