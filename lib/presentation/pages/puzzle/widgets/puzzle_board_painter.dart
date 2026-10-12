@@ -5,11 +5,11 @@ import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/cell_outline.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as intl;
 
 class PuzzleBoardPainter extends CustomPainter {
   PuzzleBoardPainter({
@@ -251,7 +251,7 @@ class PuzzleBoardPainter extends CustomPainter {
   }
 
   String _labelText(final int cellIndex) =>
-      cellIndex < 12 ? intl.DateFormat('MMM').format(DateTime(0, cellIndex + 1)) : '${cellIndex - 11}';
+      cellIndex < 12 ? shortMonthName(cellIndex + 1) : '${cellIndex - 11}';
 
   bool _isTarget(final int cellIndex) =>
       cellIndex < 12 && selectedDate.month == cellIndex + 1 || cellIndex - 11 == selectedDate.day;

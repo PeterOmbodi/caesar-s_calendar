@@ -8,6 +8,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_dif
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
+import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_circle_button.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +61,7 @@ class PuzzleHeader extends StatelessWidget {
     );
     final layouts = _LayoutsButton(isCustomConfig: isCustomConfig, onPressed: onLayoutsPressed);
     const buttonGap = 12.0;
-    final month = intl.DateFormat('MMM').format(date);
+    final month = shortMonthName(date.month);
     final day = '${date.day}';
 
     return Padding(
