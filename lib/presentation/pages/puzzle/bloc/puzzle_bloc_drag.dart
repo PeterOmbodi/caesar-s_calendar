@@ -156,7 +156,13 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       } else {
         debugPrint('_onPanUpdate, piece not found!');
       }
-      final currentZone = _movementHandler.getZoneAtPosition(newPosition, state.gridConfig, state.boardConfig);
+      final currentZone = _movementHandler.getDropZone(
+        piecePosition: newPosition,
+        finger: event.localPosition,
+        trayArea: state.trayArea,
+        grid: state.gridConfig,
+        board: state.boardConfig,
+      );
       switch (currentZone) {
         case PlaceZone.grid:
           final previewPosition = state.gridConfig.snapToGrid(newPosition);
@@ -202,6 +208,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         pieces: _obstacles(state.pieces),
         preventOverlap: _settings.preventOverlap || selectedPiece.isConfigItem,
         anchor: state.dragStartOffset == null ? null : selectedPiece.position + state.dragStartOffset!,
+        trayArea: state.trayArea,
       );
 
       if (dropResult.accepted && (!selectedPiece.isConfigItem || dropResult.zone == PlaceZone.grid)) {
@@ -224,6 +231,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
             : _combineSolutions(state.solutions, pieces);
         final nextState = state.copyWith(
           pieces: pieces,
+          selectedPieceId: _selectableId(movedPiece),
           showPreview: false,
           previewPosition: null,
           pointerPiece: null,
@@ -250,6 +258,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         emit(
           state.copyWith(
             pieces: _updatePieceInList(resetPiece),
+            selectedPieceId: _selectableId(resetPiece),
             showPreview: false,
             previewPosition: null,
             pointerPiece: null,

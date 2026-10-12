@@ -59,6 +59,20 @@ class PuzzlePieceMovementService {
     return null;
   }
 
+  /// A finger over the tray area sends the piece to the tray, wherever its corner is.
+  PlaceZone? getDropZone({
+    required final Offset piecePosition,
+    required final Offset? finger,
+    required final Rect trayArea,
+    required final PuzzleGridEntity grid,
+    required final PuzzleBoardEntity board,
+  }) {
+    if (finger != null && trayArea.contains(finger)) {
+      return PlaceZone.board;
+    }
+    return getZoneAtPosition(piecePosition, grid, board);
+  }
+
   bool checkCollision({
     required final PuzzlePieceUI piece,
     required final Offset newPosition,
@@ -140,9 +154,15 @@ class PuzzlePieceMovementService {
     required final Iterable<PuzzlePieceUI> pieces,
     required final bool preventOverlap,
     final Offset? anchor,
+    final Rect trayArea = Rect.zero,
   }) {
-    final newZone =
-        getZoneAtPosition(selectedPiece.position, gridConfig, boardConfig);
+    final newZone = getDropZone(
+      piecePosition: selectedPiece.position,
+      finger: anchor,
+      trayArea: trayArea,
+      grid: gridConfig,
+      board: boardConfig,
+    );
     if (newZone == null) {
       return const PuzzleDropResult.rejected();
     }

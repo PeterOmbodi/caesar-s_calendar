@@ -147,6 +147,26 @@ void main() {
     expect(result.snappedPosition!.dy, closeTo(finger.dy - 5 * s, 1e-9));
   });
 
+  test('finger over the tray area sends the piece to the tray', () {
+    final lifted = piece(id: 'a', type: PieceType.lShape, position: const Offset(60, 65)).copyWith(isLifted: true);
+    const trayArea = Rect.fromLTRB(0, 75, 200, 200);
+
+    final result = service.computeDropResult(
+      selectedPiece: lifted,
+      pieceStartPosition: const Offset(10, 10),
+      dragStartZone: PlaceZone.grid,
+      gridConfig: grid,
+      boardConfig: board,
+      pieces: [lifted],
+      preventOverlap: false,
+      anchor: const Offset(65, 90),
+      trayArea: trayArea,
+    );
+
+    expect(result.accepted, isTrue);
+    expect(result.zone, PlaceZone.board);
+  });
+
   test('rescaledAround keeps the anchor over the same point of the piece', () {
     final inTray = piece(id: 'a', type: PieceType.lShape, position: const Offset(120, 30), zone: PlaceZone.board)
         .copyWith(rotation: 1.5707963267948966);

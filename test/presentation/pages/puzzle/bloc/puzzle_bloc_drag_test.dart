@@ -670,7 +670,7 @@ void main() {
       expect(bloc!.state.selectedPieceId, isNull);
     });
 
-    test('drag selects the dragged piece', () async {
+    test('a piece dragged within the tray is not selected', () async {
       await ready();
       final anchor = _pieceAnchor(bloc!, 'Square');
 
@@ -681,7 +681,7 @@ void main() {
       bloc!.add(PuzzleEvent.onPanEnd(anchor + const Offset(4, 4)));
       await _drain();
 
-      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(bloc!.state.selectedPieceId, isNull);
       expect(bloc!.state.pointerPiece, isNull);
     });
 
@@ -742,6 +742,7 @@ void main() {
       bloc!.add(PuzzleEvent.onPanEnd(target));
       await _drain();
       expect(_piece(bloc!, 'Square').placeZone, PlaceZone.grid);
+      expect(bloc!.state.selectedPieceId, 'Square');
 
       await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
       expect(bloc!.state.moveHistory.last, isA<RotatePiece>());
@@ -818,6 +819,7 @@ void main() {
       expect(piece.position, start);
       expect(piece.isLifted, isFalse);
       expect(piece.placeZone, PlaceZone.board);
+      expect(bloc!.state.selectedPieceId, isNull);
     });
 
     test('deselectPiece clears the selection', () async {
