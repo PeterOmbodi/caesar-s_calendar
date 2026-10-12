@@ -1,22 +1,25 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/help/gesture_demo.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visuals.dart';
 import 'package:flutter/material.dart';
 
 @immutable
 class HelpItem {
-  const HelpItem({required this.icon, required this.title, required this.body, this.shortcut});
+  const HelpItem({required this.icon, required this.title, required this.body, this.shortcut, this.demo});
 
   /// Same icon, label and shortcut as in the action bar.
   HelpItem.action(final GameActionId id, this.body, {required final bool apple, required final bool hasKeyboard})
     : icon = id.icon,
       title = id.label,
-      shortcut = hasKeyboard ? id.shortcutLabel(apple: apple) : null;
+      shortcut = hasKeyboard ? id.shortcutLabel(apple: apple) : null,
+      demo = null;
 
   final IconData icon;
   final String title;
   final String body;
   final String? shortcut;
+  final GestureDemoKind? demo;
 }
 
 @immutable
@@ -46,11 +49,36 @@ List<HelpSection> howToPlaySections({required final bool apple, required final b
     HelpSection(
       title: S.current.helpGesturesTitle,
       items: [
-        HelpItem(icon: Icons.pan_tool_alt_outlined, title: S.current.helpDragTitle, body: S.current.helpDragBody),
-        HelpItem(icon: Icons.draw_outlined, title: S.current.helpDrawTitle, body: S.current.helpDrawBody),
-        HelpItem(icon: Icons.touch_app_outlined, title: S.current.helpSelectTitle, body: S.current.helpSelectBody),
-        HelpItem(icon: GameActionId.flip.icon, title: S.current.toolbarFlip, body: S.current.helpFlipBody),
-        HelpItem(icon: Icons.move_down, title: S.current.helpTrayTitle, body: S.current.helpTrayBody),
+        HelpItem(
+          icon: Icons.pan_tool_alt_outlined,
+          title: S.current.helpDragTitle,
+          body: S.current.helpDragBody,
+          demo: GestureDemoKind.drag,
+        ),
+        HelpItem(
+          icon: Icons.draw_outlined,
+          title: S.current.helpDrawTitle,
+          body: S.current.helpDrawBody,
+          demo: GestureDemoKind.draw,
+        ),
+        HelpItem(
+          icon: Icons.touch_app_outlined,
+          title: S.current.helpSelectTitle,
+          body: S.current.helpSelectBody,
+          demo: GestureDemoKind.rotate,
+        ),
+        HelpItem(
+          icon: GameActionId.flip.icon,
+          title: S.current.toolbarFlip,
+          body: S.current.helpFlipBody,
+          demo: GestureDemoKind.flip,
+        ),
+        HelpItem(
+          icon: Icons.move_down,
+          title: S.current.helpTrayTitle,
+          body: S.current.helpTrayBody,
+          demo: GestureDemoKind.tray,
+        ),
       ],
       footer: S.current.howToPlayDrawnGroupDescription,
     ),

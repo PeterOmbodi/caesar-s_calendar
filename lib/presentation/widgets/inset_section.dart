@@ -63,6 +63,7 @@ class InsetRow extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.titleColor,
+    this.illustration,
   });
 
   /// Separators are indented to the text.
@@ -74,12 +75,14 @@ class InsetRow extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final Color? titleColor;
+  final Widget? illustration;
 
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     final subtitle = this.subtitle;
     final trailing = this.trailing;
+    final illustration = this.illustration;
     final row = Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 11, 16, 11),
       child: Row(
@@ -104,6 +107,7 @@ class InsetRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(subtitle, style: TextStyle(fontSize: 15, height: 20 / 15, color: colors.textSecondary)),
                 ],
+                if (illustration != null) ...[const SizedBox(height: 10), illustration],
               ],
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/help/gesture_demo.dart';
 import 'package:caesar_puzzle/presentation/help/how_to_play_content.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/services/keyboard_presence.dart';
@@ -126,6 +127,7 @@ class _HowToPlayPanel extends StatelessWidget {
                                   title: item.title,
                                   subtitle: item.body,
                                   trailing: item.shortcut == null ? null : KeyCap(item.shortcut!),
+                                  illustration: item.demo == null ? null : GestureDemo(item.demo!),
                                 ),
                             ],
                           ),
