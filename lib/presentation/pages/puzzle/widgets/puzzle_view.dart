@@ -1,5 +1,6 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/piece_type.dart';
+import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
@@ -16,6 +17,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_help
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_status_line.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
@@ -180,6 +182,12 @@ class PuzzleView extends StatelessWidget {
                         ),
                       ),
                     ),
+                    Positioned.fromRect(
+                      rect: state.gridConfig.getBounds,
+                      child: IgnorePointer(
+                        child: Semantics(container: true, label: _boardLabel(state), child: const SizedBox.expand()),
+                      ),
+                    ),
                     if (!onboardingState.isVisible)
                       Positioned(
                         left: tray.left,
@@ -205,6 +213,14 @@ class PuzzleView extends StatelessWidget {
       },
     ),
   );
+}
+
+String _boardLabel(final PuzzleState state) {
+  final date = state.selectedDate;
+  final pieces = state.pieces.where((final p) => !p.isConfigItem);
+  final placed = pieces.where((final p) => p.placeZone == PlaceZone.grid).length;
+  return '${S.current.headerGoal(shortMonthName(date.month), '${date.day}')}. '
+      '${S.current.statusPiecesPlaced(placed, pieces.length)}';
 }
 
 bool _isDrawOnboardingInteractionAllowed(

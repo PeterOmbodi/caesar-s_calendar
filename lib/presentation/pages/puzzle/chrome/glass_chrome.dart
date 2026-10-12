@@ -102,22 +102,26 @@ class _ActionSlot extends StatelessWidget {
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     if (action.id == GameActionId.solutionCounter) {
-      return SizedBox(
-        width: GlassChrome.slotWidth,
-        height: GlassChrome.slotHeight,
-        child: Center(
-          child: Text.rich(
-            TextSpan(
-              text: '${action.count}',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colors.text),
-              children: [
-                TextSpan(
-                  text: ' / ${action.total}',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: colors.textSecondary),
-                ),
-              ],
+      return Semantics(
+        label: '${S.current.railSolution} ${action.count} / ${action.total}',
+        excludeSemantics: true,
+        child: SizedBox(
+          width: GlassChrome.slotWidth,
+          height: GlassChrome.slotHeight,
+          child: Center(
+            child: Text.rich(
+              TextSpan(
+                text: '${action.count}',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colors.text),
+                children: [
+                  TextSpan(
+                    text: ' / ${action.total}',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: colors.textSecondary),
+                  ),
+                ],
+              ),
+              style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
             ),
-            style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
           ),
         ),
       );
@@ -162,7 +166,7 @@ class _SlotButton extends StatelessWidget {
         ? colors.onActive
         : colors.icon;
     const radius = BorderRadius.all(Radius.circular(GlassChrome.slotHeight / 2));
-    return Tooltip(
+    final button = Tooltip(
       message: tooltip,
       child: Material(
         color: active ? colors.active : Colors.transparent,
@@ -203,6 +207,15 @@ class _SlotButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      selected: active,
+      label: tooltip,
+      onTap: enabled ? onPressed : null,
+      excludeSemantics: true,
+      child: button,
     );
   }
 }
@@ -447,53 +460,62 @@ class _RailRow extends StatelessWidget {
         ? '${action.count}'
         : null;
     const radius = BorderRadius.all(Radius.circular(12));
-    return Material(
-      color: action.active ? colors.active : Colors.transparent,
-      borderRadius: radius,
-      child: InkWell(
+    final label = isCounter ? S.current.railSolution : action.id.tooltip;
+    return Semantics(
+      button: !isCounter,
+      enabled: action.enabled,
+      selected: action.active,
+      label: meta == null ? label : '$label $meta',
+      onTap: action.enabled && !isCounter ? onPressed : null,
+      excludeSemantics: true,
+      child: Material(
+        color: action.active ? colors.active : Colors.transparent,
         borderRadius: radius,
-        onTap: action.enabled && !isCounter ? onPressed : null,
-        child: SizedBox(
-          height: 44,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              spacing: 12,
-              children: [
-                SizedBox.square(
-                  dimension: 22,
-                  child: isCounter
-                      ? null
-                      : action.busy
-                      ? Padding(
-                          padding: const EdgeInsets.all(3),
-                          child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
-                        )
-                      : Icon(action.id.icon, size: 22, color: foreground),
-                ),
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Text(
-                      isCounter ? S.current.railSolution : action.id.label,
-                      maxLines: 1,
-                      style: TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w500, color: foreground),
+        child: InkWell(
+          borderRadius: radius,
+          onTap: action.enabled && !isCounter ? onPressed : null,
+          child: SizedBox(
+            height: 44,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                spacing: 12,
+                children: [
+                  SizedBox.square(
+                    dimension: 22,
+                    child: isCounter
+                        ? null
+                        : action.busy
+                        ? Padding(
+                            padding: const EdgeInsets.all(3),
+                            child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
+                          )
+                        : Icon(action.id.icon, size: 22, color: foreground),
+                  ),
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        isCounter ? S.current.railSolution : action.id.label,
+                        maxLines: 1,
+                        style: TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w500, color: foreground),
+                      ),
                     ),
                   ),
-                ),
-                if (meta != null)
-                  Text(
-                    meta,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colors.textSecondary,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  )
-                else if (shortcut != null)
-                  _Kbd(shortcut!, active: action.active),
-              ],
+                  if (meta != null)
+                    Text(
+                      meta,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colors.textSecondary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    )
+                  else if (shortcut != null)
+                    _Kbd(shortcut!, active: action.active),
+                ],
+              ),
             ),
           ),
         ),

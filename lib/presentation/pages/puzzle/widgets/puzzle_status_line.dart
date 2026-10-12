@@ -29,38 +29,44 @@ class PuzzleStatusLine extends StatelessWidget {
     };
     const textStyle = TextStyle(fontSize: 15, height: height / 15);
 
-    return SizedBox(
-      height: height,
-      child: Row(
-        children: [
-          if (status.tone != StatusTone.neutral) ...[
-            DecoratedBox(
-              decoration: BoxDecoration(color: toneColor, shape: BoxShape.circle),
-              child: const SizedBox.square(dimension: 7),
-            ),
-            const SizedBox(width: 6),
-          ],
-          Expanded(
-            child: Text(
-              _text(status),
-              style: textStyle.copyWith(color: toneColor),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (showTimer) ...[
-            Icon(Icons.schedule, size: 17, color: colors.textSecondary),
-            const SizedBox(width: 5),
-            DefaultTextStyle(
-              style: textStyle.copyWith(
-                color: colors.text,
-                fontWeight: FontWeight.w500,
-                fontFeatures: const [FontFeature.tabularFigures()],
+    // The line has a fixed height in the layout.
+    return MediaQuery.withNoTextScaling(
+      child: SizedBox(
+        height: height,
+        child: Row(
+          children: [
+            if (status.tone != StatusTone.neutral) ...[
+              DecoratedBox(
+                decoration: BoxDecoration(color: toneColor, shape: BoxShape.circle),
+                child: const SizedBox.square(dimension: 7),
               ),
-              child: state.isShowSolutions || state.isEditingLayout ? const Text('—') : _ElapsedTime(state: state),
+              const SizedBox(width: 6),
+            ],
+            Expanded(
+              child: Semantics(
+                liveRegion: true,
+                child: Text(
+                  _text(status),
+                  style: textStyle.copyWith(color: toneColor),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
+            if (showTimer) ...[
+              Icon(Icons.schedule, size: 17, color: colors.textSecondary),
+              const SizedBox(width: 5),
+              DefaultTextStyle(
+                style: textStyle.copyWith(
+                  color: colors.text,
+                  fontWeight: FontWeight.w500,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+                child: state.isShowSolutions || state.isEditingLayout ? const Text('—') : _ElapsedTime(state: state),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

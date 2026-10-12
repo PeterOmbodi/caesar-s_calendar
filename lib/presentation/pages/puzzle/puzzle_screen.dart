@@ -59,6 +59,8 @@ class PuzzleScreen extends StatefulWidget {
 class _PuzzleScreenState extends State<PuzzleScreen> {
   static final DateTime _tutorialDate = DateTime(2024);
   static const Duration _onboardingActionCompletionDelay = Duration(milliseconds: 320);
+  // Header and toolbar have fixed slots; larger text would not fit them.
+  static const double _maxChromeTextScale = 1.3;
 
   late final PuzzleBloc _puzzleBloc;
   late final OnboardingBloc _onboardingBloc;
@@ -268,13 +270,16 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                       }
                     },
                     child: Builder(
-                      builder: (final headerContext) => PuzzleHeader(
-                        onLayoutsPressed: () {
-                          if (!_puzzleBloc.state.isEditingLayout) {
-                            showBoardLayoutsSheet(headerContext);
-                          }
-                        },
-                        onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
+                      builder: (final headerContext) => MediaQuery.withClampedTextScaling(
+                        maxScaleFactor: _maxChromeTextScale,
+                        child: PuzzleHeader(
+                          onLayoutsPressed: () {
+                            if (!_puzzleBloc.state.isEditingLayout) {
+                              showBoardLayoutsSheet(headerContext);
+                            }
+                          },
+                          onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
+                        ),
                       ),
                     ),
                   ),
@@ -301,7 +306,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   top: 0,
                   right: gameplayInsets.right,
                   bottom: 0,
-                  child: const PuzzleToolbar(),
+                  child: MediaQuery.withClampedTextScaling(
+                    maxScaleFactor: _maxChromeTextScale,
+                    child: const PuzzleToolbar(),
+                  ),
                 ),
                 if (settingsDocked)
                   AnimatedPositioned(
