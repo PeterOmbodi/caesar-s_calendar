@@ -9,7 +9,7 @@ import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:caesar_puzzle/presentation/widgets/key_cap.dart';
 import 'package:flutter/material.dart';
 
-Future<void> showHowToPlaySheet(final BuildContext context, {final VoidCallback? onReplayOnboarding}) {
+Future<void> showHowToPlaySheet(final BuildContext context) {
   final spec = ScreenSpec.of(context);
   if (spec.window == WindowClass.compact && !spec.isLandscape) {
     return showModalBottomSheet<void>(
@@ -20,7 +20,7 @@ Future<void> showHowToPlaySheet(final BuildContext context, {final VoidCallback?
       backgroundColor: Colors.transparent,
       builder: (_) => FractionallySizedBox(
         heightFactor: 0.96,
-        child: _HowToPlayPanel(isSheet: true, onReplayOnboarding: onReplayOnboarding),
+        child: const _HowToPlayPanel(isSheet: true),
       ),
     );
   }
@@ -32,7 +32,7 @@ Future<void> showHowToPlaySheet(final BuildContext context, {final VoidCallback?
           padding: const EdgeInsets.all(16),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560, maxHeight: 760),
-            child: _HowToPlayPanel(isSheet: false, onReplayOnboarding: onReplayOnboarding),
+            child: const _HowToPlayPanel(isSheet: false),
           ),
         ),
       ),
@@ -41,10 +41,9 @@ Future<void> showHowToPlaySheet(final BuildContext context, {final VoidCallback?
 }
 
 class _HowToPlayPanel extends StatelessWidget {
-  const _HowToPlayPanel({required this.isSheet, required this.onReplayOnboarding});
+  const _HowToPlayPanel({required this.isSheet});
 
   final bool isSheet;
-  final VoidCallback? onReplayOnboarding;
 
   @override
   Widget build(final BuildContext context) {
@@ -54,7 +53,6 @@ class _HowToPlayPanel extends StatelessWidget {
     final radius = isSheet
         ? const BorderRadius.vertical(top: Radius.circular(30))
         : const BorderRadius.all(Radius.circular(24));
-    final onReplayOnboarding = this.onReplayOnboarding;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -133,17 +131,6 @@ class _HowToPlayPanel extends StatelessWidget {
                           ),
                           const SizedBox(height: 28),
                         ],
-                        if (onReplayOnboarding != null)
-                          InsetSection(
-                            children: [
-                              InsetRow(
-                                icon: Icons.play_circle_outline,
-                                title: S.current.onboardingReplayButton,
-                                titleColor: colors.accent,
-                                onTap: onReplayOnboarding,
-                              ),
-                            ],
-                          ),
                       ],
                     );
                   },

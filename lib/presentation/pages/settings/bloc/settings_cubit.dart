@@ -28,13 +28,7 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
   void toggleShowTimer(final bool v) => emit(state.copyWith(showTimer: v));
   void toggleHaptics(final bool v) => emit(state.copyWith(haptics: v));
   void toggleSounds(final bool v) => emit(state.copyWith(sounds: v));
-  void markOnboardingOffered(final int version) => emit(state.copyWith(offeredOnboardingVersion: version));
-  void completeOnboarding(final int version) => emit(
-    state.copyWith(
-      completedOnboardingVersion: version,
-      offeredOnboardingVersion: version,
-    ),
-  );
+  void completeOnboarding(final int version) => emit(state.copyWith(completedOnboardingVersion: version));
 
   @override
   SettingsState? fromJson(final Map<String, dynamic> json) {

@@ -15,7 +15,6 @@ abstract class SettingsState with _$SettingsState {
     @Default(true) final bool haptics,
     @Default(true) final bool sounds,
     @Default(0) final int completedOnboardingVersion,
-    @Default(0) final int offeredOnboardingVersion,
   }) = _SettingsState;
 
   const SettingsState._();
@@ -49,10 +48,4 @@ extension AppThemeX on AppTheme {
 
 extension SettingsStateLocaleX on SettingsState {
   Locale? get locale => localeCode == null ? null : Locale(localeCode!);
-
-  bool shouldAutoStartOnboarding(final int version) =>
-      completedOnboardingVersion == 0 && offeredOnboardingVersion < version;
-
-  bool shouldSuggestOnboardingReplay(final int version) =>
-      completedOnboardingVersion > 0 && completedOnboardingVersion < version && offeredOnboardingVersion < version;
 }

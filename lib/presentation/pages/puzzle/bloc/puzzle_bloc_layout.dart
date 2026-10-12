@@ -65,7 +65,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
       emit(newState);
     }
 
-    if (isInitializing && !event.skipSolve) {
+    if (isInitializing) {
       // solving causes UI freezes, wait for initial layout animation to finish
       await Future<void>.delayed(const Duration(milliseconds: 150));
       add(const PuzzleEvent.solve(showResult: false));

@@ -11,7 +11,6 @@ import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
-import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
@@ -19,7 +18,6 @@ import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/puzzle_local_snapshot.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_config_classifier.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/layout_edit.dart';
 import 'package:caesar_puzzle/presentation/services/drawn_group_service.dart';
@@ -81,7 +79,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_Redo>((final event, final emit) => _redoMove(event, emit));
     on<_SetTimer>((final event, final emit) => _timerStateChanged(event, emit));
     on<_RestoreSession>((final event, final emit) => _restoreSession(event, emit));
-    on<_RestoreLocalSnapshot>((final event, final emit) => _restoreLocalSnapshot(event, emit));
     on<_SetPuzzleDate>((final event, final emit) => _setPuzzleDate(event, emit));
     on<_MarkSolvedDialogShown>((final event, final emit) => _markSolvedDialogShown(event, emit));
     on<_ApplyLayout>((final event, final emit) => _applyLayout(event, emit));
@@ -116,7 +113,6 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   // Piece that the current tap down selected; such a tap must not rotate or flip it.
   String? _selectedOnTapDownId;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
-  bool _isOnboardingSession = false;
   int? _suppressTapAfterDrawnCommitAtMs;
   // A late tap of the flipping double tap must not select the piece the flip uncovered.
   ({int atMs, Offset position})? _lastDoubleTapFlip;

@@ -1,28 +1,13 @@
 import 'dart:async';
 
 import 'package:caesar_puzzle/application/contracts/board_layout_repository.dart';
-import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
-import 'package:caesar_puzzle/core/models/move.dart';
-import 'package:caesar_puzzle/core/models/piece_type.dart';
-import 'package:caesar_puzzle/core/models/place_zone.dart';
-import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/core/services/timer_service.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_event.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_state.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/puzzle_local_snapshot.dart';
-import 'package:caesar_puzzle/presentation/onboarding/utils/onboarding_target_resolver.dart';
-import 'package:caesar_puzzle/presentation/onboarding/utils/puzzle_local_snapshot_mapper.dart';
-import 'package:caesar_puzzle/presentation/onboarding/widgets/onboarding_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_sheet.dart';
@@ -38,7 +23,6 @@ import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
 import 'package:flutter/material.dart';
@@ -57,21 +41,13 @@ class PuzzleScreen extends StatefulWidget {
 }
 
 class _PuzzleScreenState extends State<PuzzleScreen> {
-  static final DateTime _tutorialDate = DateTime(2024);
-  static const Duration _onboardingActionCompletionDelay = Duration(milliseconds: 320);
   // Header and toolbar have fixed slots; larger text would not fit them.
   static const double _maxChromeTextScale = 1.3;
 
   late final PuzzleBloc _puzzleBloc;
-  late final OnboardingBloc _onboardingBloc;
   late final BoardLayoutsCubit _layoutsCubit;
   late final StreamSubscription<PuzzleState> _feedbackSubscription;
-  PuzzleLocalSnapshot? _preOnboardingSnapshot;
-  PuzzleLocalSnapshot? _tutorialBaseSnapshot;
-  String? _tutorialPShapeId;
-  OnboardingState _lastOnboardingState = const OnboardingState.hidden();
   PuzzleSettingsPanelController _settingsPanelController = const PuzzleSettingsPanelController();
-  int _onboardingCompletionDelayGeneration = 0;
   var _isInitialized = false;
   double _headerHeight = 0;
 
@@ -87,7 +63,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       solvePuzzleUseCase: getIt<SolvePuzzleUseCase>(),
       historyUseCase: getIt<PuzzleHistoryUseCase>(),
     );
-    _onboardingBloc = OnboardingBloc();
     _layoutsCubit = BoardLayoutsCubit(getIt<BoardLayoutRepository>());
     final settings = context.read<SettingsCubit>();
     var previous = _puzzleBloc.state;
@@ -105,21 +80,12 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       }
     });
     _isInitialized = true;
-
-    WidgetsBinding.instance.addPostFrameCallback((final _) {
-      if (!mounted) {
-        return;
-      }
-      _maybePresentOnboarding();
-    });
   }
 
   @override
   void dispose() {
-    _onboardingCompletionDelayGeneration++;
     if (_isInitialized) {
       _puzzleBloc.close();
-      _onboardingBloc.close();
       _feedbackSubscription.cancel();
       _layoutsCubit.close();
     }
@@ -134,14 +100,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       isWideScreen: settingsDocked,
       sidePanelWidth: PuzzleScreen.sidePanelWidth,
     );
-    final onboardingCoordinateOffset = _settingsPanelController.onboardingCoordinateOffset(
-      isWideScreen: settingsDocked,
-      sidePanelWidth: PuzzleScreen.sidePanelWidth,
-    );
     return MultiBlocProvider(
       providers: [
         BlocProvider<PuzzleBloc>.value(value: _puzzleBloc),
-        BlocProvider<OnboardingBloc>.value(value: _onboardingBloc),
         BlocProvider<BoardLayoutsCubit>.value(value: _layoutsCubit),
       ],
       child: Scaffold(
@@ -152,91 +113,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 listenWhen: (final previous, final current) => previous.solutionIndicator != current.solutionIndicator,
                 listener: (final context, final state) {
                   context.read<PuzzleBloc>().markCurrentSessionDifficulty(state.solutionIndicator.sessionDifficulty);
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final previous, final current) => _didCompleteDragOnboardingStep(previous, current),
-                listener: (final context, final state) {
-                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.dragPiece);
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final previous, final current) => _didCompleteDrawOnboardingStep(previous, current),
-                listener: (final context, final state) {
-                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.drawPiece);
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final previous, final current) => _didCompleteRotateOnboardingStep(previous, current),
-                listener: (final context, final state) {
-                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.rotatePiece);
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final previous, final current) => _didCompleteFlipOnboardingStep(previous, current),
-                listener: (final context, final state) {
-                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.flipPiece);
-                },
-              ),
-              BlocListener<OnboardingBloc, OnboardingState>(
-                listener: (final context, final state) {
-                  final previous = _lastOnboardingState;
-
-                  if (!previous.isVisible && state.isVisible) {
-                    _onboardingCompletionDelayGeneration++;
-                    _preOnboardingSnapshot ??= buildPuzzleLocalSnapshot(_puzzleBloc.state);
-                    _tutorialBaseSnapshot = null;
-                    _tutorialPShapeId = null;
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    _puzzleBloc.add(PuzzleEvent.setPuzzleDate(_tutorialDate, onboarding: true));
-                  } else if (previous.isVisible && !state.isVisible) {
-                    _onboardingCompletionDelayGeneration++;
-                    final settingsCubit = context.read<SettingsCubit>();
-                    final selectedDifficulty = state.selectedDifficulty;
-                    if (selectedDifficulty != null) {
-                      settingsCubit.setSolutionIndicator(selectedDifficulty);
-                    }
-                    if (_didFinishOnboarding(previous)) {
-                      settingsCubit.completeOnboarding(currentOnboardingVersion);
-                    }
-                    final snapshot = _preOnboardingSnapshot;
-                    _preOnboardingSnapshot = null;
-                    _tutorialBaseSnapshot = null;
-                    _tutorialPShapeId = null;
-                    if (snapshot != null) {
-                      _puzzleBloc.add(PuzzleEvent.restoreLocalSnapshot(snapshot));
-                    }
-                  } else if (previous.isVisible &&
-                      state.isVisible &&
-                      state.currentStepIndex != previous.currentStepIndex &&
-                      _tutorialBaseSnapshot != null) {
-                    _onboardingCompletionDelayGeneration++;
-                    _applyTutorialStepSnapshot();
-                  } else if (previous.isVisible &&
-                      state.isVisible &&
-                      state.currentStep?.id == OnboardingStepId.dragPiece &&
-                      !previous.isCurrentStepInteractionEnabled &&
-                      state.isCurrentStepInteractionEnabled &&
-                      _tutorialBaseSnapshot != null) {
-                    _applyTutorialStepSnapshot();
-                  }
-
-                  _lastOnboardingState = state;
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final previous, final current) =>
-                    _onboardingBloc.state.isVisible &&
-                    _tutorialBaseSnapshot == null &&
-                    current.selectedDate.year == _tutorialDate.year &&
-                    current.selectedDate.month == _tutorialDate.month &&
-                    current.selectedDate.day == _tutorialDate.day &&
-                    current.moveIndex == 0 &&
-                    !current.isDragging &&
-                    _isTutorialBaseLayoutReady(current),
-                listener: (final context, final state) {
-                  _captureTutorialBaseSnapshot(state);
-                  _applyTutorialStepSnapshot();
                 },
               ),
               BlocListener<PuzzleBloc, PuzzleState>(
@@ -326,7 +202,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     bottom: 0,
                     child: const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
                   ),
-                OnboardingOverlay(coordinateOffset: onboardingCoordinateOffset),
               ],
             ),
           ),
@@ -396,244 +271,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   String _configLabel(final BuildContext context, final PuzzleState state) =>
       state.isCustomConfig ? S.of(context).historyConfigCustom : S.of(context).historyConfigStandard;
-
-  bool _didCompleteDragOnboardingStep(final PuzzleState previous, final PuzzleState current) {
-    final onboardingState = _onboardingBloc.state;
-    if (!onboardingState.isVisible ||
-        onboardingState.currentStep?.id != OnboardingStepId.dragPiece ||
-        !onboardingState.isCurrentStepInteractionEnabled) {
-      return false;
-    }
-    if (current.moveIndex != previous.moveIndex + 1 || current.moveHistory.isEmpty) {
-      return false;
-    }
-
-    final move = current.moveHistory.last;
-    if (move is! MovePiece) {
-      return false;
-    }
-    final targetTopLeft = resolvePTargetTopLeft(current);
-    final targetRelativePosition = current.gridConfig.relativePosition(targetTopLeft);
-    final piece = current.pieces.firstWhere(
-      (final candidate) => candidate.id == move.pieceId,
-      orElse: () => current.pieces.first,
-    );
-
-    return piece.type == PieceType.pShape &&
-        !piece.isConfigItem &&
-        move.to.zone == PlaceZone.grid &&
-        piece.placeZone == PlaceZone.grid &&
-        move.to.position.dx == targetRelativePosition.dx &&
-        move.to.position.dy == targetRelativePosition.dy;
-  }
-
-  bool _didCompleteDrawOnboardingStep(final PuzzleState previous, final PuzzleState current) {
-    final onboardingState = _onboardingBloc.state;
-    if (!onboardingState.isVisible ||
-        onboardingState.currentStep?.id != OnboardingStepId.drawPiece ||
-        !onboardingState.isCurrentStepInteractionEnabled) {
-      return false;
-    }
-    if (previous.drawnGroup == null ||
-        current.drawnGroup != null ||
-        current.moveIndex != previous.moveIndex + 1 ||
-        current.moveHistory.isEmpty) {
-      return false;
-    }
-
-    final move = current.moveHistory.last;
-    if (move is! MovePiece) {
-      return false;
-    }
-
-    final targetTopLeft = resolvePTargetTopLeft(current);
-    final targetRelativePosition = current.gridConfig.relativePosition(targetTopLeft);
-    final piece = current.pieces.firstWhere(
-      (final candidate) => candidate.id == move.pieceId,
-      orElse: () => current.pieces.first,
-    );
-
-    return piece.type == PieceType.pShape &&
-        !piece.isConfigItem &&
-        move.to.zone == PlaceZone.grid &&
-        piece.placeZone == PlaceZone.grid &&
-        move.to.position.dx == targetRelativePosition.dx &&
-        move.to.position.dy == targetRelativePosition.dy;
-  }
-
-  bool _didCompleteRotateOnboardingStep(final PuzzleState previous, final PuzzleState current) {
-    final onboardingState = _onboardingBloc.state;
-    if (!onboardingState.isVisible ||
-        onboardingState.currentStep?.id != OnboardingStepId.rotatePiece ||
-        !onboardingState.isCurrentStepInteractionEnabled) {
-      return false;
-    }
-    if (current.moveIndex != previous.moveIndex + 1 || current.moveHistory.isEmpty) {
-      return false;
-    }
-
-    final move = current.moveHistory.last;
-    if (move is! RotatePiece) {
-      return false;
-    }
-
-    final piece = current.pieces.firstWhere(
-      (final candidate) => candidate.id == move.pieceId,
-      orElse: () => current.pieces.first,
-    );
-    return piece.type == PieceType.pShape && !piece.isConfigItem;
-  }
-
-  bool _didCompleteFlipOnboardingStep(final PuzzleState previous, final PuzzleState current) {
-    final onboardingState = _onboardingBloc.state;
-    if (!onboardingState.isVisible ||
-        onboardingState.currentStep?.id != OnboardingStepId.flipPiece ||
-        !onboardingState.isCurrentStepInteractionEnabled) {
-      return false;
-    }
-    if (current.moveIndex != previous.moveIndex + 1 || current.moveHistory.isEmpty) {
-      return false;
-    }
-
-    final move = current.moveHistory.last;
-    if (move is! FlipPiece) {
-      return false;
-    }
-
-    final piece = current.pieces.firstWhere(
-      (final candidate) => candidate.id == move.pieceId,
-      orElse: () => current.pieces.first,
-    );
-    return piece.type == PieceType.pShape && !piece.isConfigItem;
-  }
-
-  Future<void> _completeCurrentOnboardingStepAfterActionAnimation(final OnboardingStepId stepId) async {
-    final generation = ++_onboardingCompletionDelayGeneration;
-    await Future<void>.delayed(_onboardingActionCompletionDelay);
-    if (!mounted || generation != _onboardingCompletionDelayGeneration) {
-      return;
-    }
-
-    final onboardingState = _onboardingBloc.state;
-    if (!onboardingState.isVisible ||
-        onboardingState.currentStep?.id != stepId ||
-        onboardingState.isCurrentStepComplete ||
-        !onboardingState.isCurrentStepInteractionEnabled) {
-      return;
-    }
-    _onboardingBloc.add(const CompleteCurrentOnboardingStep());
-  }
-
-  void _captureTutorialBaseSnapshot(final PuzzleState state) {
-    if (!_isTutorialBaseLayoutReady(state)) {
-      return;
-    }
-    _tutorialBaseSnapshot ??= buildPuzzleLocalSnapshot(state);
-    _tutorialPShapeId ??= state.pieces
-        .where((final piece) => piece.type == PieceType.pShape && !piece.isConfigItem)
-        .map((final piece) => piece.id)
-        .cast<String?>()
-        .firstWhere((final id) => id != null, orElse: () => null);
-  }
-
-  bool _isTutorialBaseLayoutReady(final PuzzleState state) =>
-      state.status == GameStatus.initialized &&
-      !state.gridPieces.any((final piece) => !piece.isConfigItem) &&
-      state.boardPieces.any((final piece) => piece.type == PieceType.pShape && !piece.isConfigItem);
-
-  void _applyTutorialStepSnapshot() {
-    final baseSnapshot = _tutorialBaseSnapshot;
-    final pShapeId = _tutorialPShapeId;
-    final stepId = _onboardingBloc.state.currentStep?.id;
-    if (baseSnapshot == null || pShapeId == null || stepId == null) {
-      return;
-    }
-
-    final currentState = _puzzleBloc.state;
-    final targetTopLeft = resolvePTargetTopLeft(currentState);
-    final targetPosition = Position(dx: targetTopLeft.dx, dy: targetTopLeft.dy);
-
-    final pieces = baseSnapshot.pieces
-        .map((final piece) {
-          if (piece.id != pShapeId) {
-            return piece;
-          }
-
-          return switch (stepId.pShapeSetup) {
-            OnboardingPShapeSetup.board => piece,
-            OnboardingPShapeSetup.target => PuzzlePieceSnapshot(
-              id: piece.id,
-              placeZone: PlaceZone.grid,
-              position: targetPosition,
-              rotation: 0,
-              isFlipped: false,
-              isUsersItem: piece.isUsersItem,
-              isConfigItem: piece.isConfigItem,
-            ),
-            OnboardingPShapeSetup.targetRotated90 => PuzzlePieceSnapshot(
-              id: piece.id,
-              placeZone: PlaceZone.grid,
-              position: targetPosition,
-              rotation: PuzzleBloc.rotationStep,
-              isFlipped: false,
-              isUsersItem: piece.isUsersItem,
-              isConfigItem: piece.isConfigItem,
-            ),
-          };
-        })
-        .toList(growable: false);
-
-    _puzzleBloc.add(
-      PuzzleEvent.restoreLocalSnapshot(
-        PuzzleLocalSnapshot(
-          selectedDate: baseSnapshot.selectedDate,
-          status: baseSnapshot.status,
-          pieces: pieces,
-          moveHistory: const [],
-          moveIndex: 0,
-          firstMoveAt: null,
-          lastResumedAt: null,
-          activeElapsedMs: 0,
-          hasShownSolvedDialog: false,
-          isRestoredSolvedSession: false,
-        ),
-        onboarding: true,
-      ),
-    );
-    if (stepId == OnboardingStepId.flipPiece) {
-      // The rotate step already taught selection, so the flip step starts with the piece selected.
-      _puzzleBloc.add(PuzzleEvent.selectPiece(pShapeId));
-    }
-  }
-
-  void _maybePresentOnboarding() {
-    final settingsCubit = context.read<SettingsCubit>();
-    final settings = settingsCubit.state;
-    if (settings.shouldAutoStartOnboarding(currentOnboardingVersion)) {
-      settingsCubit.markOnboardingOffered(currentOnboardingVersion);
-      _onboardingBloc.add(const StartOnboarding(OnboardingMode.short));
-      return;
-    }
-    if (settings.shouldSuggestOnboardingReplay(currentOnboardingVersion)) {
-      settingsCubit.markOnboardingOffered(currentOnboardingVersion);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.current.onboardingReplayPrompt),
-          action: SnackBarAction(label: S.current.onboardingReplayAction, onPressed: _startOnboardingUpdate),
-        ),
-      );
-    }
-  }
-
-  bool _didFinishOnboarding(final OnboardingState previous) =>
-      previous.currentStepIndex == previous.steps.length - 1 && previous.canGoNext;
-
-  void _startOnboardingUpdate() {
-    final settingsCubit = context.read<SettingsCubit>();
-    final completedVersion = settingsCubit.state.completedOnboardingVersion;
-    settingsCubit.markOnboardingOffered(currentOnboardingVersion);
-    _onboardingBloc.add(StartOnboarding(OnboardingMode.short, completedVersion: completedVersion));
-  }
 }
 
 class _GameBackground extends StatelessWidget {

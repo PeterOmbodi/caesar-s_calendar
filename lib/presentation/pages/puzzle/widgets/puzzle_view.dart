@@ -1,15 +1,7 @@
-import 'package:caesar_puzzle/core/models/cell.dart';
-import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
-import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_state.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
-import 'package:caesar_puzzle/presentation/onboarding/widgets/overlay/onboarding_overlay_helpers.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
@@ -36,7 +28,6 @@ class PuzzleView extends StatelessWidget {
     builder: (final BuildContext context, final PuzzleState state) => LayoutBuilder(
       builder: (final context, final constraints) {
         final bloc = context.read<PuzzleBloc>();
-        final onboardingState = context.watch<OnboardingBloc>().state;
         final spec = ScreenSpec.of(context);
         final contentInsets =
             EdgeInsets.only(top: headerHeight, bottom: statusGap + PuzzleStatusLine.height) +
@@ -53,41 +44,6 @@ class PuzzleView extends StatelessWidget {
         final borderColorMode = settings.separateMoveColors;
         final tray = state.boardConfig.getBounds;
 
-        bool isInteractionAllowed(final Offset position, {required final OnboardingInputAction action}) {
-          final step = onboardingState.currentStep;
-          if (!onboardingState.isVisible) {
-            return true;
-          }
-          final stepId = step?.id;
-          if (stepId == null) {
-            return true;
-          }
-          if (stepId == OnboardingStepId.drawPiece) {
-            if (!onboardingState.isCurrentStepInteractionEnabled) {
-              return false;
-            }
-            return _isDrawOnboardingInteractionAllowed(state, position, action: action);
-          }
-          if (stepId.allowedInputAction == null) {
-            return false;
-          }
-          if (!onboardingState.isCurrentStepInteractionEnabled || stepId.allowedInputAction != action) {
-            return false;
-          }
-
-          final pointerPiece = state.pointerPiece;
-          if (action == OnboardingInputAction.drag && state.isDragging && pointerPiece != null) {
-            return pointerPiece.type == PieceType.pShape && !pointerPiece.isConfigItem;
-          }
-          final tappedPiece = state.pieces.lastWhere(
-            (final piece) => piece.containsPoint(position),
-            orElse: () => state.pieces.first,
-          );
-          return tappedPiece.type == PieceType.pShape &&
-              !tappedPiece.isConfigItem &&
-              tappedPiece.containsPoint(position);
-        }
-
         final shownPieces = state.isEditingLayout
             ? state.shownPieces.where((final p) => p.isConfigItem)
             : state.shownPieces;
@@ -101,52 +57,12 @@ class PuzzleView extends StatelessWidget {
                   children: [
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTapDown: (final details) {
-                        if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.tap)) {
-                          return;
-                        }
-                        bloc.add(PuzzleEvent.onTapDown(details.localPosition));
-                      },
-                      onTapUp: (final details) {
-                        if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.tap)) {
-                          return;
-                        }
-                        bloc.add(PuzzleEvent.onTapUp(details.localPosition));
-                      },
-                      onPanStart: (final details) {
-                        if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.drag)) {
-                          return;
-                        }
-                        bloc.add(PuzzleEvent.onPanStart(details.localPosition));
-                      },
-                      onPanUpdate: (final details) {
-                        if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.drag)) {
-                          return;
-                        }
-                        bloc.add(PuzzleEvent.onPanUpdate(details.localPosition));
-                      },
-                      onPanEnd: (final details) {
-                        if (onboardingState.isVisible &&
-                            onboardingState.currentStep?.id == OnboardingStepId.dragPiece &&
-                            onboardingState.isCurrentStepInteractionEnabled &&
-                            state.isDragging &&
-                            state.pointerPiece?.type != PieceType.pShape) {
-                          return;
-                        }
-                        bloc.add(PuzzleEvent.onPanEnd(details.localPosition));
-                      },
-                      onDoubleTapDown: (final details) {
-                        if (_shouldWarnAboutWrongDrawOnboardingGroup(state, onboardingState, details.localPosition)) {
-                          ScaffoldMessenger.of(context)
-                            ..hideCurrentSnackBar()
-                            ..showSnackBar(SnackBar(content: Text(S.current.onboardingDrawWrongShape)));
-                          return;
-                        }
-                        if (!isInteractionAllowed(details.localPosition, action: OnboardingInputAction.doubleTap)) {
-                          return;
-                        }
-                        bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition));
-                      },
+                      onTapDown: (final details) => bloc.add(PuzzleEvent.onTapDown(details.localPosition)),
+                      onTapUp: (final details) => bloc.add(PuzzleEvent.onTapUp(details.localPosition)),
+                      onPanStart: (final details) => bloc.add(PuzzleEvent.onPanStart(details.localPosition)),
+                      onPanUpdate: (final details) => bloc.add(PuzzleEvent.onPanUpdate(details.localPosition)),
+                      onPanEnd: (final details) => bloc.add(PuzzleEvent.onPanEnd(details.localPosition)),
+                      onDoubleTapDown: (final details) => bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition)),
                       child: AnimatedPiecesOverlay(
                         pieces: shownPieces,
                         duration: MediaQuery.disableAnimationsOf(context)
@@ -188,19 +104,18 @@ class PuzzleView extends StatelessWidget {
                         child: Semantics(container: true, label: _boardLabel(state), child: const SizedBox.expand()),
                       ),
                     ),
-                    if (!onboardingState.isVisible)
-                      Positioned(
-                        left: tray.left,
-                        top: tray.bottom + statusGap,
-                        width: tray.width,
-                        child: IgnorePointer(
-                          child: PuzzleStatusLine(
-                            state: state,
-                            indicator: settings.solutionIndicator,
-                            showTimer: settings.showTimer,
-                          ),
+                    Positioned(
+                      left: tray.left,
+                      top: tray.bottom + statusGap,
+                      width: tray.width,
+                      child: IgnorePointer(
+                        child: PuzzleStatusLine(
+                          state: state,
+                          indicator: settings.solutionIndicator,
+                          showTimer: settings.showTimer,
                         ),
                       ),
+                    ),
                     if (state.isDragging && state.pointerPiece != null)
                       IgnorePointer(
                         child: CustomPaint(
@@ -221,65 +136,6 @@ String _boardLabel(final PuzzleState state) {
   final placed = pieces.where((final p) => p.placeZone == PlaceZone.grid).length;
   return '${S.current.headerGoal(shortMonthName(date.month), '${date.day}')}. '
       '${S.current.statusPiecesPlaced(placed, pieces.length)}';
-}
-
-bool _isDrawOnboardingInteractionAllowed(
-  final PuzzleState state,
-  final Offset position, {
-  required final OnboardingInputAction action,
-}) {
-  final cell = state.gridConfig.cellAt(position);
-  if (cell == null) {
-    return false;
-  }
-  if (action == OnboardingInputAction.tap) {
-    return state.drawnGroup?.contains(cell) == true;
-  }
-  if (action != OnboardingInputAction.drag && action != OnboardingInputAction.doubleTap) {
-    return false;
-  }
-  if (state.drawnGroup?.contains(cell) == true) {
-    return true;
-  }
-  return _drawOnboardingAllowedCells(state).contains(cell);
-}
-
-bool _shouldWarnAboutWrongDrawOnboardingGroup(
-  final PuzzleState state,
-  final OnboardingState onboardingState,
-  final Offset position,
-) {
-  if (!onboardingState.isVisible ||
-      onboardingState.currentStep?.id != OnboardingStepId.drawPiece ||
-      !onboardingState.isCurrentStepInteractionEnabled ||
-      state.drawnGroupCommitStatus == DrawnGroupCommitStatus.committable) {
-    return false;
-  }
-  final cell = state.gridConfig.cellAt(position);
-  return cell != null && state.drawnGroup?.contains(cell) == true;
-}
-
-Set<Cell> _drawOnboardingAllowedCells(final PuzzleState state) {
-  final targetPiece = buildDragDemoTargetPiece(state);
-  if (targetPiece == null) {
-    return const {};
-  }
-
-  final targetCells = targetPiece.cells(state.gridConfig.origin, state.gridConfig.cellSize);
-  final allowedCells = <Cell>{...targetCells};
-  for (final cell in targetCells) {
-    allowedCells.addAll({
-      Cell(cell.row - 1, cell.col),
-      Cell(cell.row + 1, cell.col),
-      Cell(cell.row, cell.col - 1),
-      Cell(cell.row, cell.col + 1),
-    });
-  }
-  allowedCells.removeWhere(
-    (final cell) =>
-        cell.row < 0 || cell.row >= state.gridConfig.rows || cell.col < 0 || cell.col >= state.gridConfig.columns,
-  );
-  return allowedCells;
 }
 
 class _DraggedPiecePainter extends CustomPainter {

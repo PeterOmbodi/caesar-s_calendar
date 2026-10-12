@@ -3,10 +3,6 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/help/how_to_play_sheet.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_event.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
 import 'package:caesar_puzzle/presentation/pages/history/history_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/actions_for.dart';
@@ -73,15 +69,6 @@ class PuzzleToolbar extends StatelessWidget {
     }
     await action();
   }
-
-  Future<void> _showHowToPlay(final BuildContext context) => showHowToPlaySheet(
-    context,
-    onReplayOnboarding: () {
-      Navigator.of(context, rootNavigator: true).pop();
-      context.read<SettingsCubit>().markOnboardingOffered(currentOnboardingVersion);
-      context.read<OnboardingBloc>().add(const StartOnboarding(OnboardingMode.short, isReplay: true));
-    },
-  );
 
   Future<void> _showHistory(final BuildContext context) async {
     final result = await Navigator.of(context).push<HistoryScreenResult>(
@@ -231,7 +218,7 @@ class PuzzleToolbar extends StatelessWidget {
           () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showSolution(0))),
         );
       case GameActionId.howToPlay:
-        await _showHowToPlay(context);
+        await showHowToPlaySheet(context);
       case GameActionId.cancelEdit:
         puzzleBloc.add(const PuzzleEvent.cancelLayoutEdit());
       case GameActionId.resetLayout:

@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:caesar_puzzle/generated/l10n.dart';
-import 'package:caesar_puzzle/presentation/onboarding/widgets/overlay/onboarding_overlay_primitives.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
+import 'package:caesar_puzzle/presentation/widgets/spotlight_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -73,10 +73,7 @@ class _CoachMarkOverlay extends StatelessWidget {
         Positioned.fill(
           child: IgnorePointer(
             child: CustomPaint(
-              painter: OnboardingOverlayDimmerPainter(
-                interactionHole: null,
-                spotlightHoles: [if (anchor != null) anchor.inflate(4)],
-              ),
+              painter: SpotlightPainter(holes: [if (anchor != null) anchor.inflate(4)]),
             ),
           ),
         ),

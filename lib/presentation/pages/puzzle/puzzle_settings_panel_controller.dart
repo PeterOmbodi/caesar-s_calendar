@@ -28,9 +28,4 @@ class PuzzleSettingsPanelController {
     }
     return (left: 0, right: sidePanelWidth);
   }
-
-  Offset onboardingCoordinateOffset({required final bool isWideScreen, required final double sidePanelWidth}) {
-    final insets = gameplayInsets(isWideScreen: isWideScreen, sidePanelWidth: sidePanelWidth);
-    return Offset(insets.left, 0);
-  }
 }

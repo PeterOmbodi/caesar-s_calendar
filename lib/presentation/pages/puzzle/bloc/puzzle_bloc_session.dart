@@ -97,7 +97,6 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
   void _setPuzzleDate(final _SetPuzzleDate event, final Emitter<PuzzleState> emit) => _startNewGame(
     emit,
     date: event.date,
-    onboarding: event.onboarding,
     configurationPieces: state.gridPieces.where((final e) => e.isConfigItem),
   );
 
@@ -181,14 +180,10 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     final Emitter<PuzzleState> emit, {
     required final DateTime date,
     required final Iterable<PuzzlePieceUI> configurationPieces,
-    final bool onboarding = false,
   }) {
     final nextDate = DateTime(date.year, date.month, date.day);
-    _isOnboardingSession = onboarding;
-    if (!onboarding) {
-      _historyUseCase.resetSession();
-      _currentSessionDifficulty = null;
-    }
+    _historyUseCase.resetSession();
+    _currentSessionDifficulty = null;
     emit(
       state.copyWith(
         selectedDate: nextDate,
@@ -219,45 +214,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         layoutEdit: null,
       ),
     );
-    add(PuzzleEvent.configure(toInitial: true, skipSolve: onboarding, configurationPieces: configurationPieces));
-  }
-
-  FutureOr<void> _restoreLocalSnapshot(final _RestoreLocalSnapshot event, final Emitter<PuzzleState> emit) {
-    final snapshot = event.snapshot;
-    _isOnboardingSession = event.onboarding;
-    emit(
-      state.copyWith(
-        selectedDate: snapshot.selectedDate,
-        pieces: _applySnapshotPieces(snapshot.pieces),
-        moveHistory: snapshot.moveHistory,
-        hintedCells: _hintedCellsOf(snapshot.moveHistory),
-        moveIndex: snapshot.moveIndex,
-        firstMoveAt: snapshot.firstMoveAt,
-        lastResumedAt: snapshot.lastResumedAt,
-        activeElapsedMs: snapshot.activeElapsedMs,
-        solutionIdx: -1,
-        solutions: const [],
-        applicableSolutions: const [],
-        pointerPiece: null,
-        selectedPieceId: null,
-        isDragging: false,
-        dragStartOffset: null,
-        pieceStartPosition: null,
-        previewPosition: null,
-        dragStartZone: null,
-        showPreview: false,
-        previewCollision: false,
-        drawnGroup: null,
-        drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
-        isDrawingGroup: false,
-        isRestoredSolvedSession: snapshot.isRestoredSolvedSession,
-        hasShownSolvedDialog: snapshot.hasShownSolvedDialog,
-        status: snapshot.status,
-      ),
-    );
-    if (!event.onboarding) {
-      add(const PuzzleEvent.solve(showResult: false));
-    }
+    add(PuzzleEvent.configure(toInitial: true, configurationPieces: configurationPieces));
   }
 
   FutureOr<void> _markSolvedDialogShown(final _MarkSolvedDialogShown event, final Emitter<PuzzleState> emit) {
@@ -278,24 +235,6 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
       case AppLifecycleState.detached:
         break;
     }
-  }
-
-  List<PuzzlePieceUI> _applySnapshotPieces(final List<PuzzlePieceSnapshot> snapshots) {
-    final snapshotById = {for (final snapshot in snapshots) snapshot.id: snapshot};
-    return state.pieces.map((final piece) {
-      final snapshot = snapshotById[piece.id];
-      if (snapshot == null) {
-        return piece;
-      }
-      return piece.copyWith(
-        position: Offset(snapshot.position.dx, snapshot.position.dy),
-        rotation: snapshot.rotation,
-        isFlipped: snapshot.isFlipped,
-        placeZone: snapshot.placeZone,
-        isUsersItem: snapshot.isUsersItem,
-        isForbidden: snapshot.isConfigItem,
-      );
-    }).toList();
   }
 
   List<PuzzlePieceUI> _restoreSessionPieces(final PuzzleSessionData session) {
