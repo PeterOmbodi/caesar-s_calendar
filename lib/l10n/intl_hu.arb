@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Ismét",
   "howToPlayResetDescription": "Visszaállítja a feladványt a kezdő állapotba.",
   "howToPlayResetTitle": "Visszaállítás",
-  "howToPlaySettingsPanelDescription": "Téma váltása, konfiguráció zárolása/feloldása, átfedés és rácshoz igazítás, tippeknél kiemelés, megoldhatóság, lehetséges megoldások száma és eltelt idő.",
+  "howToPlaySettingsPanelDescription": "Téma váltása, átfedés és rácshoz igazítás, tippeknél kiemelés, megoldhatóság, lehetséges megoldások száma és eltelt idő.",
   "howToPlaySettingsPanelTitle": "Beállítások panel",
   "howToPlaySettingsTitle": "Beállítások és jelzők",
   "howToPlayShadow": "A zöld árnyék húzás közben azt jelzi, hogy a darab lerakható. A piros árnyék ütközést jelez más elemekkel vagy a pálya szélével.",

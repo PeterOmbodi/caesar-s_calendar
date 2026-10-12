@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Tee uudelleen",
   "howToPlayResetDescription": "Palauttaa pulman alkutilaan.",
   "howToPlayResetTitle": "Nollaa",
-  "howToPlaySettingsPanelDescription": "Vaihda teemaa, lukitse/avaa asettelu, ota käyttöön päällekkäisyyden esto ja ruudukkoon kiinnitys, korosta paloja vihjeissä, näytä ratkaistavuus, mahdollisten ratkaisujen määrä ja ratkaisuaika.",
+  "howToPlaySettingsPanelDescription": "Vaihda teemaa, ota käyttöön päällekkäisyyden esto ja ruudukkoon kiinnitys, korosta paloja vihjeissä, näytä ratkaistavuus, mahdollisten ratkaisujen määrä ja ratkaisuaika.",
   "howToPlaySettingsPanelTitle": "Asetuspaneeli",
   "howToPlaySettingsTitle": "Asetukset ja ilmaisimet",
   "howToPlayShadow": "Vihreä varjo vetämisen aikana tarkoittaa, että palalle löytyi vapaa paikka. Punainen varjo tarkoittaa ristiriitaa muiden palojen tai laudan rajojen kanssa.",

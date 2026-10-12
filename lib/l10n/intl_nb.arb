@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Gjør om",
   "howToPlayResetDescription": "Setter puslespillet tilbake til starttilstanden.",
   "howToPlayResetTitle": "Tilbakestill",
-  "howToPlaySettingsPanelDescription": "Bytt tema, lås/lås opp konfigurasjon, aktiver overlappsvern og rutenettfeste, fremhev brikker ved hint, vis løsbarhet, antall mulige løsninger og løsningstid.",
+  "howToPlaySettingsPanelDescription": "Bytt tema, aktiver overlappsvern og rutenettfeste, fremhev brikker ved hint, vis løsbarhet, antall mulige løsninger og løsningstid.",
   "howToPlaySettingsPanelTitle": "Innstillingspanel",
   "howToPlaySettingsTitle": "Innstillinger og indikatorer",
   "howToPlayShadow": "En grønn skygge under dragging betyr at en ledig plass er funnet og du kan slippe brikken. En rød skygge betyr konflikt med andre brikker eller brettets grenser.",

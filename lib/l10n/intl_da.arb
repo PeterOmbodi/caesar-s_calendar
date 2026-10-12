@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Gendan",
   "howToPlayResetDescription": "Nulstiller puslespillet til starttilstanden.",
   "howToPlayResetTitle": "Nulstil",
-  "howToPlaySettingsPanelDescription": "Skift tema, lås/lås op for konfigurationen, aktivér overlapbeskyttelse og fastgørelse til gitter, fremhæv brikker ved hints, vis løselighed, antal mulige løsninger og løsningstid.",
+  "howToPlaySettingsPanelDescription": "Skift tema, aktivér overlapbeskyttelse og fastgørelse til gitter, fremhæv brikker ved hints, vis løselighed, antal mulige løsninger og løsningstid.",
   "howToPlaySettingsPanelTitle": "Indstillingspanel",
   "howToPlaySettingsTitle": "Indstillinger og indikatorer",
   "howToPlayShadow": "En grøn skygge under træk betyder, at der er fundet en ledig plads, og du kan slippe brikken. En rød skygge betyder konflikt med andre brikker eller brættets grænser.",

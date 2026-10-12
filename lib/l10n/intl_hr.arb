@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Ponovi",
   "howToPlayResetDescription": "Vraća zagonetku u početno stanje.",
   "howToPlayResetTitle": "Poništi",
-  "howToPlaySettingsPanelDescription": "Promijeni temu, zaključaj/otključaj konfiguraciju, uključi sprječavanje preklapanja i poravnanje na mrežu, označavanje dijelova pri savjetu, prikaži rješivost, broj mogućih rješenja i vrijeme rješavanja.",
+  "howToPlaySettingsPanelDescription": "Promijeni temu, uključi sprječavanje preklapanja i poravnanje na mrežu, označavanje dijelova pri savjetu, prikaži rješivost, broj mogućih rješenja i vrijeme rješavanja.",
   "howToPlaySettingsPanelTitle": "Panel postavki",
   "howToPlaySettingsTitle": "Postavke i indikatori",
   "howToPlayShadow": "Zelena sjena tijekom povlačenja znači da je pronađeno slobodno mjesto i možeš pustiti dio. Crvena sjena znači sukob s drugim dijelovima ili granicama ploče.",

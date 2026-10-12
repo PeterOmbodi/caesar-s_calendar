@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Refazer",
   "howToPlayResetDescription": "Retorna o puzzle ao estado inicial.",
   "howToPlayResetTitle": "Reiniciar",
-  "howToPlaySettingsPanelDescription": "Altere o tema, bloqueie/desbloqueie a configuração, ative sobreposição e encaixe na grade, destaque peças ao mostrar dicas, exiba solvabilidade, número de soluções possíveis e tempo de resolução.",
+  "howToPlaySettingsPanelDescription": "Altere o tema, ative sobreposição e encaixe na grade, destaque peças ao mostrar dicas, exiba solvabilidade, número de soluções possíveis e tempo de resolução.",
   "howToPlaySettingsPanelTitle": "Painel de configurações",
   "howToPlaySettingsTitle": "Configurações e indicadores",
   "howToPlayShadow": "Uma sombra verde ao arrastar significa que foi encontrado um espaço livre para a peça e você pode soltar. Uma sombra vermelha significa conflito com outras peças ou com os limites do tabuleiro.",

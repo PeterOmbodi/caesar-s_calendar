@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Rétablir",
   "howToPlayResetDescription": "Ramène le puzzle à son état initial.",
   "howToPlayResetTitle": "Réinitialiser",
-  "howToPlaySettingsPanelDescription": "Changez le thème, verrouillez/déverrouillez la configuration, activez le chevauchement et l'aimantation à la grille, mettez en évidence les pièces lors d'un indice, affichez la solvabilité, le nombre de solutions possibles et le temps de résolution.",
+  "howToPlaySettingsPanelDescription": "Changez le thème, activez le chevauchement et l'aimantation à la grille, mettez en évidence les pièces lors d'un indice, affichez la solvabilité, le nombre de solutions possibles et le temps de résolution.",
   "howToPlaySettingsPanelTitle": "Panneau des paramètres",
   "howToPlaySettingsTitle": "Paramètres et indicateurs",
   "howToPlayShadow": "Une ombre verte pendant le déplacement signifie qu'un emplacement libre a été trouvé pour la pièce et que vous pouvez la relâcher. Une ombre rouge signifie un conflit avec d'autres pièces ou les limites du plateau.",

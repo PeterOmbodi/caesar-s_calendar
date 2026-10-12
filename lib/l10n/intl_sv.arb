@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Gör om",
   "howToPlayResetDescription": "Återställer pusslet till ursprungsläget.",
   "howToPlayResetTitle": "Återställ",
-  "howToPlaySettingsPanelDescription": "Byt tema, lås/lås upp konfigurationen, aktivera överlappningsskydd och rutnätsfäste, markera bitar när tips visas, visa lösbarhet, antal möjliga lösningar och lösningstid.",
+  "howToPlaySettingsPanelDescription": "Byt tema, aktivera överlappningsskydd och rutnätsfäste, markera bitar när tips visas, visa lösbarhet, antal möjliga lösningar och lösningstid.",
   "howToPlaySettingsPanelTitle": "Inställningspanel",
   "howToPlaySettingsTitle": "Inställningar och indikatorer",
   "howToPlayShadow": "En grön skugga under dragning betyder att en ledig plats hittats och att du kan släppa biten. En röd skugga betyder konflikt med andra bitar eller brädets gränser.",

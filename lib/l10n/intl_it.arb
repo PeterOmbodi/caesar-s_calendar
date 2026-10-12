@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Ripristina",
   "howToPlayResetDescription": "Riporta il puzzle allo stato iniziale.",
   "howToPlayResetTitle": "Reimposta",
-  "howToPlaySettingsPanelDescription": "Cambia tema, blocca/sblocca la configurazione, attiva sovrapposizione e aggancio alla griglia, evidenzia i pezzi durante i suggerimenti, mostra risolvibilità, numero di soluzioni possibili e tempo di risoluzione.",
+  "howToPlaySettingsPanelDescription": "Cambia tema, attiva sovrapposizione e aggancio alla griglia, evidenzia i pezzi durante i suggerimenti, mostra risolvibilità, numero di soluzioni possibili e tempo di risoluzione.",
   "howToPlaySettingsPanelTitle": "Pannello impostazioni",
   "howToPlaySettingsTitle": "Impostazioni e indicatori",
   "howToPlayShadow": "Un'ombra verde durante il trascinamento significa che è stato trovato uno spazio libero per il pezzo e puoi rilasciarlo. Un'ombra rossa indica un conflitto con altri pezzi o con i limiti del tabellone.",

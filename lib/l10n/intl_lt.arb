@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Pakartoti",
   "howToPlayResetDescription": "Grąžina galvosūkį į pradinę būseną.",
   "howToPlayResetTitle": "Atstatyti",
-  "howToPlaySettingsPanelDescription": "Keisk temą, užrakink/atrakink konfigūraciją, įjunk persidengimo prevenciją ir pritraukimą prie tinklelio, paryškinimą rodant užuominą, rodyk išsprendžiamumą, galimų sprendimų skaičių ir sprendimo laiką.",
+  "howToPlaySettingsPanelDescription": "Keisk temą, įjunk persidengimo prevenciją ir pritraukimą prie tinklelio, paryškinimą rodant užuominą, rodyk išsprendžiamumą, galimų sprendimų skaičių ir sprendimo laiką.",
   "howToPlaySettingsPanelTitle": "Nustatymų skydelis",
   "howToPlaySettingsTitle": "Nustatymai ir indikatoriai",
   "howToPlayShadow": "Žalias šešėlis tempimo metu reiškia, kad rasta laisva vieta. Raudonas šešėlis reiškia konfliktą su kitomis detalėmis arba lentos ribomis.",

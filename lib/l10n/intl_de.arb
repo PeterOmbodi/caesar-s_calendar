@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Wiederholen",
   "howToPlayResetDescription": "Setzt das Puzzle in den Anfangszustand zurück.",
   "howToPlayResetTitle": "Zurücksetzen",
-  "howToPlaySettingsPanelDescription": "Wechsle das Design, sperre/entsperre die Konfiguration, aktiviere Überlappungsschutz und Einrasten am Raster, markiere Teile bei Hinweisen, zeige Lösbarkeit, die Anzahl möglicher Lösungen und die Lösungszeit an.",
+  "howToPlaySettingsPanelDescription": "Wechsle das Design, aktiviere Überlappungsschutz und Einrasten am Raster, markiere Teile bei Hinweisen, zeige Lösbarkeit, die Anzahl möglicher Lösungen und die Lösungszeit an.",
   "howToPlaySettingsPanelTitle": "Einstellungsbereich",
   "howToPlaySettingsTitle": "Einstellungen & Indikatoren",
   "howToPlayShadow": "Ein grüner Schatten beim Ziehen bedeutet, dass ein freier Platz gefunden wurde und du loslassen kannst. Ein roter Schatten bedeutet einen Konflikt mit anderen Teilen oder den Brettgrenzen.",

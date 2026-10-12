@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Refă",
   "howToPlayResetDescription": "Readuce puzzle-ul la starea inițială.",
   "howToPlayResetTitle": "Resetare",
-  "howToPlaySettingsPanelDescription": "Schimbă tema, blochează/deblochează configurația, activează suprapunerea și fixarea pe grilă, evidențiază piesele la indicii, afișează solvabilitatea, numărul de soluții posibile și timpul de rezolvare.",
+  "howToPlaySettingsPanelDescription": "Schimbă tema, activează suprapunerea și fixarea pe grilă, evidențiază piesele la indicii, afișează solvabilitatea, numărul de soluții posibile și timpul de rezolvare.",
   "howToPlaySettingsPanelTitle": "Panou de setări",
   "howToPlaySettingsTitle": "Setări și indicatori",
   "howToPlayShadow": "O umbră verde în timpul tragerii înseamnă că a fost găsit un loc liber pentru piesă și o poți elibera. O umbră roșie înseamnă conflict cu alte piese sau cu marginile tablei.",

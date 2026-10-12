@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Redo",
   "howToPlayResetDescription": "Returns the puzzle to its initial state.",
   "howToPlayResetTitle": "Reset",
-  "howToPlaySettingsPanelDescription": "Switch theme, lock/unlock the configuration, toggle overlapping and snapping, highlight pieces when a hint is shown, display solvability status, show the number of possible solutions, and track solving time.",
+  "howToPlaySettingsPanelDescription": "Switch theme, toggle overlapping and snapping, highlight pieces when a hint is shown, display solvability status, show the number of possible solutions, and track solving time.",
   "howToPlaySettingsPanelTitle": "Settings panel",
   "howToPlaySettingsTitle": "Settings & indicators",
   "howToPlayShadow": "A green shadow while dragging means a free spot was found for the piece and you can release it. A red shadow means there is a conflict with other pieces or board boundaries.",

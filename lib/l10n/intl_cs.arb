@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Znovu",
   "howToPlayResetDescription": "Vrátí hádanku do počátečního stavu.",
   "howToPlayResetTitle": "Resetovať",
-  "howToPlaySettingsPanelDescription": "Přepínejte motiv, zamykejte/odemykejte konfiguraci, zapněte překrývání a přichytávání k mřížce, zvýraznění dílků při nápovědě, zobrazujte řešitelnost, počet možných řešení a čas řešení.",
+  "howToPlaySettingsPanelDescription": "Přepínejte motiv, zapněte překrývání a přichytávání k mřížce, zvýraznění dílků při nápovědě, zobrazujte řešitelnost, počet možných řešení a čas řešení.",
   "howToPlaySettingsPanelTitle": "Panel nastavení",
   "howToPlaySettingsTitle": "Nastavení a indikátory",
   "howToPlayShadow": "Zelený stín při přetahování znamená, že bylo nalezeno volné místo a dílek můžete pustit. Červený stín znamená konflikt s jinými dílky nebo hranicemi plochy.",

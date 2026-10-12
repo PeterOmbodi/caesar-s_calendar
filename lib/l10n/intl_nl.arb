@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Opnieuw",
   "howToPlayResetDescription": "Zet de puzzel terug naar de beginstatus.",
   "howToPlayResetTitle": "Opnieuw instellen",
-  "howToPlaySettingsPanelDescription": "Wissel thema, vergrendel/ontgrendel de configuratie, schakel overlap en raster-snapping in, markeer stukken bij hints, toon oplosbaarheid, aantal mogelijke oplossingen en oplostijd.",
+  "howToPlaySettingsPanelDescription": "Wissel thema, schakel overlap en raster-snapping in, markeer stukken bij hints, toon oplosbaarheid, aantal mogelijke oplossingen en oplostijd.",
   "howToPlaySettingsPanelTitle": "Instellingenpaneel",
   "howToPlaySettingsTitle": "Instellingen en indicatoren",
   "howToPlayShadow": "Een groene schaduw tijdens slepen betekent dat er een vrije plek is gevonden en je kunt loslaten. Een rode schaduw betekent een conflict met andere stukken of bordgrenzen.",

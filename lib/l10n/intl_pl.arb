@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Ponów",
   "howToPlayResetDescription": "Przywraca łamigłówkę do stanu początkowego.",
   "howToPlayResetTitle": "Resetuj",
-  "howToPlaySettingsPanelDescription": "Zmieniaj motyw, blokuj/odblokowuj konfigurację, włączaj zapobieganie nakładaniu i przyciąganie do siatki, podświetlanie elementów przy podpowiedzi, pokazuj rozwiązywalność, liczbę możliwych rozwiązań oraz czas rozwiązywania.",
+  "howToPlaySettingsPanelDescription": "Zmieniaj motyw, włączaj zapobieganie nakładaniu i przyciąganie do siatki, podświetlanie elementów przy podpowiedzi, pokazuj rozwiązywalność, liczbę możliwych rozwiązań oraz czas rozwiązywania.",
   "howToPlaySettingsPanelTitle": "Panel ustawień",
   "howToPlaySettingsTitle": "Ustawienia i wskaźniki",
   "howToPlayShadow": "Zielony cień podczas przeciągania oznacza, że znaleziono wolne miejsce i możesz puścić element. Czerwony cień oznacza konflikt z innymi elementami lub granicami planszy.",

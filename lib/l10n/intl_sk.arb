@@ -117,7 +117,7 @@
   "howToPlayRedoTitle": "Znova",
   "howToPlayResetDescription": "Vráti skladačku do počiatočného stavu.",
   "howToPlayResetTitle": "Resetovať",
-  "howToPlaySettingsPanelDescription": "Zmeň tému, zamkni/odomkni konfiguráciu, zapni zabránenie prekrývania a prichytávanie k mriežke, zvýraznenie dielov pri nápovede, zobraz riešiteľnosť, počet možných riešení a čas riešenia.",
+  "howToPlaySettingsPanelDescription": "Zmeň tému, zapni zabránenie prekrývania a prichytávanie k mriežke, zvýraznenie dielov pri nápovede, zobraz riešiteľnosť, počet možných riešení a čas riešenia.",
   "howToPlaySettingsPanelTitle": "Panel nastavení",
   "howToPlaySettingsTitle": "Nastavenia a indikátory",
   "howToPlayShadow": "Zelený tieň pri ťahaní znamená, že bolo nájdené voľné miesto a môžeš diel pustiť. Červený tieň znamená konflikt s inými dielmi alebo hranicami plochy.",
