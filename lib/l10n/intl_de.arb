@@ -37,6 +37,8 @@
   "achievementsFastest": "Schnellste Lösung",
   "achievementsHard": "Auf „Schwer“ gelöst",
   "achievementsPlayingSince": "Spielt seit {date}",
+  "achievementsShare": "Teilen",
+  "achievementsShareText": "Mein Fortschritt in {app}",
   "achievementsSolutions": "Gefundene Lösungen",
   "achievementsTitle": "Meine Erfolge",
   "additional": "Zusätzlich",

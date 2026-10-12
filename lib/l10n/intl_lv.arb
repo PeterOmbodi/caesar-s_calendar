@@ -37,6 +37,8 @@
   "achievementsFastest": "Ātrākais risinājums",
   "achievementsHard": "Atrisināts līmenī “Grūta”",
   "achievementsPlayingSince": "Spēlē kopš {date}",
+  "achievementsShare": "Kopīgot",
+  "achievementsShareText": "Mans progress: {app}",
   "achievementsSolutions": "Atrastie risinājumi",
   "achievementsTitle": "Mani sasniegumi",
   "additional": "Papildus",

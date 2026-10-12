@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:caesar_puzzle/application/models/achievement_stats.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
@@ -10,10 +11,13 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visu
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
+import 'package:cross_file/cross_file.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:share_plus/share_plus.dart';
 
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
@@ -26,6 +30,31 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   static const double _maxContentWidth = 600;
 
   late final Stream<AchievementStats> _stats = getIt<PuzzleHistoryUseCase>().watchAchievements();
+  final _cardKey = GlobalKey();
+
+  Future<void> _share(final BuildContext buttonContext) async {
+    final boundary = _cardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+    final button = buttonContext.findRenderObject() as RenderBox?;
+    // iPad shows the share sheet as a popover from this button.
+    final origin = button == null ? null : button.localToGlobal(Offset.zero) & button.size;
+    if (boundary == null) {
+      return;
+    }
+    final image = await boundary.toImage(pixelRatio: MediaQuery.devicePixelRatioOf(context));
+    final png = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    if (png == null) {
+      return;
+    }
+    await SharePlus.instance.share(
+      ShareParams(
+        text: S.current.achievementsShareText(S.current.appTitle),
+        files: [XFile.fromData(png.buffer.asUint8List(), mimeType: 'image/png')],
+        fileNameOverrides: const ['achievements.png'],
+        sharePositionOrigin: origin,
+      ),
+    );
+  }
 
   @override
   Widget build(final BuildContext context) {
@@ -42,6 +71,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             slivers: [
               CupertinoSliverNavigationBar(
                 largeTitle: Text(S.current.achievementsTitle),
+                trailing: stats == null || stats.solvedDates.isEmpty
+                    ? null
+                    : Builder(
+                        builder: (final buttonContext) => CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () => _share(buttonContext),
+                          child: Icon(Icons.ios_share, semanticLabel: S.current.achievementsShare),
+                        ),
+                      ),
                 backgroundColor: colors.background,
                 border: null,
                 transitionBetweenRoutes: false,
@@ -52,14 +90,33 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 SliverSafeArea(
                   top: false,
                   sliver: SliverPadding(
-                    padding: EdgeInsets.fromLTRB(sidePadding, 8, sidePadding, 24),
-                    sliver: SliverList.list(
-                      children: [
-                        _Header(stats: stats),
-                        _CalendarCard(stats: stats),
-                        const SizedBox(height: 16),
-                        _Tiles(stats: stats),
-                      ],
+                    padding: EdgeInsets.fromLTRB(sidePadding - 16, 0, sidePadding - 16, 8),
+                    sliver: SliverToBoxAdapter(
+                      // Captured for sharing, hence its own background.
+                      child: RepaintBoundary(
+                        key: _cardKey,
+                        child: ColoredBox(
+                          color: colors.background,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _Header(stats: stats),
+                                _CalendarCard(stats: stats),
+                                const SizedBox(height: 16),
+                                _Tiles(stats: stats),
+                                const SizedBox(height: 16),
+                                Text(
+                                  S.current.appTitle,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 13, color: colors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),

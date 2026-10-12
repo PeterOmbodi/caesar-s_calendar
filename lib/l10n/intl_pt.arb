@@ -37,6 +37,8 @@
   "achievementsFastest": "Resolução mais rápida",
   "achievementsHard": "Resolvidos em «Difícil»",
   "achievementsPlayingSince": "A jogar desde {date}",
+  "achievementsShare": "Partilhar",
+  "achievementsShareText": "O meu progresso em {app}",
   "achievementsSolutions": "Soluções encontradas",
   "achievementsTitle": "As minhas conquistas",
   "additional": "Adicional",

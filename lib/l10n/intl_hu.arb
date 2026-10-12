@@ -37,6 +37,8 @@
   "achievementsFastest": "Leggyorsabb megoldás",
   "achievementsHard": "„Nehéz” szinten megoldva",
   "achievementsPlayingSince": "Játszik {date} óta",
+  "achievementsShare": "Megosztás",
+  "achievementsShareText": "Az eredményeim: {app}",
   "achievementsSolutions": "Talált megoldások",
   "achievementsTitle": "Eredményeim",
   "additional": "További",

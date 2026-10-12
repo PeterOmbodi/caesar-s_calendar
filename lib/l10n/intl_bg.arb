@@ -37,6 +37,8 @@
   "achievementsFastest": "Най-бързо решение",
   "achievementsHard": "Решени на „Трудна“",
   "achievementsPlayingSince": "Играе от {date}",
+  "achievementsShare": "Сподели",
+  "achievementsShareText": "Моят напредък в {app}",
   "achievementsSolutions": "Намерени решения",
   "achievementsTitle": "Моите постижения",
   "additional": "Допълнително",

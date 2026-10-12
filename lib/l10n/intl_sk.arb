@@ -37,6 +37,8 @@
   "achievementsFastest": "Najrýchlejšie riešenie",
   "achievementsHard": "Vyriešené na „Ťažká“",
   "achievementsPlayingSince": "Hrá od {date}",
+  "achievementsShare": "Zdieľať",
+  "achievementsShareText": "Môj postup v {app}",
   "achievementsSolutions": "Nájdené riešenia",
   "achievementsTitle": "Moje úspechy",
   "additional": "Dodatočné",

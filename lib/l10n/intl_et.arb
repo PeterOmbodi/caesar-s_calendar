@@ -37,6 +37,8 @@
   "achievementsFastest": "Kiireim lahendus",
   "achievementsHard": "Lahendatud tasemel „Raske“",
   "achievementsPlayingSince": "Mängib alates {date}",
+  "achievementsShare": "Jaga",
+  "achievementsShareText": "Minu edenemine: {app}",
   "achievementsSolutions": "Leitud lahendused",
   "achievementsTitle": "Minu saavutused",
   "additional": "Lisad",

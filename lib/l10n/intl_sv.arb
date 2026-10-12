@@ -37,6 +37,8 @@
   "achievementsFastest": "Snabbaste lösning",
   "achievementsHard": "Lösta på ”Svår”",
   "achievementsPlayingSince": "Spelar sedan {date}",
+  "achievementsShare": "Dela",
+  "achievementsShareText": "Mina framsteg i {app}",
   "achievementsSolutions": "Hittade lösningar",
   "achievementsTitle": "Mina prestationer",
   "additional": "Ytterligare",

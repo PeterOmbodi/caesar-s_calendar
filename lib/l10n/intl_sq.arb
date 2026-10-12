@@ -37,6 +37,8 @@
   "achievementsFastest": "Zgjidhja më e shpejtë",
   "achievementsHard": "Zgjidhur në „E vështirë“",
   "achievementsPlayingSince": "Luan që nga {date}",
+  "achievementsShare": "Ndaj",
+  "achievementsShareText": "Përparimi im në {app}",
   "achievementsSolutions": "Zgjidhje të gjetura",
   "achievementsTitle": "Arritjet e mia",
   "additional": "Shtesë",

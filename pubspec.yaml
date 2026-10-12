@@ -28,6 +28,8 @@ dependencies:
   flutter_platform_widgets: ^10.0.1
   shared_preferences: ^2.5.5
   url_launcher: ^6.3.2
+  share_plus: ^13.3.1
+  cross_file: ^0.3.4
   flutter_native_splash: ^2.4.8
   confetti: ^0.8.0
   liquid_glass_widgets: ^1.11.1

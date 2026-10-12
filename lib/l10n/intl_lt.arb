@@ -37,6 +37,8 @@
   "achievementsFastest": "Greičiausias sprendimas",
   "achievementsHard": "Išspręsta lygiu „Sunki“",
   "achievementsPlayingSince": "Žaidžia nuo {date}",
+  "achievementsShare": "Bendrinti",
+  "achievementsShareText": "Mano pažanga: {app}",
   "achievementsSolutions": "Rasti sprendimai",
   "achievementsTitle": "Mano pasiekimai",
   "additional": "Papildoma",

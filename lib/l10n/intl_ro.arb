@@ -37,6 +37,8 @@
   "achievementsFastest": "Cea mai rapidă rezolvare",
   "achievementsHard": "Rezolvate la „Greu”",
   "achievementsPlayingSince": "Joacă din {date}",
+  "achievementsShare": "Distribuie",
+  "achievementsShareText": "Progresul meu în {app}",
   "achievementsSolutions": "Soluții găsite",
   "achievementsTitle": "Realizările mele",
   "additional": "Suplimentar",

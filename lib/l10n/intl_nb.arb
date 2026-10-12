@@ -37,6 +37,8 @@
   "achievementsFastest": "Raskeste løsning",
   "achievementsHard": "Løst på «Vanskelig»",
   "achievementsPlayingSince": "Spiller siden {date}",
+  "achievementsShare": "Del",
+  "achievementsShareText": "Min fremgang i {app}",
   "achievementsSolutions": "Funnede løsninger",
   "achievementsTitle": "Mine prestasjoner",
   "additional": "Ekstra",

@@ -37,6 +37,8 @@
   "achievementsFastest": "Fastest solve",
   "achievementsHard": "Solved on Hard",
   "achievementsPlayingSince": "Playing since {date}",
+  "achievementsShare": "Share",
+  "achievementsShareText": "My progress in {app}",
   "achievementsSolutions": "Solutions found",
   "achievementsTitle": "My achievements",
   "additional": "Additional",

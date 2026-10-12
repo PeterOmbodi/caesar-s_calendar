@@ -37,6 +37,8 @@
   "achievementsFastest": "Hraðasta lausn",
   "achievementsHard": "Leyst á „Erfitt“",
   "achievementsPlayingSince": "Hefur spilað síðan {date}",
+  "achievementsShare": "Deila",
+  "achievementsShareText": "Framvinda mín í {app}",
   "achievementsSolutions": "Fundnar lausnir",
   "achievementsTitle": "Mín afrek",
   "additional": "Viðbót",

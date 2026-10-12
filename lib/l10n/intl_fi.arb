@@ -37,6 +37,8 @@
   "achievementsFastest": "Nopein ratkaisu",
   "achievementsHard": "Ratkaistu tasolla ”Vaikea”",
   "achievementsPlayingSince": "Pelannut {date} alkaen",
+  "achievementsShare": "Jaa",
+  "achievementsShareText": "Edistymiseni: {app}",
   "achievementsSolutions": "Löydetyt ratkaisut",
   "achievementsTitle": "Saavutukseni",
   "additional": "Lisä",

@@ -37,6 +37,8 @@
   "achievementsFastest": "Najhitrejša rešitev",
   "achievementsHard": "Rešeno na »Težka«",
   "achievementsPlayingSince": "Igra od {date}",
+  "achievementsShare": "Deli",
+  "achievementsShareText": "Moj napredek v {app}",
   "achievementsSolutions": "Najdene rešitve",
   "achievementsTitle": "Moji dosežki",
   "additional": "Dodatno",

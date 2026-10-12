@@ -37,6 +37,8 @@
   "achievementsFastest": "Snelste oplossing",
   "achievementsHard": "Opgelost op ‘Moeilijk’",
   "achievementsPlayingSince": "Speelt sinds {date}",
+  "achievementsShare": "Delen",
+  "achievementsShareText": "Mijn voortgang in {app}",
   "achievementsSolutions": "Gevonden oplossingen",
   "achievementsTitle": "Mijn prestaties",
   "additional": "Extra",
