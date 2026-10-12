@@ -2,7 +2,6 @@ import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_flip_flap/flutter_flip_flap.dart';
 
 class AppThemeData {
   static final ThemeData light = ThemeData(
@@ -20,15 +19,6 @@ class AppThemeData {
     extensions: [
       GameColors.light,
       ChromeTheme.glass,
-      FlipFlapTheme(
-        unitDecoration: BoxDecoration(
-          color: AppColors.light.boardBorder,
-          border: Border.fromBorderSide(BorderSide(color: AppColors.light.boardBackground, width: 0.5)),
-          borderRadius: BorderRadius.all(Radius.circular(4)),
-        ),
-        displayDecoration: const BoxDecoration(color: Colors.transparent),
-        textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: AppColors.light.cellLabel),
-      ),
     ],
   );
 
@@ -47,15 +37,6 @@ class AppThemeData {
     extensions: [
       GameColors.dark,
       ChromeTheme.glass,
-      FlipFlapTheme(
-        unitDecoration: BoxDecoration(
-          color: AppColors.dark.boardBorder,
-          border: Border.fromBorderSide(BorderSide(color: AppColors.dark.boardBackground, width: 0.5)),
-          borderRadius: BorderRadius.all(Radius.circular(4)),
-        ),
-        displayDecoration: const BoxDecoration(color: Colors.transparent),
-        textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: AppColors.dark.cellLabel),
-      ),
     ],
   );
 }

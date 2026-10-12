@@ -18,10 +18,6 @@ abstract class ThemeColors {
 
   Color get gridBorder;
 
-  Color get boardBackground;
-
-  Color get boardBorder;
-
   Color get boardLabelText;
 
   Color get previewOutline;
@@ -33,8 +29,6 @@ abstract class ThemeColors {
   Color get previewFillCollision;
 
   Color get todayLabel;
-
-  Color get cellLabel;
 
   Color get customConfigAccent;
 }
@@ -80,12 +74,6 @@ class Light implements ThemeColors {
   Color get gridBorder => game.boardBorder;
 
   @override
-  Color get boardBackground => game.board;
-
-  @override
-  Color get boardBorder => game.boardBorder;
-
-  @override
   Color get boardLabelText => game.textSecondary;
 
   @override
@@ -102,9 +90,6 @@ class Light implements ThemeColors {
 
   @override
   Color get todayLabel => game.accent;
-
-  @override
-  Color get cellLabel => game.cellLabel;
 
   @override
   Color get customConfigAccent => game.customConfig;
@@ -138,12 +123,6 @@ class Dark implements ThemeColors {
   Color get gridBorder => game.boardBorder;
 
   @override
-  Color get boardBackground => game.board;
-
-  @override
-  Color get boardBorder => game.boardBorder;
-
-  @override
   Color get boardLabelText => game.textSecondary;
 
   @override
@@ -160,9 +139,6 @@ class Dark implements ThemeColors {
 
   @override
   Color get todayLabel => game.accent;
-
-  @override
-  Color get cellLabel => game.cellLabel;
 
   @override
   Color get customConfigAccent => game.customConfig;
