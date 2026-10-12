@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Nivel",
   "solvedAlertSubTitle": "Ai finalizat puzzle-ul!",
   "solvedAlertTitle": "Felicitări! 🎉",
+  "soundsSubtitle": "Clic discret când o piesă se fixează, se rotește sau puzzle-ul este rezolvat",
+  "soundsTitle": "Sunete",
   "statusDeadEnd": "Fundătură · anulează o mutare",
   "statusDoesNotFit": "Nu încape aici",
   "statusDoubleTapToPlace": "Atinge de două ori pentru a plasa",

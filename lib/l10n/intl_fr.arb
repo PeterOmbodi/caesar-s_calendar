@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Niveau",
   "solvedAlertSubTitle": "Vous avez terminé le puzzle !",
   "solvedAlertTitle": "Bravo ! 🎉",
+  "soundsSubtitle": "Léger clic quand une pièce s’emboîte, pivote ou que le puzzle est résolu",
+  "soundsTitle": "Sons",
   "statusDeadEnd": "Impasse · annulez un coup",
   "statusDoesNotFit": "Ne rentre pas ici",
   "statusDoubleTapToPlace": "Double appui pour placer",

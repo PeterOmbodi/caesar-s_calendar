@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Stufe",
   "solvedAlertSubTitle": "Du hast das Puzzle gelöst!",
   "solvedAlertTitle": "Glückwunsch! 🎉",
+  "soundsSubtitle": "Leises Klicken, wenn ein Teil einrastet, sich dreht oder das Rätsel gelöst ist",
+  "soundsTitle": "Töne",
   "statusDeadEnd": "Sackgasse · Zug rückgängig machen",
   "statusDoesNotFit": "Passt hier nicht",
   "statusDoubleTapToPlace": "Doppeltippen zum Ablegen",

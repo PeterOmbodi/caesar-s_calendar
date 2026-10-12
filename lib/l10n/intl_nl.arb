@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Niveau",
   "solvedAlertSubTitle": "Je hebt de puzzel voltooid!",
   "solvedAlertTitle": "Gefeliciteerd! 🎉",
+  "soundsSubtitle": "Zachte klik als een stuk vastklikt, draait of de puzzel is opgelost",
+  "soundsTitle": "Geluiden",
   "statusDeadEnd": "Doodlopend · maak een zet ongedaan",
   "statusDoesNotFit": "Past hier niet",
   "statusDoubleTapToPlace": "Dubbeltik om te plaatsen",

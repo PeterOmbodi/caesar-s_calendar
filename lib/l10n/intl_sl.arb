@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Raven",
   "solvedAlertSubTitle": "Uspešno si dokončal uganko!",
   "solvedAlertTitle": "Čestitke! 🎉",
+  "soundsSubtitle": "Tih klik, ko se del zaskoči, obrne ali je uganka rešena",
+  "soundsTitle": "Zvoki",
   "statusDeadEnd": "Slepa ulica · razveljavi potezo",
   "statusDoesNotFit": "Tu ne gre",
   "statusDoubleTapToPlace": "Dvakrat tapni za postavitev",

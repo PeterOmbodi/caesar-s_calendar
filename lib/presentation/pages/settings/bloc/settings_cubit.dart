@@ -27,6 +27,7 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
   void setSolutionIndicator(final SolutionIndicator? v) => emit(state.copyWith(solutionIndicator: v ?? SolutionIndicator.none));
   void toggleShowTimer(final bool v) => emit(state.copyWith(showTimer: v));
   void toggleHaptics(final bool v) => emit(state.copyWith(haptics: v));
+  void toggleSounds(final bool v) => emit(state.copyWith(sounds: v));
   void markOnboardingOffered(final int version) => emit(state.copyWith(offeredOnboardingVersion: version));
   void completeOnboarding(final int version) => emit(
     state.copyWith(

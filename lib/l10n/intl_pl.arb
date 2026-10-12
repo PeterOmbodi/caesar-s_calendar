@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Poziom",
   "solvedAlertSubTitle": "Udało Ci się rozwiązać łamigłówkę!",
   "solvedAlertTitle": "Gratulacje! 🎉",
+  "soundsSubtitle": "Ciche kliknięcie, gdy klocek wskoczy na miejsce, obróci się lub łamigłówka zostanie rozwiązana",
+  "soundsTitle": "Dźwięki",
   "statusDeadEnd": "Ślepy zaułek · cofnij ruch",
   "statusDoesNotFit": "Tu się nie zmieści",
   "statusDoubleTapToPlace": "Stuknij dwukrotnie, aby położyć",

@@ -96,6 +96,12 @@ class CupertinoSettingsPanel extends StatelessWidget {
                               value: state.haptics,
                               onChanged: cubit.toggleHaptics,
                             ),
+                          _SwitchRow(
+                            title: S.current.soundsTitle,
+                            subtitle: S.current.soundsSubtitle,
+                            value: state.sounds,
+                            onChanged: cubit.toggleSounds,
+                          ),
                         ],
                       ),
                     ),

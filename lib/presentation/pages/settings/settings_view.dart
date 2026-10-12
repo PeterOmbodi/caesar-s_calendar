@@ -145,6 +145,15 @@ class _MaterialSettings extends StatelessWidget {
                         ),
                       ),
               ),
+              BlocBuilder<SettingsCubit, SettingsState>(
+                buildWhen: (final p, final n) => p.sounds != n.sounds,
+                builder: (final context, final state) => SwitchListTile(
+                  title: Text(S.current.soundsTitle),
+                  subtitle: Text(S.current.soundsSubtitle),
+                  value: state.sounds,
+                  onChanged: cubit.toggleSounds,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(S.current.general, style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),

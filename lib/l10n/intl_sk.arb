@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Úroveň",
   "solvedAlertSubTitle": "Skladačku si dokončil!",
   "solvedAlertTitle": "Gratulujeme! 🎉",
+  "soundsSubtitle": "Tiché cvaknutie, keď dielik zapadne, otočí sa alebo je hádanka vyriešená",
+  "soundsTitle": "Zvuky",
   "statusDeadEnd": "Slepá ulička · vráť ťah",
   "statusDoesNotFit": "Sem sa nezmestí",
   "statusDoubleTapToPlace": "Dvojitým ťuknutím umiestniš",

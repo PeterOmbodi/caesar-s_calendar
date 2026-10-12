@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Taso",
   "solvedAlertSubTitle": "Ratkaisit pulman!",
   "solvedAlertTitle": "Onneksi olkoon! 🎉",
+  "soundsSubtitle": "Pehmeä naksahdus, kun pala napsahtaa paikalleen, kääntyy tai pulma ratkeaa",
+  "soundsTitle": "Äänet",
   "statusDeadEnd": "Umpikuja · peru siirto",
   "statusDoesNotFit": "Ei mahdu tähän",
   "statusDoubleTapToPlace": "Aseta kaksoisnapautuksella",

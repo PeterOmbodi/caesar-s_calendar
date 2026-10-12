@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Nível",
   "solvedAlertSubTitle": "Você concluiu o puzzle!",
   "solvedAlertTitle": "Parabéns! 🎉",
+  "soundsSubtitle": "Clique suave quando uma peça encaixa, roda ou o puzzle é resolvido",
+  "soundsTitle": "Sons",
   "statusDeadEnd": "Beco sem saída · anule uma jogada",
   "statusDoesNotFit": "Não cabe aqui",
   "statusDoubleTapToPlace": "Toque duas vezes para colocar",

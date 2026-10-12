@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Ниво",
   "solvedAlertSubTitle": "Завърши пъзела!",
   "solvedAlertTitle": "Поздравления! 🎉",
+  "soundsSubtitle": "Тихо щракване, когато фигура застане на място, се завърти или пъзелът е решен",
+  "soundsTitle": "Звуци",
   "statusDeadEnd": "Задънена улица · върни ход",
   "statusDoesNotFit": "Не се побира тук",
   "statusDoubleTapToPlace": "Докосни два пъти, за да поставиш",

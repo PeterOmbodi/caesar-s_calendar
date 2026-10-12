@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Razina",
   "solvedAlertSubTitle": "Uspješno si riješio zagonetku!",
   "solvedAlertTitle": "Čestitamo! 🎉",
+  "soundsSubtitle": "Tihi klik kad dio sjedne na mjesto, okrene se ili je zagonetka riješena",
+  "soundsTitle": "Zvukovi",
   "statusDeadEnd": "Slijepa ulica · poništi potez",
   "statusDoesNotFit": "Ne stane ovdje",
   "statusDoubleTapToPlace": "Dvaput dodirni za postavljanje",

@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Nivå",
   "solvedAlertSubTitle": "Du løste puslespillet!",
   "solvedAlertTitle": "Gratulerer! 🎉",
+  "soundsSubtitle": "Et lett klikk når en brikke faller på plass, snus eller puslespillet er løst",
+  "soundsTitle": "Lyder",
   "statusDeadEnd": "Blindvei · angre et trekk",
   "statusDoesNotFit": "Passer ikke her",
   "statusDoubleTapToPlace": "Dobbelttrykk for å plassere",

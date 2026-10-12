@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Tase",
   "solvedAlertSubTitle": "Sa lahendasid pusle!",
   "solvedAlertTitle": "Palju õnne! 🎉",
+  "soundsSubtitle": "Vaikne klõps, kui nupp paika läheb, pöörab või mõistatus on lahendatud",
+  "soundsTitle": "Helid",
   "statusDeadEnd": "Tupik · võta käik tagasi",
   "statusDoesNotFit": "Siia ei mahu",
   "statusDoubleTapToPlace": "Paigutamiseks topeltpuuduta",

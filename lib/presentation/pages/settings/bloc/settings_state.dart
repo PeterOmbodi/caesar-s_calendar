@@ -13,6 +13,7 @@ abstract class SettingsState with _$SettingsState {
     @Default(SolutionIndicator.none) final SolutionIndicator solutionIndicator,
     @Default(true) final bool showTimer,
     @Default(true) final bool haptics,
+    @Default(true) final bool sounds,
     @Default(0) final int completedOnboardingVersion,
     @Default(0) final int offeredOnboardingVersion,
   }) = _SettingsState;

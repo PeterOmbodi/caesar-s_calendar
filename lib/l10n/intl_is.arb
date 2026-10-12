@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Stig",
   "solvedAlertSubTitle": "Þú leystir púsl!",
   "solvedAlertTitle": "Til hamingju! 🎉",
+  "soundsSubtitle": "Lágur smellur þegar kubbur fer á sinn stað, snýst eða þrautin er leyst",
+  "soundsTitle": "Hljóð",
   "statusDeadEnd": "Blindgata · afturkallaðu leik",
   "statusDoesNotFit": "Passar ekki hér",
   "statusDoubleTapToPlace": "Tvítappaðu til að leggja",

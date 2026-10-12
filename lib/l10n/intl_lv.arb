@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Līmenis",
   "solvedAlertSubTitle": "Tu atrisināji mīklu!",
   "solvedAlertTitle": "Apsveicam! 🎉",
+  "soundsSubtitle": "Kluss klikšķis, kad figūra nostājas vietā, pagriežas vai mīkla ir atrisināta",
+  "soundsTitle": "Skaņas",
   "statusDeadEnd": "Strupceļš · atsauc gājienu",
   "statusDoesNotFit": "Šeit neietilpst",
   "statusDoubleTapToPlace": "Pieskaries divreiz, lai novietotu",

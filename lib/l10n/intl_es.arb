@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Nivel",
   "solvedAlertSubTitle": "¡Completaste el puzzle!",
   "solvedAlertTitle": "¡Felicidades! 🎉",
+  "soundsSubtitle": "Clic suave al encajar o girar una pieza y al resolver el puzle",
+  "soundsTitle": "Sonidos",
   "statusDeadEnd": "Callejón sin salida · deshaz un movimiento",
   "statusDoesNotFit": "No cabe aquí",
   "statusDoubleTapToPlace": "Toca dos veces para colocar",

@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Nivå",
   "solvedAlertSubTitle": "Du klarade pusslet!",
   "solvedAlertTitle": "Grattis! 🎉",
+  "soundsSubtitle": "Ett lätt klick när en bit snäpper fast, vrids eller pusslet är löst",
+  "soundsTitle": "Ljud",
   "statusDeadEnd": "Återvändsgränd · ångra ett drag",
   "statusDoesNotFit": "Passar inte här",
   "statusDoubleTapToPlace": "Dubbeltryck för att placera",

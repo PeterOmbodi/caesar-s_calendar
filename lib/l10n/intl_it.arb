@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Livello",
   "solvedAlertSubTitle": "Hai completato il puzzle!",
   "solvedAlertTitle": "Complimenti! 🎉",
+  "soundsSubtitle": "Clic leggero quando un pezzo si aggancia, ruota o il puzzle è risolto",
+  "soundsTitle": "Suoni",
   "statusDeadEnd": "Vicolo cieco · annulla una mossa",
   "statusDoesNotFit": "Non entra qui",
   "statusDoubleTapToPlace": "Tocca due volte per piazzare",

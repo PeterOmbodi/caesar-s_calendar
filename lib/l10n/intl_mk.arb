@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Ниво",
   "solvedAlertSubTitle": "Ја заврши загатката!",
   "solvedAlertTitle": "Честитки! 🎉",
+  "soundsSubtitle": "Тивок клик кога фигурата ќе легне на место, ќе се сврти или загатката е решена",
+  "soundsTitle": "Звуци",
   "statusDeadEnd": "Ќорсокак · врати потег",
   "statusDoesNotFit": "Не собира тука",
   "statusDoubleTapToPlace": "Тапни двапати за да поставиш",

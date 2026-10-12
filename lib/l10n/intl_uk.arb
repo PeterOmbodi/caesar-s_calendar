@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Рівень",
   "solvedAlertSubTitle": "Цей пазл зібрано!",
   "solvedAlertTitle": "Вітаю! 🎉",
+  "soundsSubtitle": "Тихе клацання, коли фігура стає на місце, обертається або головоломку розв’язано",
+  "soundsTitle": "Звуки",
   "statusDeadEnd": "Глухий кут · скасуй хід",
   "statusDoesNotFit": "Сюди не влазить",
   "statusDoubleTapToPlace": "Двічі тапни, щоб поставити",

@@ -27,3 +27,5 @@ Future<void> playHaptic(final PuzzleHaptic haptic) => switch (haptic) {
   PuzzleHaptic.piecePlaced || PuzzleHaptic.pieceTurned => HapticFeedback.lightImpact(),
   PuzzleHaptic.solved => HapticFeedback.heavyImpact(),
 };
+
+Future<void> playClick() => SystemSound.play(SystemSoundType.click);

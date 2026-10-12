@@ -65,7 +65,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   late final PuzzleBloc _puzzleBloc;
   late final OnboardingBloc _onboardingBloc;
   late final BoardLayoutsCubit _layoutsCubit;
-  late final StreamSubscription<PuzzleState> _hapticsSubscription;
+  late final StreamSubscription<PuzzleState> _feedbackSubscription;
   PuzzleLocalSnapshot? _preOnboardingSnapshot;
   PuzzleLocalSnapshot? _tutorialBaseSnapshot;
   String? _tutorialPShapeId;
@@ -91,11 +91,17 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     _layoutsCubit = BoardLayoutsCubit(getIt<BoardLayoutRepository>());
     final settings = context.read<SettingsCubit>();
     var previous = _puzzleBloc.state;
-    _hapticsSubscription = _puzzleBloc.stream.listen((final next) {
+    _feedbackSubscription = _puzzleBloc.stream.listen((final next) {
       final haptic = hapticFor(previous, next);
       previous = next;
-      if (haptic != null && settings.state.haptics) {
+      if (haptic == null) {
+        return;
+      }
+      if (settings.state.haptics) {
         playHaptic(haptic);
+      }
+      if (settings.state.sounds) {
+        playClick();
       }
     });
     _isInitialized = true;
@@ -114,7 +120,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     if (_isInitialized) {
       _puzzleBloc.close();
       _onboardingBloc.close();
-      _hapticsSubscription.cancel();
+      _feedbackSubscription.cancel();
       _layoutsCubit.close();
     }
     super.dispose();

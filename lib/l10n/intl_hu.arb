@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Szint",
   "solvedAlertSubTitle": "Sikeresen kiraktad a feladványt!",
   "solvedAlertTitle": "Gratulálunk! 🎉",
+  "soundsSubtitle": "Halk kattanás, ha egy elem a helyére kerül, elfordul, vagy kész a feladvány",
+  "soundsTitle": "Hangok",
   "statusDeadEnd": "Zsákutca · vonj vissza egy lépést",
   "statusDoesNotFit": "Ide nem fér",
   "statusDoubleTapToPlace": "Koppints duplán a lerakáshoz",

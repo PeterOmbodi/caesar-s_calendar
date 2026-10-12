@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Niveau",
   "solvedAlertSubTitle": "Du løste puslespillet!",
   "solvedAlertTitle": "Tillykke! 🎉",
+  "soundsSubtitle": "Et let klik, når en brik falder på plads, drejes, eller puslespillet er løst",
+  "soundsTitle": "Lyde",
   "statusDeadEnd": "Blindgyde · fortryd et træk",
   "statusDoesNotFit": "Passer ikke her",
   "statusDoubleTapToPlace": "Dobbelttryk for at placere",

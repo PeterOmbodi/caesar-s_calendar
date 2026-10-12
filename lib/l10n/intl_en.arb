@@ -251,6 +251,8 @@
   "solvedAlertLevelLabel": "Level",
   "solvedAlertSubTitle": "You completed the puzzle!",
   "solvedAlertTitle": "Congrats! 🎉",
+  "soundsSubtitle": "Soft click when a piece snaps, turns or the puzzle is solved",
+  "soundsTitle": "Sounds",
   "statusDeadEnd": "Dead end · undo a move",
   "statusDoesNotFit": "Doesn't fit here",
   "statusDoubleTapToPlace": "Double-tap to place",
