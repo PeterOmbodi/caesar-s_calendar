@@ -170,7 +170,7 @@
   "layoutsSwitchTitle": "Zmeniť rozloženie?",
   "light": "Svetlá",
   "lockConfig": "Uzamknúť konfiguráciu",
-  "menuShowAllSolutions": "Zobraziť všetky riešenia",
+  "menuShowAllSolutions": "Všetky riešenia",
   "menuStartOver": "Začať odznova",
   "nextSolution": "Ďalšie riešenie",
   "ok": "Potvrdiť",
@@ -278,7 +278,7 @@
   "toolbarHint": "Rada",
   "toolbarMore": "Viac",
   "toolbarNext": "Ďalšie",
-  "toolbarPrevious": "Predchádzajúce",
+  "toolbarPrevious": "Predošlé",
   "toolbarRotate": "Otočiť",
   "undo": "Späť"
 }

@@ -3,6 +3,7 @@ import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visuals.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
+import 'package:caesar_puzzle/presentation/services/keyboard_presence.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
@@ -352,42 +353,55 @@ class _LabeledRail extends StatelessWidget {
     final primary = actions.where((final a) => a.slot == ActionSlot.primary);
     final overflow = actions.where((final a) => a.slot == ActionSlot.overflow);
 
-    Widget row(final GameAction action) => _RailRow(
-      action: action,
-      shortcut: action.id.shortcutLabel(apple: apple),
-      onPressed: () => onInvoke(action),
-    );
-
-    return SizedBox(
-      width: GlassChrome.sideRailWidth,
-      child: GlassSurface(
-        borderRadius: const BorderRadius.all(Radius.circular(24)),
-        child: Material(
-          type: MaterialType.transparency,
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 2,
-              children: [
-                _RailHeader(_title),
-                for (final action in primary) row(action),
-                if (overflow.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    child: Divider(height: 1, thickness: 1, color: colors.gridLine),
-                  ),
-                  _RailHeader(S.current.railSectionPuzzle),
-                  for (final action in overflow) row(action),
-                ],
-              ],
-            ),
-          ),
+    return ValueListenableBuilder(
+      valueListenable: KeyboardPresence.instance.connected,
+      builder: (final context, final hasKeyboard, _) => _rail(
+        colors,
+        primary,
+        overflow,
+        (final action) => _RailRow(
+          action: action,
+          shortcut: hasKeyboard ? action.id.shortcutLabel(apple: apple) : null,
+          onPressed: () => onInvoke(action),
         ),
       ),
     );
   }
+
+  Widget _rail(
+    final GameColors colors,
+    final Iterable<GameAction> primary,
+    final Iterable<GameAction> overflow,
+    final Widget Function(GameAction action) row,
+  ) => SizedBox(
+    width: GlassChrome.sideRailWidth,
+    child: GlassSurface(
+      borderRadius: const BorderRadius.all(Radius.circular(24)),
+      child: Material(
+        type: MaterialType.transparency,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 2,
+            children: [
+              _RailHeader(_title),
+              for (final action in primary) row(action),
+              if (overflow.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: Divider(height: 1, thickness: 1, color: colors.gridLine),
+                ),
+                _RailHeader(S.current.railSectionPuzzle),
+                for (final action in overflow) row(action),
+              ],
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class _RailHeader extends StatelessWidget {

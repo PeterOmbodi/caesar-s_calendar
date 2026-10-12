@@ -170,7 +170,7 @@
   "layoutsSwitchTitle": "Van indeling wisselen?",
   "light": "Licht",
   "lockConfig": "Configuratie vergrendelen",
-  "menuShowAllSolutions": "Alle oplossingen tonen",
+  "menuShowAllSolutions": "Alle oplossingen",
   "menuStartOver": "Opnieuw beginnen",
   "nextSolution": "Volgende oplossing",
   "ok": "Akkoord",
@@ -230,7 +230,7 @@
   "railSectionSolutions": "Oplossingen",
   "railSolution": "Oplossing",
   "redo": "Opnieuw",
-  "reset": "Opnieuw instellen",
+  "reset": "Reset",
   "searchCompletedDialogTitle": "Zoeken voltooid",
   "searchSolution": "Oplossing zoeken",
   "settings": "Instellingen",
@@ -280,5 +280,5 @@
   "toolbarNext": "Volgende",
   "toolbarPrevious": "Vorige",
   "toolbarRotate": "Draaien",
-  "undo": "Ongedaan maken"
+  "undo": "Herstel"
 }
