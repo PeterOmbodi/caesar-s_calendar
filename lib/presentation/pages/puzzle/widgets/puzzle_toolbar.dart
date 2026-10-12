@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/application/models/board_layout.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/help/how_to_play_sheet.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
 import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_event.dart';
@@ -19,8 +20,6 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.da
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
-import 'package:caesar_puzzle/presentation/widgets/how_to_play_hint.dart';
-import 'package:caesar_puzzle/presentation/widgets/inset_cupertino_alert_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/one_time_info_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -73,38 +72,14 @@ class PuzzleToolbar extends StatelessWidget {
     await action();
   }
 
-  Future<void> _showHowToPlayDialog(final BuildContext context) async {
-    final viewWidth = MediaQuery.of(context).size.width;
-    final horizontalInset = viewWidth < 600 ? 12.0 : 40.0;
-
-    void replayOnboarding() {
+  Future<void> _showHowToPlay(final BuildContext context) => showHowToPlaySheet(
+    context,
+    onReplayOnboarding: () {
       Navigator.of(context, rootNavigator: true).pop();
       context.read<SettingsCubit>().markOnboardingOffered(currentOnboardingVersion);
       context.read<OnboardingBloc>().add(const StartOnboarding(OnboardingMode.short, isReplay: true));
-    }
-
-    await showPlatformDialog(
-      context: context,
-      material: MaterialDialogData(
-        builder: (final context) => PlatformAlertDialog(
-          material: (final context, final platform) =>
-              MaterialAlertDialogData(insetPadding: EdgeInsets.symmetric(horizontal: horizontalInset)),
-          title: Text(S.current.howToPlayTitle),
-          content: HowToPlayHint(onReplayOnboarding: replayOnboarding),
-          actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
-        ),
-      ),
-      cupertino: CupertinoDialogData(
-        builder: (final dialogContext) => InsetCupertinoAlertDialog(
-          insetPadding: EdgeInsets.symmetric(horizontal: horizontalInset, vertical: 24),
-          title: Text(S.current.howToPlayTitle),
-          content: HowToPlayHint(onReplayOnboarding: replayOnboarding),
-          actionLabel: S.current.ok,
-          onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
-        ),
-      ),
-    );
-  }
+    },
+  );
 
   Future<void> _showHistory(final BuildContext context) async {
     final result = await Navigator.of(context).push<HistoryScreenResult>(
@@ -247,7 +222,7 @@ class PuzzleToolbar extends StatelessWidget {
           () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showSolution(0))),
         );
       case GameActionId.howToPlay:
-        await _showHowToPlayDialog(context);
+        await _showHowToPlay(context);
       case GameActionId.cancelEdit:
         puzzleBloc.add(const PuzzleEvent.cancelLayoutEdit());
       case GameActionId.resetLayout:

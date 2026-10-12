@@ -7,6 +7,7 @@ import 'package:caesar_puzzle/presentation/services/keyboard_presence.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
+import 'package:caesar_puzzle/presentation/widgets/key_cap.dart';
 import 'package:flutter/material.dart';
 
 class GlassChrome extends GameChrome {
@@ -513,35 +514,12 @@ class _RailRow extends StatelessWidget {
                       ),
                     )
                   else if (shortcut != null)
-                    _Kbd(shortcut!, active: action.active),
+                    KeyCap(shortcut!, active: action.active),
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Kbd extends StatelessWidget {
-  const _Kbd(this.text, {required this.active});
-
-  final String text;
-  final bool active;
-
-  @override
-  Widget build(final BuildContext context) {
-    final colors = GameColors.of(context);
-    final color = active ? colors.onActive : colors.textSecondary;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(6)),
-        border: Border.all(color: active ? colors.onActive.withValues(alpha: 0.4) : colors.gridLine),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        child: Text(text, style: TextStyle(fontSize: 12, height: 1, fontWeight: FontWeight.w500, color: color)),
       ),
     );
   }
