@@ -11,8 +11,6 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 class GlassSurface extends StatelessWidget {
   const GlassSurface({super.key, required this.borderRadius, required this.child, this.color, this.allowLiquid = true});
 
-  static bool useLiquidGlass = true;
-
   /// Liquid Glass refracts the backdrop, so its tint is lighter than the frosted fill.
   static const double liquidTintScale = 0.5;
 
@@ -23,8 +21,7 @@ class GlassSurface extends StatelessWidget {
   /// False keeps the frosted fill, for panels with text.
   final bool allowLiquid;
 
-  static bool isLiquid(final BuildContext context) =>
-      useLiquidGlass && ScreenSpec.of(context).family == ChromeFamily.glass;
+  static bool isLiquid(final BuildContext context) => ScreenSpec.of(context).family == ChromeFamily.glass;
 
   static Widget liquid(
     final BuildContext context, {
