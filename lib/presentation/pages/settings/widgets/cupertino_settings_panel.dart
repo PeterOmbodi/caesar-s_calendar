@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_dif
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summary_button.dart';
+import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -77,22 +78,26 @@ class CupertinoSettingsPanel extends StatelessWidget {
                           ),
                       ],
                     ),
-                    CupertinoListSection.insetGrouped(
-                      header: Text(S.current.additional),
-                      children: [
-                        _SwitchRow(
-                          title: S.current.timerToggleTitle,
-                          subtitle: S.current.timerToggleSubtitle,
-                          value: state.showTimer,
-                          onChanged: cubit.toggleShowTimer,
-                        ),
-                        _SwitchRow(
-                          title: S.current.hapticsTitle,
-                          subtitle: S.current.hapticsSubtitle,
-                          value: state.haptics,
-                          onChanged: cubit.toggleHaptics,
-                        ),
-                      ],
+                    ValueListenableBuilder(
+                      valueListenable: HapticsSupport.instance.available,
+                      builder: (final context, final hapticsAvailable, _) => CupertinoListSection.insetGrouped(
+                        header: Text(S.current.additional),
+                        children: [
+                          _SwitchRow(
+                            title: S.current.timerToggleTitle,
+                            subtitle: S.current.timerToggleSubtitle,
+                            value: state.showTimer,
+                            onChanged: cubit.toggleShowTimer,
+                          ),
+                          if (hapticsAvailable)
+                            _SwitchRow(
+                              title: S.current.hapticsTitle,
+                              subtitle: S.current.hapticsSubtitle,
+                              value: state.haptics,
+                              onChanged: cubit.toggleHaptics,
+                            ),
+                        ],
+                      ),
                     ),
                     CupertinoListSection.insetGrouped(
                       header: Text(S.current.general),

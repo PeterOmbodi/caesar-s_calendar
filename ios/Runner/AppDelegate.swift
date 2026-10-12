@@ -1,3 +1,4 @@
+import CoreHaptics
 import Flutter
 import GameController
 import UIKit
@@ -16,6 +17,15 @@ import UIKit
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "KeyboardPresence") {
       FlutterEventChannel(name: "caesar_puzzle/keyboard", binaryMessenger: registrar.messenger())
         .setStreamHandler(KeyboardPresenceStreamHandler())
+      FlutterMethodChannel(name: "caesar_puzzle/device", binaryMessenger: registrar.messenger())
+        .setMethodCallHandler { call, result in
+          switch call.method {
+          case "supportsHaptics":
+            result(CHHapticEngine.capabilitiesForHardware().supportsHaptics)
+          default:
+            result(FlutterMethodNotImplemented)
+          }
+        }
     }
   }
 }

@@ -7,8 +7,8 @@ import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_dif
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summary_button.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/cupertino_settings_panel.dart';
+import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -131,16 +131,20 @@ class _MaterialSettings extends StatelessWidget {
                   onChanged: cubit.toggleShowTimer,
                 ),
               ),
-              if (!kIsWeb)
-                BlocBuilder<SettingsCubit, SettingsState>(
-                  buildWhen: (final p, final n) => p.haptics != n.haptics,
-                  builder: (final context, final state) => SwitchListTile(
-                    title: Text(S.current.hapticsTitle),
-                    subtitle: Text(S.current.hapticsSubtitle),
-                    value: state.haptics,
-                    onChanged: cubit.toggleHaptics,
-                  ),
-                ),
+              ValueListenableBuilder(
+                valueListenable: HapticsSupport.instance.available,
+                builder: (final context, final available, _) => !available
+                    ? const SizedBox.shrink()
+                    : BlocBuilder<SettingsCubit, SettingsState>(
+                        buildWhen: (final p, final n) => p.haptics != n.haptics,
+                        builder: (final context, final state) => SwitchListTile(
+                          title: Text(S.current.hapticsTitle),
+                          subtitle: Text(S.current.hapticsSubtitle),
+                          value: state.haptics,
+                          onChanged: cubit.toggleHaptics,
+                        ),
+                      ),
+              ),
               const SizedBox(height: 8),
               Text(S.current.general, style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
