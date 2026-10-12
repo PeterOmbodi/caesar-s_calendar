@@ -89,6 +89,7 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
     return GlassSurface(
       borderRadius: radius,
       color: colors.menu,
+      allowLiquid: false,
       child: Material(
         type: MaterialType.transparency,
         child: SafeArea(

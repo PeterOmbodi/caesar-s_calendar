@@ -9,7 +9,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 /// Frosted panel: blurred backdrop, translucent fill, hairline border and a soft shadow.
 /// On native iOS and macOS a panel with equal corners is drawn as Liquid Glass.
 class GlassSurface extends StatelessWidget {
-  const GlassSurface({super.key, required this.borderRadius, required this.child, this.color});
+  const GlassSurface({super.key, required this.borderRadius, required this.child, this.color, this.allowLiquid = true});
 
   static bool useLiquidGlass = true;
 
@@ -19,6 +19,9 @@ class GlassSurface extends StatelessWidget {
   final BorderRadius borderRadius;
   final Widget child;
   final Color? color;
+
+  /// False keeps the frosted fill, for panels with text.
+  final bool allowLiquid;
 
   static bool isLiquid(final BuildContext context) =>
       useLiquidGlass && ScreenSpec.of(context).family == ChromeFamily.glass;
@@ -52,7 +55,7 @@ class GlassSurface extends StatelessWidget {
     final chrome = ChromeTheme.of(context);
     final fill = color ?? colors.glass;
     final radius = borderRadius.topLeft;
-    if (isLiquid(context) && radius.x == radius.y && borderRadius == BorderRadius.all(radius)) {
+    if (allowLiquid && isLiquid(context) && radius.x == radius.y && borderRadius == BorderRadius.all(radius)) {
       return liquid(context, shape: LiquidRoundedSuperellipse(borderRadius: radius.x), fill: fill, child: child);
     }
     return DecoratedBox(
