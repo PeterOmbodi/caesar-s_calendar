@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Shown once per [storageKey]; true if the player went on.
+/// [canCancel] false: one button; any dismissal counts as seen.
 class CoachMark {
   const CoachMark._();
 
@@ -18,6 +19,7 @@ class CoachMark {
     required final String title,
     required final String message,
     required final String actionLabel,
+    final bool canCancel = true,
   }) async {
     final preferences = await SharedPreferences.getInstance();
     if (preferences.getBool(storageKey) ?? false) {
@@ -37,11 +39,12 @@ class CoachMark {
         title: title,
         message: message,
         actionLabel: actionLabel,
+        canCancel: canCancel,
         onClose: (final goOn) => Navigator.of(dialogContext).pop(goOn),
       ),
       transitionBuilder: (_, final animation, _, final child) => FadeTransition(opacity: animation, child: child),
     );
-    if (acknowledged != true) {
+    if (canCancel && acknowledged != true) {
       return false;
     }
     await preferences.setBool(storageKey, true);
@@ -55,6 +58,7 @@ class _CoachMarkOverlay extends StatelessWidget {
     required this.title,
     required this.message,
     required this.actionLabel,
+    required this.canCancel,
     required this.onClose,
   });
 
@@ -62,6 +66,7 @@ class _CoachMarkOverlay extends StatelessWidget {
   final String title;
   final String message;
   final String actionLabel;
+  final bool canCancel;
   final ValueChanged<bool> onClose;
 
   @override
@@ -121,11 +126,12 @@ class _CoachMarkOverlay extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          TextButton(
-                            onPressed: () => onClose(false),
-                            style: TextButton.styleFrom(foregroundColor: colors.textSecondary),
-                            child: Text(S.current.onboardingClose),
-                          ),
+                          if (canCancel)
+                            TextButton(
+                              onPressed: () => onClose(false),
+                              style: TextButton.styleFrom(foregroundColor: colors.textSecondary),
+                              child: Text(S.current.onboardingClose),
+                            ),
                           TextButton(
                             onPressed: () => onClose(true),
                             style: TextButton.styleFrom(

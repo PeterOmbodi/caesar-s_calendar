@@ -5,6 +5,7 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/services/timer_service.dart';
+import 'package:caesar_puzzle/domain/services/calendar_cells.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
@@ -13,6 +14,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cu
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_haptics.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/start_card.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_toolbar.dart';
@@ -23,8 +25,12 @@ import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
+import 'package:flutter/gestures.dart' show kDoubleTapTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -43,12 +49,16 @@ class PuzzleScreen extends StatefulWidget {
 class _PuzzleScreenState extends State<PuzzleScreen> {
   // Header and toolbar have fixed slots; larger text would not fit them.
   static const double _maxChromeTextScale = 1.3;
+  static const int _introVersion = 3;
 
   late final PuzzleBloc _puzzleBloc;
   late final BoardLayoutsCubit _layoutsCubit;
   late final StreamSubscription<PuzzleState> _feedbackSubscription;
   PuzzleSettingsPanelController _settingsPanelController = const PuzzleSettingsPanelController();
+  final _boardKey = GlobalKey();
   var _isInitialized = false;
+  var _isStartCardOpen = false;
+  var _isPieceTipRequested = false;
   double _headerHeight = 0;
 
   @override
@@ -109,6 +119,20 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         body: SafeArea(
           child: MultiBlocListener(
             listeners: [
+              BlocListener<PuzzleBloc, PuzzleState>(
+                listenWhen: (final ps, final cs) =>
+                    ps.status == GameStatus.initializing && cs.status != GameStatus.initializing,
+                listener: (final context, final state) => _maybeShowStartCard(),
+              ),
+              BlocListener<PuzzleBloc, PuzzleState>(
+                listenWhen: (final ps, final cs) =>
+                    !_isPieceTipRequested &&
+                    cs.selectedPieceId != null &&
+                    !cs.isDragging &&
+                    !cs.isEditingLayout &&
+                    (ps.selectedPieceId != cs.selectedPieceId || ps.isDragging),
+                listener: (final context, final state) => _showPieceTip(),
+              ),
               BlocListener<SettingsCubit, SettingsState>(
                 listenWhen: (final previous, final current) => previous.solutionIndicator != current.solutionIndicator,
                 listener: (final context, final state) {
@@ -137,7 +161,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   top: 0,
                   right: gameplayInsets.right,
                   bottom: 0,
-                  child: PuzzleView(headerHeight: _headerHeight),
+                  child: PuzzleView(key: _boardKey, headerHeight: _headerHeight),
                 ),
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 220),
@@ -271,6 +295,69 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   String _configLabel(final BuildContext context, final PuzzleState state) =>
       state.isCustomConfig ? S.of(context).historyConfigCustom : S.of(context).historyConfigStandard;
+
+  RenderBox? get _boardBox => _boardKey.currentContext?.findRenderObject() as RenderBox?;
+
+  Future<void> _maybeShowStartCard() async {
+    final settings = context.read<SettingsCubit>();
+    if (_isStartCardOpen || settings.state.completedOnboardingVersion > 0) {
+      return;
+    }
+    _isStartCardOpen = true;
+    // Let the pieces settle first.
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    if (!mounted) {
+      _isStartCardOpen = false;
+      return;
+    }
+    final level = await showStartCard(
+      context,
+      dateCells: _dateCellRects,
+      boardChanges: _puzzleBloc.stream,
+      initial: settings.state.solutionIndicator,
+    );
+    settings
+      ..setSolutionIndicator(level)
+      ..completeOnboarding(_introVersion);
+    _isStartCardOpen = false;
+  }
+
+  List<Rect> _dateCellRects() {
+    final box = _boardBox;
+    if (box == null || !box.hasSize) {
+      return const [];
+    }
+    final state = _puzzleBloc.state;
+    final grid = state.gridConfig;
+    final cells = targetCells(
+      rows: PuzzleBloc.gridRows,
+      columns: PuzzleBloc.gridColumns,
+      blocked: state.blockedCells,
+      date: state.selectedDate,
+    );
+    return [for (final cell in cells) box.localToGlobal(grid.cellTopLeft(cell)) & Size.square(grid.cellSize)];
+  }
+
+  Future<void> _showPieceTip() async {
+    _isPieceTipRequested = true;
+    // Wait out a possible double tap.
+    await Future<void>.delayed(kDoubleTapTimeout);
+    final piece = _puzzleBloc.state.selectedPiece;
+    final box = _boardBox;
+    if (!mounted || box == null || piece == null || piece.isConfigItem || _puzzleBloc.state.isDragging) {
+      _isPieceTipRequested = false;
+      return;
+    }
+    await CoachMark.showOnce(
+      context: context,
+      storageKey: 'tip_seen_selected_piece',
+      anchor: piece.getTransformedPath().getBounds().shift(box.localToGlobal(Offset.zero)),
+      title: S.current.tipPieceTitle,
+      message: S.current.tipPieceMessage,
+      actionLabel: S.current.ok,
+      canCancel: false,
+    );
+  }
 }
 
 class _GameBackground extends StatelessWidget {

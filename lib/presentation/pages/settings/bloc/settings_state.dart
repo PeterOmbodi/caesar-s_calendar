@@ -10,7 +10,7 @@ abstract class SettingsState with _$SettingsState {
     @Default(true) final bool preventOverlap,
     @Default(true) final bool separateMoveColors,
     @Default(true) final bool snapToGridOnTransform,
-    @Default(SolutionIndicator.none) final SolutionIndicator solutionIndicator,
+    @Default(SolutionIndicator.solvability) final SolutionIndicator solutionIndicator,
     @Default(true) final bool showTimer,
     @Default(true) final bool haptics,
     @Default(true) final bool sounds,

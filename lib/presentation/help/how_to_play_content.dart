@@ -2,6 +2,9 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/help/gesture_demo.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visuals.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:flutter/material.dart';
 
 @immutable
@@ -86,21 +89,8 @@ List<HelpSection> howToPlaySections({required final bool apple, required final b
       title: S.current.helpStatusTitle,
       items: [
         HelpItem(icon: Icons.short_text, title: S.current.helpStatusLineTitle, body: S.current.helpStatusLineBody),
-        HelpItem(
-          icon: Icons.visibility_outlined,
-          title: S.current.historyDifficultyEasy,
-          body: S.current.onboardingDifficultyEasyDescription,
-        ),
-        HelpItem(
-          icon: Icons.check_circle_outline,
-          title: S.current.historyDifficultyMedium,
-          body: S.current.onboardingDifficultyMediumDescription,
-        ),
-        HelpItem(
-          icon: Icons.visibility_off_outlined,
-          title: S.current.historyDifficultyHard,
-          body: S.current.onboardingDifficultyHardDescription,
-        ),
+        for (final level in [SolutionIndicator.countSolutions, SolutionIndicator.solvability, SolutionIndicator.none])
+          HelpItem(icon: level.icon, title: level.sessionDifficulty.label, body: level.description),
         HelpItem(icon: Icons.schedule, title: S.current.howToPlayTimerTitle, body: S.current.howToPlayTimerDescription),
       ],
       footer: S.current.onboardingDifficultySettingsNote,
