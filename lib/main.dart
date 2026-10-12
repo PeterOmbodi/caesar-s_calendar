@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'generated/l10n.dart';
@@ -29,6 +30,9 @@ Future<void> main() async {
         ? HydratedStorageDirectory.web
         : HydratedStorageDirectory((await getApplicationDocumentsDirectory()).path),
   );
+  if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS)) {
+    await LiquidGlassWidgets.initialize();
+  }
   Bloc.observer = AppBlocObserver();
   runApp(
     Builder(

@@ -30,6 +30,7 @@ dependencies:
   url_launcher: ^6.3.2
   flutter_native_splash: ^2.4.8
   confetti: ^0.8.0
+  liquid_glass_widgets: ^1.11.1
   package_info_plus: ^10.1.0
   flutter_flip_flap: ^0.5.0
   drift: ^2.34.0
