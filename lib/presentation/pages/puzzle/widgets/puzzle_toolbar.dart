@@ -20,7 +20,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.da
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
-import 'package:caesar_puzzle/presentation/widgets/one_time_info_dialog.dart';
+import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -52,10 +52,11 @@ extension _BottomControlIntroX on _BottomControlIntro {
 class PuzzleToolbar extends StatelessWidget {
   const PuzzleToolbar({super.key});
 
-  Future<bool> _showIntroIfNeeded(final BuildContext context, final _BottomControlIntro intro) =>
-      OneTimeInfoDialog.show(
+  Future<bool> _showIntroIfNeeded(final BuildContext context, final _BottomControlIntro intro, final Rect? anchor) =>
+      CoachMark.showOnce(
         context: context,
         storageKey: intro.storageKey,
+        anchor: anchor,
         title: intro.title,
         message: intro.message,
         actionLabel: intro.actionLabel,
@@ -64,9 +65,10 @@ class PuzzleToolbar extends StatelessWidget {
   Future<void> _runAfterIntro(
     final BuildContext context,
     final _BottomControlIntro intro,
+    final Rect? anchor,
     final Future<void> Function() action,
   ) async {
-    if (!await _showIntroIfNeeded(context, intro)) {
+    if (!await _showIntroIfNeeded(context, intro, anchor)) {
       return;
     }
     await action();
@@ -187,15 +189,21 @@ class PuzzleToolbar extends StatelessWidget {
     }
   }
 
-  Future<void> _invoke(final BuildContext context, final PuzzleState state, final GameAction action) async {
+  Future<void> _invoke(
+    final BuildContext context,
+    final PuzzleState state,
+    final GameAction action,
+    final Rect? anchor,
+  ) async {
     final puzzleBloc = context.read<PuzzleBloc>();
     switch (action.id) {
       case GameActionId.history:
-        await _runAfterIntro(context, _BottomControlIntro.history, () => _showHistory(context));
+        await _runAfterIntro(context, _BottomControlIntro.history, anchor, () => _showHistory(context));
       case GameActionId.hint:
         await _runAfterIntro(
           context,
           _BottomControlIntro.hint,
+          anchor,
           () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showHint())),
         );
       case GameActionId.undo:
@@ -219,6 +227,7 @@ class PuzzleToolbar extends StatelessWidget {
         await _runAfterIntro(
           context,
           _BottomControlIntro.allSolutions,
+          anchor,
           () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showSolution(0))),
         );
       case GameActionId.howToPlay:
@@ -287,14 +296,14 @@ class PuzzleToolbar extends StatelessWidget {
         bindings: {
           for (final action in actions)
             if (action.enabled && action.id.shortcut(apple: apple) != null)
-              action.id.shortcut(apple: apple)!: () => _invoke(context, state, action),
+              action.id.shortcut(apple: apple)!: () => _invoke(context, state, action, null),
         },
         child: Focus(
           autofocus: true,
           child: GameChrome.forSpec(
             actions: actions,
             spec: ScreenSpec.of(context),
-            onInvoke: (final action) => _invoke(context, state, action),
+            onInvoke: (final action, final anchor) => _invoke(context, state, action, anchor),
           ),
         ),
       );

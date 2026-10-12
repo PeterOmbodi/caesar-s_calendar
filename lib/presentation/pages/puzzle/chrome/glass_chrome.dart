@@ -47,7 +47,10 @@ class GlassChrome extends GameChrome {
     final overflow = actions.where((final a) => a.slot == ActionSlot.overflow).toList();
     final slots = <Widget>[
       for (final action in actions.where((final a) => a.slot == ActionSlot.primary))
-        _ActionSlot(action: action, onPressed: () => onInvoke(action)),
+        Builder(
+          builder: (final slotContext) =>
+              _ActionSlot(action: action, onPressed: () => onInvoke(action, _globalRect(slotContext))),
+        ),
       if (overflow.isNotEmpty) _MoreSlot(items: overflow, isRail: _isRail, onInvoke: onInvoke),
     ];
     final radius = BorderRadius.circular(chrome.barRadius);
@@ -226,7 +229,7 @@ class _MoreSlot extends StatefulWidget {
 
   final List<GameAction> items;
   final bool isRail;
-  final ValueChanged<GameAction> onInvoke;
+  final GameActionCallback onInvoke;
 
   @override
   State<_MoreSlot> createState() => _MoreSlotState();
@@ -239,8 +242,7 @@ class _MoreSlotState extends State<_MoreSlot> {
   var _isOpen = false;
 
   Future<void> _open() async {
-    final box = context.findRenderObject()! as RenderBox;
-    final anchor = box.localToGlobal(Offset.zero) & box.size;
+    final anchor = _globalRect(context);
     final screen = MediaQuery.sizeOf(context);
     setState(() => _isOpen = true);
     final picked = await showGeneralDialog<GameAction>(
@@ -267,7 +269,7 @@ class _MoreSlotState extends State<_MoreSlot> {
     }
     setState(() => _isOpen = false);
     if (picked != null) {
-      widget.onInvoke(picked);
+      widget.onInvoke(picked, anchor);
     }
   }
 
@@ -346,7 +348,7 @@ class _LabeledRail extends StatelessWidget {
   const _LabeledRail({required this.actions, required this.onInvoke});
 
   final List<GameAction> actions;
-  final ValueChanged<GameAction> onInvoke;
+  final GameActionCallback onInvoke;
 
   String get _title {
     final ids = actions.map((final a) => a.id);
@@ -373,10 +375,12 @@ class _LabeledRail extends StatelessWidget {
         colors,
         primary,
         overflow,
-        (final action) => _RailRow(
-          action: action,
-          shortcut: hasKeyboard ? action.id.shortcutLabel(apple: apple) : null,
-          onPressed: () => onInvoke(action),
+        (final action) => Builder(
+          builder: (final rowContext) => _RailRow(
+            action: action,
+            shortcut: hasKeyboard ? action.id.shortcutLabel(apple: apple) : null,
+            onPressed: () => onInvoke(action, _globalRect(rowContext)),
+          ),
         ),
       ),
     );
@@ -523,4 +527,9 @@ class _RailRow extends StatelessWidget {
       ),
     );
   }
+}
+
+Rect _globalRect(final BuildContext context) {
+  final box = context.findRenderObject()! as RenderBox;
+  return box.localToGlobal(Offset.zero) & box.size;
 }
