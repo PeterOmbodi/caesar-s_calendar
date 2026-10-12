@@ -50,5 +50,7 @@ abstract class PuzzleHistoryRepository {
 
   Future<bool> hasAnyLocalSessions();
 
+  Future<int> countSolvedSolutions();
+
   Future<void> clearLocalData();
 }

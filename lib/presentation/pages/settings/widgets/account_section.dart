@@ -1,7 +1,7 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_status.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
-import 'package:caesar_puzzle/presentation/pages/profile/profile_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/achievements/achievements_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
@@ -192,6 +192,13 @@ class _AccountSectionState extends State<AccountSection> {
             title: displayName ?? S.current.accountSignedInFallback,
             subtitle: provider == null ? null : S.current.accountSignedInWith(provider),
           ),
+          InsetRow(
+            icon: Icons.emoji_events_outlined,
+            title: S.current.achievementsTitle,
+            trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
+            onTap: () =>
+                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AchievementsScreen())),
+          ),
         ],
       ),
       _sectionGap,
@@ -204,22 +211,6 @@ class _AccountSectionState extends State<AccountSection> {
             trailing: sync.isSyncing ? const CupertinoActivityIndicator(radius: 9) : null,
             onTap: sync.isSyncing || auth.isLoading ? null : profileCubit.requestSyncNow,
           ),
-          InsetRow(
-            icon: Icons.public,
-            title: S.current.accountPublicProfileTitle,
-            subtitle: S.current.accountPublicProfileSubtitle,
-            trailing: CupertinoSwitch(
-              value: publicProfile.enabled,
-              onChanged: publicProfile.isUpdating || publicProfile.isLoading ? null : profileCubit.toggleEnabled,
-            ),
-          ),
-          if (publicProfile.enabled)
-            InsetRow(
-              icon: Icons.person_outline,
-              title: S.current.accountOpenProfile,
-              trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProfileScreen(uid: user.uid))),
-            ),
         ],
       ),
       _sectionGap,

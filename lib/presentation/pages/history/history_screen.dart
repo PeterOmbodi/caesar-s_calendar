@@ -4,6 +4,7 @@ import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
+import 'package:caesar_puzzle/presentation/pages/achievements/achievements_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/history/bloc/history_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/date_selector.dart';
@@ -63,6 +64,12 @@ class _HistoryViewState extends State<_HistoryView> with SingleTickerProviderSta
           ),
           title: Text(S.current.historyTitle),
           actions: [
+            _HistoryAppBarIconButton(
+              tooltip: S.current.achievementsTitle,
+              icon: Icons.emoji_events_outlined,
+              onPressed: () =>
+                  Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AchievementsScreen())),
+            ),
             _HistoryAppBarIconButton(
               tooltip: S.current.historyPickDate,
               icon: Icons.calendar_month_outlined,

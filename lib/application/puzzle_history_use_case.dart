@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart';
+import 'package:caesar_puzzle/application/models/achievement_stats.dart';
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/models/period_range_resolver.dart';
 import 'package:caesar_puzzle/application/models/period_stats.dart';
@@ -10,6 +11,7 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/application/models/stats_period.dart';
 import 'package:caesar_puzzle/application/puzzle_config_json.dart';
+import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
@@ -74,6 +76,39 @@ class PuzzleHistoryUseCase {
     return _historyRepository
         .watchSessionsInPuzzleDateRange(from: queryRange.start, to: queryRange.end)
         .map((final sessions) => _aggregatePeriodStats(sessions, period, yearScope, referenceDate));
+  }
+
+  Stream<AchievementStats> watchAchievements() => _historyRepository
+      .watchSessionsInPuzzleDateRange(from: _historyRangeStart, to: _historyRangeEnd)
+      .asyncMap(
+        (final sessions) async => _aggregateAchievements(sessions, await _historyRepository.countSolvedSolutions()),
+      );
+
+  AchievementStats _aggregateAchievements(final List<PuzzleSessionData> sessions, final int solutionsFound) {
+    final solved = sessions.where((final s) => s.status == PuzzleSessionStatus.solved).toList();
+    final solvedDays = {for (final session in solved) session.puzzleDate};
+    int? fastestMs;
+    int? firstSolvedAt;
+    for (final session in solved) {
+      final elapsed = session.activeElapsedMs;
+      if (elapsed > 0 && (fastestMs == null || elapsed < fastestMs)) {
+        fastestMs = elapsed;
+      }
+      final completedAt = session.completedAt;
+      if (completedAt != null && (firstSolvedAt == null || completedAt < firstSolvedAt)) {
+        firstSolvedAt = completedAt;
+      }
+    }
+    return AchievementStats(
+      solvedDates: {for (final day in solvedDays) (day.month, day.day)},
+      solvedHard: solved.where((final s) => s.difficulty == PuzzleSessionDifficulty.hard).length,
+      bestStreakDays: solvedDays.isEmpty ? 0 : _longestRunInRange(solvedDays, _spanOf(solvedDays)),
+      solutionsFound: solutionsFound,
+      fastestSolveMs: fastestMs,
+      cleanSolves: solved.where((final s) => !s.moveHistory.any((final move) => move is HintMove)).length,
+      customLayoutSolves: solved.where((final s) => s.configId != StandardPuzzleConfig.id).length,
+      firstSolvedAt: firstSolvedAt == null ? null : DateTime.fromMillisecondsSinceEpoch(firstSolvedAt),
+    );
   }
 
   DateRange _queryRangeFor(final StatsPeriod period, final StatsYearScope yearScope, final DateTime referenceDate) {

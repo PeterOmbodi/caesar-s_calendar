@@ -32,6 +32,9 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Future<bool> hasAnyLocalSessions() async => false;
 
   @override
+  Future<int> countSolvedSolutions() async => 0;
+
+  @override
   Future<void> markSessionSolved({
     required final String sessionId,
     required final DateTime puzzleDate,
