@@ -472,11 +472,14 @@ class _RailRow extends StatelessWidget {
                       : Icon(action.id.icon, size: 22, color: foreground),
                 ),
                 Expanded(
-                  child: Text(
-                    isCounter ? S.current.railSolution : action.id.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w500, color: foreground),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      isCounter ? S.current.railSolution : action.id.label,
+                      maxLines: 1,
+                      style: TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w500, color: foreground),
+                    ),
                   ),
                 ),
                 if (meta != null)
