@@ -71,9 +71,10 @@ class PuzzleToolbar extends StatelessWidget {
   }
 
   Future<void> _showHistory(final BuildContext context) async {
+    final activeDate = context.read<PuzzleBloc>().state.selectedDate;
     final result = await Navigator.of(context).push<HistoryScreenResult>(
       PageRouteBuilder<HistoryScreenResult>(
-        pageBuilder: (final context, final animation, final secondaryAnimation) => const HistoryScreen(),
+        pageBuilder: (final context, final animation, final secondaryAnimation) => HistoryScreen(initialDate: activeDate),
         transitionsBuilder: (final context, final animation, final secondaryAnimation, final child) {
           final offsetAnimation = animation.drive(
             Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).chain(CurveTween(curve: Curves.easeOutCubic)),

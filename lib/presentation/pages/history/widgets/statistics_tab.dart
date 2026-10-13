@@ -2,7 +2,10 @@ import 'package:caesar_puzzle/application/models/period_range_resolver.dart';
 import 'package:caesar_puzzle/application/models/period_stats.dart';
 import 'package:caesar_puzzle/application/models/stats_period.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/history/bloc/history_cubit.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -14,8 +17,88 @@ class StatisticsTab extends StatelessWidget {
   Widget build(final BuildContext context) => BlocBuilder<HistoryCubit, HistoryState>(
     builder: (final context, final state) {
       final cubit = context.read<HistoryCubit>();
+      final cupertino = ScreenSpec.of(context).family == ChromeFamily.glass;
       final referenceDate = PeriodRangeResolver.referenceDateFor(state.selectedDate);
       final rangeLabel = _periodRangeLabel(context, state.statsPeriod, referenceDate);
+      if (cupertino) {
+        final colors = GameColors.of(context);
+        return ListView(
+          primary: false,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: colors.board, borderRadius: BorderRadius.circular(20)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    S.current.historyStatsSessionsFromLabel,
+                    style: TextStyle(fontSize: 13, color: colors.textSecondary),
+                  ),
+                  const SizedBox(height: 8),
+                  CupertinoSlidingSegmentedControl<StatsYearScope>(
+                    groupValue: state.statsYearScope,
+                    children: {
+                      StatsYearScope.currentYear: Text(S.current.historyYearScopeCurrent),
+                      StatsYearScope.allYears: Text(S.current.historyYearScopeAll),
+                    },
+                    onValueChanged: (final value) {
+                      if (value != null) context.read<HistoryCubit>().setStatsYearScope(value);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Text(S.current.historyStatsPeriodLabel, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+                  const SizedBox(height: 8),
+                  CupertinoSlidingSegmentedControl<StatsPeriod>(
+                    groupValue: state.statsPeriod,
+                    children: {
+                      StatsPeriod.week: Text(S.current.historyPeriodWeek),
+                      StatsPeriod.month: Text(S.current.historyPeriodMonth),
+                      StatsPeriod.year: Text(S.current.historyPeriodYear),
+                    },
+                    onValueChanged: (final value) {
+                      if (value != null) context.read<HistoryCubit>().setStatsPeriod(value);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            if (rangeLabel != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+                child: Text(rangeLabel, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+              )
+            else
+              const SizedBox(height: 16),
+            if (state.isPeriodStatsLoading)
+              const Center(child: CupertinoActivityIndicator())
+            else
+              Theme(
+                data: Theme.of(context).copyWith(
+                  cardTheme: CardThemeData(
+                    color: colors.board,
+                    elevation: 0,
+                    margin: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                  colorScheme: Theme.of(context).colorScheme.copyWith(
+                    primary: colors.active,
+                    surfaceContainerHigh: colors.gridLine,
+                    onSurface: colors.text,
+                  ),
+                  textTheme: Theme.of(context).textTheme.apply(bodyColor: colors.text, displayColor: colors.text),
+                ),
+                child: _StatTile(
+                  stats: state.periodStats,
+                  period: state.statsPeriod,
+                  referenceDate: referenceDate,
+                  cupertino: true,
+                ),
+              ),
+          ],
+        );
+      }
       return ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
@@ -131,7 +214,8 @@ class _YearScopeChips extends StatelessWidget {
 }
 
 class _StatTile extends StatelessWidget {
-  const _StatTile({required this.stats, required this.period, required this.referenceDate});
+  const _StatTile({required this.stats, required this.period, required this.referenceDate, this.cupertino = false});
+  final bool cupertino;
 
   final PeriodStats stats;
   final StatsPeriod period;
@@ -185,16 +269,18 @@ class _StatTile extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            _StatRow(label: S.current.historyStatsStarted, value: '${stats.started}'),
-            _StatRow(label: S.current.historyStatsSolved, value: '${stats.solved}'),
-            _StatRow(label: S.current.historyStatsSolvedHard, value: '${stats.solvedHard}'),
-            _StatRow(label: S.current.historyStatsBestStreak, value: '${stats.bestStreakDays}'),
-            _StatRow(label: S.current.historyStatsHintsUsed, value: '${stats.hintsUsed}'),
+            _StatRow(cupertino: cupertino, label: S.current.historyStatsStarted, value: '${stats.started}'),
+            _StatRow(cupertino: cupertino, label: S.current.historyStatsSolved, value: '${stats.solved}'),
+            _StatRow(cupertino: cupertino, label: S.current.historyStatsSolvedHard, value: '${stats.solvedHard}'),
+            _StatRow(cupertino: cupertino, label: S.current.historyStatsBestStreak, value: '${stats.bestStreakDays}'),
+            _StatRow(cupertino: cupertino, label: S.current.historyStatsHintsUsed, value: '${stats.hintsUsed}'),
             _StatRow(
+              cupertino: cupertino,
               label: S.current.historyStatsTotalTimePlayed,
               value: _formatTotalDuration(stats.totalTimePlayedMs),
             ),
             _StatRow(
+              cupertino: cupertino,
               label: S.current.historyStatsAvgMovesPerSolve,
               value: stats.avgMovesPerSolve.toStringAsFixed(1),
             ),
@@ -240,29 +326,27 @@ class _ProgressStat extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          caption,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(caption, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
 }
 
 class _StatRow extends StatelessWidget {
-  const _StatRow({required this.label, required this.value});
+  const _StatRow({required this.label, required this.value, this.cupertino = false});
+  final bool cupertino;
 
   final String label;
   final String value;
 
   @override
   Widget build(final BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
+    padding: EdgeInsets.symmetric(vertical: cupertino ? 12 : 4),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
+        const SizedBox(width: 12),
         Text(value, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
       ],
     ),
