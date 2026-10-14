@@ -6,11 +6,13 @@ import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/history/bloc/history_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/date_selector.dart';
+import 'package:caesar_puzzle/presentation/pages/history/widgets/history_app_bar.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/history_content_layout.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/history_overview.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/puzzle_day_picker.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -98,6 +100,32 @@ Widget app(final Widget child, {final bool dark = false}) => MaterialApp(
 );
 
 void main() {
+  for (final dark in [false, true]) {
+    testWidgets('history header renders the app background in ${dark ? 'dark' : 'light'} mode', (final tester) async {
+      final key = GlobalKey();
+      await tester.pumpWidget(
+        app(
+          RepaintBoundary(
+            key: key,
+            child: Scaffold(appBar: HistoryAppBar(onPickDate: () {})),
+          ),
+          dark: dark,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final boundary = key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final pixel = await tester.runAsync(() async {
+        final image = await boundary.toImage();
+          final bytes = (await image.toByteData())!;
+        final offset = (10 * image.width + 100) * 4;
+        final result = [for (var i = 0; i < 4; i++) bytes.getUint8(offset + i)];
+        image.dispose();
+        return result;
+      });
+      expect(pixel, dark ? [18, 16, 23, 255] : [245, 242, 236, 255]);
+    });
+  }
+
   testWidgets('heatmap exposes one summary instead of day controls', (final tester) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(

@@ -1,4 +1,4 @@
-## 1.11.0+41
+## 1.11.0+42
 - refresh the visual style and adaptive layouts for phones, tablets, and desktop
 - add My Achievements with calendar progress, personal milestones, and image sharing
 - add saved board layouts and a dedicated editor, replacing the board unlock settings

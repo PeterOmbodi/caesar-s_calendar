@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/achievements/achievements_screen.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -29,6 +30,8 @@ class _GlassHistoryAppBar extends StatelessWidget implements PreferredSizeWidget
 
   @override
   Widget build(final BuildContext context) => CupertinoNavigationBar(
+    backgroundColor: GameColors.of(context).background,
+    brightness: Theme.of(context).brightness,
     leading: _CupertinoHistoryNavigationButton(
       semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
       icon: CupertinoIcons.back,
