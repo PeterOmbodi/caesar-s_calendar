@@ -9,4 +9,8 @@ abstract class PuzzleBaseEntity {
   final Position origin;
 
   Position get topLeft => origin;
+  Position get positionOrigin => origin;
+
+  double get width => cellSize * columns;
+  double get height => cellSize * rows;
 }

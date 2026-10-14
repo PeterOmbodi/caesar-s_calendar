@@ -16,6 +16,7 @@ import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_config_classifier.dart';

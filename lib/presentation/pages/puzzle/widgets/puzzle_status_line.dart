@@ -6,13 +6,14 @@ import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/status/status_for.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
 
 class PuzzleStatusLine extends StatelessWidget {
   const PuzzleStatusLine({super.key, required this.state, required this.indicator, required this.showTimer});
 
-  static const double height = 20;
+  static const double height = LayoutService.statusLineHeight;
 
   final PuzzleState state;
   final SolutionIndicator indicator;
@@ -54,6 +55,7 @@ class PuzzleStatusLine extends StatelessWidget {
               ),
             ),
             if (showTimer) ...[
+              const SizedBox(width: 8),
               Icon(Icons.schedule, size: 17, color: colors.textSecondary),
               const SizedBox(width: 5),
               DefaultTextStyle(

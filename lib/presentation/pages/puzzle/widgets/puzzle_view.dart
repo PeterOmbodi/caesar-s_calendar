@@ -9,6 +9,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_help
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_status_line.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class PuzzleView extends StatelessWidget {
   const PuzzleView({super.key, this.headerHeight = 0});
 
-  static const double statusGap = 8;
+  static const double statusGap = LayoutService.statusLineGap;
 
   final double headerHeight;
 
@@ -40,7 +41,18 @@ class PuzzleView extends StatelessWidget {
         );
         final settings = context.watch<SettingsCubit>().state;
         final borderColorMode = settings.separateMoveColors;
+        final grid = state.gridConfig.getBounds;
         final tray = state.boardConfig.getBounds;
+        final contentRect = contentInsets.deflateRect(Offset.zero & constraints.biggest);
+        final isPortrait = contentRect.height > contentRect.width;
+        final (statusLeft, statusWidth) = switch ((isPortrait, spec.window)) {
+          (true, _) => (grid.left, grid.width),
+          (false, WindowClass.compact) => (
+            state.trayArea.left + statusGap,
+            (state.trayArea.width - statusGap * 2).clamp(0.0, double.infinity),
+          ),
+          (false, _) => (tray.left, tray.width),
+        };
 
         final shownPieces = state.isEditingLayout
             ? state.shownPieces.where((final p) => p.isConfigItem)
@@ -103,9 +115,9 @@ class PuzzleView extends StatelessWidget {
                       ),
                     ),
                     Positioned(
-                      left: tray.left,
-                      top: tray.bottom + statusGap,
-                      width: tray.width,
+                      left: statusLeft,
+                      top: isPortrait ? tray.bottom + statusGap : grid.bottom - PuzzleStatusLine.height,
+                      width: statusWidth,
                       child: IgnorePointer(
                         child: PuzzleStatusLine(
                           state: state,

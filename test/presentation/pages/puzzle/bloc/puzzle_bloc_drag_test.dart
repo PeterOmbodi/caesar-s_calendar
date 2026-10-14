@@ -197,6 +197,78 @@ void main() {
     expect(bloc!.state.previewPosition, bloc!.state.gridConfig.snapToGrid(targetPosition));
   });
 
+  test('move then rotate then undo returns the piece to its centered tray slot', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(393, 640), maxCell: ScreenSpec.compactMaxCell));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    bloc!.add(PuzzleEvent.onPanStart(_pieceAnchor(bloc!, 'Square')));
+    await _drain();
+    final target = bloc!.state.gridConfig.cellTopLeft(Cell(2, 2));
+    final pointer = target + bloc!.state.dragStartOffset!;
+    bloc!.add(PuzzleEvent.onPanUpdate(pointer));
+    await _drain();
+    bloc!.add(PuzzleEvent.onPanEnd(pointer));
+    await _drain();
+    expect(_piece(bloc!, 'Square').placeZone, PlaceZone.grid);
+
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    final expected = const LayoutService()
+        .buildInitialLayout(Offset.zero & const Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell)
+        .pieces
+        .firstWhere((final piece) => piece.id == 'Square');
+    bloc!.add(const PuzzleEvent.undo());
+    await _drain();
+    expect(_piece(bloc!, 'Square').placeZone, PlaceZone.board);
+    expect((_piece(bloc!, 'Square').position - expected.position).distance, closeTo(0, 0.001));
+
+    bloc!.add(const PuzzleEvent.redo());
+    await _drain();
+    expect(_piece(bloc!, 'Square').placeZone, PlaceZone.grid);
+    expect(_piece(bloc!, 'Square').position, bloc!.state.gridConfig.cellTopLeft(Cell(2, 2)));
+
+    final state = bloc!.state;
+    final session = PuzzleSessionData(
+      id: 'rotation-regression',
+      puzzleDate: state.selectedDate,
+      configId: 'standard',
+      difficulty: PuzzleSessionDifficulty.hard,
+      status: PuzzleSessionStatus.unsolved,
+      startedAt: 1000,
+      firstMoveAt: 1000,
+      lastResumedAt: null,
+      activeElapsedMs: 0,
+      updatedAt: 1000,
+      completedAt: null,
+      moveIndex: state.moveIndex,
+      moveHistoryVersion: 1,
+      pieces: [
+        for (final piece in state.pieces)
+          PuzzlePieceSnapshot(
+            id: piece.id,
+            placeZone: piece.placeZone,
+            position: Position(dx: piece.position.dx, dy: piece.position.dy),
+            rotation: piece.rotation,
+            isFlipped: piece.isFlipped,
+            isUsersItem: piece.isUsersItem,
+            isConfigItem: piece.isConfigItem,
+          ),
+      ],
+      moveHistory: state.moveHistory,
+    );
+    bloc!.add(const PuzzleEvent.setViewSize(Size(393, 640), maxCell: ScreenSpec.compactMaxCell));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    bloc!.add(PuzzleEvent.restoreSession(session));
+    await _drain();
+    expect(_piece(bloc!, 'Square').position, bloc!.state.gridConfig.cellTopLeft(Cell(2, 2)));
+    bloc!.add(const PuzzleEvent.undo());
+    await _drain();
+    final portraitSlot = const LayoutService()
+        .buildInitialLayout(Offset.zero & const Size(393, 640), maxCell: ScreenSpec.compactMaxCell)
+        .pieces
+        .firstWhere((final piece) => piece.id == 'Square');
+    expect((_piece(bloc!, 'Square').position - portraitSlot.position).distance, closeTo(0, 0.001));
+  });
+
   test('pan from free grid cell creates and extends drawn group', () async {
     bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
@@ -557,7 +629,7 @@ void main() {
         MovePiece(
           'Square',
           from: MovePlacement(zone: PlaceZone.board, position: Position(dx: 0, dy: 0)),
-          to: MovePlacement(zone: PlaceZone.grid, position: Position(dx: 2, dy: 2)),
+          to: MovePlacement(position: Position(dx: 2, dy: 2)),
         ),
       ],
     );

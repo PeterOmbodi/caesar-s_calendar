@@ -18,6 +18,9 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
 
   Future<void> _configure(final _Configure event, final Emitter<PuzzleState> emit) async {
     final contentRect = _lastContentInsets.deflateRect(Offset.zero & _lastViewSize!);
+    final isLandscape = _lastViewSize!.width > _lastViewSize!.height;
+    final isCompact = WindowClass.fromSize(_lastViewSize!) == WindowClass.compact;
+    final fillAvailableTray = isLandscape ? isCompact : !isCompact;
     final configurationPieces = event.configurationPieces;
     final isInitializing = state.status == GameStatus.initializing || event.toInitial;
     final layout = isInitializing
@@ -25,6 +28,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
             contentRect,
             maxCell: _lastMaxCell,
             trayScale: _lastTrayScale,
+            fillAvailableTray: fillAvailableTray,
             configurationPieces: configurationPieces,
           )
         : _layoutService.rebuildLayout(
@@ -34,6 +38,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
             prevBoard: state.boardConfig,
             pieces: state.pieces,
             trayScale: _lastTrayScale,
+            fillAvailableTray: fillAvailableTray,
           );
     final newState = state.copyWith(
       gridConfig: layout.gridConfig,
