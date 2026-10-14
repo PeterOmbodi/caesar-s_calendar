@@ -33,8 +33,8 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 - Daily calendar puzzle based on the selected date
 - Drag-and-drop piece placement with support for touch and mouse
 - Draw piece shapes directly on the calendar grid and commit matching groups into placements
-- Single tap/click to rotate a piece
-- Double tap/click to flip a piece
+- Persistent piece selection, with tap/click to select and a second tap/click to rotate
+- Double tap/click on the selected piece to flip it
 - Automatic solving powered by a reusable exact-cover solver based on Dancing Links
 - Hint system and full solution preview
 - Undo and redo for move history
@@ -42,7 +42,10 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 - Cross-device puzzle session sync for signed-in users on Android, iOS, and Web
 - Calendar history view with per-day activity stats
 - Statistics tab in the History screen with week/month/year filters and current year / all years scope, showing solve rate, hard-mode rate, best streak, hints used, time played, and average moves per solve
-- Configurable puzzle layout by unlocking fixed board blocks
+- Saved board layouts with a dedicated editor for repositioning fixed board blocks
+- Achievements with calendar completion progress, personal milestones, and image sharing
+- Contextual first-use tips and an animated how-to-play guide
+- Optional move sounds and vibration on supported devices
 - Theme switching: system, light, and dark
 - Solving timer and solution indicators
 - Localized UI with 26 language files in `lib/l10n`
@@ -53,7 +56,7 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 Goal:
 Place all puzzle pieces on the board so that exactly two cells remain free: the cells for the selected month and day.
 
-The current date can be changed through the history screen, and the board layout can also be customized by unlocking the predefined blocked cells.
+The current date can be changed through the history screen. Open the board layouts button in the header to choose, create, or edit a saved layout.
 
 Controls:
 
@@ -61,15 +64,15 @@ Controls:
 2. To draw a placement, drag across free grid cells to create a temporary group.
 3. Double tap a valid drawn group to place the matching piece there.
 4. Tap a free adjacent cell to add it to the group. Tap a cell in a drawn group to remove it.
-5. Tap or click a piece to rotate it.
-6. Double tap or double click a piece to flip it.
-7. Use the floating bottom toolbar for `History`, `Show solution`, `Undo`, `Redo`, and `Hint`.
-8. While viewing solutions, use the solution navigation arrows in place of `Undo` and `Redo`.
-9. Open `More` for `Info`, `Settings`, and `Reset`.
-10. Open `Info` to view the in-app how-to-play guide.
+5. Tap or click a piece to select it; tap or click it again to rotate it.
+6. Double tap or double click the selected piece to flip it. You can also use the toolbar's `Rotate` and `Flip` actions.
+7. Use the toolbar for `History`, `Hint`, `Undo`, and `Redo`. Its actions change when a piece is selected or a layout is being edited.
+8. While viewing solutions, use the solution navigation arrows and close the preview to return to the game.
+9. Open `More` for `All solutions`, `How to Play`, and `Start over`; wide screens show these actions in the side panel.
+10. Open `How to Play` to view the in-app guide with animated gesture examples.
 11. Open `History` to resume saved sessions or switch to another puzzle date.
 12. Use `Hint` to reveal one valid move.
-13. Open `Settings` to change gameplay and UI behavior.
+13. Open `Settings` from the header to change gameplay and UI behavior.
 
 Drawn groups use color feedback:
 
@@ -80,13 +83,13 @@ Drawn groups use color feedback:
 Settings currently include:
 
 - theme mode
-- unlock/lock board configuration
-- automatic re-locking of board configuration
 - overlap prevention
 - snap-to-grid on transform
 - separate move colors
 - solution indicator mode: hidden, solvability, or solution count
 - solving timer visibility
+- move sounds
+- vibration on devices with haptic feedback
 
 ## Persistence
 

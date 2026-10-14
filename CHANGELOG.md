@@ -1,3 +1,12 @@
+## 1.11.0+41
+- refresh the visual style and adaptive layouts for phones, tablets, and desktop
+- add My Achievements with calendar progress, personal milestones, and image sharing
+- add saved board layouts and a dedicated editor, replacing the board unlock settings
+- update piece controls: select a piece first, then rotate or flip it using gestures or the toolbar
+- replace the onboarding tour with a start card and contextual first-use tips
+- add an animated how-to-play guide, localized across all supported languages
+- add optional move sounds and basic VoiceOver support for the game screen
+
 ## 1.10.1+40
 - add wide-layout side-by-side view for sessions and statistics
 
