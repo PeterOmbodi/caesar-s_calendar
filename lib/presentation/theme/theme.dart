@@ -1,42 +1,39 @@
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 class AppThemeData {
-  static final ThemeData light = ThemeData(
-    useMaterial3: true,
-    colorScheme: ColorScheme.fromSeed(seedColor: AppColors.light.primary),
-    appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(elevation: 2),
-    iconButtonTheme: IconButtonThemeData(
-      style: IconButton.styleFrom(
-        backgroundColor: Colors.deepPurple.withValues(alpha: 0.8),
-        foregroundColor: Colors.white,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
-      ),
-    ),
-    extensions: [
-      GameColors.light,
-      ChromeTheme.glass,
-    ],
-  );
+  static final ThemeData light = _build(GameColors.light, AppColors.light.primary, Brightness.light);
+  static final ThemeData dark = _build(GameColors.dark, AppColors.dark.primary, Brightness.dark);
 
-  static final ThemeData dark = ThemeData(
-    useMaterial3: true,
-    colorScheme: ColorScheme.fromSeed(seedColor: AppColors.dark.primary, brightness: Brightness.dark),
-    appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(elevation: 2),
-    iconButtonTheme: IconButtonThemeData(
-      style: IconButton.styleFrom(
-        backgroundColor: Colors.deepPurple.withValues(alpha: 0.8),
-        foregroundColor: Colors.white,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+  static ThemeData _build(final GameColors game, final Color seed, final Brightness brightness) {
+    final scheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness).copyWith(
+      surface: game.background,
+      onSurface: game.text,
+      onSurfaceVariant: game.textSecondary,
+      error: game.bad,
+    );
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: game.background,
+      appBarTheme: AppBarTheme(
+        backgroundColor: game.background,
+        foregroundColor: game.text,
+        surfaceTintColor: Colors.transparent,
       ),
-    ),
-    extensions: [
-      GameColors.dark,
-      ChromeTheme.glass,
-    ],
-  );
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
+        },
+      ),
+      extensions: [game, ChromeTheme.glass],
+    );
+  }
 }
