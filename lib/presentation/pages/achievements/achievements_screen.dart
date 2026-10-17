@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visuals.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
@@ -55,6 +56,45 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     );
   }
 
+  Widget _appBar(final BuildContext context, {required final bool canShare}) {
+    final colors = GameColors.of(context);
+    final title = Text(S.current.achievementsTitle);
+    Widget shareButton(final Widget Function(VoidCallback onPressed) builder) => Builder(
+      builder: (final buttonContext) => builder(() => _share(buttonContext)),
+    );
+    if (ScreenSpec.of(context).family == ChromeFamily.glass) {
+      return CupertinoSliverNavigationBar(
+        largeTitle: title,
+        trailing: canShare
+            ? shareButton(
+                (final onPressed) => CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: onPressed,
+                  child: Icon(Icons.adaptive.share, semanticLabel: S.current.achievementsShare),
+                ),
+              )
+            : null,
+        backgroundColor: colors.background,
+        border: null,
+        transitionBetweenRoutes: false,
+      );
+    }
+    return SliverAppBar.large(
+      title: title,
+      backgroundColor: colors.background,
+      actions: [
+        if (canShare)
+          shareButton(
+            (final onPressed) => IconButton(
+              tooltip: S.current.achievementsShare,
+              icon: Icon(Icons.adaptive.share),
+              onPressed: onPressed,
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
@@ -68,23 +108,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           final stats = snapshot.data;
           return CustomScrollView(
             slivers: [
-              CupertinoSliverNavigationBar(
-                largeTitle: Text(S.current.achievementsTitle),
-                trailing: stats == null || stats.solvedDates.isEmpty
-                    ? null
-                    : Builder(
-                        builder: (final buttonContext) => CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () => _share(buttonContext),
-                          child: Icon(Icons.ios_share, semanticLabel: S.current.achievementsShare),
-                        ),
-                      ),
-                backgroundColor: colors.background,
-                border: null,
-                transitionBetweenRoutes: false,
-              ),
+              _appBar(context, canShare: stats != null && stats.solvedDates.isNotEmpty),
               if (stats == null)
-                const SliverFillRemaining(child: Center(child: CupertinoActivityIndicator()))
+                const SliverFillRemaining(child: Center(child: CircularProgressIndicator.adaptive()))
               else
                 SliverSafeArea(
                   top: false,
