@@ -58,7 +58,7 @@ class PuzzleView extends StatelessWidget {
             ? state.shownPieces.where((final p) => p.isConfigItem)
             : state.shownPieces;
         return state.status == GameStatus.initializing
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator.adaptive())
             : SizedBox(
                 width: double.infinity,
                 height: double.infinity,

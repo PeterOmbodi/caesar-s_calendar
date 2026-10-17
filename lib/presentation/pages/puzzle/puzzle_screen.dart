@@ -271,7 +271,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     final minutesText = '${spentSeconds ~/ 60}'.padLeft(2, '0');
     final spentTime = '$minutesText:$secondsText';
     final usedHints = state.gridPieces.where((final e) => !e.isUsersItem).length;
-    await showDialog(
+    await showAdaptiveDialog(
       context: context,
       builder: (final context) => PlatformAlertDialog(
         title: Text(S.of(context).solvedAlertTitle),

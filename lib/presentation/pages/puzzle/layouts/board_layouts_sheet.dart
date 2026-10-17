@@ -48,7 +48,7 @@ Future<void> showBoardLayoutsSheet(final BuildContext context) {
 }
 
 Future<String?> showLayoutNameDialog(final BuildContext context, final String title, final String initial) =>
-    showDialog<String>(context: context, builder: (_) => _NameDialog(title: title, initial: initial));
+    showAdaptiveDialog<String>(context: context, builder: (_) => _NameDialog(title: title, initial: initial));
 
 class _BoardLayoutsPanel extends StatefulWidget {
   const _BoardLayoutsPanel({required this.isSheet});
@@ -261,7 +261,7 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
     required final String action,
     final bool destructive = false,
   }) async =>
-      await showDialog<bool>(
+      await showAdaptiveDialog<bool>(
         context: context,
         builder: (final dialogContext) => PlatformAlertDialog(
           title: Text(title),

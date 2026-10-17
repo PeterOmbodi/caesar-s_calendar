@@ -106,7 +106,7 @@ class PuzzleToolbar extends StatelessWidget {
     final BuildContext context, {
     required final PuzzleSessionDifficulty sessionDifficulty,
     required final PuzzleSessionDifficulty currentDifficulty,
-  }) => showDialog<bool>(
+  }) => showAdaptiveDialog<bool>(
     context: context,
     builder: (final dialogContext) => PlatformAlertDialog(
       title: Text(S.current.historyDifficultyMismatchTitle),
@@ -134,7 +134,7 @@ class PuzzleToolbar extends StatelessWidget {
       case AssistGate.open:
         allowedEvent();
       case AssistGate.noSolutions:
-        await showDialog(
+        await showAdaptiveDialog(
           context: context,
           builder: (final context) => PlatformAlertDialog(
             title: Text(S.of(context).searchCompletedDialogTitle),
@@ -145,7 +145,7 @@ class PuzzleToolbar extends StatelessWidget {
           ),
         );
       case AssistGate.confirmEasy:
-        final result = await showDialog<bool>(
+        final result = await showAdaptiveDialog<bool>(
           context: context,
           builder: (final context) => PlatformAlertDialog(
             title: Text(S.of(context).searchCompletedDialogTitle),
@@ -245,7 +245,7 @@ class PuzzleToolbar extends StatelessWidget {
   }
 
   Future<bool> _confirmPlayExisting(final BuildContext context, final BoardLayout layout) async =>
-      await showDialog<bool>(
+      await showAdaptiveDialog<bool>(
         context: context,
         builder: (final dialogContext) => PlatformAlertDialog(
           title: Text(S.current.layoutsDuplicateTitle),

@@ -6,7 +6,6 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cu
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,7 +42,7 @@ class _AccountSectionState extends State<AccountSection> {
 
   Future<void> _showCloudReplaceDialog() async {
     final cubit = context.read<AuthCubit>();
-    final shouldContinue = await showDialog<bool>(
+    final shouldContinue = await showAdaptiveDialog<bool>(
       context: context,
       builder: (final dialogContext) => PlatformAlertDialog(
         title: Text(S.current.accountCloudReplaceTitle),
@@ -72,7 +71,7 @@ class _AccountSectionState extends State<AccountSection> {
   Future<void> _showDeleteAccountDialog() async {
     final cubit = context.read<AuthCubit>();
     final provider = _providerLabel(widget.auth.user);
-    final shouldDelete = await showDialog<bool>(
+    final shouldDelete = await showAdaptiveDialog<bool>(
       context: context,
       builder: (final dialogContext) => PlatformAlertDialog(
         title: Text(S.current.accountDeleteTitle),
@@ -165,7 +164,8 @@ class _AccountSectionState extends State<AccountSection> {
         border: colors.boardBorder,
         onPressed: auth.isLoading ? null : cubit.signInWithGoogle,
       ),
-      if (auth.isLoading) const Padding(padding: EdgeInsets.only(top: 16), child: CupertinoActivityIndicator()),
+      if (auth.isLoading)
+        const Padding(padding: EdgeInsets.only(top: 16), child: Center(child: CircularProgressIndicator.adaptive())),
     ];
   }
 
@@ -208,7 +208,9 @@ class _AccountSectionState extends State<AccountSection> {
             icon: Icons.sync,
             title: S.current.accountSyncNow,
             subtitle: sync.isSyncing ? S.current.accountSyncInProgress : _syncedLabel(sync),
-            trailing: sync.isSyncing ? const CupertinoActivityIndicator(radius: 9) : null,
+            trailing: sync.isSyncing
+                ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator.adaptive(strokeWidth: 2))
+                : null,
             onTap: sync.isSyncing || auth.isLoading ? null : profileCubit.requestSyncNow,
           ),
         ],

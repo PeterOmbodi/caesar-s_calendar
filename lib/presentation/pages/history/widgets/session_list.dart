@@ -301,7 +301,7 @@ Future<void> _confirmSessionResume(
   final ValueChanged<PuzzleSessionData> onResumeSession,
 ) async {
   final isSolved = session.status == PuzzleSessionStatus.solved;
-  final shouldResume = await showDialog<bool>(
+  final shouldResume = await showAdaptiveDialog<bool>(
     context: context,
     builder: (final dialogContext) => PlatformAlertDialog(
       title: Text(isSolved ? S.current.historyOpenSolvedSessionTitle : S.current.historyResumeSessionTitle),

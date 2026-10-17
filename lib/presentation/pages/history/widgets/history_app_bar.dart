@@ -68,7 +68,7 @@ class _MaterialHistoryAppBar extends StatelessWidget implements PreferredSizeWid
   @override
   Widget build(final BuildContext context) => AppBar(
     automaticallyImplyLeading: false,
-    leading: _HistoryBackButton(icon: Icons.arrow_back_ios_new_rounded),
+    leading: const BackButton(),
     title: Text(S.current.historyTitle),
     actions: [
       _HistoryActionButton(
@@ -83,19 +83,6 @@ class _MaterialHistoryAppBar extends StatelessWidget implements PreferredSizeWid
         onPressed: onPickDate,
       ),
     ],
-  );
-}
-
-class _HistoryBackButton extends StatelessWidget {
-  const _HistoryBackButton({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(final BuildContext context) => IconButton(
-    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-    icon: Icon(icon),
-    onPressed: () => Navigator.of(context).maybePop(),
   );
 }
 
