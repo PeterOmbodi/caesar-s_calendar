@@ -45,7 +45,7 @@ class _GlassHistoryAppBar extends StatelessWidget implements PreferredSizeWidget
           semanticLabel: S.current.achievementsTitle,
           icon: Icons.emoji_events_outlined,
           onPressed: () =>
-              Navigator.of(context).push(CupertinoPageRoute<void>(builder: (_) => const AchievementsScreen())),
+              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AchievementsScreen())),
         ),
         _CupertinoHistoryNavigationButton(
           semanticLabel: S.current.historyPickDate,
