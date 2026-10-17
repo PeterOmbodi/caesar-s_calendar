@@ -38,6 +38,7 @@ class SessionList extends StatelessWidget {
         onResumeSession: onResumeSession,
       );
     }
+    final colors = GameColors.of(context);
     final dateFormatter = DateFormat.yMMMd();
     final timeFormatter = DateFormat.Hm();
     if (sessions.isEmpty) {
@@ -89,7 +90,10 @@ class SessionList extends StatelessWidget {
         return Card(
           child: ListTile(
             onTap: () => _confirmSessionResume(context, session, onResumeSession),
-            leading: Icon(isSolved ? Icons.check_circle : Icons.timelapse, color: isSolved ? Colors.green : Colors.red),
+            leading: Icon(
+              isSolved ? Icons.check_circle : Icons.timelapse,
+              color: isSolved ? colors.ok : colors.textSecondary,
+            ),
             title: Row(
               children: [
                 Expanded(child: Text('$statusLabel • ${session.difficulty.stars} ${session.difficulty.label}')),

@@ -71,9 +71,11 @@ class PuzzleToolbar extends StatelessWidget {
   }
 
   Future<void> _showHistory(final BuildContext context) async {
-    final activeDate = context.read<PuzzleBloc>().state.selectedDate;
+    final puzzleState = context.read<PuzzleBloc>().state;
     final result = await Navigator.of(context).push(
-      MaterialPageRoute<HistoryScreenResult>(builder: (_) => HistoryScreen(initialDate: activeDate)),
+      MaterialPageRoute<HistoryScreenResult>(
+        builder: (_) => HistoryScreen(initialDate: puzzleState.selectedDate, boardBlocked: puzzleState.blockedCells),
+      ),
     );
     if (result == null || !context.mounted) {
       return;

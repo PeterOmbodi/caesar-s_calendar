@@ -233,9 +233,9 @@ void main() {
     );
     await tester.tap(find.text('Pick'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('previous-month')));
+    await tester.tap(find.byKey(const ValueKey('month-2')));
     await tester.pumpAndSettle();
-    expect(find.text('February'), findsOneWidget);
+    expect(find.text('February 20'), findsOneWidget);
     expect(find.textContaining('2024'), findsNothing);
     expect(find.textContaining('2026'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('day-29')));
@@ -245,7 +245,7 @@ void main() {
     expect(result, DateTime(2024, 2, 29));
   });
 
-  testWidgets('month navigation clamps days and cancel leaves selection untouched', (final tester) async {
+  testWidgets('month change clamps the day, missing days are disabled, cancel returns nothing', (final tester) async {
     DateTime? result = DateTime(2024, 1, 31);
     await tester.pumpWidget(
       app(
@@ -261,10 +261,12 @@ void main() {
     );
     await tester.tap(find.text('Pick'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('next-month')));
+    await tester.tap(find.byKey(const ValueKey('month-2')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('day-29')), findsOneWidget);
-    expect(find.byKey(const ValueKey('day-30')), findsNothing);
+    expect(find.text('February 29'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('day-30')));
+    await tester.pumpAndSettle();
+    expect(find.text('February 29'), findsOneWidget);
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(result, isNull);

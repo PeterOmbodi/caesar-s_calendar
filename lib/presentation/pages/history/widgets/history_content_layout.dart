@@ -46,7 +46,6 @@ class HistoryContentLayout extends StatelessWidget {
         );
         final sessions = _HistorySessions(
           state: state,
-          glass: glass,
           onStartPuzzle: onStartPuzzle,
           onResumeSession: onResumeSession,
         );
@@ -99,20 +98,18 @@ class HistoryContentLayout extends StatelessWidget {
 class _HistorySessions extends StatelessWidget {
   const _HistorySessions({
     required this.state,
-    required this.glass,
     required this.onStartPuzzle,
     required this.onResumeSession,
   });
 
   final HistoryState state;
-  final bool glass;
   final ValueChanged<DateTime> onStartPuzzle;
   final ValueChanged<PuzzleSessionData> onResumeSession;
 
   @override
   Widget build(final BuildContext context) {
     if (state.isSessionsLoading) {
-      return Center(child: glass ? const CupertinoActivityIndicator() : const CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator.adaptive());
     }
     return SessionList(
       sessions: state.sessions,
@@ -163,6 +160,7 @@ class _MaterialHistoryTabSelector extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) => SegmentedButton<int>(
+    expandedInsets: EdgeInsets.zero,
     showSelectedIcon: false,
     segments: [
       ButtonSegment(value: 0, label: Text(S.current.historyTabSessions)),

@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
+import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/pages/history/bloc/history_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_result.dart';
@@ -9,19 +10,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HistoryScreen extends StatelessWidget {
-  const HistoryScreen({super.key, this.initialDate});
+  const HistoryScreen({super.key, this.initialDate, this.boardBlocked});
 
   final DateTime? initialDate;
+  final Set<Cell>? boardBlocked;
 
   @override
   Widget build(final BuildContext context) => BlocProvider(
     create: (_) => HistoryCubit(historyUseCase: getIt<PuzzleHistoryUseCase>())..initialize(initialDate: initialDate),
-    child: const _HistoryScaffold(),
+    child: _HistoryScaffold(boardBlocked: boardBlocked),
   );
 }
 
 class _HistoryScaffold extends StatefulWidget {
-  const _HistoryScaffold();
+  const _HistoryScaffold({required this.boardBlocked});
+
+  final Set<Cell>? boardBlocked;
 
   @override
   State<_HistoryScaffold> createState() => _HistoryScaffoldState();
@@ -32,7 +36,7 @@ class _HistoryScaffoldState extends State<_HistoryScaffold> {
   int _centerSelectionRequest = 0;
 
   Future<void> _pickDate(final DateTime selectedDate) async {
-    final picked = await showPuzzleDayPicker(context, selectedDate: selectedDate);
+    final picked = await showPuzzleDayPicker(context, selectedDate: selectedDate, blocked: widget.boardBlocked);
     if (!mounted || picked == null) {
       return;
     }
