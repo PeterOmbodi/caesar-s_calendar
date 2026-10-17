@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "991187302399-buqh2vhges9ljg3o0q5ccgp37g94k0dp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.peter_ombodi.caesar_puzzle",
+            "certificate_hash": "0d8fe8b2f0794cb84eb626b975e2eb6ae605ccfd"
+          }
+        },
+        {
           "client_id": "991187302399-n9535mbr4kj8ee45taeg1no5tdkk4288.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -55,10 +63,10 @@
               "client_type": 3
             },
             {
-              "client_id": "991187302399-eog16l2d8gjmfijaucoiu9ukamldtuu6.apps.googleusercontent.com",
+              "client_id": "991187302399-edq0109kdpona4kspi0t4d5uv95ragjt.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.peter.ombodi.caesarcalendar.caesarPuzzle"
+                "bundle_id": "com.peter.ombodi.caesarPuzzle"
               }
             }
           ]
