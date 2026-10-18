@@ -116,117 +116,119 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         BlocProvider<BoardLayoutsCubit>.value(value: _layoutsCubit),
       ],
       child: Scaffold(
-        body: SafeArea(
-          child: MultiBlocListener(
-            listeners: [
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final ps, final cs) =>
-                    ps.status == GameStatus.initializing && cs.status != GameStatus.initializing,
-                listener: (final context, final state) => _maybeShowStartCard(),
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final ps, final cs) =>
-                    !_isPieceTipRequested &&
-                    cs.selectedPieceId != null &&
-                    !cs.isDragging &&
-                    !cs.isEditingLayout &&
-                    (ps.selectedPieceId != cs.selectedPieceId || ps.isDragging),
-                listener: (final context, final state) => _showPieceTip(),
-              ),
-              BlocListener<SettingsCubit, SettingsState>(
-                listenWhen: (final previous, final current) => previous.solutionIndicator != current.solutionIndicator,
-                listener: (final context, final state) {
-                  context.read<PuzzleBloc>().markCurrentSessionDifficulty(state.solutionIndicator.sessionDifficulty);
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final ps, final cs) =>
-                    !cs.isRestoredSolvedSession &&
-                    !cs.hasShownSolvedDialog &&
-                    ps.status == GameStatus.playing &&
-                    cs.status == GameStatus.solvedByUser,
-                listener: (final context, final state) {
-                  context.read<PuzzleBloc>().add(const PuzzleEvent.markSolvedDialogShown());
-                  _showSolvedDialog(context, state);
-                },
-              ),
-            ],
-            child: Stack(
-              children: [
-                Positioned.fill(child: _GameBackground(colors: GameColors.of(context))),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  left: gameplayInsets.left,
-                  top: 0,
-                  right: gameplayInsets.right,
-                  bottom: 0,
-                  child: PuzzleView(key: _boardKey, headerHeight: _headerHeight),
+        body: _GameBackground(
+          colors: GameColors.of(context),
+          child: SafeArea(
+            child: MultiBlocListener(
+              listeners: [
+                BlocListener<PuzzleBloc, PuzzleState>(
+                  listenWhen: (final ps, final cs) =>
+                      ps.status == GameStatus.initializing && cs.status != GameStatus.initializing,
+                  listener: (final context, final state) => _maybeShowStartCard(),
                 ),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  left: gameplayInsets.left + GameChrome.reservedInsets(context).left,
-                  top: 0,
-                  right: gameplayInsets.right,
-                  child: MeasureSize(
-                    onChange: (final size) {
-                      if (mounted && size.height != _headerHeight) {
-                        setState(() => _headerHeight = size.height);
-                      }
-                    },
-                    child: Builder(
-                      builder: (final headerContext) => MediaQuery.withClampedTextScaling(
-                        maxScaleFactor: _maxChromeTextScale,
-                        child: PuzzleHeader(
-                          onLayoutsPressed: () {
-                            if (!_puzzleBloc.state.isEditingLayout) {
-                              showBoardLayoutsSheet(headerContext);
-                            }
-                          },
-                          onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
+                BlocListener<PuzzleBloc, PuzzleState>(
+                  listenWhen: (final ps, final cs) =>
+                      !_isPieceTipRequested &&
+                      cs.selectedPieceId != null &&
+                      !cs.isDragging &&
+                      !cs.isEditingLayout &&
+                      (ps.selectedPieceId != cs.selectedPieceId || ps.isDragging),
+                  listener: (final context, final state) => _showPieceTip(),
+                ),
+                BlocListener<SettingsCubit, SettingsState>(
+                  listenWhen: (final previous, final current) => previous.solutionIndicator != current.solutionIndicator,
+                  listener: (final context, final state) {
+                    context.read<PuzzleBloc>().markCurrentSessionDifficulty(state.solutionIndicator.sessionDifficulty);
+                  },
+                ),
+                BlocListener<PuzzleBloc, PuzzleState>(
+                  listenWhen: (final ps, final cs) =>
+                      !cs.isRestoredSolvedSession &&
+                      !cs.hasShownSolvedDialog &&
+                      ps.status == GameStatus.playing &&
+                      cs.status == GameStatus.solvedByUser,
+                  listener: (final context, final state) {
+                    context.read<PuzzleBloc>().add(const PuzzleEvent.markSolvedDialogShown());
+                    _showSolvedDialog(context, state);
+                  },
+                ),
+              ],
+              child: Stack(
+                children: [
+                    AnimatedPositioned(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    left: gameplayInsets.left,
+                    top: 0,
+                    right: gameplayInsets.right,
+                    bottom: 0,
+                    child: PuzzleView(key: _boardKey, headerHeight: _headerHeight),
+                  ),
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    left: gameplayInsets.left + GameChrome.reservedInsets(context).left,
+                    top: 0,
+                    right: gameplayInsets.right,
+                    child: MeasureSize(
+                      onChange: (final size) {
+                        if (mounted && size.height != _headerHeight) {
+                          setState(() => _headerHeight = size.height);
+                        }
+                      },
+                      child: Builder(
+                        builder: (final headerContext) => MediaQuery.withClampedTextScaling(
+                          maxScaleFactor: _maxChromeTextScale,
+                          child: PuzzleHeader(
+                            onLayoutsPressed: () {
+                              if (!_puzzleBloc.state.isEditingLayout) {
+                                showBoardLayoutsSheet(headerContext);
+                              }
+                            },
+                            onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: BlocBuilder<PuzzleBloc, PuzzleState>(
-                    buildWhen: (final ps, final cs) =>
-                        !cs.isRestoredSolvedSession &&
-                        (ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser ||
-                            ps.status == GameStatus.solvedByUser && ps.status != cs.status),
-                    builder: (final BuildContext context, final PuzzleState state) =>
-                        !state.isRestoredSolvedSession &&
-                            state.status == GameStatus.solvedByUser &&
-                            !MediaQuery.disableAnimationsOf(context)
-                        ? const ConfettiView()
-                        : SizedBox.shrink(),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: BlocBuilder<PuzzleBloc, PuzzleState>(
+                      buildWhen: (final ps, final cs) =>
+                          !cs.isRestoredSolvedSession &&
+                          (ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser ||
+                              ps.status == GameStatus.solvedByUser && ps.status != cs.status),
+                      builder: (final BuildContext context, final PuzzleState state) =>
+                          !state.isRestoredSolvedSession &&
+                              state.status == GameStatus.solvedByUser &&
+                              !MediaQuery.disableAnimationsOf(context)
+                          ? const ConfettiView()
+                          : SizedBox.shrink(),
+                    ),
                   ),
-                ),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  left: gameplayInsets.left,
-                  top: 0,
-                  right: gameplayInsets.right,
-                  bottom: 0,
-                  child: MediaQuery.withClampedTextScaling(
-                    maxScaleFactor: _maxChromeTextScale,
-                    child: const PuzzleToolbar(),
-                  ),
-                ),
-                if (settingsDocked)
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOutCubic,
-                    right: _settingsPanelController.isInlinePanelVisible ? 0 : -PuzzleScreen.sidePanelWidth,
+                    left: gameplayInsets.left,
                     top: 0,
+                    right: gameplayInsets.right,
                     bottom: 0,
-                    child: const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
+                    child: MediaQuery.withClampedTextScaling(
+                      maxScaleFactor: _maxChromeTextScale,
+                      child: const PuzzleToolbar(),
+                    ),
                   ),
-              ],
+                  if (settingsDocked)
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      right: _settingsPanelController.isInlinePanelVisible ? 0 : -PuzzleScreen.sidePanelWidth,
+                      top: 0,
+                      bottom: 0,
+                      child: const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -361,9 +363,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 }
 
 class _GameBackground extends StatelessWidget {
-  const _GameBackground({required this.colors});
+  const _GameBackground({required this.colors, required this.child});
 
   final GameColors colors;
+  final Widget child;
 
   @override
   Widget build(final BuildContext context) => DecoratedBox(
@@ -375,5 +378,6 @@ class _GameBackground extends StatelessWidget {
         stops: const [0, 0.45],
       ),
     ),
+    child: child,
   );
 }
