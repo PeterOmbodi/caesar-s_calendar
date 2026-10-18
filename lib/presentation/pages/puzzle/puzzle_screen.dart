@@ -30,6 +30,7 @@ import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
+import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
 import 'package:flutter/gestures.dart' show kDoubleTapTimeout;
 import 'package:flutter/material.dart';
@@ -42,6 +43,7 @@ class PuzzleScreen extends StatefulWidget {
   const PuzzleScreen({super.key});
 
   static const sidePanelWidth = 340.0;
+  static const maxGameWidth = 1600.0;
 
   @override
   State<PuzzleScreen> createState() => _PuzzleScreenState();
@@ -389,6 +391,7 @@ class _GameBackground extends StatelessWidget {
         stops: const [0, 0.45],
       ),
     ),
-    child: child,
+    // On wide monitors the game stays together in the middle; the background fills the window.
+    child: MaxWidth(maxWidth: PuzzleScreen.maxGameWidth, child: child),
   );
 }

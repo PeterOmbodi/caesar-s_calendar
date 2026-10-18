@@ -6,11 +6,14 @@ import 'package:caesar_puzzle/presentation/pages/history/models/history_screen_r
 import 'package:caesar_puzzle/presentation/pages/history/widgets/history_app_bar.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/history_content_layout.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/puzzle_day_picker.dart';
+import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key, this.initialDate, this.boardBlocked});
+
+  static const double maxContentWidth = 1200;
 
   final DateTime? initialDate;
   final Set<Cell>? boardBlocked;
@@ -49,13 +52,16 @@ class _HistoryScaffoldState extends State<_HistoryScaffold> {
     builder: (final context, final state) => Scaffold(
       appBar: HistoryAppBar(onPickDate: () => _pickDate(state.selectedDate)),
       body: SafeArea(
-        child: HistoryContentLayout(
-          state: state,
-          activeTab: _activeTab,
-          onTabChanged: (final tab) => setState(() => _activeTab = tab),
-          centerSelectionRequest: _centerSelectionRequest,
-          onStartPuzzle: (final date) => Navigator.of(context).pop(HistoryScreenResult.startPuzzleForDate(date)),
-          onResumeSession: (final session) => Navigator.of(context).pop(HistoryScreenResult.resumeSession(session)),
+        child: MaxWidth(
+          maxWidth: HistoryScreen.maxContentWidth,
+          child: HistoryContentLayout(
+            state: state,
+            activeTab: _activeTab,
+            onTabChanged: (final tab) => setState(() => _activeTab = tab),
+            centerSelectionRequest: _centerSelectionRequest,
+            onStartPuzzle: (final date) => Navigator.of(context).pop(HistoryScreenResult.startPuzzleForDate(date)),
+            onResumeSession: (final session) => Navigator.of(context).pop(HistoryScreenResult.resumeSession(session)),
+          ),
         ),
       ),
     ),
