@@ -10,6 +10,7 @@ sealed class PuzzleEvent with _$PuzzleEvent {
     required final double maxCell,
     @Default(PuzzlePieceUI.defaultTrayScale) final double trayScale,
     @Default(EdgeInsets.zero) final EdgeInsets contentInsets,
+    @Default(0) final double trayTopInset,
   }) = _SetViewSize;
 
   const factory PuzzleEvent.reset() = _Reset;

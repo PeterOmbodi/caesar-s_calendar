@@ -28,8 +28,10 @@ class PuzzleView extends StatelessWidget {
       builder: (final context, final constraints) {
         final bloc = context.read<PuzzleBloc>();
         final spec = ScreenSpec.of(context);
+        // A phone in landscape gives the board the full height; the header sits above the tray.
+        final headerBesideBoard = spec.window == WindowClass.compact && spec.isLandscape;
         final contentInsets =
-            EdgeInsets.only(top: headerHeight, bottom: statusGap + PuzzleStatusLine.height) +
+            EdgeInsets.only(top: headerBesideBoard ? 0 : headerHeight, bottom: statusGap + PuzzleStatusLine.height) +
             GameChrome.reservedInsets(context);
         bloc.add(
           PuzzleEvent.setViewSize(
@@ -37,6 +39,7 @@ class PuzzleView extends StatelessWidget {
             maxCell: spec.maxCell,
             trayScale: spec.trayScale,
             contentInsets: contentInsets,
+            trayTopInset: headerBesideBoard ? headerHeight : 0,
           ),
         );
         final settings = context.watch<SettingsCubit>().state;

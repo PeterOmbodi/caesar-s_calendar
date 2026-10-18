@@ -111,6 +111,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   double _lastMaxCell = double.infinity;
   double _lastTrayScale = PuzzlePieceUI.defaultTrayScale;
   EdgeInsets _lastContentInsets = EdgeInsets.zero;
+  double _lastTrayTopInset = 0;
   // Piece that the current tap down selected; such a tap must not rotate or flip it.
   String? _selectedOnTapDownId;
   PuzzleSessionDifficulty? _currentSessionDifficulty;

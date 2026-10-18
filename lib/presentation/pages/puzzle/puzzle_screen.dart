@@ -25,6 +25,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
@@ -164,32 +165,41 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                     bottom: 0,
                     child: PuzzleView(key: _boardKey, headerHeight: _headerHeight),
                   ),
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    left: gameplayInsets.left + GameChrome.reservedInsets(context).left,
-                    top: 0,
-                    right: gameplayInsets.right,
-                    child: MeasureSize(
-                      onChange: (final size) {
-                        if (mounted && size.height != _headerHeight) {
-                          setState(() => _headerHeight = size.height);
-                        }
-                      },
-                      child: Builder(
-                        builder: (final headerContext) => MediaQuery.withClampedTextScaling(
-                          maxScaleFactor: _maxChromeTextScale,
-                          child: PuzzleHeader(
-                            onLayoutsPressed: () {
-                              if (!_puzzleBloc.state.isEditingLayout) {
-                                showBoardLayoutsSheet(headerContext);
-                              }
-                            },
-                            onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
+                  BlocSelector<PuzzleBloc, PuzzleState, double>(
+                    selector: (final state) => state.boardConfig.getBounds.left,
+                    builder: (final context, final trayLeft) {
+                      // Phone landscape: the header sits beside the board, above the tray.
+                      final spec = ScreenSpec.of(context);
+                      final beside = spec.window == WindowClass.compact && spec.isLandscape;
+                      final reserved = GameChrome.reservedInsets(context);
+                      return AnimatedPositioned(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                        left: gameplayInsets.left + (beside ? trayLeft - 16 : reserved.left),
+                        top: 0,
+                        right: gameplayInsets.right + (beside ? reserved.right : 0),
+                        child: MeasureSize(
+                          onChange: (final size) {
+                            if (mounted && size.height != _headerHeight) {
+                              setState(() => _headerHeight = size.height);
+                            }
+                          },
+                          child: Builder(
+                            builder: (final headerContext) => MediaQuery.withClampedTextScaling(
+                              maxScaleFactor: _maxChromeTextScale,
+                              child: PuzzleHeader(
+                                onLayoutsPressed: () {
+                                  if (!_puzzleBloc.state.isEditingLayout) {
+                                    showBoardLayoutsSheet(headerContext);
+                                  }
+                                },
+                                onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                   Align(
                     alignment: Alignment.topCenter,

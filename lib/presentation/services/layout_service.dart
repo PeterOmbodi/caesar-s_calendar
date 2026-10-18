@@ -47,10 +47,17 @@ class LayoutService {
     required final double maxCell,
     final double trayScale = PuzzlePieceUI.defaultTrayScale,
     final bool fillAvailableTray = false,
+    final double trayTopInset = 0,
     final Iterable<PuzzlePieceUI> configurationPieces = const [],
   }) {
     final gCellSize = _calcCellSize(contentRect.size, maxCell, trayScale);
-    final (:gridConfig, :boardConfig) = _buildConfigs(contentRect, gCellSize, trayScale, fillAvailableTray);
+    final (:gridConfig, :boardConfig) = _buildConfigs(
+      contentRect,
+      gCellSize,
+      trayScale,
+      fillAvailableTray,
+      trayTopInset,
+    );
     final centerPoint = Offset(gCellSize * gridCenterOffset, gCellSize * gridCenterOffset);
     final trayCell = boardConfig.cellSize;
 
@@ -84,7 +91,7 @@ class LayoutService {
     return LayoutConfig(
       gridConfig: gridConfig,
       boardConfig: boardConfig,
-      trayArea: _trayArea(contentRect, gridConfig),
+      trayArea: _trayArea(contentRect, gridConfig, trayTopInset),
       pieces: [
         for (final p in [...gridPieces, ...boardPieces]) p.copyWith(trayScale: trayCell / gCellSize),
       ],
@@ -99,9 +106,16 @@ class LayoutService {
     required final Iterable<PuzzlePieceUI> pieces,
     final double trayScale = PuzzlePieceUI.defaultTrayScale,
     final bool fillAvailableTray = false,
+    final double trayTopInset = 0,
   }) {
     final gCellSize = _calcCellSize(contentRect.size, maxCell, trayScale);
-    final (:gridConfig, :boardConfig) = _buildConfigs(contentRect, gCellSize, trayScale, fillAvailableTray);
+    final (:gridConfig, :boardConfig) = _buildConfigs(
+      contentRect,
+      gCellSize,
+      trayScale,
+      fillAvailableTray,
+      trayTopInset,
+    );
     final centerPoint = Offset(gCellSize * gridCenterOffset, gCellSize * gridCenterOffset);
 
     Offset remap(final Offset position, final PuzzleBaseEntity from, final PuzzleBaseEntity to) =>
@@ -129,7 +143,7 @@ class LayoutService {
     return LayoutConfig(
       gridConfig: gridConfig,
       boardConfig: boardConfig,
-      trayArea: _trayArea(contentRect, gridConfig),
+      trayArea: _trayArea(contentRect, gridConfig, trayTopInset),
       pieces: rebuilt.toList(),
     );
   }
@@ -154,7 +168,7 @@ class LayoutService {
   }
 
   /// Room for the enlarged tray piece: the content area beside or below the board.
-  Rect _trayArea(final Rect contentRect, final PuzzleGridEntity grid) {
+  Rect _trayArea(final Rect contentRect, final PuzzleGridEntity grid, final double trayTopInset) {
     final board = grid.getBounds;
     return contentRect.height > contentRect.width
         ? Rect.fromLTRB(
@@ -165,7 +179,7 @@ class LayoutService {
           )
         : Rect.fromLTRB(
             board.right + horizontalContentPadding,
-            contentRect.top,
+            contentRect.top + trayTopInset,
             contentRect.right - horizontalContentPadding,
             contentRect.bottom,
           );
@@ -176,6 +190,7 @@ class LayoutService {
     final double gridCellSize,
     final double trayScale,
     final bool fillAvailableTray,
+    final double trayTopInset,
   ) {
     final viewSize = contentRect.size;
     final gridSize = Size(gridColumns * gridCellSize, gridRows * gridCellSize);
@@ -183,9 +198,17 @@ class LayoutService {
     final availableTrayWidth =
         viewSize.width - horizontalContentPadding * 2 - (isPortrait ? 0 : gridSize.width + defaultPadding);
     final availableTrayHeight = viewSize.height - (isPortrait ? gridSize.height + defaultPadding : 0);
-    // Leave room for the landscape status line, and cap resting pieces at board scale.
+    final gridTop = contentRect.top + (viewSize.height - gridSize.height) / 2;
+    // In landscape the tray sits under the header and above the status line, at most at board scale.
+    final landscapeTrayTop = math.max(gridTop, contentRect.top + trayTopInset);
+    final landscapeTrayHeight = gridTop + gridSize.height - statusLineExtent - landscapeTrayTop;
     final trayCellSize = !isPortrait
-        ? math.min(gridCellSize, (gridSize.height - statusLineExtent) / trayRows)
+        ? math.min(
+            gridCellSize,
+            trayTopInset > 0
+                ? math.min(landscapeTrayHeight / trayRows, availableTrayWidth / trayColumns)
+                : landscapeTrayHeight / trayRows,
+          )
         : fillAvailableTray
         ? math.min(gridCellSize, math.min(availableTrayWidth / trayColumns, availableTrayHeight / trayRows))
         : gridCellSize * trayScale;
@@ -204,11 +227,8 @@ class LayoutService {
       grid = Offset(left + (contentWidth - gridSize.width) / 2, top);
       tray = Offset(contentRect.left + horizontalContentPadding, top + gridSize.height + defaultPadding);
     } else {
-      grid = Offset(
-        contentRect.left + horizontalContentPadding,
-        contentRect.top + (viewSize.height - gridSize.height) / 2,
-      );
-      tray = Offset(grid.dx + gridSize.width + defaultPadding, grid.dy);
+      grid = Offset(contentRect.left + horizontalContentPadding, gridTop);
+      tray = Offset(grid.dx + gridSize.width + defaultPadding, landscapeTrayTop);
     }
 
     return (
@@ -224,7 +244,7 @@ class LayoutService {
         columns: trayColumns,
         origin: Position(dx: tray.dx, dy: tray.dy),
         availableWidth: availableTrayWidth,
-        availableHeight: isPortrait ? contentRect.bottom - tray.dy : gridSize.height - statusLineExtent,
+        availableHeight: isPortrait ? contentRect.bottom - tray.dy : landscapeTrayHeight,
       ),
     );
   }
