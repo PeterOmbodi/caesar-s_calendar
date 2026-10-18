@@ -3,11 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// Transparent system bars over the app background.
-/// Android phones in landscape hide the status bar, as iOS does.
 class SystemBars extends StatefulWidget {
   const SystemBars({super.key, required this.child});
-
-  static const double _phoneMaxHeight = 600;
 
   final Widget child;
 
@@ -30,26 +27,17 @@ class SystemBars extends StatefulWidget {
 }
 
 class _SystemBarsState extends State<SystemBars> {
-  bool? _statusBarHidden;
-
-  void _syncMode(final bool hideStatusBar) {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android || hideStatusBar == _statusBarHidden) {
-      return;
+  @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
-    _statusBarHidden = hideStatusBar;
-    SystemChrome.setEnabledSystemUIMode(
-      hideStatusBar ? SystemUiMode.manual : SystemUiMode.edgeToEdge,
-      overlays: hideStatusBar ? const [SystemUiOverlay.bottom] : null,
-    );
   }
 
   @override
-  Widget build(final BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-    _syncMode(size.width > size.height && size.height < SystemBars._phoneMaxHeight);
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemBars.styleFor(Theme.of(context).brightness),
-      child: widget.child,
-    );
-  }
+  Widget build(final BuildContext context) => AnnotatedRegion<SystemUiOverlayStyle>(
+    value: SystemBars.styleFor(Theme.of(context).brightness),
+    child: widget.child,
+  );
 }
