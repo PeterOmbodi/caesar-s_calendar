@@ -112,7 +112,9 @@ void main() {
       expect(ChromeFamily.forPlatform(TargetPlatform.macOS, isWeb: false), ChromeFamily.glass);
       expect(ChromeFamily.forPlatform(TargetPlatform.android, isWeb: false), ChromeFamily.material);
       expect(ChromeFamily.forPlatform(TargetPlatform.windows, isWeb: false), ChromeFamily.material);
-      expect(ChromeFamily.forPlatform(TargetPlatform.iOS, isWeb: true), ChromeFamily.web);
+      expect(ChromeFamily.forPlatform(TargetPlatform.iOS, isWeb: true), ChromeFamily.glass);
+      expect(ChromeFamily.forPlatform(TargetPlatform.android, isWeb: true), ChromeFamily.material);
+      expect(ChromeFamily.forPlatform(TargetPlatform.linux, isWeb: true), ChromeFamily.web);
     });
   });
 

@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/help/gesture_demo.dart';
 import 'package:caesar_puzzle/presentation/help/how_to_play_content.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/services/keyboard_presence.dart';
 import 'package:caesar_puzzle/presentation/widgets/game_sheet.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
@@ -15,8 +16,7 @@ class _HowToPlayBody extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-    final platform = Theme.of(context).platform;
-    final apple = platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+    final apple = hostIsApple;
     return ValueListenableBuilder(
       valueListenable: KeyboardPresence.instance.connected,
       builder: (final context, final hasKeyboard, _) => Column(

@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
@@ -21,7 +22,7 @@ class GlassSurface extends StatelessWidget {
   /// False keeps the frosted fill, for panels with text.
   final bool allowLiquid;
 
-  static bool isLiquid(final BuildContext context) => ScreenSpec.of(context).family == ChromeFamily.glass;
+  static bool isLiquid(final BuildContext context) => !kIsWeb && ScreenSpec.of(context).family == ChromeFamily.glass;
 
   static Widget liquid(
     final BuildContext context, {

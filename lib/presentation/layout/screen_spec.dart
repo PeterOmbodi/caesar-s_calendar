@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+/// The host OS, also in a browser: shortcut keys use ⌘ on Apple platforms.
+bool get hostIsApple => defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS;
+
 enum WindowClass {
   compact,
   medium,
@@ -29,8 +32,13 @@ enum ChromeFamily {
   web;
 
   factory ChromeFamily.forPlatform(final TargetPlatform platform, {required final bool isWeb}) {
+    // Mobile browsers look like the app on that platform; desktop browsers get the web family.
     if (isWeb) {
-      return ChromeFamily.web;
+      return switch (platform) {
+        TargetPlatform.iOS => ChromeFamily.glass,
+        TargetPlatform.android => ChromeFamily.material,
+        _ => ChromeFamily.web,
+      };
     }
     return switch (platform) {
       TargetPlatform.iOS || TargetPlatform.macOS => ChromeFamily.glass,

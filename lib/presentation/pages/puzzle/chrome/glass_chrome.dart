@@ -364,8 +364,7 @@ class _LabeledRail extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final platform = Theme.of(context).platform;
-    final apple = platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+    final apple = hostIsApple;
     final primary = actions.where((final a) => a.slot == ActionSlot.primary);
     final overflow = actions.where((final a) => a.slot == ActionSlot.overflow);
 

@@ -272,8 +272,7 @@ class PuzzleToolbar extends StatelessWidget {
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
     builder: (final context, final state) {
       final actions = actionsFor(state, context.watch<SettingsCubit>().state.solutionIndicator);
-      final platform = Theme.of(context).platform;
-      final apple = platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+      final apple = hostIsApple;
       return CallbackShortcuts(
         bindings: {
           for (final action in actions)
