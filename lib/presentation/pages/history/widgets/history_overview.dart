@@ -15,6 +15,7 @@ class HistoryOverview extends StatelessWidget {
     required this.stats,
     required this.onDateTap,
     this.sidebar = false,
+    this.cellSize = 24,
     this.centerSelectionRequest = 0,
   });
 
@@ -24,6 +25,7 @@ class HistoryOverview extends StatelessWidget {
   final List<CalendarDayStats> stats;
   final ValueChanged<DateTime> onDateTap;
   final bool sidebar;
+  final double cellSize;
   final int centerSelectionRequest;
 
   @override
@@ -36,7 +38,7 @@ class HistoryOverview extends StatelessWidget {
       container: true,
       label: '${S.current.historyTitle}: $dateLabel',
       child: Padding(
-        padding: sidebar ? const EdgeInsets.fromLTRB(4, 8, 8, 8) : const EdgeInsets.all(16),
+        padding: sidebar ? const EdgeInsets.fromLTRB(16, 8, 8, 16) : const EdgeInsets.all(16),
         child: DecoratedBox(
           decoration: BoxDecoration(color: colors.board, borderRadius: BorderRadius.circular(20)),
           child: Padding(
@@ -52,6 +54,7 @@ class HistoryOverview extends StatelessWidget {
                     rangeEnd: rangeEnd,
                     stats: stats,
                     onDateTap: onDateTap,
+                    cellSize: cellSize,
                     centerSelectionRequest: centerSelectionRequest,
                   ),
                 ),
@@ -76,7 +79,7 @@ class _HistoryOverviewHeader extends StatelessWidget {
     if (glass) {
       return _GlassHistoryOverviewHeader(dateLabel: dateLabel, stacked: stacked);
     }
-    return _MaterialHistoryOverviewHeader(dateLabel: dateLabel);
+    return _MaterialHistoryOverviewHeader(dateLabel: dateLabel, stacked: stacked);
   }
 }
 
@@ -89,31 +92,25 @@ class _GlassHistoryOverviewHeader extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final style = TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: GameColors.of(context).text);
-    if (stacked) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(dateLabel, style: style),
-            const SizedBox(height: 8),
-            const FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: HeatmapLegend(large: true)),
-          ],
-        ),
-      );
-    }
-    return _HistoryOverviewHeaderRow(dateLabel: dateLabel, style: style);
+    return stacked
+        ? _HistoryOverviewHeaderStack(dateLabel: dateLabel, style: style)
+        : _HistoryOverviewHeaderRow(dateLabel: dateLabel, style: style);
   }
 }
 
 class _MaterialHistoryOverviewHeader extends StatelessWidget {
-  const _MaterialHistoryOverviewHeader({required this.dateLabel});
+  const _MaterialHistoryOverviewHeader({required this.dateLabel, required this.stacked});
 
   final String dateLabel;
+  final bool stacked;
 
   @override
-  Widget build(final BuildContext context) =>
-      _HistoryOverviewHeaderRow(dateLabel: dateLabel, style: Theme.of(context).textTheme.labelMedium);
+  Widget build(final BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return stacked
+        ? _HistoryOverviewHeaderStack(dateLabel: dateLabel, style: textTheme.titleMedium)
+        : _HistoryOverviewHeaderRow(dateLabel: dateLabel, style: textTheme.labelMedium);
+  }
 }
 
 class _HistoryOverviewHeaderRow extends StatelessWidget {
@@ -135,6 +132,26 @@ class _HistoryOverviewHeaderRow extends StatelessWidget {
             child: const FittedBox(fit: BoxFit.scaleDown, child: HeatmapLegend()),
           ),
         ),
+      ],
+    ),
+  );
+}
+
+class _HistoryOverviewHeaderStack extends StatelessWidget {
+  const _HistoryOverviewHeaderStack({required this.dateLabel, required this.style});
+
+  final String dateLabel;
+  final TextStyle? style;
+
+  @override
+  Widget build(final BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(dateLabel, style: style),
+        const SizedBox(height: 8),
+        const FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: HeatmapLegend(large: true)),
       ],
     ),
   );

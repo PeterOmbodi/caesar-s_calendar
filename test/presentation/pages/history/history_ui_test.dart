@@ -272,6 +272,27 @@ void main() {
     expect(result, isNull);
   });
 
+  testWidgets('phone landscape puts the overview beside sessions and statistics', (final tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final cubit = _Cubit();
+    addTearDown(cubit.close);
+    await tester.pumpWidget(
+      app(
+        BlocProvider<HistoryCubit>.value(
+          value: cubit,
+          child: _HistoryTestHarness(cubit: cubit),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final overview = tester.getRect(find.byKey(const ValueKey('history-landscape-overview')));
+    final content = tester.getRect(find.byKey(const ValueKey('history-landscape-content')));
+    expect(content.left, greaterThanOrEqualTo(overview.right));
+    expect(overview.width, closeTo(content.width, 1));
+  });
+
   for (final size in [const Size(768, 1024), const Size(1024, 768)]) {
     testWidgets('tablet keeps overview above session and statistics columns at $size', (final tester) async {
       await tester.binding.setSurfaceSize(size);
@@ -314,7 +335,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         expect(find.byType(HistoryContentLayout), findsOneWidget);
-        if (size.width < 720) {
+        if (size.width < 720 || size.width > size.height) {
           await tester.tap(find.text(S.current.historyTabStatistics));
           await tester.pumpAndSettle();
         }

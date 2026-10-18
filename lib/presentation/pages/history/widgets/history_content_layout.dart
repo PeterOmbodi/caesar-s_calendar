@@ -21,6 +21,9 @@ class HistoryContentLayout extends StatelessWidget {
     required this.centerSelectionRequest,
   });
 
+  static const double _wideMinWidth = 720;
+  static const double _sidebarMaxHeight = 600;
+
   final HistoryState state;
   final int activeTab;
   final ValueChanged<int> onTabChanged;
@@ -30,19 +33,22 @@ class HistoryContentLayout extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-    final family = ScreenSpec.of(context).family;
-    final glass = family == ChromeFamily.glass;
+    final glass = ScreenSpec.of(context).family == ChromeFamily.glass;
     final colors = GameColors.of(context);
     return LayoutBuilder(
       builder: (final context, final constraints) {
-        final tablet = constraints.maxWidth >= 720;
-        final overview = HistoryOverview(
+        // Phones in landscape; tablets keep the overview on top.
+        final landscape = constraints.maxWidth > constraints.maxHeight && constraints.maxHeight < _sidebarMaxHeight;
+        final wide = !landscape && constraints.maxWidth >= _wideMinWidth;
+        HistoryOverview overview({final bool sidebar = false, final double cellSize = 24}) => HistoryOverview(
           selectedDate: state.selectedDate,
           rangeStart: state.rangeStart,
           rangeEnd: state.rangeEnd,
           stats: state.calendarStats,
           onDateTap: context.read<HistoryCubit>().selectDate,
           centerSelectionRequest: centerSelectionRequest,
+          sidebar: sidebar,
+          cellSize: cellSize,
         );
         final sessions = _HistorySessions(
           state: state,
@@ -50,25 +56,52 @@ class HistoryContentLayout extends StatelessWidget {
           onResumeSession: onResumeSession,
         );
         const statistics = StatisticsTab();
-        final content = tablet
-            ? Row(
-                children: [
-                  Expanded(child: sessions),
-                  VerticalDivider(width: 1, color: colors.gridLine),
-                  Expanded(child: statistics),
-                ],
-              )
-            : Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: _HistoryTabSelector(value: activeTab, onChanged: onTabChanged, glass: glass),
-                  ),
-                  Expanded(
-                    child: IndexedStack(index: activeTab, children: [sessions, statistics]),
-                  ),
-                ],
-              );
+        final tabs = _HistoryTabs(
+          glass: glass,
+          activeTab: activeTab,
+          onTabChanged: onTabChanged,
+          children: [sessions, statistics],
+        );
+        final Widget body;
+        if (landscape) {
+          // Seven heatmap rows fit the height without scrolling.
+          final cellSize = ((constraints.maxHeight - 160) / 7).clamp(16.0, 40.0);
+          body = Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                key: const ValueKey('history-landscape-overview'),
+                child: SingleChildScrollView(child: overview(sidebar: true, cellSize: cellSize)),
+              ),
+              Expanded(
+                key: const ValueKey('history-landscape-content'),
+                child: Padding(padding: const EdgeInsets.only(top: 8), child: tabs),
+              ),
+            ],
+          );
+        } else {
+          body = Column(
+            children: [
+              ConstrainedBox(
+                key: wide ? const ValueKey('history-tablet-overview') : null,
+                constraints: BoxConstraints(maxHeight: constraints.maxHeight * .38),
+                child: SingleChildScrollView(child: overview()),
+              ),
+              Expanded(
+                key: wide ? const ValueKey('history-tablet-content') : null,
+                child: wide
+                    ? Row(
+                        children: [
+                          Expanded(child: sessions),
+                          VerticalDivider(width: 1, color: colors.gridLine),
+                          const Expanded(child: statistics),
+                        ],
+                      )
+                    : tabs,
+              ),
+            ],
+          );
+        }
         return Column(
           children: [
             if (state.errorMessage != null)
@@ -76,18 +109,7 @@ class HistoryContentLayout extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 child: Text(state.errorMessage!, style: TextStyle(color: colors.bad)),
               ),
-            Expanded(
-              child: Column(
-                children: [
-                  ConstrainedBox(
-                    key: tablet ? const ValueKey('history-tablet-overview') : null,
-                    constraints: BoxConstraints(maxHeight: constraints.maxHeight * .38),
-                    child: SingleChildScrollView(child: overview),
-                  ),
-                  Expanded(key: tablet ? const ValueKey('history-tablet-content') : null, child: content),
-                ],
-              ),
-            ),
+            Expanded(child: body),
           ],
         );
       },
@@ -120,53 +142,95 @@ class _HistorySessions extends StatelessWidget {
   }
 }
 
-class _HistoryTabSelector extends StatelessWidget {
-  const _HistoryTabSelector({required this.value, required this.onChanged, required this.glass});
+/// Sessions and statistics, one at a time.
+class _HistoryTabs extends StatelessWidget {
+  const _HistoryTabs({
+    required this.glass,
+    required this.activeTab,
+    required this.onTabChanged,
+    required this.children,
+  });
 
-  final int value;
-  final ValueChanged<int> onChanged;
   final bool glass;
+  final int activeTab;
+  final ValueChanged<int> onTabChanged;
+  final List<Widget> children;
 
   @override
-  Widget build(final BuildContext context) => glass
-      ? _GlassHistoryTabSelector(value: value, onChanged: onChanged)
-      : _MaterialHistoryTabSelector(value: value, onChanged: onChanged);
+  Widget build(final BuildContext context) {
+    if (!glass) {
+      return _MaterialHistoryTabs(activeTab: activeTab, onTabChanged: onTabChanged, children: children);
+    }
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: SizedBox(
+            width: double.infinity,
+            child: CupertinoSlidingSegmentedControl<int>(
+              groupValue: activeTab,
+              onValueChanged: (final next) {
+                if (next != null) onTabChanged(next);
+              },
+              children: {0: Text(S.current.historyTabSessions), 1: Text(S.current.historyTabStatistics)},
+            ),
+          ),
+        ),
+        Expanded(child: IndexedStack(index: activeTab, children: children)),
+      ],
+    );
+  }
 }
 
-class _GlassHistoryTabSelector extends StatelessWidget {
-  const _GlassHistoryTabSelector({required this.value, required this.onChanged});
+class _MaterialHistoryTabs extends StatefulWidget {
+  const _MaterialHistoryTabs({required this.activeTab, required this.onTabChanged, required this.children});
 
-  final int value;
-  final ValueChanged<int> onChanged;
+  final int activeTab;
+  final ValueChanged<int> onTabChanged;
+  final List<Widget> children;
 
   @override
-  Widget build(final BuildContext context) => SizedBox(
-    width: double.infinity,
-    child: CupertinoSlidingSegmentedControl<int>(
-      groupValue: value,
-      onValueChanged: (final next) {
-        if (next != null) onChanged(next);
-      },
-      children: {0: Text(S.current.historyTabSessions), 1: Text(S.current.historyTabStatistics)},
-    ),
-  );
+  State<_MaterialHistoryTabs> createState() => _MaterialHistoryTabsState();
 }
 
-class _MaterialHistoryTabSelector extends StatelessWidget {
-  const _MaterialHistoryTabSelector({required this.value, required this.onChanged});
+class _MaterialHistoryTabsState extends State<_MaterialHistoryTabs> with SingleTickerProviderStateMixin {
+  late final TabController _controller = TabController(
+    length: widget.children.length,
+    initialIndex: widget.activeTab,
+    vsync: this,
+  )..addListener(_onTabChanged);
 
-  final int value;
-  final ValueChanged<int> onChanged;
+  void _onTabChanged() {
+    if (!_controller.indexIsChanging && _controller.index != widget.activeTab) {
+      widget.onTabChanged(_controller.index);
+    }
+  }
 
   @override
-  Widget build(final BuildContext context) => SegmentedButton<int>(
-    expandedInsets: EdgeInsets.zero,
-    showSelectedIcon: false,
-    segments: [
-      ButtonSegment(value: 0, label: Text(S.current.historyTabSessions)),
-      ButtonSegment(value: 1, label: Text(S.current.historyTabStatistics)),
+  void didUpdateWidget(final _MaterialHistoryTabs oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.activeTab != _controller.index) {
+      _controller.index = widget.activeTab;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(final BuildContext context) => Column(
+    children: [
+      TabBar(
+        controller: _controller,
+        tabs: [
+          Tab(text: S.current.historyTabSessions),
+          Tab(text: S.current.historyTabStatistics),
+        ],
+      ),
+      Expanded(child: TabBarView(controller: _controller, children: widget.children)),
     ],
-    selected: {value},
-    onSelectionChanged: (final values) => onChanged(values.first),
   );
 }
