@@ -5,6 +5,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cu
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
+import 'package:caesar_puzzle/presentation/widgets/system_bars.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,7 +67,7 @@ class MyApp extends StatelessWidget {
         builder: (final context, final child) {
           final brightness = Theme.of(context).brightness;
           AppColors.update(brightness);
-          return child!;
+          return SystemBars(child: child!);
         },
         localizationsDelegates: [
           S.delegate,

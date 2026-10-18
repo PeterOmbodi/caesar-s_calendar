@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/system_bars.dart';
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
@@ -23,6 +24,7 @@ class AppThemeData {
         backgroundColor: game.background,
         foregroundColor: game.text,
         surfaceTintColor: Colors.transparent,
+        systemOverlayStyle: SystemBars.styleFor(brightness),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
