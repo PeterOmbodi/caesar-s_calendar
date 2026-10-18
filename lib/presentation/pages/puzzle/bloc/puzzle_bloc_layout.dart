@@ -8,7 +8,9 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
         _lastTrayScale != event.trayScale ||
         _lastContentInsets != event.contentInsets ||
         _lastTrayTopInset != event.trayTopInset;
-    if (hasChanged && event.viewSize.width > 0 && event.viewSize.height > 0) {
+    final content = event.contentInsets.deflateSize(event.viewSize);
+    // A transient size with no room for the board would produce negative cells.
+    if (hasChanged && content.shortestSide > LayoutService.defaultPadding * 2) {
       _lastViewSize = event.viewSize;
       _lastMaxCell = event.maxCell;
       _lastTrayScale = event.trayScale;

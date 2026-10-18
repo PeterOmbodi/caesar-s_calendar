@@ -200,7 +200,11 @@ class LayoutService {
     final availableTrayHeight = viewSize.height - (isPortrait ? gridSize.height + defaultPadding : 0);
     final gridTop = contentRect.top + (viewSize.height - gridSize.height) / 2;
     // In landscape the tray sits under the header and above the status line, at most at board scale.
-    final landscapeTrayTop = math.max(gridTop, contentRect.top + trayTopInset);
+    // A header measured mid-rotation can be too tall; the tray keeps at least half the board height.
+    final landscapeTrayTop = math.min(
+      math.max(gridTop, contentRect.top + trayTopInset),
+      gridTop + gridSize.height / 2,
+    );
     final landscapeTrayHeight = gridTop + gridSize.height - statusLineExtent - landscapeTrayTop;
     final trayCellSize = !isPortrait
         ? math.min(

@@ -150,6 +150,33 @@ void main() {
       }
     });
 
+    test('a header taller than the board while rotating does not move tray pieces', () {
+      final portrait = layoutFor(const Size(393, 640));
+      LayoutConfig landscape(final LayoutConfig from, final double trayTopInset) => service.rebuildLayout(
+        contentRect: Offset.zero & const Size(780, 390),
+        fillAvailableTray: true,
+        maxCell: ScreenSpec.compactMaxCell,
+        trayTopInset: trayTopInset,
+        prevGrid: from.gridConfig,
+        prevBoard: from.boardConfig,
+        pieces: from.pieces,
+      );
+      final tooTall = landscape(portrait, 1000);
+      expect(tooTall.boardConfig.cellSize, greaterThan(0));
+      final settled = landscape(tooTall, 80);
+      final restored = service.rebuildLayout(
+        contentRect: Offset.zero & const Size(393, 640),
+        maxCell: ScreenSpec.compactMaxCell,
+        prevGrid: settled.gridConfig,
+        prevBoard: settled.boardConfig,
+        pieces: settled.pieces,
+      );
+      for (final before in portrait.pieces.where((final p) => p.placeZone == PlaceZone.board)) {
+        final after = restored.pieces.firstWhere((final p) => p.id == before.id);
+        expect((after.position - before.position).distance, closeTo(0, 1e-6), reason: before.id);
+      }
+    });
+
     test('phone portrait gets the 52 pt board cell from the mockup', () {
       expect(layoutFor(const Size(393, 640)).gridConfig.cellSize, 52);
     });

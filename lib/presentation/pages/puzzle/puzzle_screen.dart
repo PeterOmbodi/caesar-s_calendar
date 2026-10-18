@@ -172,8 +172,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                       final spec = ScreenSpec.of(context);
                       final beside = spec.window == WindowClass.compact && spec.isLandscape;
                       final reserved = GameChrome.reservedInsets(context);
+                      // No animation on phones: a squeezed header wraps and reports a huge height.
                       return AnimatedPositioned(
-                        duration: const Duration(milliseconds: 220),
+                        duration: spec.window == WindowClass.compact ? Duration.zero : const Duration(milliseconds: 220),
                         curve: Curves.easeOutCubic,
                         left: gameplayInsets.left + (beside ? trayLeft - 16 : reserved.left),
                         top: 0,
