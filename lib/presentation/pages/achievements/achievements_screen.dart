@@ -13,6 +13,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_displa
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,14 +47,25 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     if (png == null) {
       return;
     }
-    await SharePlus.instance.share(
-      ShareParams(
-        text: S.current.achievementsShareText(S.current.appTitle),
-        files: [XFile.fromData(png.buffer.asUint8List(), mimeType: 'image/png')],
-        fileNameOverrides: const ['achievements.png'],
-        sharePositionOrigin: origin,
-      ),
-    );
+    const fileName = 'achievements.png';
+    final file = XFile.fromData(png.buffer.asUint8List(), mimeType: 'image/png', name: fileName);
+    ShareResult? result;
+    try {
+      result = await SharePlus.instance.share(
+        ShareParams(
+          text: S.current.achievementsShareText(S.current.appTitle),
+          files: [file],
+          fileNameOverrides: const [fileName],
+          sharePositionOrigin: origin,
+        ),
+      );
+    } on Object catch (_) {
+      if (!kIsWeb) rethrow;
+    }
+    // Browsers without file sharing get a download instead.
+    if (kIsWeb && (result == null || result.status == ShareResultStatus.unavailable)) {
+      await file.saveTo(fileName);
+    }
   }
 
   Widget _appBar(final BuildContext context, {required final bool canShare}) {
