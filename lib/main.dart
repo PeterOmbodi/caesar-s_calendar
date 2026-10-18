@@ -8,6 +8,7 @@ import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:caesar_puzzle/presentation/widgets/system_bars.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -35,6 +36,10 @@ Future<void> main() async {
     await LiquidGlassWidgets.initialize();
   }
   Bloc.observer = AppBlocObserver();
+  if (kIsWeb) {
+    // Right click flips a piece instead of opening the browser menu.
+    await BrowserContextMenu.disableContextMenu();
+  }
   runApp(
     Builder(
       builder: (final context) {

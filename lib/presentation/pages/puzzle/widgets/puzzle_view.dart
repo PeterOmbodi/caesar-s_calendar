@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/pointer_controls.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_board_painter.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_status_line.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
@@ -70,45 +71,48 @@ class PuzzleView extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTapDown: (final details) => bloc.add(PuzzleEvent.onTapDown(details.localPosition)),
-                      onTapUp: (final details) => bloc.add(PuzzleEvent.onTapUp(details.localPosition)),
-                      onPanStart: (final details) => bloc.add(PuzzleEvent.onPanStart(details.localPosition)),
-                      onPanUpdate: (final details) => bloc.add(PuzzleEvent.onPanUpdate(details.localPosition)),
-                      onPanEnd: (final details) => bloc.add(PuzzleEvent.onPanEnd(details.localPosition)),
-                      onDoubleTapDown: (final details) => bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition)),
-                      child: AnimatedPiecesOverlay(
-                        pieces: shownPieces,
-                        duration: MediaQuery.disableAnimationsOf(context)
-                            ? Duration.zero
-                            : const Duration(milliseconds: 220),
-                        curve: Curves.easeInOut,
-                        borderColorMode: borderColorMode,
-                        cellSize: state.gridConfig.cellSize,
-                        instantIds: {if (state.isDragging && state.pointerPiece != null) state.pointerPiece!.id},
-                        selectedPiece: state.pointerPiece ?? state.selectedPiece,
-                        pinnedId: state.isDragging ? null : state.selectedPieceId,
-                        dimTray: state.isTrayPieceSelected,
-                        childBuilder: (final hiddenIds, final trayDim) => CustomPaint(
-                          painter: PuzzleBoardPainter(
-                            pieces: shownPieces.where(
-                              (final p) =>
-                                  (!hiddenIds.contains(p.id) || p.isConfigItem) &&
-                                  (!state.isDragging || p.id != state.pointerPiece?.id),
+                    PointerControls(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTapDown: (final details) => bloc.add(PuzzleEvent.onTapDown(details.localPosition)),
+                        onTapUp: (final details) => bloc.add(PuzzleEvent.onTapUp(details.localPosition)),
+                        onPanStart: (final details) => bloc.add(PuzzleEvent.onPanStart(details.localPosition)),
+                        onPanUpdate: (final details) => bloc.add(PuzzleEvent.onPanUpdate(details.localPosition)),
+                        onPanEnd: (final details) => bloc.add(PuzzleEvent.onPanEnd(details.localPosition)),
+                        onDoubleTapDown: (final details) =>
+                            bloc.add(PuzzleEvent.onDoubleTapDown(details.localPosition)),
+                        child: AnimatedPiecesOverlay(
+                          pieces: shownPieces,
+                          duration: MediaQuery.disableAnimationsOf(context)
+                              ? Duration.zero
+                              : const Duration(milliseconds: 220),
+                          curve: Curves.easeInOut,
+                          borderColorMode: borderColorMode,
+                          cellSize: state.gridConfig.cellSize,
+                          instantIds: {if (state.isDragging && state.pointerPiece != null) state.pointerPiece!.id},
+                          selectedPiece: state.pointerPiece ?? state.selectedPiece,
+                          pinnedId: state.isDragging ? null : state.selectedPieceId,
+                          dimTray: state.isTrayPieceSelected,
+                          childBuilder: (final hiddenIds, final trayDim) => CustomPaint(
+                            painter: PuzzleBoardPainter(
+                              pieces: shownPieces.where(
+                                (final p) =>
+                                    (!hiddenIds.contains(p.id) || p.isConfigItem) &&
+                                    (!state.isDragging || p.id != state.pointerPiece?.id),
+                              ),
+                              grid: state.gridConfig,
+                              selectedPiece: state.pointerPiece ?? state.selectedPiece,
+                              previewPosition: state.previewPosition,
+                              showPreview: state.showPreview,
+                              previewCollision: state.previewCollision,
+                              drawnGroup: state.drawnGroup,
+                              drawnGroupCommitStatus: state.drawnGroupCommitStatus,
+                              borderColorMode: borderColorMode,
+                              selectedDate: state.selectedDate,
+                              isSolved: state.isSolved,
+                              trayDim: trayDim,
+                              editingLayout: state.isEditingLayout,
                             ),
-                            grid: state.gridConfig,
-                            selectedPiece: state.pointerPiece ?? state.selectedPiece,
-                            previewPosition: state.previewPosition,
-                            showPreview: state.showPreview,
-                            previewCollision: state.previewCollision,
-                            drawnGroup: state.drawnGroup,
-                            drawnGroupCommitStatus: state.drawnGroupCommitStatus,
-                            borderColorMode: borderColorMode,
-                            selectedDate: state.selectedDate,
-                            isSolved: state.isSolved,
-                            trayDim: trayDim,
-                            editingLayout: state.isEditingLayout,
                           ),
                         ),
                       ),

@@ -284,6 +284,9 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     );
   }
 
+  /// The piece a pointer at [position] would pick up.
+  String? pieceIdAt(final Offset position) => _findPieceAtPosition(position)?.id;
+
   PuzzlePieceUI? _findPieceAtPosition(final Offset position) {
     final selectedPiece = state.selectedPiece;
     if (selectedPiece != null && state.shown(selectedPiece).containsPoint(position)) {
