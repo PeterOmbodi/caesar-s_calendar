@@ -234,6 +234,8 @@
   "statusSolvable": "Ratkaistavissa",
   "statusSolved": "Ratkaistu",
   "statusViewingSolution": "Ratkaisu {index}/{count}",
+  "storeComingSoon": "Tulossa pian",
+  "storeGetApp": "Lataa sovellus",
   "switchTheme": "Vaihda teemaa",
   "system": "Järjestelmä",
   "theme": "Teema",

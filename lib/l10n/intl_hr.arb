@@ -234,6 +234,8 @@
   "statusSolvable": "Rješivo",
   "statusSolved": "Riješeno",
   "statusViewingSolution": "Rješenje {index} od {count}",
+  "storeComingSoon": "Uskoro",
+  "storeGetApp": "Preuzmite aplikaciju",
   "switchTheme": "Promijeni temu",
   "system": "Sustav",
   "theme": "Tema",

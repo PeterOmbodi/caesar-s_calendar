@@ -234,6 +234,8 @@
   "statusSolvable": "Lösbart",
   "statusSolved": "Löst",
   "statusViewingSolution": "Lösning {index} av {count}",
+  "storeComingSoon": "Kommer snart",
+  "storeGetApp": "Hämta appen",
   "switchTheme": "Byt tema",
   "system": "Systemstandard",
   "theme": "Tema",

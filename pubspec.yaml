@@ -75,17 +75,19 @@ flutter_launcher_icons:
     generate: true
 
 flutter_native_splash:
-  color: "#ffffff"
-  image: assets/icon/icon.png
+  color: "#F5F2EC"
+  color_dark: "#121017"
+  image: assets/splash/splash_icon_light.png
+  image_dark: assets/splash/splash_icon_dark.png
 
   android_12:
     image: assets/splash/splash_icon_light.png
-    color: "#FFFFFF"
-    icon_background_color: "#FFFFFF"
+    color: "#F5F2EC"
+    icon_background_color: "#F5F2EC"
 
     image_dark: assets/splash/splash_icon_dark.png
-    color_dark: "#17111C"
-    icon_background_color_dark: "#17111C"
+    color_dark: "#121017"
+    icon_background_color_dark: "#121017"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

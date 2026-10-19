@@ -234,6 +234,8 @@
   "statusSolvable": "Soluble",
   "statusSolved": "Résolu",
   "statusViewingSolution": "Solution {index} sur {count}",
+  "storeComingSoon": "Bientôt disponible",
+  "storeGetApp": "Télécharger l'application",
   "switchTheme": "Changer de thème",
   "system": "Système",
   "theme": "Thème",

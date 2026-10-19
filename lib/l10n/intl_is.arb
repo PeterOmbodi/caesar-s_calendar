@@ -234,6 +234,8 @@
   "statusSolvable": "Leysanleg",
   "statusSolved": "Leyst",
   "statusViewingSolution": "Lausn {index} af {count}",
+  "storeComingSoon": "Væntanlegt",
+  "storeGetApp": "Sæktu appið",
   "switchTheme": "Skipta um þema",
   "system": "Kerfi",
   "theme": "Þema",

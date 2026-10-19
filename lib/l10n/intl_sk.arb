@@ -234,6 +234,8 @@
   "statusSolvable": "Riešiteľné",
   "statusSolved": "Vyriešené",
   "statusViewingSolution": "Riešenie {index} z {count}",
+  "storeComingSoon": "Už čoskoro",
+  "storeGetApp": "Stiahnite si aplikáciu",
   "switchTheme": "Zmeniť tému",
   "system": "Systém",
   "theme": "Téma",

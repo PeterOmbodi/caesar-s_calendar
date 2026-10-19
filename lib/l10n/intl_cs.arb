@@ -234,6 +234,8 @@
   "statusSolvable": "Řešitelné",
   "statusSolved": "Vyřešeno",
   "statusViewingSolution": "Řešení {index} z {count}",
+  "storeComingSoon": "Již brzy",
+  "storeGetApp": "Stáhněte si aplikaci",
   "switchTheme": "Změnit motiv",
   "system": "Systém",
   "theme": "Motiv",

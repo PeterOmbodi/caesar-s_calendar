@@ -234,6 +234,8 @@
   "statusSolvable": "Kan løses",
   "statusSolved": "Løst",
   "statusViewingSolution": "Løsning {index} af {count}",
+  "storeComingSoon": "Kommer snart",
+  "storeGetApp": "Hent appen",
   "switchTheme": "Skift tema",
   "system": "Systemstandard",
   "theme": "Tema",

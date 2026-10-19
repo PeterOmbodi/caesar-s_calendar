@@ -5,6 +5,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/locale_labels.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summary_button.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:flutter/material.dart';
@@ -124,6 +125,18 @@ class MaterialSettingsPanel extends StatelessWidget {
                 subtitle: Text(_languageName(state.localeCode)),
                 onTap: () => _pickLanguage(context, state.localeCode),
               ),
+              if (webStoreLinks() case final links when links.isNotEmpty) ...[
+                _Header(S.current.storeGetApp),
+                for (final link in links)
+                  ListTile(
+                    leading: Icon(link.icon),
+                    title: Text(link.title),
+                    subtitle: link.subtitle == null ? null : Text(link.subtitle!),
+                    trailing: link.url == null ? null : const Icon(Icons.open_in_new),
+                    enabled: link.url != null,
+                    onTap: () => openStoreLink(link),
+                  ),
+              ],
               FutureBuilder(
                 future: PackageInfo.fromPlatform(),
                 builder: (final context, final snapshot) => snapshot.hasData

@@ -234,6 +234,8 @@
   "statusSolvable": "Lahendatav",
   "statusSolved": "Lahendatud",
   "statusViewingSolution": "Lahendus {index}/{count}",
+  "storeComingSoon": "Tulekul",
+  "storeGetApp": "Laadi rakendus alla",
   "switchTheme": "Vaheta teemat",
   "system": "Süsteem",
   "theme": "Teema",

@@ -234,6 +234,8 @@
   "statusSolvable": "E zgjidhshme",
   "statusSolved": "E zgjidhur",
   "statusViewingSolution": "Zgjidhja {index} nga {count}",
+  "storeComingSoon": "Së shpejti",
+  "storeGetApp": "Shkarko aplikacionin",
   "switchTheme": "Ndrysho temën",
   "system": "Sistemi",
   "theme": "Tema",

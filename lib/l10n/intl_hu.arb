@@ -234,6 +234,8 @@
   "statusSolvable": "Megoldható",
   "statusSolved": "Megoldva",
   "statusViewingSolution": "{index}/{count}. megoldás",
+  "storeComingSoon": "Hamarosan",
+  "storeGetApp": "Töltsd le az alkalmazást",
   "switchTheme": "Téma váltása",
   "system": "Rendszer",
   "theme": "Téma",

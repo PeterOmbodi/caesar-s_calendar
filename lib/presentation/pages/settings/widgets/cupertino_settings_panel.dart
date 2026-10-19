@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_dif
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summary_button.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:flutter/cupertino.dart';
@@ -138,6 +139,20 @@ class CupertinoSettingsPanel extends StatelessWidget {
                         ),
                       ],
                     ),
+                    if (webStoreLinks() case final links when links.isNotEmpty)
+                      CupertinoListSection.insetGrouped(
+                        header: Text(S.current.storeGetApp),
+                        children: [
+                          for (final link in links)
+                            CupertinoListTile(
+                              leading: Icon(link.icon),
+                              title: Text(link.title),
+                              additionalInfo: link.subtitle == null ? null : Text(link.subtitle!),
+                              trailing: link.url == null ? null : const CupertinoListTileChevron(),
+                              onTap: link.url == null ? null : () => openStoreLink(link),
+                            ),
+                        ],
+                      ),
                     FutureBuilder(
                       future: PackageInfo.fromPlatform(),
                       builder: (final context, final snapshot) => snapshot.hasData

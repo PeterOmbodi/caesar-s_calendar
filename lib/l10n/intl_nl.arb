@@ -234,6 +234,8 @@
   "statusSolvable": "Oplosbaar",
   "statusSolved": "Opgelost",
   "statusViewingSolution": "Oplossing {index} van {count}",
+  "storeComingSoon": "Binnenkort",
+  "storeGetApp": "Download de app",
   "switchTheme": "Thema wisselen",
   "system": "Systeem",
   "theme": "Thema",

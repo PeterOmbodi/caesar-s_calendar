@@ -234,6 +234,8 @@
   "statusSolvable": "Atrisināms",
   "statusSolved": "Atrisināts",
   "statusViewingSolution": "Risinājums {index} no {count}",
+  "storeComingSoon": "Drīzumā",
+  "storeGetApp": "Lejupielādē lietotni",
   "switchTheme": "Mainīt tēmu",
   "system": "Sistēma",
   "theme": "Tēma",

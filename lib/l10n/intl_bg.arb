@@ -234,6 +234,8 @@
   "statusSolvable": "Има решение",
   "statusSolved": "Решено",
   "statusViewingSolution": "Решение {index} от {count}",
+  "storeComingSoon": "Очаквайте скоро",
+  "storeGetApp": "Изтеглете приложението",
   "switchTheme": "Смени тема",
   "system": "Системна",
   "theme": "Тема",

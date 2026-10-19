@@ -234,6 +234,8 @@
   "statusSolvable": "Išsprendžiama",
   "statusSolved": "Išspręsta",
   "statusViewingSolution": "Sprendimas {index} iš {count}",
+  "storeComingSoon": "Netrukus",
+  "storeGetApp": "Atsisiųskite programėlę",
   "switchTheme": "Keisti temą",
   "system": "Sistema",
   "theme": "Tema",
