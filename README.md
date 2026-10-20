@@ -35,6 +35,8 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 - Draw piece shapes directly on the calendar grid and commit matching groups into placements
 - Persistent piece selection, with tap/click to select and a second tap/click to rotate
 - Double tap/click on the selected piece to flip it
+- Mouse wheel to rotate and right click to flip a piece, plus keyboard shortcuts for toolbar actions
+- Platform-native controls, dialogs, and page transitions: Cupertino and Liquid Glass on Apple platforms, Material 3 on Android, with predictive back
 - Automatic solving powered by a reusable exact-cover solver based on Dancing Links
 - Hint system and full solution preview
 - Undo and redo for move history
@@ -74,6 +76,31 @@ Controls:
 12. Use `Hint` to reveal one valid move.
 13. Open `Settings` from the header to change gameplay and UI behavior.
 
+### Mouse and keyboard
+
+With a mouse:
+
+- drag a piece to move it
+- scroll the wheel over a piece to rotate it
+- right click a piece to flip it
+
+Keyboard shortcuts (⌘ on Apple platforms, Ctrl elsewhere):
+
+| Action | Shortcut |
+| --- | --- |
+| Rotate selected piece | `R` |
+| Flip selected piece | `F` |
+| Undo | `⌘Z` / `Ctrl+Z` |
+| Redo | `⇧⌘Z` / `Ctrl+Shift+Z` |
+| Hint | `?` |
+| History | `H` |
+| All solutions | `S` |
+| Previous / next solution | `←` / `→` |
+| Close solutions | `Esc` |
+| Start over | `⌘⌫` / `Ctrl+Backspace` |
+
+While editing a board layout: `⌘S` / `Ctrl+S` saves, `Esc` cancels, `⌘⌫` / `Ctrl+Backspace` resets. With a keyboard connected, `How to Play` lists the shortcuts.
+
 Drawn groups use color feedback:
 
 - grey means the group is too small to commit
@@ -107,7 +134,7 @@ The project uses Firebase Auth and Firestore for cloud-backed data.
 - Google sign-in and Apple sign-in enable a cloud-backed account.
 - Cloud data is keyed by Firebase Auth `uid`.
 
-The intended account and sync behavior is documented in [docs/account_sync_model.md](/c:/Users/Admin/StudioProjects/caesar-s_calendar2/docs/account_sync_model.md).
+The intended account and sync behavior is documented in [docs/account_sync_model.md](docs/account_sync_model.md).
 
 ## Getting Started
 
@@ -120,19 +147,21 @@ cd CaesarPuzzle
 
 ### 2. Install dependencies
 
+The Flutter version is pinned in `.fvmrc`. With [fvm](https://fvm.app), run `fvm install` and prefix the commands below with `fvm`.
+
 ```bash
 flutter pub get
 ```
 
 ### 3. Generate code
 
-Run this after changing `freezed`, `json_serializable`, `injectable`, or Drift-related sources:
+Generated files are not committed. Run this after cloning and after changing `freezed`, `json_serializable`, `injectable`, or Drift-related sources:
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-### 4. Generate localization files when ARB files change
+### 4. Generate localization files after cloning and when ARB files change
 
 ```bash
 flutter pub global run intl_utils:generate
@@ -152,7 +181,13 @@ flutter run
 flutter run -d chrome
 ```
 
-For Google sign-in on Web, set the OAuth Web Client ID in [web/index.html](/c:/Users/Admin/StudioProjects/caesar-s_calendar2/web/index.html):
+Release web builds use WebAssembly:
+
+```bash
+flutter build web --release --wasm
+```
+
+For Google sign-in on Web, set the OAuth Web Client ID in [web/index.html](web/index.html):
 
 ```bash
 <meta name="google-signin-client_id" content="YOUR_WEB_CLIENT_ID.apps.googleusercontent.com">

@@ -1,3 +1,16 @@
+## 1.12.0+43
+- use Material 3 controls, dialogs, settings, and page transitions on Android, with predictive back
+- use native page transitions and back gestures on iOS for History and My Achievements
+- pick the History date on a grid shaped like the current board layout
+- give the board the full height in phone landscape, with the header above the tray
+- fix pieces jumping in the tray when rotating the device
+- draw edge-to-edge system bars on Android and match the splash screen to the game colors
+- web: match the device look in mobile browsers and use a desktop Material look elsewhere
+- web: limit the game and History width on wide windows
+- web: rotate pieces with the mouse wheel and flip them with a right click
+- web: download the achievements image when the browser cannot share files
+- web: add a loading indicator, page metadata, and app store links in settings
+
 ## 1.11.0+42
 - refresh the visual style and adaptive layouts for phones, tablets, and desktop
 - add My Achievements with calendar progress, personal milestones, and image sharing

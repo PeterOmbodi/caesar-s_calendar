@@ -3,7 +3,7 @@ description: Caesar’s Calendar Puzzle
 
 publish_to: 'none'
 
-version: 1.11.0+42
+version: 1.12.0+43
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
