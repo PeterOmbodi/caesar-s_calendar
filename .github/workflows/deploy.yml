@@ -1,26 +1,43 @@
-env:
-  FIREBASE_APPCHECK_WEB_SITE_KEY: ${{ vars.FIREBASE_APPCHECK_WEB_SITE_KEY }}
-
 name: Deploy Flutter Web to GH Pages
+
 on:
   push:
     branches: [ master ]
-  workflow_dispatch:  
+  workflow_dispatch:
+
 permissions:
   contents: write
+
+env:
+  FIREBASE_APPCHECK_WEB_SITE_KEY: ${{ vars.FIREBASE_APPCHECK_WEB_SITE_KEY }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Same Flutter as locally: the version is pinned in .fvmrc.
+      - id: fvm
+        run: echo "flutter=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - run: flutter pub get
-      - run: dart run build_runner build -d
+          flutter-version: ${{ steps.fvm.outputs.flutter }}
+          cache: true
+
+      - run: flutter pub get --enforce-lockfile
       - run: dart run intl_utils:generate
-      - run: flutter build web --release --base-href /caesar-s_calendar/ --dart-define=FIREBASE_APPCHECK_WEB_SITE_KEY=$FIREBASE_APPCHECK_WEB_SITE_KEY
-      - uses: peaceiris/actions-gh-pages@v3
+      - run: dart run build_runner build -d
+      - run: flutter analyze
+      - run: flutter test
+
+      - run: >
+          flutter build web --release --wasm
+          --base-href /caesar-s_calendar/
+          --dart-define=FIREBASE_APPCHECK_WEB_SITE_KEY=$FIREBASE_APPCHECK_WEB_SITE_KEY
+
+      - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/web
