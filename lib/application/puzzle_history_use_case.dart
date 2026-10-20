@@ -14,6 +14,7 @@ import 'package:caesar_puzzle/application/puzzle_config_json.dart';
 import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
+import 'package:caesar_puzzle/core/utils/combine_latest.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:injectable/injectable.dart';
@@ -78,11 +79,20 @@ class PuzzleHistoryUseCase {
         .map((final sessions) => _aggregatePeriodStats(sessions, period, yearScope, referenceDate));
   }
 
-  Stream<AchievementStats> watchAchievements() => _historyRepository
-      .watchSessionsInPuzzleDateRange(from: _historyRangeStart, to: _historyRangeEnd)
-      .asyncMap(
-        (final sessions) async => _aggregateAchievements(sessions, await _historyRepository.countSolvedSolutions()),
-      );
+  Stream<AchievementStats> watchAchievements() => combineLatest2(
+    _historyRepository.watchSessionsInPuzzleDateRange(from: _historyRangeStart, to: _historyRangeEnd),
+    _historyRepository.watchSolvedSolutionCount(),
+    _aggregateAchievements,
+  );
+
+  /// Block placements the session was played with; null if its config is not stored locally.
+  Future<List<PlacementParams>?> sessionLayout(final PuzzleSessionData session) async {
+    if (session.configId == StandardPuzzleConfig.id) {
+      return PuzzleConfigJson.standardPlacements;
+    }
+    final json = await _historyRepository.getConfigJson(session.configId);
+    return json == null ? null : PuzzleConfigJson.decode(json);
+  }
 
   AchievementStats _aggregateAchievements(final List<PuzzleSessionData> sessions, final int solutionsFound) {
     final solved = sessions.where((final s) => s.status == PuzzleSessionStatus.solved).toList();

@@ -4,6 +4,8 @@ import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.da
 import 'package:caesar_puzzle/application/contracts/settings_query.dart';
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
+import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
+import 'package:caesar_puzzle/application/puzzle_config_json.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
@@ -60,6 +62,8 @@ class _FakeSolverService implements PuzzleSolverService {
 }
 
 class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
+  final Map<String, String> configs = {};
+
   @override
   Future<void> clearLocalData() async {}
 
@@ -76,7 +80,10 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Future<bool> hasAnyLocalSessions() async => false;
 
   @override
-  Future<int> countSolvedSolutions() async => 0;
+  Stream<int> watchSolvedSolutionCount() => Stream.value(0);
+
+  @override
+  Future<String?> getConfigJson(final String configId) async => configs[configId];
 
   @override
   Future<void> markSessionSolved({
@@ -223,6 +230,60 @@ void main() {
     final blocked = {for (final p in solver.lastPieces.where((final p) => p.isConfigItem)) ...p.absoluteCells};
     expect(blocked, blockedCellsOf(layout));
     expect(bloc.state.blockedCells, blockedCellsOf([PlacementParams('zone1', 0, 6, 0, false), PlacementParams('zone2', 6, 3, 0, false)]));
+    await bloc.close();
+  });
+
+  test('restoring a session puts the blocks back to its layout', () async {
+    final repository = _FakePuzzleHistoryRepository();
+    final bloc = _TestPuzzleBloc(
+      settings: _FakeSettingsQuery(),
+      solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
+      historyUseCase: PuzzleHistoryUseCase(repository),
+    );
+    const grid = PuzzleGridEntity(cellSize: 10, rows: 7, columns: 7, origin: Position(dx: 0, dy: 0));
+    bloc.emitForTest(
+      PuzzleState.initial().copyWith(
+        gridConfig: grid,
+        pieces: [
+          _piece(id: 'zone1', type: PieceType.zone1, position: const Offset(60, 0), zone: PlaceZone.grid, isConfigItem: true),
+          _piece(id: 'zone2', type: PieceType.zone2, position: const Offset(30, 60), zone: PlaceZone.grid, isConfigItem: true),
+          _piece(id: 'Square', type: PieceType.square, position: const Offset(110, 10), zone: PlaceZone.board),
+        ],
+      ),
+    );
+    final layout = [PlacementParams('zone1', 3, 0, 0, false), PlacementParams('zone2', 6, 3, 0, false)];
+    repository.configs['custom'] = PuzzleConfigJson.encode(layout);
+    final move = MovePiece(
+      'Square',
+      from: MovePlacement(position: const Position(dx: 11, dy: 1)),
+      to: MovePlacement(zone: PlaceZone.grid, position: const Position(dx: 2, dy: 2)),
+    );
+
+    bloc.add(
+      PuzzleEvent.restoreSession(
+        PuzzleSessionData(
+          id: 's1',
+          puzzleDate: DateTime(2026, 10, 8),
+          configId: 'custom',
+          difficulty: PuzzleSessionDifficulty.hard,
+          status: PuzzleSessionStatus.unsolved,
+          startedAt: 0,
+          firstMoveAt: 0,
+          lastResumedAt: null,
+          activeElapsedMs: 1000,
+          updatedAt: 0,
+          completedAt: null,
+          moveIndex: 1,
+          moveHistoryVersion: 1,
+          pieces: const [],
+          moveHistory: [move],
+        ),
+      ),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    expect(bloc.state.blockedCells, blockedCellsOf(layout));
+    expect(bloc.state.isPieceInGrid('Square'), isTrue);
     await bloc.close();
   });
 

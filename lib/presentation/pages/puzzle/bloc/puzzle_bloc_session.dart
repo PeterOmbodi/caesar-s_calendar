@@ -51,13 +51,14 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     }
   }
 
-  FutureOr<void> _restoreSession(final _RestoreSession event, final Emitter<PuzzleState> emit) {
+  Future<void> _restoreSession(final _RestoreSession event, final Emitter<PuzzleState> emit) async {
     final session = event.session;
+    final layout = await _historyUseCase.sessionLayout(session);
     final isSolvedSession = session.status == PuzzleSessionStatus.solved || session.completedAt != null;
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     _historyUseCase.activateSession(session);
     _currentSessionDifficulty = session.difficulty;
-    final restoredPieces = _restoreSessionPieces(session);
+    final restoredPieces = _restoreSessionPieces(session, layout == null ? state.pieces : _withLayout(layout));
     final restoredElapsedMs = _restoredSessionElapsedMs(session);
 
     emit(
@@ -237,9 +238,9 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     }
   }
 
-  List<PuzzlePieceUI> _restoreSessionPieces(final PuzzleSessionData session) {
+  List<PuzzlePieceUI> _restoreSessionPieces(final PuzzleSessionData session, final List<PuzzlePieceUI> pieces) {
     final snapshotById = {for (final snapshot in session.pieces) snapshot.id: snapshot};
-    final restoredPieces = state.pieces.map((final piece) {
+    final restoredPieces = pieces.map((final piece) {
       final snapshot = snapshotById[piece.id];
       if (snapshot == null) {
         return piece;

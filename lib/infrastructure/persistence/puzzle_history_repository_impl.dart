@@ -188,7 +188,10 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
   Future<bool> hasAnyLocalSessions() => _dao.hasAnySessions();
 
   @override
-  Future<int> countSolvedSolutions() => _dao.countSolvedSolutions();
+  Stream<int> watchSolvedSolutionCount() => _dao.watchSolvedSolutionCount();
+
+  @override
+  Future<String?> getConfigJson(final String configId) async => (await _dao.getConfigById(configId))?.configJson;
 
   @override
   Future<void> clearLocalData() => _dao.clearAllData();

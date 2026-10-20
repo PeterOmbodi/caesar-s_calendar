@@ -176,10 +176,9 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     return (row.read(puzzleSessions.id.count()) ?? 0) > 0;
   }
 
-  Future<int> countSolvedSolutions() async {
+  Stream<int> watchSolvedSolutionCount() {
     final count = puzzleSolvedSolutions.solutionSignature.count();
-    final row = await (selectOnly(puzzleSolvedSolutions)..addColumns([count])).getSingle();
-    return row.read(count) ?? 0;
+    return (selectOnly(puzzleSolvedSolutions)..addColumns([count])).watchSingle().map((final row) => row.read(count) ?? 0);
   }
 
   Future<PuzzleSession?> getLatestUnsolvedSession({
