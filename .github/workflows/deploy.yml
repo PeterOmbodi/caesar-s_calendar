@@ -27,10 +27,14 @@ jobs:
           cache: true
 
       - run: flutter pub get --enforce-lockfile
+      # The solver package has its own dev dependencies (package:test).
+      - run: dart pub get --directory packages/exact_cover_dlx
       - run: dart run intl_utils:generate
       - run: dart run build_runner build -d
       - run: flutter analyze
       - run: flutter test
+      - run: dart test
+        working-directory: packages/exact_cover_dlx
 
       - run: >
           flutter build web --release --wasm
