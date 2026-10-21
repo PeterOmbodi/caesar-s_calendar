@@ -3,7 +3,7 @@ description: Caesar’s Calendar Puzzle
 
 publish_to: 'none'
 
-version: 1.10.1+40
+version: 1.12.0+43
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -28,10 +28,12 @@ dependencies:
   flutter_platform_widgets: ^10.0.1
   shared_preferences: ^2.5.5
   url_launcher: ^6.3.2
+  share_plus: ^13.3.1
+  cross_file: ^0.3.4
   flutter_native_splash: ^2.4.8
   confetti: ^0.8.0
+  liquid_glass_widgets: ^1.11.1
   package_info_plus: ^10.1.0
-  flutter_flip_flap: ^0.5.0
   drift: ^2.34.0
   path: ^1.9.1
   crypto: ^3.0.7
@@ -73,17 +75,19 @@ flutter_launcher_icons:
     generate: true
 
 flutter_native_splash:
-  color: "#ffffff"
-  image: assets/icon/icon.png
+  color: "#F5F2EC"
+  color_dark: "#121017"
+  image: assets/splash/splash_icon_light.png
+  image_dark: assets/splash/splash_icon_dark.png
 
   android_12:
     image: assets/splash/splash_icon_light.png
-    color: "#FFFFFF"
-    icon_background_color: "#FFFFFF"
+    color: "#F5F2EC"
+    icon_background_color: "#F5F2EC"
 
     image_dark: assets/splash/splash_icon_dark.png
-    color_dark: "#17111C"
-    icon_background_color_dark: "#17111C"
+    color_dark: "#121017"
+    icon_background_color_dark: "#121017"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart';
+import 'package:caesar_puzzle/application/models/achievement_stats.dart';
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/models/period_range_resolver.dart';
 import 'package:caesar_puzzle/application/models/period_stats.dart';
@@ -10,8 +10,11 @@ import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/application/models/stats_period.dart';
+import 'package:caesar_puzzle/application/puzzle_config_json.dart';
+import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
+import 'package:caesar_puzzle/core/utils/combine_latest.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:injectable/injectable.dart';
@@ -74,6 +77,48 @@ class PuzzleHistoryUseCase {
     return _historyRepository
         .watchSessionsInPuzzleDateRange(from: queryRange.start, to: queryRange.end)
         .map((final sessions) => _aggregatePeriodStats(sessions, period, yearScope, referenceDate));
+  }
+
+  Stream<AchievementStats> watchAchievements() => combineLatest2(
+    _historyRepository.watchSessionsInPuzzleDateRange(from: _historyRangeStart, to: _historyRangeEnd),
+    _historyRepository.watchSolvedSolutionCount(),
+    _aggregateAchievements,
+  );
+
+  /// Block placements the session was played with; null if its config is not stored locally.
+  Future<List<PlacementParams>?> sessionLayout(final PuzzleSessionData session) async {
+    if (session.configId == StandardPuzzleConfig.id) {
+      return PuzzleConfigJson.standardPlacements;
+    }
+    final json = await _historyRepository.getConfigJson(session.configId);
+    return json == null ? null : PuzzleConfigJson.decode(json);
+  }
+
+  AchievementStats _aggregateAchievements(final List<PuzzleSessionData> sessions, final int solutionsFound) {
+    final solved = sessions.where((final s) => s.status == PuzzleSessionStatus.solved).toList();
+    final solvedDays = {for (final session in solved) session.puzzleDate};
+    int? fastestMs;
+    int? firstSolvedAt;
+    for (final session in solved) {
+      final elapsed = session.activeElapsedMs;
+      if (elapsed > 0 && (fastestMs == null || elapsed < fastestMs)) {
+        fastestMs = elapsed;
+      }
+      final completedAt = session.completedAt;
+      if (completedAt != null && (firstSolvedAt == null || completedAt < firstSolvedAt)) {
+        firstSolvedAt = completedAt;
+      }
+    }
+    return AchievementStats(
+      solvedDates: {for (final day in solvedDays) (day.month, day.day)},
+      solvedHard: solved.where((final s) => s.difficulty == PuzzleSessionDifficulty.hard).length,
+      bestStreakDays: solvedDays.isEmpty ? 0 : _longestRunInRange(solvedDays, _spanOf(solvedDays)),
+      solutionsFound: solutionsFound,
+      fastestSolveMs: fastestMs,
+      cleanSolves: solved.where((final s) => !s.moveHistory.any((final move) => move is HintMove)).length,
+      customLayoutSolves: solved.where((final s) => s.configId != StandardPuzzleConfig.id).length,
+      firstSolvedAt: firstSolvedAt == null ? null : DateTime.fromMillisecondsSinceEpoch(firstSolvedAt),
+    );
   }
 
   DateRange _queryRangeFor(final StatsPeriod period, final StatsYearScope yearScope, final DateTime referenceDate) {
@@ -256,7 +301,7 @@ class PuzzleHistoryUseCase {
     required final List<Map<String, PlacementParams>> applicableSolutions,
     required final bool solvedTransition,
   }) async {
-    final configJson = _buildConfigJson(configPlacements);
+    final configJson = PuzzleConfigJson.encode(configPlacements);
     final configId = await _historyRepository.upsertConfig(configJson: configJson);
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     final startedAt = _currentSessionStartedAt ?? nowMs;
@@ -323,21 +368,6 @@ class PuzzleHistoryUseCase {
         ..requestSync()
         ..publishProfileNow();
     }
-  }
-
-  String _buildConfigJson(final List<PlacementParams> configPlacements) {
-    final payload = configPlacements
-        .map(
-          (final placement) => {
-            'pieceId': placement.pieceId,
-            'row': placement.row,
-            'col': placement.col,
-            'rot': placement.rotationSteps,
-            'flip': placement.isFlipped,
-          },
-        )
-        .toList();
-    return jsonEncode(payload);
   }
 
   List<String> _solutionSignatures({

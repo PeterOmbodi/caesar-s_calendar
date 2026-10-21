@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart';
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
@@ -9,9 +11,11 @@ import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
-  _FakePuzzleHistoryRepository(this.sessions);
+  _FakePuzzleHistoryRepository(this.sessions, {final Stream<int>? solutionCount})
+    : solutionCount = solutionCount ?? Stream.value(0);
 
   final List<PuzzleSessionData> sessions;
+  final Stream<int> solutionCount;
 
   @override
   Stream<List<PuzzleSessionData>> watchSessionsInPuzzleDateRange({
@@ -30,6 +34,12 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
 
   @override
   Future<bool> hasAnyLocalSessions() async => false;
+
+  @override
+  Stream<int> watchSolvedSolutionCount() => solutionCount;
+
+  @override
+  Future<String?> getConfigJson(final String configId) async => null;
 
   @override
   Future<void> markSessionSolved({
@@ -239,5 +249,23 @@ void main() {
       expect(stats.solvedDays, 5);
       expect(stats.bestStreakDays, 4);
     });
+  });
+
+  test('watchAchievements updates the solution count when solutions arrive after sessions', () async {
+    final solutionCount = StreamController<int>();
+    final useCase = PuzzleHistoryUseCase(
+      _FakePuzzleHistoryRepository([_session(puzzleDate: DateTime(2026, 10, 8), solved: true)], solutionCount: solutionCount.stream),
+    );
+    final counts = <int>[];
+    final subscription = useCase.watchAchievements().listen((final stats) => counts.add(stats.solutionsFound));
+
+    solutionCount.add(0);
+    await Future<void>.delayed(Duration.zero);
+    solutionCount.add(3);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(counts, [0, 3]);
+    await subscription.cancel();
+    await solutionCount.close();
   });
 }

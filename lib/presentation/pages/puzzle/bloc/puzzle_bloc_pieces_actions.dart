@@ -2,7 +2,6 @@ part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   static const Duration _invalidTransformFeedbackDelay = Duration(milliseconds: 180);
-  static const int _minCommittableDrawnCells = 5;
 
   FutureOr<void> _handleDoubleTap(final _OnDoubleTapDown event, final Emitter<PuzzleState> emit) async {
     final cell = state.gridConfig.cellAt(event.localPosition);
@@ -12,9 +11,39 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       return;
     }
 
-    final selectedPiece = _findPieceAtPosition(event.localPosition);
-    if (selectedPiece != null && (!selectedPiece.isConfigItem || _settings.unlockConfig)) {
-      await _flipPiece(selectedPiece, emit);
+    final piece = _findPieceAtPosition(event.localPosition);
+    final wasSelectedOnTapDown = piece != null && _selectedOnTapDownId == piece.id;
+    _selectedOnTapDownId = null;
+    if (piece == null || !_canTouch(piece)) {
+      emit(state.copyWith(pointerPiece: null, selectedPieceId: null));
+      return;
+    }
+    if (piece.id == state.selectedPieceId && !wasSelectedOnTapDown) {
+      await _flipPiece(piece, emit);
+      _lastDoubleTapFlip = (atMs: DateTime.now().millisecondsSinceEpoch, position: event.localPosition);
+      emit(state.copyWith(pointerPiece: null));
+    } else {
+      emit(state.copyWith(pointerPiece: null, selectedPieceId: piece.id));
+    }
+  }
+
+  FutureOr<void> _selectPiece(final _SelectPiece event, final Emitter<PuzzleState> emit) {
+    if (state.pieces.any((final p) => p.id == event.pieceId)) {
+      emit(state.copyWith(selectedPieceId: event.pieceId));
+    }
+  }
+
+  FutureOr<void> _rotateSelected(final _RotateSelected event, final Emitter<PuzzleState> emit) async {
+    final piece = state.selectedPiece;
+    if (piece != null && _canTouch(piece)) {
+      await _rotatePiece(piece, emit);
+    }
+  }
+
+  FutureOr<void> _flipSelected(final _FlipSelected event, final Emitter<PuzzleState> emit) async {
+    final piece = state.selectedPiece;
+    if (piece != null && _canTouch(piece)) {
+      await _flipPiece(piece, emit);
     }
   }
 
@@ -28,16 +57,16 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         selectedPiece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
     final (pieceToSave, snapMove) = shouldSnap
         ? _moveHistoryService.maybeSnap(selectedPiece: flippedPiece, grid: state.gridConfig)
-        : (flippedPiece, null);
+        : _keepInTray(flippedPiece);
     final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
-    final tentativePieces = _updatePieceInList(pieceToSave);
+    final tentativePieces = _updatePieceInList(_withHintFlag(pieceToSave));
     if (selectedPiece.isConfigItem &&
         (_movementHandler.checkCollision(
               piece: pieceToSave,
               newPosition: pieceToSave.position,
               zone: pieceToSave.placeZone,
               preventOverlap: true,
-              pieces: state.pieces,
+              pieces: _obstacles(state.pieces),
               gridConfig: state.gridConfig,
               boardConfig: state.boardConfig,
             ) ||
@@ -103,11 +132,11 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     }
     moveHistory.add(move);
 
-    final pieces = _updatePieceInList(targetPiece);
+    final pieces = _updatePieceInList(_withHintFlag(targetPiece));
     final applicableSolutions = _combineSolutions(state.solutions, pieces);
     final nextState = state.copyWith(
       pieces: pieces,
-      selectedPiece: null,
+      pointerPiece: null,
       isDragging: false,
       isDrawingGroup: false,
       drawnGroup: null,
@@ -127,7 +156,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   }
 
   DrawnGroupCommitStatus _resolveDrawnGroupCommitStatus(final DrawnGroup? drawnGroup) {
-    if (drawnGroup == null || drawnGroup.cells.length < _minCommittableDrawnCells) {
+    if (drawnGroup == null || drawnGroup.cells.length < PuzzleBloc.minCommittableDrawnCells) {
       return DrawnGroupCommitStatus.tooSmall;
     }
     return _findDrawnGroupCommitMatch(drawnGroup) == null
@@ -136,7 +165,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   }
 
   PieceShapeMatch? _findDrawnGroupCommitMatch(final DrawnGroup drawnGroup) {
-    if (drawnGroup.cells.length < _minCommittableDrawnCells) {
+    if (drawnGroup.cells.length < PuzzleBloc.minCommittableDrawnCells) {
       return null;
     }
 
@@ -150,9 +179,6 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     }
 
     final targetPiece = _buildDrawnGroupTargetPiece(match);
-    if (_isOnboardingSession && !_isOnboardingDrawTarget(targetPiece)) {
-      return null;
-    }
     final hasCollision = _movementHandler.checkCollision(
       piece: targetPiece,
       newPosition: targetPiece.position,
@@ -163,21 +189,6 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       boardConfig: state.boardConfig,
     );
     return hasCollision ? null : match;
-  }
-
-  bool _isOnboardingDrawTarget(final PuzzlePieceUI targetPiece) {
-    final targetTopLeft = Offset(
-      state.gridConfig.origin.dx + 3 * state.gridConfig.cellSize,
-      state.gridConfig.origin.dy,
-    );
-    if (targetPiece.type != PieceType.pShape || targetPiece.placeZone != PlaceZone.grid) {
-      return false;
-    }
-
-    final expectedPiece = targetPiece.copyWith(position: targetTopLeft, rotation: 0, isFlipped: false);
-    final expectedCells = expectedPiece.cells(state.gridConfig.origin, state.gridConfig.cellSize);
-    final actualCells = targetPiece.cells(state.gridConfig.origin, state.gridConfig.cellSize);
-    return expectedCells.length == actualCells.length && actualCells.containsAll(expectedCells);
   }
 
   PuzzlePieceUI _buildDrawnGroupTargetPiece(final PieceShapeMatch match) {
@@ -193,31 +204,35 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     );
   }
 
-  FutureOr<void> _rotatePiece(final _RotatePiece event, final Emitter<PuzzleState> emit) async {
+  (PuzzlePieceUI, MovePiece?) _keepInTray(final PuzzlePieceUI piece) => piece.placeZone == PlaceZone.board
+      ? _moveHistoryService.keepInTray(selectedPiece: piece, tray: state.boardConfig)
+      : (piece, null);
+
+  Future<void> _rotatePiece(final PuzzlePieceUI piece, final Emitter<PuzzleState> emit) async {
     final prevState = state;
-    final selectedPiece = event.piece.copyWith(
-      rotation: _stepRotation(event.piece.rotation),
-      isUsersItem: event.piece.isConfigItem ? event.piece.isUsersItem : true,
+    final selectedPiece = piece.copyWith(
+      rotation: _stepRotation(piece.rotation),
+      isUsersItem: piece.isConfigItem ? piece.isUsersItem : true,
     );
     final shouldSnap =
-        event.piece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
+        piece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
     final (pieceToSave, snapMove) = shouldSnap
         ? _moveHistoryService.maybeSnap(selectedPiece: selectedPiece, grid: state.gridConfig)
-        : (selectedPiece, null);
+        : _keepInTray(selectedPiece);
     final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
-    final tentativePieces = _updatePieceInList(pieceToSave);
+    final tentativePieces = _updatePieceInList(_withHintFlag(pieceToSave));
     if (selectedPiece.isConfigItem &&
         (_movementHandler.checkCollision(
               piece: pieceToSave,
               newPosition: pieceToSave.position,
               zone: pieceToSave.placeZone,
               preventOverlap: true,
-              pieces: state.pieces,
+              pieces: _obstacles(state.pieces),
               gridConfig: state.gridConfig,
               boardConfig: state.boardConfig,
             ) ||
             _hasConfigOverlap(tentativePieces))) {
-      await _showInvalidTransformFeedback(emit: emit, transformedPiece: pieceToSave, originalPiece: event.piece);
+      await _showInvalidTransformFeedback(emit: emit, transformedPiece: pieceToSave, originalPiece: piece);
       return;
     }
     final pieces = tentativePieces;
@@ -275,9 +290,14 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       flippedFrom: sourcePiece.isFlipped,
       flippedTo: targetPiece.isFlipped,
     );
+    final grid = state.gridConfig;
     final nextState = state.copyWith(
       pieces: pieces,
       applicableSolutions: applicableSolutions,
+      hintedCells: {
+        ...state.hintedCells,
+        targetPiece.id: [...?state.hintedCells[targetPiece.id], targetPiece.cells(grid.origin, grid.cellSize)],
+      },
       moveHistory: [...state.moveHistory.take(state.moveIndex), move],
       moveIndex: state.moveIndex + 1,
       status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
@@ -286,6 +306,10 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     emit(timedState);
     _persistHistoryChange(prevState: prevState, nextState: timedState);
   }
+
+  // Back in the tray: the next move usually takes another piece.
+  String? _selectableId(final PuzzlePieceUI piece) =>
+      piece.placeZone != PlaceZone.grid || !_canTouch(piece) ? null : piece.id;
 
   FutureOr<void> _undoMove(final _Undo event, final Emitter<PuzzleState> emit) {
     if (state.moveHistory.isNotEmpty && state.moveIndex > 0) {
@@ -298,7 +322,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         rotationStep: PuzzleBloc.rotationStep,
         fullRotation: PuzzleBloc.fullRotation,
       );
-      final pieces = _updatePieceInList(selectedPiece);
+      final pieces = _updatePieceInList(_withHintFlag(selectedPiece));
       final shouldResolve = selectedPiece.isConfigItem && _settings.requireSolutions;
       final applicableSolutions = shouldResolve
           ? state.applicableSolutions
@@ -306,6 +330,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       final nextState = state.copyWith(
         moveIndex: idx,
         pieces: pieces,
+        selectedPieceId: _selectableId(selectedPiece),
         status: GameStatus.playing,
         applicableSolutions: applicableSolutions,
       );
@@ -328,12 +353,13 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       rotationStep: PuzzleBloc.rotationStep,
       fullRotation: PuzzleBloc.fullRotation,
     );
-    final pieces = _updatePieceInList(selectedPiece);
+    final pieces = _updatePieceInList(_withHintFlag(selectedPiece));
     final shouldResolve = selectedPiece.isConfigItem && _settings.requireSolutions;
     final applicableSolutions = shouldResolve ? state.applicableSolutions : _combineSolutions(state.solutions, pieces);
     final nextState = state.copyWith(
       moveIndex: idx,
       pieces: pieces,
+      selectedPieceId: _selectableId(selectedPiece),
       status: GameStatus.playing,
       applicableSolutions: applicableSolutions,
     );
@@ -349,7 +375,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     required final Iterable<PuzzlePieceUI> pieces,
     required final List<Map<String, PlacementParams>> applicableSolutions,
   }) {
-    if (state.selectedPiece?.isUsersItem == false) {
+    if (state.pointerPiece?.isUsersItem == false) {
       return state.status;
     }
     final boardHasPieces = pieces.any((final p) => p.placeZone == PlaceZone.board);
@@ -396,6 +422,42 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     }).toList();
   }
 
+  // A piece counts as hint-placed while it covers the cells where a hint among the applied moves put it.
+  PuzzlePieceUI _withHintFlag(final PuzzlePieceUI piece) {
+    if (piece.isConfigItem) {
+      return piece;
+    }
+    final hinted = state.hintedCells[piece.id];
+    if (hinted == null || piece.placeZone != PlaceZone.grid) {
+      return piece.copyWith(isUsersItem: true);
+    }
+    final grid = state.gridConfig;
+    final cells = piece.cells(grid.origin, grid.cellSize);
+    final isAtHint = hinted.any((final h) => h.length == cells.length && h.containsAll(cells));
+    return piece.copyWith(isUsersItem: !isAtHint);
+  }
+
+  Map<String, List<Set<Cell>>> _hintedCellsOf(final Iterable<Move> moves) {
+    final grid = state.gridConfig;
+    final result = <String, List<Set<Cell>>>{};
+    for (final hint in moves.whereType<HintMove>()) {
+      final piece = state.pieces.firstWhereOrNull((final p) => p.id == hint.pieceId);
+      if (piece == null) {
+        continue;
+      }
+      final position = grid.absolutPositionPos(hint.to.position);
+      final placed = piece.copyWith(
+        position: Offset(position.dx, position.dy),
+        rotation: hint.rotationTo,
+        isFlipped: hint.flippedTo,
+        placeZone: PlaceZone.grid,
+      );
+      (result[piece.id] ??= []).add(placed.cells(grid.origin, grid.cellSize));
+    }
+    return result;
+  }
+
+
   PuzzlePieceUI _applyPlacementToPiece(final PuzzlePieceUI piece, final PlacementParams params) {
     final cellSize = state.gridConfig.cellSize;
     final origin = state.gridConfig.origin;
@@ -418,6 +480,9 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     required final PuzzleState prevState,
     required final PuzzleState nextState,
   }) {
+    if (nextState.isEditingLayout) {
+      return nextState;
+    }
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     if (_isCurrentMoveConfigAction(nextState)) {
       return nextState.copyWith(firstMoveAt: null, lastResumedAt: null, activeElapsedMs: 0);
@@ -458,7 +523,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
   }
 
   void _persistHistoryChange({required final PuzzleState prevState, required final PuzzleState nextState}) {
-    if (_isOnboardingSession || nextState.isRestoredSolvedSession) {
+    if (nextState.isRestoredSolvedSession || nextState.isEditingLayout) {
       return;
     }
     final isFirstSessionMove = prevState.firstMoveAt == null && nextState.firstMoveAt != null;
@@ -494,7 +559,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     required final PuzzlePieceUI transformedPiece,
     required final PuzzlePieceUI originalPiece,
   }) async {
-    emit(state.copyWith(pieces: _updatePieceInList(transformedPiece), selectedPiece: transformedPiece));
+    emit(state.copyWith(pieces: _updatePieceInList(transformedPiece), pointerPiece: transformedPiece));
     await Future<void>.delayed(_invalidTransformFeedbackDelay);
     if (isClosed) {
       return;
@@ -510,6 +575,6 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     if (!canRollback) {
       return;
     }
-    emit(state.copyWith(pieces: _updatePieceInList(originalPiece), selectedPiece: null));
+    emit(state.copyWith(pieces: _updatePieceInList(originalPiece), pointerPiece: null));
   }
 }

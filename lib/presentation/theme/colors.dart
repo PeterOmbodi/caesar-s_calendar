@@ -1,6 +1,9 @@
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
 
 abstract class ThemeColors {
+  GameColors get game;
+
   Color get primary;
 
   Color get secondary;
@@ -11,15 +14,9 @@ abstract class ThemeColors {
 
   Color get pieceFillSelectedOverlay;
 
-  Color get pieceCenterDot;
-
   Color get gridLine;
 
   Color get gridBorder;
-
-  Color get boardBackground;
-
-  Color get boardBorder;
 
   Color get boardLabelText;
 
@@ -32,8 +29,6 @@ abstract class ThemeColors {
   Color get previewFillCollision;
 
   Color get todayLabel;
-
-  Color get cellLabel;
 
   Color get customConfigAccent;
 }
@@ -55,6 +50,9 @@ class Light implements ThemeColors {
   const Light();
 
   @override
+  GameColors get game => GameColors.light;
+
+  @override
   Color get primary => Colors.deepPurple;
 
   @override
@@ -64,53 +62,44 @@ class Light implements ThemeColors {
   Color get pieceBorder => Colors.black;
 
   @override
-  Color get pieceBorderSelected => Colors.yellow;
+  Color get pieceBorderSelected => game.selection;
 
   @override
   Color get pieceFillSelectedOverlay => Colors.transparent;
 
   @override
-  Color get pieceCenterDot => Colors.red;
+  Color get gridLine => game.gridLine;
 
   @override
-  Color get gridLine => Colors.grey.shade300;
+  Color get gridBorder => game.boardBorder;
 
   @override
-  Color get gridBorder => Colors.black;
+  Color get boardLabelText => game.textSecondary;
 
   @override
-  Color get boardBackground => Colors.grey.shade100;
+  Color get previewOutline => game.ok;
 
   @override
-  Color get boardBorder => Colors.grey.shade400;
+  Color get previewOutlineCollision => game.bad;
 
   @override
-  Color get boardLabelText => Colors.black54;
+  Color get previewFill => game.ok;
 
   @override
-  Color get previewOutline => Colors.green;
+  Color get previewFillCollision => game.bad;
 
   @override
-  Color get previewOutlineCollision => Colors.red;
+  Color get todayLabel => game.accent;
 
   @override
-  Color get previewFill => Colors.green;
-
-  @override
-  Color get previewFillCollision => Colors.red;
-
-  @override
-  Color get todayLabel => Colors.blue;
-
-  @override
-  Color get cellLabel => Colors.black;
-
-  @override
-  Color get customConfigAccent => Colors.amber.shade800;
+  Color get customConfigAccent => game.customConfig;
 }
 
 class Dark implements ThemeColors {
   const Dark();
+
+  @override
+  GameColors get game => GameColors.dark;
 
   @override
   Color get primary => Colors.deepPurple;
@@ -122,47 +111,35 @@ class Dark implements ThemeColors {
   Color get pieceBorder => Colors.white;
 
   @override
-  Color get pieceBorderSelected => Colors.yellow;
+  Color get pieceBorderSelected => game.selection;
 
   @override
   Color get pieceFillSelectedOverlay => Colors.transparent;
 
   @override
-  Color get pieceCenterDot => Colors.red;
+  Color get gridLine => game.gridLine;
 
   @override
-  Color get gridLine => Colors.grey.shade700;
+  Color get gridBorder => game.boardBorder;
 
   @override
-  Color get gridBorder => Colors.white;
+  Color get boardLabelText => game.textSecondary;
 
   @override
-  Color get boardBackground => Colors.grey.shade900;
+  Color get previewOutline => game.ok;
 
   @override
-  Color get boardBorder => Colors.grey.shade600;
+  Color get previewOutlineCollision => game.bad;
 
   @override
-  Color get boardLabelText => Colors.white70;
+  Color get previewFill => game.ok;
 
   @override
-  Color get previewOutline => Colors.lightGreenAccent;
+  Color get previewFillCollision => game.bad;
 
   @override
-  Color get previewOutlineCollision => Colors.redAccent;
+  Color get todayLabel => game.accent;
 
   @override
-  Color get previewFill => Colors.lightGreenAccent;
-
-  @override
-  Color get previewFillCollision => Colors.redAccent;
-
-  @override
-  Color get todayLabel => Colors.lightBlueAccent;
-
-  @override
-  Color get cellLabel => Colors.white;
-
-  @override
-  Color get customConfigAccent => Colors.amber.shade300;
+  Color get customConfigAccent => game.customConfig;
 }

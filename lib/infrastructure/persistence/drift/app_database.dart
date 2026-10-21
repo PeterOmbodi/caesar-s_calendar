@@ -17,8 +17,10 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openDatabaseConnection());
 
+  AppDatabase.forTesting(super.executor);
+
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -33,6 +35,10 @@ class AppDatabase extends _$AppDatabase {
             newColumns: [puzzleSessions.difficulty],
           ),
         );
+      }
+      if (from < 3) {
+        await migrator.addColumn(puzzleConfigs, puzzleConfigs.layoutName);
+        await migrator.addColumn(puzzleConfigs, puzzleConfigs.pieceSetId);
       }
     },
   );

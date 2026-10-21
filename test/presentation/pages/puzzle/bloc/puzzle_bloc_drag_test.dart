@@ -15,18 +15,18 @@ import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/solver_service.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
+import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeSettingsQuery implements SettingsQuery {
-  @override
-  bool get autoLockConfig => false;
-
   @override
   bool get preventOverlap => false;
 
@@ -41,9 +41,6 @@ class _FakeSettingsQuery implements SettingsQuery {
 
   @override
   bool get snapToGridOnTransform => false;
-
-  @override
-  bool get unlockConfig => true;
 }
 
 class _FakeSolverService implements PuzzleSolverService {
@@ -68,6 +65,12 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
 
   @override
   Future<bool> hasAnyLocalSessions() async => false;
+
+  @override
+  Stream<int> watchSolvedSolutionCount() => Stream.value(0);
+
+  @override
+  Future<String?> getConfigJson(final String configId) async => null;
 
   @override
   Future<void> markSessionSolved({
@@ -113,6 +116,28 @@ Future<void> _drain() async {
   await Future<void>.delayed(const Duration(milliseconds: 60));
 }
 
+Future<void> _tap(final PuzzleBloc bloc, final Offset position) async {
+  bloc.add(PuzzleEvent.onTapDown(position));
+  await _drain();
+  bloc.add(PuzzleEvent.onTapUp(position));
+  await _drain();
+}
+
+// Flutter delivers a double tap as tap down of the first tap, then double tap down (the tap itself is cancelled).
+Future<void> _doubleTap(final PuzzleBloc bloc, final Offset position) async {
+  bloc.add(PuzzleEvent.onTapDown(position));
+  await _drain();
+  bloc.add(PuzzleEvent.onDoubleTapDown(position));
+  await _drain();
+}
+
+PuzzlePieceUI _piece(final PuzzleBloc bloc, final String id) => bloc.state.pieces.firstWhere((final p) => p.id == id);
+
+Offset _pieceAnchor(final PuzzleBloc bloc, final String id) {
+  final piece = _piece(bloc, id);
+  return piece.transformLocalPoint(piece.centerPoint);
+}
+
 Offset _cellCenter(final PuzzleBloc bloc, final int row, final int col) {
   final grid = bloc.state.gridConfig;
   return grid.cellTopLeft(Cell(row, col)) + Offset(grid.cellSize / 2, grid.cellSize / 2);
@@ -154,7 +179,7 @@ void main() {
   });
 
   test('onPanUpdate over grid enables preview with snapped position', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final boardPiece = bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
@@ -175,8 +200,80 @@ void main() {
     expect(bloc!.state.previewPosition, bloc!.state.gridConfig.snapToGrid(targetPosition));
   });
 
+  test('move then rotate then undo returns the piece to its centered tray slot', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(393, 640), maxCell: ScreenSpec.compactMaxCell));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    bloc!.add(PuzzleEvent.onPanStart(_pieceAnchor(bloc!, 'Square')));
+    await _drain();
+    final target = bloc!.state.gridConfig.cellTopLeft(Cell(2, 2));
+    final pointer = target + bloc!.state.dragStartOffset!;
+    bloc!.add(PuzzleEvent.onPanUpdate(pointer));
+    await _drain();
+    bloc!.add(PuzzleEvent.onPanEnd(pointer));
+    await _drain();
+    expect(_piece(bloc!, 'Square').placeZone, PlaceZone.grid);
+
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    final expected = const LayoutService()
+        .buildInitialLayout(Offset.zero & const Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell)
+        .pieces
+        .firstWhere((final piece) => piece.id == 'Square');
+    bloc!.add(const PuzzleEvent.undo());
+    await _drain();
+    expect(_piece(bloc!, 'Square').placeZone, PlaceZone.board);
+    expect((_piece(bloc!, 'Square').position - expected.position).distance, closeTo(0, 0.001));
+
+    bloc!.add(const PuzzleEvent.redo());
+    await _drain();
+    expect(_piece(bloc!, 'Square').placeZone, PlaceZone.grid);
+    expect(_piece(bloc!, 'Square').position, bloc!.state.gridConfig.cellTopLeft(Cell(2, 2)));
+
+    final state = bloc!.state;
+    final session = PuzzleSessionData(
+      id: 'rotation-regression',
+      puzzleDate: state.selectedDate,
+      configId: 'standard',
+      difficulty: PuzzleSessionDifficulty.hard,
+      status: PuzzleSessionStatus.unsolved,
+      startedAt: 1000,
+      firstMoveAt: 1000,
+      lastResumedAt: null,
+      activeElapsedMs: 0,
+      updatedAt: 1000,
+      completedAt: null,
+      moveIndex: state.moveIndex,
+      moveHistoryVersion: 1,
+      pieces: [
+        for (final piece in state.pieces)
+          PuzzlePieceSnapshot(
+            id: piece.id,
+            placeZone: piece.placeZone,
+            position: Position(dx: piece.position.dx, dy: piece.position.dy),
+            rotation: piece.rotation,
+            isFlipped: piece.isFlipped,
+            isUsersItem: piece.isUsersItem,
+            isConfigItem: piece.isConfigItem,
+          ),
+      ],
+      moveHistory: state.moveHistory,
+    );
+    bloc!.add(const PuzzleEvent.setViewSize(Size(393, 640), maxCell: ScreenSpec.compactMaxCell));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    bloc!.add(PuzzleEvent.restoreSession(session));
+    await _drain();
+    expect(_piece(bloc!, 'Square').position, bloc!.state.gridConfig.cellTopLeft(Cell(2, 2)));
+    bloc!.add(const PuzzleEvent.undo());
+    await _drain();
+    final portraitSlot = const LayoutService()
+        .buildInitialLayout(Offset.zero & const Size(393, 640), maxCell: ScreenSpec.compactMaxCell)
+        .pieces
+        .firstWhere((final piece) => piece.id == 'Square');
+    expect((_piece(bloc!, 'Square').position - portraitSlot.position).distance, closeTo(0, 0.001));
+  });
+
   test('pan from free grid cell creates and extends drawn group', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(1, 1)]);
@@ -186,7 +283,7 @@ void main() {
   });
 
   test('tap adds an orthogonally adjacent free cell to drawn group', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
     await _drawCells(bloc!, [Cell(0, 0)]);
 
@@ -197,7 +294,7 @@ void main() {
   });
 
   test('tap ignores diagonal and non-adjacent cells', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
     await _drawCells(bloc!, [Cell(0, 0)]);
 
@@ -210,7 +307,7 @@ void main() {
   });
 
   test('tap ignores an occupied cell adjacent to drawn group', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final square = bloc!.state.boardPieces.firstWhere((final piece) => piece.id == 'Square');
@@ -231,7 +328,7 @@ void main() {
   });
 
   test('tap does not start a drawn group', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 0, 0)));
@@ -241,7 +338,7 @@ void main() {
   });
 
   test('tap on a drawn cell still removes it', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
     await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1)]);
 
@@ -252,7 +349,7 @@ void main() {
   });
 
   test('drawn group status is too small before five cells', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0)]);
@@ -261,7 +358,7 @@ void main() {
   });
 
   test('drawn group status is committable for recognized valid shape', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)]);
@@ -270,7 +367,7 @@ void main() {
   });
 
   test('drawn group status is invalid for unrecognized shape with at least five cells', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(0, 2), Cell(0, 3), Cell(0, 4)]);
@@ -279,7 +376,7 @@ void main() {
   });
 
   test('existing drawn group can be extended only from group cell', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     await _drawCells(bloc!, [Cell(0, 0)]);
@@ -304,7 +401,7 @@ void main() {
   });
 
   test('double tap on matching drawn group moves board piece to grid', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final squareCells = [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)];
@@ -321,7 +418,7 @@ void main() {
   });
 
   test('double tap on matching drawn group can move grid piece again', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final firstCells = [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)];
@@ -341,7 +438,7 @@ void main() {
   });
 
   test('drawn group commit preserves transform data for undo', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final originalSquare = bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
@@ -366,7 +463,7 @@ void main() {
   });
 
   test('drawn group commit marks moved piece as user item', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final square = bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
@@ -385,7 +482,7 @@ void main() {
   });
 
   test('tap down emitted after drawn commit does not select committed piece', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final squareCells = [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)];
@@ -397,13 +494,13 @@ void main() {
     bloc!.add(PuzzleEvent.onTapDown(tapPosition));
     await _drain();
 
-    expect(bloc!.state.selectedPiece, isNull);
+    expect(bloc!.state.pointerPiece, isNull);
     final square = bloc!.state.pieces.firstWhere((final p) => p.id == 'Square');
     expect(square.isUsersItem, isTrue);
   });
 
   test('tap up then tap down after drawn commit does not select committed piece', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final squareCells = [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)];
@@ -417,16 +514,16 @@ void main() {
     bloc!.add(PuzzleEvent.onTapDown(tapPosition));
     await _drain();
 
-    expect(bloc!.state.selectedPiece, isNull);
+    expect(bloc!.state.pointerPiece, isNull);
   });
 
   test('manual flip of hint piece marks it as user item', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final square = bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
     final pieces = bloc!.state.pieces.map((final p) => p.id == square.id ? p.copyWith(isUsersItem: false) : p).toList();
-    (bloc! as dynamic).emit(bloc!.state.copyWith(pieces: pieces));
+    (bloc! as dynamic).emit(bloc!.state.copyWith(pieces: pieces, selectedPieceId: square.id));
 
     final hintedSquare = bloc!.state.pieces.firstWhere((final p) => p.id == 'Square');
     bloc!.add(PuzzleEvent.onDoubleTapDown(hintedSquare.position + hintedSquare.centerPoint));
@@ -437,7 +534,7 @@ void main() {
   });
 
   test('onPanEnd outside zones rejects drop and keeps piece at start position', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final boardPiece = bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
@@ -462,11 +559,13 @@ void main() {
   });
 
   test('onPanEnd keeps existing firstMoveAt instead of resetting timer start', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     final boardPiece = bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
-    bloc!.add(PuzzleEvent.rotatePiece(boardPiece));
+    bloc!.add(PuzzleEvent.selectPiece(boardPiece.id));
+    await _drain();
+    bloc!.add(const PuzzleEvent.rotateSelected());
     await _drain();
 
     final firstMoveAtBeforeDrop = bloc!.state.firstMoveAt;
@@ -494,7 +593,10 @@ void main() {
   });
 
   test('restoreSession maps saved grid placements onto current wide layout', () async {
-    final savedLayout = const LayoutService().buildInitialLayout(const Size(1200, 800));
+    final savedLayout = const LayoutService().buildInitialLayout(
+      Offset.zero & const Size(1200, 800),
+      maxCell: ScreenSpec.expandedMaxCell,
+    );
     final savedGridPosition = savedLayout.gridConfig.cellTopLeft(Cell(2, 2));
     final savedPieces = savedLayout.pieces.map((final piece) {
       final restoredPiece = piece.id == 'Square'
@@ -530,12 +632,12 @@ void main() {
         MovePiece(
           'Square',
           from: MovePlacement(zone: PlaceZone.board, position: Position(dx: 0, dy: 0)),
-          to: MovePlacement(zone: PlaceZone.grid, position: Position(dx: 2, dy: 2)),
+          to: MovePlacement(position: Position(dx: 2, dy: 2)),
         ),
       ],
     );
 
-    bloc!.add(const PuzzleEvent.setViewSize(Size(860, 800)));
+    bloc!.add(const PuzzleEvent.setViewSize(Size(860, 800), maxCell: ScreenSpec.mediumMaxCell));
     await Future<void>.delayed(const Duration(milliseconds: 250));
 
     bloc!.add(PuzzleEvent.restoreSession(session));
@@ -544,5 +646,269 @@ void main() {
     final restoredSquare = bloc!.state.pieces.firstWhere((final piece) => piece.id == 'Square');
     expect(restoredSquare.placeZone, PlaceZone.grid);
     expect(restoredSquare.position, bloc!.state.gridConfig.cellTopLeft(Cell(2, 2)));
+  });
+
+  group('piece selection gestures', () {
+    const emptySpot = Offset(2, 2);
+
+    Future<void> ready() async {
+      bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+    }
+
+    test('first tap selects without rotating, second tap rotates', () async {
+      await ready();
+      final rotation = _piece(bloc!, 'Square').rotation;
+
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(_piece(bloc!, 'Square').rotation, rotation);
+      expect(bloc!.state.moveHistory, isEmpty);
+
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(_piece(bloc!, 'Square').rotation, isNot(rotation));
+      expect(bloc!.state.moveHistory.single, isA<RotatePiece>());
+    });
+
+    test('double tap on an unselected piece only selects it', () async {
+      await ready();
+
+      await _doubleTap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(_piece(bloc!, 'Square').isFlipped, isFalse);
+      expect(bloc!.state.moveHistory, isEmpty);
+    });
+
+    test('double tap on the selected piece flips it', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      await _doubleTap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      expect(_piece(bloc!, 'Square').isFlipped, isTrue);
+      expect(bloc!.state.moveHistory.single, isA<FlipPiece>());
+      expect(bloc!.state.selectedPieceId, 'Square');
+    });
+
+    test('a late tap event of the double tap that flipped a piece changes nothing', () async {
+      await ready();
+      final anchor = _pieceAnchor(bloc!, 'Square');
+      await _tap(bloc!, anchor);
+      await _doubleTap(bloc!, anchor);
+      final flipped = _piece(bloc!, 'Square');
+
+      await _tap(bloc!, anchor);
+
+      expect(bloc!.state.selectedPieceId, 'Square');
+      expect(_piece(bloc!, 'Square').rotation, flipped.rotation);
+      expect(bloc!.state.moveHistory.single, isA<FlipPiece>());
+    });
+
+    test('tap on another piece moves the selection without rotating', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      final rotation = _piece(bloc!, 'L-Shape').rotation;
+
+      await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
+
+      expect(bloc!.state.selectedPieceId, 'L-Shape');
+      expect(_piece(bloc!, 'L-Shape').rotation, rotation);
+    });
+
+    test('tap on empty space deselects', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      await _tap(bloc!, emptySpot);
+
+      expect(bloc!.state.selectedPieceId, isNull);
+    });
+
+    test('double tap on empty space deselects', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      await _doubleTap(bloc!, emptySpot);
+
+      expect(bloc!.state.selectedPieceId, isNull);
+    });
+
+    test('tap on empty space after a double tap does not rotate the selected piece', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      await _doubleTap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      final rotation = _piece(bloc!, 'Square').rotation;
+
+      await _tap(bloc!, emptySpot);
+
+      expect(_piece(bloc!, 'Square').rotation, rotation);
+      expect(bloc!.state.moveHistory.whereType<RotatePiece>(), isEmpty);
+      expect(bloc!.state.selectedPieceId, isNull);
+    });
+
+    test('a piece dragged within the tray is not selected', () async {
+      await ready();
+      final anchor = _pieceAnchor(bloc!, 'Square');
+
+      bloc!.add(PuzzleEvent.onPanStart(anchor));
+      await _drain();
+      bloc!.add(PuzzleEvent.onPanUpdate(anchor + const Offset(4, 4)));
+      await _drain();
+      bloc!.add(PuzzleEvent.onPanEnd(anchor + const Offset(4, 4)));
+      await _drain();
+
+      expect(bloc!.state.selectedPieceId, isNull);
+      expect(bloc!.state.pointerPiece, isNull);
+    });
+
+    test('rotateSelected and flipSelected transform the selected piece', () async {
+      await ready();
+      bloc!.add(const PuzzleEvent.selectPiece('Square'));
+      await _drain();
+      final rotation = _piece(bloc!, 'Square').rotation;
+
+      bloc!.add(const PuzzleEvent.rotateSelected());
+      await _drain();
+      bloc!.add(const PuzzleEvent.flipSelected());
+      await _drain();
+
+      expect(_piece(bloc!, 'Square').rotation, isNot(rotation));
+      expect(_piece(bloc!, 'Square').isFlipped, isTrue);
+      expect(bloc!.state.moveHistory, hasLength(2));
+    });
+
+    test('rotate and flip in the tray keep the piece inside the tray, undo restores it', () async {
+      await ready();
+      final tray = bloc!.state.boardConfig.getBounds.inflate(0.01);
+      bool insideTray(final PuzzlePieceUI piece) {
+        final bounds = piece.getTransformedPath().getBounds();
+        return tray.contains(bounds.topLeft) && tray.contains(bounds.bottomRight);
+      }
+
+      final start = _piece(bloc!, 'P-Shape');
+      bloc!.add(const PuzzleEvent.selectPiece('P-Shape'));
+      await _drain();
+      for (var i = 0; i < 4; i++) {
+        bloc!.add(const PuzzleEvent.rotateSelected());
+        await _drain();
+        expect(insideTray(_piece(bloc!, 'P-Shape')), isTrue, reason: 'after rotation ${i + 1}');
+        bloc!.add(const PuzzleEvent.flipSelected());
+        await _drain();
+        expect(insideTray(_piece(bloc!, 'P-Shape')), isTrue, reason: 'after flip ${i + 1}');
+      }
+
+      for (var i = 0; i < 8; i++) {
+        bloc!.add(const PuzzleEvent.undo());
+        await _drain();
+      }
+      final restored = _piece(bloc!, 'P-Shape');
+      expect(restored.position.dx, closeTo(start.position.dx, 1e-6));
+      expect(restored.position.dy, closeTo(start.position.dy, 1e-6));
+      expect(restored.isFlipped, start.isFlipped);
+    });
+
+    test('undo and redo keep a piece on the board selected', () async {
+      await ready();
+      final grid = bloc!.state.gridConfig;
+      bloc!.add(PuzzleEvent.onPanStart(_pieceAnchor(bloc!, 'Square')));
+      await _drain();
+      final target = grid.cellTopLeft(Cell(2, 2)) + bloc!.state.dragStartOffset!;
+      bloc!.add(PuzzleEvent.onPanUpdate(target));
+      await _drain();
+      bloc!.add(PuzzleEvent.onPanEnd(target));
+      await _drain();
+      expect(_piece(bloc!, 'Square').placeZone, PlaceZone.grid);
+      expect(bloc!.state.selectedPieceId, 'Square');
+
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      expect(bloc!.state.moveHistory.last, isA<RotatePiece>());
+
+      bloc!.add(const PuzzleEvent.undo());
+      await _drain();
+      expect(bloc!.state.selectedPieceId, 'Square');
+
+      bloc!.add(const PuzzleEvent.redo());
+      await _drain();
+      expect(bloc!.state.selectedPieceId, 'Square');
+    });
+
+    test('undo and redo clear the selection when the piece ends in the tray', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+      await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
+      expect(bloc!.state.selectedPieceId, 'L-Shape');
+
+      bloc!.add(const PuzzleEvent.undo());
+      await _drain();
+      expect(bloc!.state.selectedPieceId, isNull);
+
+      await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
+      bloc!.add(const PuzzleEvent.redo());
+      await _drain();
+      expect(bloc!.state.selectedPieceId, isNull);
+    });
+
+    test('selected tray piece is shown at board size inside the tray area', () async {
+      await ready();
+      bloc!.add(const PuzzleEvent.selectPiece('L-Shape'));
+      await _drain();
+
+      final state = bloc!.state;
+      final shown = state.shown(_piece(bloc!, 'L-Shape'));
+      final bounds = shown.getTransformedPath().getBounds();
+      final area = state.trayArea.inflate(0.01);
+      expect(shown.scale, 1.0);
+      expect(area.contains(bounds.topLeft) && area.contains(bounds.bottomRight), isTrue);
+      expect(bounds.overlaps(state.gridConfig.getBounds), isFalse);
+      expect(_piece(bloc!, 'L-Shape').isLifted, isFalse, reason: 'the model piece stays in the tray');
+    });
+
+    test('the enlarged tray piece is hit where it is shown', () async {
+      await ready();
+      await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
+      final rotation = _piece(bloc!, 'L-Shape').rotation;
+      final cell = bloc!.state.gridConfig.cellSize;
+      final corner = bloc!.state.shown(_piece(bloc!, 'L-Shape')).transformLocalPoint(Offset(3.7 * cell, 1.7 * cell));
+
+      await _tap(bloc!, corner);
+
+      expect(bloc!.state.selectedPieceId, 'L-Shape');
+      expect(_piece(bloc!, 'L-Shape').rotation, isNot(rotation));
+    });
+
+    test('a rejected drag of the enlarged tray piece returns it to its tray place', () async {
+      await ready();
+      final start = _piece(bloc!, 'L-Shape').position;
+      await _tap(bloc!, _pieceAnchor(bloc!, 'L-Shape'));
+      final cell = bloc!.state.gridConfig.cellSize;
+      final grab = bloc!.state.shown(_piece(bloc!, 'L-Shape')).transformLocalPoint(Offset(cell / 2, cell / 2));
+
+      bloc!.add(PuzzleEvent.onPanStart(grab));
+      await _drain();
+      bloc!.add(const PuzzleEvent.onPanUpdate(Offset(-500, -500)));
+      await _drain();
+      bloc!.add(const PuzzleEvent.onPanEnd(Offset(-500, -500)));
+      await _drain();
+
+      final piece = _piece(bloc!, 'L-Shape');
+      expect(piece.position, start);
+      expect(piece.isLifted, isFalse);
+      expect(piece.placeZone, PlaceZone.board);
+      expect(bloc!.state.selectedPieceId, isNull);
+    });
+
+    test('deselectPiece clears the selection', () async {
+      await ready();
+      bloc!.add(const PuzzleEvent.selectPiece('Square'));
+      await _drain();
+
+      bloc!.add(const PuzzleEvent.deselectPiece());
+      await _drain();
+
+      expect(bloc!.state.selectedPieceId, isNull);
+    });
   });
 }

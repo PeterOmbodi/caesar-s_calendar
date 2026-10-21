@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
+import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
@@ -37,11 +38,11 @@ class MoveHistoryService {
       },
       rotatePiece: (final rp) => piece.copyWith(
         rotation: (rp.rotation - (isUndo ? rotationStep + fullRotation : 0)) % fullRotation,
-        position: snapOffset(state.gridConfig, rp.snapCorrection, isUndo),
+        position: snapOffset(state.gridConfig, state.boardConfig, rp.snapCorrection, isUndo),
       ),
       flipPiece: (final fp) => piece.copyWith(
         isFlipped: isUndo ? !fp.isFlipped : fp.isFlipped,
-        position: snapOffset(state.gridConfig, fp.snapCorrection, isUndo),
+        position: snapOffset(state.gridConfig, state.boardConfig, fp.snapCorrection, isUndo),
       ),
       hintMove: (final hm) {
         final zone = isUndo ? hm.from.zone : hm.to.zone;
@@ -88,35 +89,38 @@ class MoveHistoryService {
   }
 
   Offset snappedPosition(final PuzzlePieceUI selectedPiece, final PuzzleGridEntity grid) {
-    var targetPosition = selectedPiece.position;
-
-    final preSnapped = grid.snapToGrid(targetPosition);
-    final gridBounds = grid.getBounds;
-
-    final testPiece = selectedPiece.copyWith(position: preSnapped);
-    final pieceBounds = testPiece.getTransformedPath().getBounds();
-
-    var dx = 0.0;
-    var dy = 0.0;
-    if (pieceBounds.left < gridBounds.left) {
-      dx += gridBounds.left - pieceBounds.left;
-    }
-    if (pieceBounds.right > gridBounds.right) {
-      dx -= pieceBounds.right - gridBounds.right;
-    }
-    if (pieceBounds.top < gridBounds.top) {
-      dy += gridBounds.top - pieceBounds.top;
-    }
-    if (pieceBounds.bottom > gridBounds.bottom) {
-      dy -= pieceBounds.bottom - gridBounds.bottom;
-    }
-    targetPosition = Offset(preSnapped.dx + dx, preSnapped.dy + dy);
-    return grid.snapToGrid(targetPosition);
+    final preSnapped = selectedPiece.copyWith(position: grid.snapToGrid(selectedPiece.position));
+    return grid.snapToGrid(preSnapped.positionInside(grid.getBounds));
   }
 
-  Offset? snapOffset(final PuzzleGridEntity grid, final MovePiece? snapCorrection, final bool isFrom) {
+  /// The shift is recorded like a grid snap, so undo restores it.
+  (PuzzlePieceUI piece, MovePiece? snapMove) keepInTray({
+    required final PuzzlePieceUI selectedPiece,
+    required final PuzzleBoardEntity tray,
+  }) {
+    final inside = selectedPiece.positionInside(tray.getBounds);
+    if ((inside - selectedPiece.position).distance < 0.01) {
+      return (selectedPiece, null);
+    }
+    final from = tray.relativePosition(selectedPiece.position);
+    final to = tray.relativePosition(inside);
+    final snapMove = MovePiece(
+      selectedPiece.id,
+      from: MovePlacement(zone: PlaceZone.board, position: Position(dx: from.dx, dy: from.dy)),
+      to: MovePlacement(zone: PlaceZone.board, position: Position(dx: to.dx, dy: to.dy)),
+    );
+    return (selectedPiece.copyWith(position: inside), snapMove);
+  }
+
+  Offset? snapOffset(
+    final PuzzleGridEntity grid,
+    final PuzzleBoardEntity tray,
+    final MovePiece? snapCorrection,
+    final bool isFrom,
+  ) {
     if (snapCorrection == null) return null;
-    final pos = isFrom ? snapCorrection.from.position : snapCorrection.to.position;
-    return grid.absolutPosition(Offset(pos.dx, pos.dy));
+    final placement = isFrom ? snapCorrection.from : snapCorrection.to;
+    final config = placement.zone == PlaceZone.grid ? grid : tray;
+    return config.absolutPosition(Offset(placement.position.dx, placement.position.dy));
   }
 }

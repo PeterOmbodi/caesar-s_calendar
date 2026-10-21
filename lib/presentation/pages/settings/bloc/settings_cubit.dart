@@ -21,20 +21,14 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
   }
 
   void setLocaleCode(final String? localeCode) => emit(state.copyWith(localeCode: localeCode));
-  void toggleUnlockConfig(final bool v) => emit(state.copyWith(unlockConfig: v));
   void togglePreventOverlap(final bool v) => emit(state.copyWith(preventOverlap: v));
-  void toggleAutoLockConfig(final bool v) => emit(state.copyWith(autoLockConfig: v));
   void toggleSnapToGrid(final bool v) => emit(state.copyWith(snapToGridOnTransform: v));
   void toggleSeparateColors(final bool v) => emit(state.copyWith(separateMoveColors: v));
   void setSolutionIndicator(final SolutionIndicator? v) => emit(state.copyWith(solutionIndicator: v ?? SolutionIndicator.none));
   void toggleShowTimer(final bool v) => emit(state.copyWith(showTimer: v));
-  void markOnboardingOffered(final int version) => emit(state.copyWith(offeredOnboardingVersion: version));
-  void completeOnboarding(final int version) => emit(
-    state.copyWith(
-      completedOnboardingVersion: version,
-      offeredOnboardingVersion: version,
-    ),
-  );
+  void toggleHaptics(final bool v) => emit(state.copyWith(haptics: v));
+  void toggleSounds(final bool v) => emit(state.copyWith(sounds: v));
+  void completeOnboarding(final int version) => emit(state.copyWith(completedOnboardingVersion: version));
 
   @override
   SettingsState? fromJson(final Map<String, dynamic> json) {

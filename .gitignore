@@ -44,3 +44,25 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# FVM
+.fvm/
+
+# Generated code (build_runner, intl_utils)
+*.g.dart
+*.freezed.dart
+lib/generated/
+lib/injection.config.dart
+
+# Local tooling and design sources
+.agents/
+.claude/
+.superpowers/
+docs/superpowers/
+skills-lock.json
+design/
+/ios/build/
+setup.sh
+
+# dart compile js dependency list
+web/*.js.deps

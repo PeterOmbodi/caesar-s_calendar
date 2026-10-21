@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 class PuzzleSettingsPanelController {
   const PuzzleSettingsPanelController({this.isInlinePanelVisible = false});
@@ -23,18 +22,9 @@ class PuzzleSettingsPanelController {
     required final bool isWideScreen,
     required final double sidePanelWidth,
   }) {
-    if (!isWideScreen) {
+    if (!isWideScreen || !isInlinePanelVisible) {
       return (left: 0, right: 0);
     }
-    if (isInlinePanelVisible) {
-      return (left: 0, right: sidePanelWidth);
-    }
-    final centeredInset = sidePanelWidth / 2;
-    return (left: centeredInset, right: centeredInset);
-  }
-
-  Offset onboardingCoordinateOffset({required final bool isWideScreen, required final double sidePanelWidth}) {
-    final insets = gameplayInsets(isWideScreen: isWideScreen, sidePanelWidth: sidePanelWidth);
-    return Offset(insets.left, 0);
+    return (left: 0, right: sidePanelWidth);
   }
 }

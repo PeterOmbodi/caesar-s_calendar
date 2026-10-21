@@ -9,10 +9,10 @@ import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/infrastructure/dto/move_history_dto.dart';
 import 'package:caesar_puzzle/infrastructure/dto/puzzle_piece_snapshot_dto.dart';
+import 'package:caesar_puzzle/infrastructure/persistence/config_id.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/app_database.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/daos/puzzle_history_dao.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_state.dart';
-import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
 
@@ -27,7 +27,7 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
   @override
   Future<String> upsertConfig({required final String configJson, final DateTime? createdAt}) async {
     final now = createdAt ?? DateTime.now();
-    final configId = _hash(configJson);
+    final configId = configIdFor(configJson);
     final existing = await _dao.getConfigById(configId);
     if (existing != null) {
       return configId;
@@ -188,6 +188,12 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
   Future<bool> hasAnyLocalSessions() => _dao.hasAnySessions();
 
   @override
+  Stream<int> watchSolvedSolutionCount() => _dao.watchSolvedSolutionCount();
+
+  @override
+  Future<String?> getConfigJson(final String configId) async => (await _dao.getConfigById(configId))?.configJson;
+
+  @override
   Future<void> clearLocalData() => _dao.clearAllData();
 
   List<CalendarDayStats> _fillMissingDays(
@@ -260,8 +266,6 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
   List<Move> _decodeMoves(final String json) => (jsonDecode(json) as List)
       .map((final item) => MoveDto.fromMap(Map<String, dynamic>.from(item as Map)).toDomain())
       .toList();
-
-  String _hash(final String input) => sha256.convert(utf8.encode(input)).toString();
 
   String _newId() {
     final random = Random.secure();

@@ -2,6 +2,7 @@ import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/models/solver_piece.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/models/solver_placement.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
+import 'package:caesar_puzzle/domain/services/calendar_cells.dart';
 import 'package:exact_cover_dlx/exact_cover_dlx.dart';
 
 class CaesarPuzzleExactCoverSolver {
@@ -115,28 +116,8 @@ class CaesarPuzzleExactCoverSolver {
     return placements;
   }
 
-  Set<Cell> buildDateCells() {
-    final free = <Cell>{};
-    var cellIndex = 0;
-    for (var row = 0; row < grid.rows; row++) {
-      for (var column = 0; column < grid.columns; column++) {
-        if (_isForbidden(row, column)) {
-          continue;
-        }
-
-        final isTodayLabel = (cellIndex < 12 && date.month == cellIndex + 1) || (cellIndex - 11 == date.day);
-        if (isTodayLabel) {
-          free.add(Cell(row, column));
-        }
-        cellIndex++;
-        if (cellIndex > 42) {
-          break;
-        }
-      }
-    }
-
-    return free;
-  }
+  Set<Cell> buildDateCells() =>
+      targetCells(rows: grid.rows, columns: grid.columns, blocked: forbiddenCells, date: date);
 
   String _buildPlacementSignature(final SolverPlacement placement) {
     final cells = List<Cell>.from(placement.coveredCells)

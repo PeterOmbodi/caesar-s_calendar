@@ -11,27 +11,29 @@ import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
-import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/puzzle_local_snapshot.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_config_classifier.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/layout_edit.dart';
 import 'package:caesar_puzzle/presentation/services/drawn_group_service.dart';
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/services/lifecycle_service.dart';
 import 'package:caesar_puzzle/presentation/services/move_history_service.dart';
 import 'package:caesar_puzzle/presentation/services/piece_shape_matcher.dart';
 import 'package:caesar_puzzle/presentation/services/puzzle_piece_movement_service.dart';
+import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/gestures.dart' show kDoubleTapSlop, kDoubleTapTimeout;
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -66,7 +68,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_OnPanEnd>((final event, final emit) => _onPanEnd(event, emit));
     on<_OnDoubleTapDown>((final event, final emit) => _handleDoubleTap(event, emit));
     on<_ClearDrawnGroup>((final event, final emit) => _clearDrawnGroup(event, emit));
-    on<_RotatePiece>((final event, final emit) => _rotatePiece(event, emit));
+    on<_SelectPiece>((final event, final emit) => _selectPiece(event, emit));
+    on<_DeselectPiece>((final event, final emit) => emit(state.copyWith(selectedPieceId: null)));
+    on<_RotateSelected>((final event, final emit) => _rotateSelected(event, emit));
+    on<_FlipSelected>((final event, final emit) => _flipSelected(event, emit));
     on<_Solve>((final event, final emit) => _solve(event, emit));
     on<_SetSolvingResults>((final event, final emit) => _setSolvingResults(event, emit));
     on<_ShowSolution>((final event, final emit) => _showSolution(event, emit));
@@ -75,17 +80,19 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     on<_Redo>((final event, final emit) => _redoMove(event, emit));
     on<_SetTimer>((final event, final emit) => _timerStateChanged(event, emit));
     on<_RestoreSession>((final event, final emit) => _restoreSession(event, emit));
-    on<_RestoreLocalSnapshot>((final event, final emit) => _restoreLocalSnapshot(event, emit));
     on<_SetPuzzleDate>((final event, final emit) => _setPuzzleDate(event, emit));
     on<_MarkSolvedDialogShown>((final event, final emit) => _markSolvedDialogShown(event, emit));
+    on<_ApplyLayout>((final event, final emit) => _applyLayout(event, emit));
+    on<_StartLayoutEdit>((final event, final emit) => _startLayoutEdit(event, emit));
+    on<_ResetLayoutEdit>((final event, final emit) => _resetLayoutEdit(event, emit));
+    on<_CancelLayoutEdit>((final event, final emit) => _cancelLayoutEdit(event, emit));
   }
 
-  static const double maxCellSize = 50;
   static const int gridRows = 7;
+  static const int minCommittableDrawnCells = 5;
   static const int gridColumns = 7;
   static const double defaultPadding = 16.0;
   static const double wideScreenPadding = 24.0;
-  static const double boardExtraX = 1.5;
   static const double rotationStep = math.pi / 2;
   static const double fullRotation = math.pi * 2;
 
@@ -101,9 +108,18 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   late final LifecycleService _lifecycleService;
 
   Size? _lastViewSize;
+  double _lastMaxCell = double.infinity;
+  double _lastTrayScale = PuzzlePieceUI.defaultTrayScale;
+  EdgeInsets _lastContentInsets = EdgeInsets.zero;
+  double _lastTrayTopInset = 0;
+  // Piece that the current tap down selected; such a tap must not rotate or flip it.
+  String? _selectedOnTapDownId;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
-  bool _isOnboardingSession = false;
   int? _suppressTapAfterDrawnCommitAtMs;
+  // A late tap of the flipping double tap must not select the piece the flip uncovered.
+  ({int atMs, Offset position})? _lastDoubleTapFlip;
+  // Only the latest solver run may deliver results.
+  int _solveRun = 0;
 
   @override
   Future<void> close() {
@@ -124,4 +140,10 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   }
 
   PuzzleSessionDifficulty get currentSessionDifficulty => _currentSessionDifficulty ?? _difficultyFromSettings();
+
+  Future<int> countSolutionsFor(final List<PlacementParams> placements, final DateTime date) async {
+    final pieces = _withLayout(placements).map((final p) => p.toDomain(state.gridConfig));
+    final solutions = await _solvePuzzleUseCase(pieces: pieces, grid: state.gridConfig, date: date);
+    return solutions.length;
+  }
 }

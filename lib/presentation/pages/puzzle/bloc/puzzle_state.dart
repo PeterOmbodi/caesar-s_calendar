@@ -21,7 +21,8 @@ abstract class PuzzleState with _$PuzzleState {
     required final List<Map<String, PlacementParams>> applicableSolutions,
     required final int solutionIdx,
     required final Iterable<PuzzlePieceUI> pieces,
-    required final PuzzlePieceUI? selectedPiece,
+    required final PuzzlePieceUI? pointerPiece,
+    final String? selectedPieceId,
     required final bool isDragging,
     required final DrawnGroup? drawnGroup,
     required final DrawnGroupCommitStatus drawnGroupCommitStatus,
@@ -34,12 +35,16 @@ abstract class PuzzleState with _$PuzzleState {
     required final bool previewCollision,
     required final List<Move> moveHistory,
     required final int moveIndex,
+    // Survives undo: a piece put back on a hinted place stays hinted.
+    @Default(<String, List<Set<Cell>>>{}) final Map<String, List<Set<Cell>>> hintedCells,
+    @Default(Rect.zero) final Rect trayArea,
     required final DateTime selectedDate,
     required final bool isRestoredSolvedSession,
     required final bool hasShownSolvedDialog,
     final int? firstMoveAt,
     final int? lastResumedAt,
     required final int activeElapsedMs,
+    final LayoutEdit? layoutEdit,
   }) = _PuzzleState;
 
   const PuzzleState._();
@@ -52,7 +57,7 @@ abstract class PuzzleState with _$PuzzleState {
     solutions: [],
     applicableSolutions: [],
     solutionIdx: -1,
-    selectedPiece: null,
+    pointerPiece: null,
     isDragging: false,
     drawnGroup: null,
     drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
@@ -76,6 +81,18 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isShowSolutions => status == GameStatus.showingSolution;
 
+  PuzzlePieceUI? get selectedPiece => pieces.firstWhereOrNull((final p) => p.id == selectedPieceId);
+
+  bool get isTrayPieceSelected => selectedPiece?.placeZone == PlaceZone.board;
+
+  /// Used for drawing and hit tests: the selected tray piece is enlarged.
+  PuzzlePieceUI shown(final PuzzlePieceUI piece) =>
+      piece.id == selectedPieceId && piece.placeZone == PlaceZone.board && !piece.isLifted && !trayArea.isEmpty
+      ? piece.enlargedWithin(trayArea)
+      : piece;
+
+  Iterable<PuzzlePieceUI> get shownPieces => pieces.map(shown);
+
   Iterable<PuzzlePieceUI> piecesByZone(final PlaceZone zone) => pieces.where((final p) => p.placeZone == zone);
 
   Iterable<PuzzlePieceUI> get gridPieces => piecesByZone(PlaceZone.grid);
@@ -87,6 +104,17 @@ abstract class PuzzleState with _$PuzzleState {
   bool get isUndoEnabled => !isSolving && moveHistory.isNotEmpty && moveIndex > 0;
 
   bool get isCustomConfig => PuzzleConfigClassifier.isCustomConfig(pieces: pieces, gridConfig: gridConfig);
+
+  bool get isEditingLayout => layoutEdit != null;
+
+  bool get isLayoutChanged {
+    final start = layoutEdit?.start;
+    return start != null && cellsKey(blockedCells) != cellsKey(blockedCellsOf(start));
+  }
+
+  Set<Cell> get blockedCells => {
+    for (final piece in pieces.where((final p) => p.isConfigItem)) ...piece.cells(gridConfig.origin, gridConfig.cellSize),
+  };
 
   bool isPieceInGrid(final String pieceId) => gridPieces.any((final e) => !e.isConfigItem && e.id == pieceId);
 

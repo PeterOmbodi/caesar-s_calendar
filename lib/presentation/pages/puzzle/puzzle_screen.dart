@@ -1,35 +1,38 @@
-import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
+import 'dart:async';
+
+import 'package:caesar_puzzle/application/contracts/board_layout_repository.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
-import 'package:caesar_puzzle/core/models/move.dart';
-import 'package:caesar_puzzle/core/models/piece_type.dart';
-import 'package:caesar_puzzle/core/models/place_zone.dart';
-import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/core/services/timer_service.dart';
+import 'package:caesar_puzzle/domain/services/calendar_cells.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_bloc.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_event.dart';
-import 'package:caesar_puzzle/presentation/onboarding/bloc/onboarding_state.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_mode.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/onboarding_step_policy.dart';
-import 'package:caesar_puzzle/presentation/onboarding/models/puzzle_local_snapshot.dart';
-import 'package:caesar_puzzle/presentation/onboarding/utils/onboarding_target_resolver.dart';
-import 'package:caesar_puzzle/presentation/onboarding/utils/puzzle_local_snapshot_mapper.dart';
-import 'package:caesar_puzzle/presentation/onboarding/widgets/onboarding_overlay.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cubit.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_sheet.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_haptics.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/start_card.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_bottom_controls.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_toolbar.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
+import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
+import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
+import 'package:flutter/gestures.dart' show kDoubleTapTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -40,25 +43,26 @@ class PuzzleScreen extends StatefulWidget {
   const PuzzleScreen({super.key});
 
   static const sidePanelWidth = 340.0;
-  static const wideScreenBreakpoint = 1124.0;
+  static const maxGameWidth = 1600.0;
 
   @override
   State<PuzzleScreen> createState() => _PuzzleScreenState();
 }
 
 class _PuzzleScreenState extends State<PuzzleScreen> {
-  static final DateTime _tutorialDate = DateTime(2024);
-  static const Duration _onboardingActionCompletionDelay = Duration(milliseconds: 320);
+  // Header and toolbar have fixed slots; larger text would not fit them.
+  static const double _maxChromeTextScale = 1.3;
+  static const int _introVersion = 3;
 
   late final PuzzleBloc _puzzleBloc;
-  late final OnboardingBloc _onboardingBloc;
-  PuzzleLocalSnapshot? _preOnboardingSnapshot;
-  PuzzleLocalSnapshot? _tutorialBaseSnapshot;
-  String? _tutorialPShapeId;
-  OnboardingState _lastOnboardingState = const OnboardingState.hidden();
+  late final BoardLayoutsCubit _layoutsCubit;
+  late final StreamSubscription<PuzzleState> _feedbackSubscription;
   PuzzleSettingsPanelController _settingsPanelController = const PuzzleSettingsPanelController();
-  int _onboardingCompletionDelayGeneration = 0;
+  final _boardKey = GlobalKey();
   var _isInitialized = false;
+  var _isStartCardOpen = false;
+  var _isPieceTipRequested = false;
+  double _headerHeight = 0;
 
   @override
   void didChangeDependencies() {
@@ -72,209 +76,176 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       solvePuzzleUseCase: getIt<SolvePuzzleUseCase>(),
       historyUseCase: getIt<PuzzleHistoryUseCase>(),
     );
-    _onboardingBloc = OnboardingBloc();
-    _isInitialized = true;
-
-    WidgetsBinding.instance.addPostFrameCallback((final _) {
-      if (!mounted) {
+    _layoutsCubit = BoardLayoutsCubit(getIt<BoardLayoutRepository>());
+    final settings = context.read<SettingsCubit>();
+    var previous = _puzzleBloc.state;
+    _feedbackSubscription = _puzzleBloc.stream.listen((final next) {
+      final haptic = hapticFor(previous, next);
+      previous = next;
+      if (haptic == null) {
         return;
       }
-      _maybePresentOnboarding();
+      if (settings.state.haptics) {
+        playHaptic(haptic);
+      }
+      if (settings.state.sounds) {
+        playClick();
+      }
     });
+    _isInitialized = true;
   }
 
   @override
   void dispose() {
-    _onboardingCompletionDelayGeneration++;
     if (_isInitialized) {
       _puzzleBloc.close();
-      _onboardingBloc.close();
+      _feedbackSubscription.cancel();
+      _layoutsCubit.close();
     }
     super.dispose();
   }
 
   @override
   Widget build(final BuildContext context) {
-    final isWideScreen = MediaQuery.of(context).size.width >= PuzzleScreen.wideScreenBreakpoint;
-    _syncSettingsPanelWithWidth(isWideScreen);
+    final settingsDocked = ScreenSpec.of(context).settingsDocked;
+    _syncSettingsPanelWithWidth(settingsDocked);
     final gameplayInsets = _settingsPanelController.gameplayInsets(
-      isWideScreen: isWideScreen,
-      sidePanelWidth: PuzzleScreen.sidePanelWidth,
-    );
-    final onboardingCoordinateOffset = _settingsPanelController.onboardingCoordinateOffset(
-      isWideScreen: isWideScreen,
+      isWideScreen: settingsDocked,
       sidePanelWidth: PuzzleScreen.sidePanelWidth,
     );
     return MultiBlocProvider(
       providers: [
         BlocProvider<PuzzleBloc>.value(value: _puzzleBloc),
-        BlocProvider<OnboardingBloc>.value(value: _onboardingBloc),
+        BlocProvider<BoardLayoutsCubit>.value(value: _layoutsCubit),
       ],
       child: Scaffold(
-        body: SafeArea(
-          child: MultiBlocListener(
-            listeners: [
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final ps, final cs) =>
-                    cs.moveIndex == ps.moveIndex + 1 && cs.isPieceInGrid(cs.moveHistory.last.pieceId),
-                listener: (final context, final state) {
-                  final settingsCubit = context.read<SettingsCubit>();
-                  final settings = settingsCubit.state;
-                  if (settings.unlockConfig && settings.autoLockConfig) {
-                    settingsCubit.toggleUnlockConfig(false);
-                  }
-                },
-              ),
-              BlocListener<SettingsCubit, SettingsState>(
-                listenWhen: (final previous, final current) => previous.solutionIndicator != current.solutionIndicator,
-                listener: (final context, final state) {
-                  context.read<PuzzleBloc>().markCurrentSessionDifficulty(state.solutionIndicator.sessionDifficulty);
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final previous, final current) => _didCompleteDragOnboardingStep(previous, current),
-                listener: (final context, final state) {
-                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.dragPiece);
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final previous, final current) => _didCompleteDrawOnboardingStep(previous, current),
-                listener: (final context, final state) {
-                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.drawPiece);
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final previous, final current) => _didCompleteRotateOnboardingStep(previous, current),
-                listener: (final context, final state) {
-                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.rotatePiece);
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final previous, final current) => _didCompleteFlipOnboardingStep(previous, current),
-                listener: (final context, final state) {
-                  _completeCurrentOnboardingStepAfterActionAnimation(OnboardingStepId.flipPiece);
-                },
-              ),
-              BlocListener<OnboardingBloc, OnboardingState>(
-                listener: (final context, final state) {
-                  final previous = _lastOnboardingState;
-
-                  if (!previous.isVisible && state.isVisible) {
-                    _onboardingCompletionDelayGeneration++;
-                    _preOnboardingSnapshot ??= buildPuzzleLocalSnapshot(_puzzleBloc.state);
-                    _tutorialBaseSnapshot = null;
-                    _tutorialPShapeId = null;
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    _puzzleBloc.add(PuzzleEvent.setPuzzleDate(_tutorialDate, onboarding: true));
-                  } else if (previous.isVisible && !state.isVisible) {
-                    _onboardingCompletionDelayGeneration++;
-                    final settingsCubit = context.read<SettingsCubit>();
-                    final selectedDifficulty = state.selectedDifficulty;
-                    if (selectedDifficulty != null) {
-                      settingsCubit.setSolutionIndicator(selectedDifficulty);
-                    }
-                    if (_didFinishOnboarding(previous)) {
-                      settingsCubit.completeOnboarding(currentOnboardingVersion);
-                    }
-                    final snapshot = _preOnboardingSnapshot;
-                    _preOnboardingSnapshot = null;
-                    _tutorialBaseSnapshot = null;
-                    _tutorialPShapeId = null;
-                    if (snapshot != null) {
-                      _puzzleBloc.add(PuzzleEvent.restoreLocalSnapshot(snapshot));
-                    }
-                  } else if (previous.isVisible &&
-                      state.isVisible &&
-                      state.currentStepIndex != previous.currentStepIndex &&
-                      _tutorialBaseSnapshot != null) {
-                    _onboardingCompletionDelayGeneration++;
-                    _applyTutorialStepSnapshot();
-                  } else if (previous.isVisible &&
-                      state.isVisible &&
-                      state.currentStep?.id == OnboardingStepId.dragPiece &&
-                      !previous.isCurrentStepInteractionEnabled &&
-                      state.isCurrentStepInteractionEnabled &&
-                      _tutorialBaseSnapshot != null) {
-                    _applyTutorialStepSnapshot();
-                  }
-
-                  _lastOnboardingState = state;
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final previous, final current) =>
-                    _onboardingBloc.state.isVisible &&
-                    _tutorialBaseSnapshot == null &&
-                    current.selectedDate.year == _tutorialDate.year &&
-                    current.selectedDate.month == _tutorialDate.month &&
-                    current.selectedDate.day == _tutorialDate.day &&
-                    current.moveIndex == 0 &&
-                    !current.isDragging &&
-                    _isTutorialBaseLayoutReady(current),
-                listener: (final context, final state) {
-                  _captureTutorialBaseSnapshot(state);
-                  _applyTutorialStepSnapshot();
-                },
-              ),
-              BlocListener<PuzzleBloc, PuzzleState>(
-                listenWhen: (final ps, final cs) =>
-                    !cs.isRestoredSolvedSession &&
-                    !cs.hasShownSolvedDialog &&
-                    ps.status == GameStatus.playing &&
-                    cs.status == GameStatus.solvedByUser,
-                listener: (final context, final state) {
-                  context.read<PuzzleBloc>().add(const PuzzleEvent.markSolvedDialogShown());
-                  _showSolvedDialog(context, state);
-                },
-              ),
-            ],
-            child: Stack(
-              children: [
-                Positioned.fill(child: ColoredBox(color: Theme.of(context).colorScheme.primary.withAlpha(18))),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  left: gameplayInsets.left,
-                  top: 0,
-                  right: gameplayInsets.right,
-                  bottom: 0,
-                  child: const PuzzleView(),
+        body: _GameBackground(
+          colors: GameColors.of(context),
+          child: SafeArea(
+            child: MultiBlocListener(
+              listeners: [
+                BlocListener<PuzzleBloc, PuzzleState>(
+                  listenWhen: (final ps, final cs) =>
+                      ps.status == GameStatus.initializing && cs.status != GameStatus.initializing,
+                  listener: (final context, final state) => _maybeShowStartCard(),
                 ),
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: BlocBuilder<PuzzleBloc, PuzzleState>(
-                    buildWhen: (final ps, final cs) =>
-                        !cs.isRestoredSolvedSession &&
-                        (ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser ||
-                            ps.status == GameStatus.solvedByUser && ps.status != cs.status),
-                    builder: (final BuildContext context, final PuzzleState state) =>
-                        !state.isRestoredSolvedSession && state.status == GameStatus.solvedByUser
-                        ? const ConfettiView()
-                        : SizedBox.shrink(),
+                BlocListener<PuzzleBloc, PuzzleState>(
+                  listenWhen: (final ps, final cs) =>
+                      !_isPieceTipRequested &&
+                      cs.selectedPieceId != null &&
+                      !cs.isDragging &&
+                      !cs.isEditingLayout &&
+                      (ps.selectedPieceId != cs.selectedPieceId || ps.isDragging),
+                  listener: (final context, final state) => _showPieceTip(),
+                ),
+                BlocListener<SettingsCubit, SettingsState>(
+                  listenWhen: (final previous, final current) => previous.solutionIndicator != current.solutionIndicator,
+                  listener: (final context, final state) {
+                    context.read<PuzzleBloc>().markCurrentSessionDifficulty(state.solutionIndicator.sessionDifficulty);
+                  },
+                ),
+                BlocListener<PuzzleBloc, PuzzleState>(
+                  listenWhen: (final ps, final cs) =>
+                      !cs.isRestoredSolvedSession &&
+                      !cs.hasShownSolvedDialog &&
+                      ps.status == GameStatus.playing &&
+                      cs.status == GameStatus.solvedByUser,
+                  listener: (final context, final state) {
+                    context.read<PuzzleBloc>().add(const PuzzleEvent.markSolvedDialogShown());
+                    _showSolvedDialog(context, state);
+                  },
+                ),
+              ],
+              child: Stack(
+                children: [
+                    AnimatedPositioned(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    left: gameplayInsets.left,
+                    top: 0,
+                    right: gameplayInsets.right,
+                    bottom: 0,
+                    child: PuzzleView(key: _boardKey, headerHeight: _headerHeight),
                   ),
-                ),
-                Positioned(
-                  bottom: 24,
-                  right: 12 + (isWideScreen ? PuzzleScreen.sidePanelWidth : 0),
-                  child: PuzzleBottomControls(
-                    onSettingsPressed: (final controlsContext) => _openSettings(controlsContext, isWideScreen),
+                  BlocSelector<PuzzleBloc, PuzzleState, double>(
+                    selector: (final state) => state.boardConfig.getBounds.left,
+                    builder: (final context, final trayLeft) {
+                      // Phone landscape: the header sits beside the board, above the tray.
+                      final spec = ScreenSpec.of(context);
+                      final beside = spec.window == WindowClass.compact && spec.isLandscape;
+                      final reserved = GameChrome.reservedInsets(context);
+                      // No animation on phones: a squeezed header wraps and reports a huge height.
+                      return AnimatedPositioned(
+                        duration: spec.window == WindowClass.compact ? Duration.zero : const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                        left: gameplayInsets.left + (beside ? trayLeft - 16 : reserved.left),
+                        top: 0,
+                        right: gameplayInsets.right + (beside ? reserved.right : 0),
+                        child: MeasureSize(
+                          onChange: (final size) {
+                            if (mounted && size.height != _headerHeight) {
+                              setState(() => _headerHeight = size.height);
+                            }
+                          },
+                          child: Builder(
+                            builder: (final headerContext) => MediaQuery.withClampedTextScaling(
+                              maxScaleFactor: _maxChromeTextScale,
+                              child: PuzzleHeader(
+                                onLayoutsPressed: () {
+                                  if (!_puzzleBloc.state.isEditingLayout) {
+                                    showBoardLayoutsSheet(headerContext);
+                                  }
+                                },
+                                onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
-                if (isWideScreen)
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: BlocBuilder<PuzzleBloc, PuzzleState>(
+                      buildWhen: (final ps, final cs) =>
+                          !cs.isRestoredSolvedSession &&
+                          (ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser ||
+                              ps.status == GameStatus.solvedByUser && ps.status != cs.status),
+                      builder: (final BuildContext context, final PuzzleState state) =>
+                          !state.isRestoredSolvedSession &&
+                              state.status == GameStatus.solvedByUser &&
+                              !MediaQuery.disableAnimationsOf(context)
+                          ? const ConfettiView()
+                          : SizedBox.shrink(),
+                    ),
+                  ),
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOutCubic,
-                    right: _settingsPanelController.isInlinePanelVisible ? 0 : -PuzzleScreen.sidePanelWidth,
+                    left: gameplayInsets.left,
                     top: 0,
+                    right: gameplayInsets.right,
                     bottom: 0,
-                    child: const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
+                    child: MediaQuery.withClampedTextScaling(
+                      maxScaleFactor: _maxChromeTextScale,
+                      child: const PuzzleToolbar(),
+                    ),
                   ),
-                OnboardingOverlay(coordinateOffset: onboardingCoordinateOffset),
-              ],
+                  if (settingsDocked)
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      right: _settingsPanelController.isInlinePanelVisible ? 0 : -PuzzleScreen.sidePanelWidth,
+                      top: 0,
+                      bottom: 0,
+                      child: const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
-        endDrawer: isWideScreen ? null : const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
+        endDrawer: settingsDocked ? null : const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
       ),
     );
   }
@@ -315,7 +286,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     final minutesText = '${spentSeconds ~/ 60}'.padLeft(2, '0');
     final spentTime = '$minutesText:$secondsText';
     final usedHints = state.gridPieces.where((final e) => !e.isUsersItem).length;
-    await showDialog(
+    await showAdaptiveDialog(
       context: context,
       builder: (final context) => PlatformAlertDialog(
         title: Text(S.of(context).solvedAlertTitle),
@@ -340,237 +311,87 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   String _configLabel(final BuildContext context, final PuzzleState state) =>
       state.isCustomConfig ? S.of(context).historyConfigCustom : S.of(context).historyConfigStandard;
 
-  bool _didCompleteDragOnboardingStep(final PuzzleState previous, final PuzzleState current) {
-    final onboardingState = _onboardingBloc.state;
-    if (!onboardingState.isVisible ||
-        onboardingState.currentStep?.id != OnboardingStepId.dragPiece ||
-        !onboardingState.isCurrentStepInteractionEnabled) {
-      return false;
-    }
-    if (current.moveIndex != previous.moveIndex + 1 || current.moveHistory.isEmpty) {
-      return false;
-    }
+  RenderBox? get _boardBox => _boardKey.currentContext?.findRenderObject() as RenderBox?;
 
-    final move = current.moveHistory.last;
-    if (move is! MovePiece) {
-      return false;
-    }
-    final targetTopLeft = resolvePTargetTopLeft(current);
-    final targetRelativePosition = current.gridConfig.relativePosition(targetTopLeft);
-    final piece = current.pieces.firstWhere(
-      (final candidate) => candidate.id == move.pieceId,
-      orElse: () => current.pieces.first,
-    );
-
-    return piece.type == PieceType.pShape &&
-        !piece.isConfigItem &&
-        move.to.zone == PlaceZone.grid &&
-        piece.placeZone == PlaceZone.grid &&
-        move.to.position.dx == targetRelativePosition.dx &&
-        move.to.position.dy == targetRelativePosition.dy;
-  }
-
-  bool _didCompleteDrawOnboardingStep(final PuzzleState previous, final PuzzleState current) {
-    final onboardingState = _onboardingBloc.state;
-    if (!onboardingState.isVisible ||
-        onboardingState.currentStep?.id != OnboardingStepId.drawPiece ||
-        !onboardingState.isCurrentStepInteractionEnabled) {
-      return false;
-    }
-    if (previous.drawnGroup == null ||
-        current.drawnGroup != null ||
-        current.moveIndex != previous.moveIndex + 1 ||
-        current.moveHistory.isEmpty) {
-      return false;
-    }
-
-    final move = current.moveHistory.last;
-    if (move is! MovePiece) {
-      return false;
-    }
-
-    final targetTopLeft = resolvePTargetTopLeft(current);
-    final targetRelativePosition = current.gridConfig.relativePosition(targetTopLeft);
-    final piece = current.pieces.firstWhere(
-      (final candidate) => candidate.id == move.pieceId,
-      orElse: () => current.pieces.first,
-    );
-
-    return piece.type == PieceType.pShape &&
-        !piece.isConfigItem &&
-        move.to.zone == PlaceZone.grid &&
-        piece.placeZone == PlaceZone.grid &&
-        move.to.position.dx == targetRelativePosition.dx &&
-        move.to.position.dy == targetRelativePosition.dy;
-  }
-
-  bool _didCompleteRotateOnboardingStep(final PuzzleState previous, final PuzzleState current) {
-    final onboardingState = _onboardingBloc.state;
-    if (!onboardingState.isVisible ||
-        onboardingState.currentStep?.id != OnboardingStepId.rotatePiece ||
-        !onboardingState.isCurrentStepInteractionEnabled) {
-      return false;
-    }
-    if (current.moveIndex != previous.moveIndex + 1 || current.moveHistory.isEmpty) {
-      return false;
-    }
-
-    final move = current.moveHistory.last;
-    if (move is! RotatePiece) {
-      return false;
-    }
-
-    final piece = current.pieces.firstWhere(
-      (final candidate) => candidate.id == move.pieceId,
-      orElse: () => current.pieces.first,
-    );
-    return piece.type == PieceType.pShape && !piece.isConfigItem;
-  }
-
-  bool _didCompleteFlipOnboardingStep(final PuzzleState previous, final PuzzleState current) {
-    final onboardingState = _onboardingBloc.state;
-    if (!onboardingState.isVisible ||
-        onboardingState.currentStep?.id != OnboardingStepId.flipPiece ||
-        !onboardingState.isCurrentStepInteractionEnabled) {
-      return false;
-    }
-    if (current.moveIndex != previous.moveIndex + 1 || current.moveHistory.isEmpty) {
-      return false;
-    }
-
-    final move = current.moveHistory.last;
-    if (move is! FlipPiece) {
-      return false;
-    }
-
-    final piece = current.pieces.firstWhere(
-      (final candidate) => candidate.id == move.pieceId,
-      orElse: () => current.pieces.first,
-    );
-    return piece.type == PieceType.pShape && !piece.isConfigItem;
-  }
-
-  Future<void> _completeCurrentOnboardingStepAfterActionAnimation(final OnboardingStepId stepId) async {
-    final generation = ++_onboardingCompletionDelayGeneration;
-    await Future<void>.delayed(_onboardingActionCompletionDelay);
-    if (!mounted || generation != _onboardingCompletionDelayGeneration) {
+  Future<void> _maybeShowStartCard() async {
+    final settings = context.read<SettingsCubit>();
+    if (_isStartCardOpen || settings.state.completedOnboardingVersion > 0) {
       return;
     }
-
-    final onboardingState = _onboardingBloc.state;
-    if (!onboardingState.isVisible ||
-        onboardingState.currentStep?.id != stepId ||
-        onboardingState.isCurrentStepComplete ||
-        !onboardingState.isCurrentStepInteractionEnabled) {
+    _isStartCardOpen = true;
+    // Let the pieces settle first.
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    if (!mounted) {
+      _isStartCardOpen = false;
       return;
     }
-    _onboardingBloc.add(const CompleteCurrentOnboardingStep());
+    final level = await showStartCard(
+      context,
+      dateCells: _dateCellRects,
+      boardChanges: _puzzleBloc.stream,
+      initial: settings.state.solutionIndicator,
+    );
+    settings
+      ..setSolutionIndicator(level)
+      ..completeOnboarding(_introVersion);
+    _isStartCardOpen = false;
   }
 
-  void _captureTutorialBaseSnapshot(final PuzzleState state) {
-    if (!_isTutorialBaseLayoutReady(state)) {
-      return;
+  List<Rect> _dateCellRects() {
+    final box = _boardBox;
+    if (box == null || !box.hasSize) {
+      return const [];
     }
-    _tutorialBaseSnapshot ??= buildPuzzleLocalSnapshot(state);
-    _tutorialPShapeId ??= state.pieces
-        .where((final piece) => piece.type == PieceType.pShape && !piece.isConfigItem)
-        .map((final piece) => piece.id)
-        .cast<String?>()
-        .firstWhere((final id) => id != null, orElse: () => null);
+    final state = _puzzleBloc.state;
+    final grid = state.gridConfig;
+    final cells = targetCells(
+      rows: PuzzleBloc.gridRows,
+      columns: PuzzleBloc.gridColumns,
+      blocked: state.blockedCells,
+      date: state.selectedDate,
+    );
+    return [for (final cell in cells) box.localToGlobal(grid.cellTopLeft(cell)) & Size.square(grid.cellSize)];
   }
 
-  bool _isTutorialBaseLayoutReady(final PuzzleState state) =>
-      state.status == GameStatus.initialized &&
-      !state.gridPieces.any((final piece) => !piece.isConfigItem) &&
-      state.boardPieces.any((final piece) => piece.type == PieceType.pShape && !piece.isConfigItem);
-
-  void _applyTutorialStepSnapshot() {
-    final baseSnapshot = _tutorialBaseSnapshot;
-    final pShapeId = _tutorialPShapeId;
-    final stepId = _onboardingBloc.state.currentStep?.id;
-    if (baseSnapshot == null || pShapeId == null || stepId == null) {
+  Future<void> _showPieceTip() async {
+    _isPieceTipRequested = true;
+    // Wait out a possible double tap.
+    await Future<void>.delayed(kDoubleTapTimeout);
+    final piece = _puzzleBloc.state.selectedPiece;
+    final box = _boardBox;
+    if (!mounted || box == null || piece == null || piece.isConfigItem || _puzzleBloc.state.isDragging) {
+      _isPieceTipRequested = false;
       return;
     }
+    await CoachMark.showOnce(
+      context: context,
+      storageKey: 'tip_seen_selected_piece',
+      anchor: piece.getTransformedPath().getBounds().shift(box.localToGlobal(Offset.zero)),
+      title: S.current.tipPieceTitle,
+      message: S.current.tipPieceMessage,
+      actionLabel: S.current.ok,
+      canCancel: false,
+    );
+  }
+}
 
-    final currentState = _puzzleBloc.state;
-    final targetTopLeft = resolvePTargetTopLeft(currentState);
-    final targetPosition = Position(dx: targetTopLeft.dx, dy: targetTopLeft.dy);
+class _GameBackground extends StatelessWidget {
+  const _GameBackground({required this.colors, required this.child});
 
-    final pieces = baseSnapshot.pieces
-        .map((final piece) {
-          if (piece.id != pShapeId) {
-            return piece;
-          }
+  final GameColors colors;
+  final Widget child;
 
-          return switch (stepId.pShapeSetup) {
-            OnboardingPShapeSetup.board => piece,
-            OnboardingPShapeSetup.target => PuzzlePieceSnapshot(
-              id: piece.id,
-              placeZone: PlaceZone.grid,
-              position: targetPosition,
-              rotation: 0,
-              isFlipped: false,
-              isUsersItem: piece.isUsersItem,
-              isConfigItem: piece.isConfigItem,
-            ),
-            OnboardingPShapeSetup.targetRotated90 => PuzzlePieceSnapshot(
-              id: piece.id,
-              placeZone: PlaceZone.grid,
-              position: targetPosition,
-              rotation: PuzzleBloc.rotationStep,
-              isFlipped: false,
-              isUsersItem: piece.isUsersItem,
-              isConfigItem: piece.isConfigItem,
-            ),
-          };
-        })
-        .toList(growable: false);
-
-    _puzzleBloc.add(
-      PuzzleEvent.restoreLocalSnapshot(
-        PuzzleLocalSnapshot(
-          selectedDate: baseSnapshot.selectedDate,
-          status: baseSnapshot.status,
-          pieces: pieces,
-          moveHistory: const [],
-          moveIndex: 0,
-          firstMoveAt: null,
-          lastResumedAt: null,
-          activeElapsedMs: 0,
-          hasShownSolvedDialog: false,
-          isRestoredSolvedSession: false,
-        ),
-        onboarding: true,
+  @override
+  Widget build(final BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [colors.backgroundTop, colors.background],
+        stops: const [0, 0.45],
       ),
-    );
-  }
-
-  void _maybePresentOnboarding() {
-    final settingsCubit = context.read<SettingsCubit>();
-    final settings = settingsCubit.state;
-    if (settings.shouldAutoStartOnboarding(currentOnboardingVersion)) {
-      settingsCubit.markOnboardingOffered(currentOnboardingVersion);
-      _onboardingBloc.add(const StartOnboarding(OnboardingMode.short));
-      return;
-    }
-    if (settings.shouldSuggestOnboardingReplay(currentOnboardingVersion)) {
-      settingsCubit.markOnboardingOffered(currentOnboardingVersion);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.current.onboardingReplayPrompt),
-          action: SnackBarAction(label: S.current.onboardingReplayAction, onPressed: _startOnboardingUpdate),
-        ),
-      );
-    }
-  }
-
-  bool _didFinishOnboarding(final OnboardingState previous) =>
-      previous.currentStepIndex == previous.steps.length - 1 && previous.canGoNext;
-
-  void _startOnboardingUpdate() {
-    final settingsCubit = context.read<SettingsCubit>();
-    final completedVersion = settingsCubit.state.completedOnboardingVersion;
-    settingsCubit.markOnboardingOffered(currentOnboardingVersion);
-    _onboardingBloc.add(StartOnboarding(OnboardingMode.short, completedVersion: completedVersion));
-  }
+    ),
+    // On wide monitors the game stays together in the middle; the background fills the window.
+    child: MaxWidth(maxWidth: PuzzleScreen.maxGameWidth, child: child),
+  );
 }

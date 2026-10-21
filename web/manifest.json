@@ -1,12 +1,12 @@
 {
-    "name": "caesar_puzzle",
-    "short_name": "caesar_puzzle",
+    "name": "Caesar's Calendar",
+    "short_name": "Caesar's",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "Caesar Puzzle Calendar",
-    "orientation": "portrait-primary",
+    "background_color": "#F5F2EC",
+    "theme_color": "#F5F2EC",
+    "description": "A daily calendar puzzle: place eight pieces so only today's month and day stay uncovered.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

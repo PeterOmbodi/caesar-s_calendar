@@ -4,7 +4,14 @@ part of 'puzzle_bloc.dart';
 sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.started() = _Started;
 
-  const factory PuzzleEvent.setViewSize(final Size viewSize) = _SetViewSize;
+  /// [contentInsets] is the part of the view taken by the header, status line and toolbar.
+  const factory PuzzleEvent.setViewSize(
+    final Size viewSize, {
+    required final double maxCell,
+    @Default(PuzzlePieceUI.defaultTrayScale) final double trayScale,
+    @Default(EdgeInsets.zero) final EdgeInsets contentInsets,
+    @Default(0) final double trayTopInset,
+  }) = _SetViewSize;
 
   const factory PuzzleEvent.reset() = _Reset;
 
@@ -12,7 +19,13 @@ sealed class PuzzleEvent with _$PuzzleEvent {
 
   const factory PuzzleEvent.onTapUp(final Offset localPosition) = _OnTapUp;
 
-  const factory PuzzleEvent.rotatePiece(final PuzzlePieceUI piece) = _RotatePiece;
+  const factory PuzzleEvent.selectPiece(final String pieceId) = _SelectPiece;
+
+  const factory PuzzleEvent.deselectPiece() = _DeselectPiece;
+
+  const factory PuzzleEvent.rotateSelected() = _RotateSelected;
+
+  const factory PuzzleEvent.flipSelected() = _FlipSelected;
 
   const factory PuzzleEvent.onPanStart(final Offset localPosition) = _OnPanStart;
 
@@ -34,7 +47,6 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.configure({
     @Default(false) final bool toInitial,
     @Default(<PuzzlePieceUI>[]) final Iterable<PuzzlePieceUI> configurationPieces,
-    @Default(false) final bool skipSolve,
   }) = _Configure;
 
   const factory PuzzleEvent.undo() = _Undo;
@@ -47,13 +59,15 @@ sealed class PuzzleEvent with _$PuzzleEvent {
 
   const factory PuzzleEvent.restoreSession(final PuzzleSessionData session) = _RestoreSession;
 
-  const factory PuzzleEvent.restoreLocalSnapshot(
-    final PuzzleLocalSnapshot snapshot, {
-    @Default(false) final bool onboarding,
-  }) = _RestoreLocalSnapshot;
-
-  const factory PuzzleEvent.setPuzzleDate(final DateTime date, {@Default(false) final bool onboarding}) =
-      _SetPuzzleDate;
+  const factory PuzzleEvent.setPuzzleDate(final DateTime date) = _SetPuzzleDate;
 
   const factory PuzzleEvent.markSolvedDialogShown() = _MarkSolvedDialogShown;
+
+  const factory PuzzleEvent.applyLayout(final List<PlacementParams> placements) = _ApplyLayout;
+
+  const factory PuzzleEvent.startLayoutEdit({final String? layoutId, final String? name}) = _StartLayoutEdit;
+
+  const factory PuzzleEvent.resetLayoutEdit() = _ResetLayoutEdit;
+
+  const factory PuzzleEvent.cancelLayoutEdit() = _CancelLayoutEdit;
 }

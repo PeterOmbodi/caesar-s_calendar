@@ -7,7 +7,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     add(
       PuzzleEvent.configure(
         toInitial: true,
-        configurationPieces: _settings.unlockConfig ? [] : state.gridPieces.where((final e) => e.isConfigItem),
+        configurationPieces: state.gridPieces.where((final e) => e.isConfigItem),
       ),
     );
     if (state.solutions.isEmpty && _settings.requireSolutions) {
@@ -16,6 +16,9 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
   }
 
   FutureOr<void> _timerStateChanged(final _SetTimer event, final Emitter<PuzzleState> emit) {
+    if (state.isEditingLayout) {
+      return Future.value();
+    }
     if (event.running) {
       if (state.status == GameStatus.paused) {
         final prevState = state;
@@ -48,13 +51,14 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     }
   }
 
-  FutureOr<void> _restoreSession(final _RestoreSession event, final Emitter<PuzzleState> emit) {
+  Future<void> _restoreSession(final _RestoreSession event, final Emitter<PuzzleState> emit) async {
     final session = event.session;
+    final layout = await _historyUseCase.sessionLayout(session);
     final isSolvedSession = session.status == PuzzleSessionStatus.solved || session.completedAt != null;
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     _historyUseCase.activateSession(session);
     _currentSessionDifficulty = session.difficulty;
-    final restoredPieces = _restoreSessionPieces(session);
+    final restoredPieces = _restoreSessionPieces(session, layout == null ? state.pieces : _withLayout(layout));
     final restoredElapsedMs = _restoredSessionElapsedMs(session);
 
     emit(
@@ -62,6 +66,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         selectedDate: DateTime(session.puzzleDate.year, session.puzzleDate.month, session.puzzleDate.day),
         pieces: restoredPieces,
         moveHistory: session.moveHistory,
+        hintedCells: _hintedCellsOf(session.moveHistory),
         moveIndex: session.moveIndex,
         firstMoveAt: session.firstMoveAt,
         lastResumedAt: !isSolvedSession && session.firstMoveAt != null ? nowMs : null,
@@ -69,7 +74,8 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         solutionIdx: -1,
         solutions: const [],
         applicableSolutions: const [],
-        selectedPiece: null,
+        pointerPiece: null,
+        selectedPieceId: null,
         isDragging: false,
         dragStartOffset: null,
         pieceStartPosition: null,
@@ -89,13 +95,96 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     add(const PuzzleEvent.solve(showResult: false));
   }
 
-  FutureOr<void> _setPuzzleDate(final _SetPuzzleDate event, final Emitter<PuzzleState> emit) {
-    final nextDate = DateTime(event.date.year, event.date.month, event.date.day);
-    _isOnboardingSession = event.onboarding;
-    if (!event.onboarding) {
-      _historyUseCase.resetSession();
-      _currentSessionDifficulty = null;
+  void _setPuzzleDate(final _SetPuzzleDate event, final Emitter<PuzzleState> emit) => _startNewGame(
+    emit,
+    date: event.date,
+    configurationPieces: state.gridPieces.where((final e) => e.isConfigItem),
+  );
+
+  void _applyLayout(final _ApplyLayout event, final Emitter<PuzzleState> emit) => _startNewGame(
+    emit,
+    date: DateTime.now(),
+    configurationPieces: _withLayout(event.placements).where((final p) => p.isConfigItem),
+  );
+
+  void _startLayoutEdit(final _StartLayoutEdit event, final Emitter<PuzzleState> emit) {
+    if (state.isEditingLayout || state.isShowSolutions) {
+      return;
     }
+    final resumedAt = state.lastResumedAt;
+    final elapsedMs = resumedAt == null ? 0 : DateTime.now().millisecondsSinceEpoch - resumedAt;
+    emit(
+      state.copyWith(
+        layoutEdit: LayoutEdit(
+          start: state.configPlacements,
+          status: state.status,
+          layoutId: event.layoutId,
+          name: event.name,
+          moveHistory: state.moveHistory,
+          moveIndex: state.moveIndex,
+          solutions: state.solutions,
+          applicableSolutions: state.applicableSolutions,
+          wasTimerRunning: resumedAt != null,
+        ),
+        activeElapsedMs: state.activeElapsedMs + elapsedMs,
+        lastResumedAt: null,
+        selectedPieceId: null,
+        pointerPiece: null,
+        drawnGroup: null,
+        isDrawingGroup: false,
+      ),
+    );
+  }
+
+  void _resetLayoutEdit(final _ResetLayoutEdit event, final Emitter<PuzzleState> emit) {
+    final edit = state.layoutEdit;
+    if (edit != null) {
+      emit(state.copyWith(pieces: _withLayout(edit.start), selectedPieceId: null));
+      add(const PuzzleEvent.solve(showResult: false));
+    }
+  }
+
+  void _cancelLayoutEdit(final _CancelLayoutEdit event, final Emitter<PuzzleState> emit) {
+    final edit = state.layoutEdit;
+    if (edit == null) {
+      return;
+    }
+    _solveRun++;
+    emit(
+      state.copyWith(
+        pieces: _withLayout(edit.start),
+        moveHistory: edit.moveHistory,
+        moveIndex: edit.moveIndex,
+        solutions: edit.solutions,
+        applicableSolutions: edit.applicableSolutions,
+        status: edit.status,
+        lastResumedAt: edit.wasTimerRunning ? DateTime.now().millisecondsSinceEpoch : null,
+        selectedPieceId: null,
+        pointerPiece: null,
+        layoutEdit: null,
+      ),
+    );
+    if (edit.status == GameStatus.searchingSolutions) {
+      add(const PuzzleEvent.solve(showResult: false));
+    }
+  }
+
+  List<PuzzlePieceUI> _withLayout(final List<PlacementParams> placements) {
+    final byId = {for (final p in placements) p.pieceId: p};
+    return [
+      for (final piece in state.pieces)
+        if (piece.isConfigItem && byId[piece.id] != null) _applyPlacementToPiece(piece, byId[piece.id]!) else piece,
+    ];
+  }
+
+  void _startNewGame(
+    final Emitter<PuzzleState> emit, {
+    required final DateTime date,
+    required final Iterable<PuzzlePieceUI> configurationPieces,
+  }) {
+    final nextDate = DateTime(date.year, date.month, date.day);
+    _historyUseCase.resetSession();
+    _currentSessionDifficulty = null;
     emit(
       state.copyWith(
         selectedDate: nextDate,
@@ -104,10 +193,12 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         applicableSolutions: const [],
         moveHistory: const [],
         moveIndex: 0,
+        hintedCells: const {},
         firstMoveAt: null,
         lastResumedAt: null,
         activeElapsedMs: 0,
-        selectedPiece: null,
+        pointerPiece: null,
+        selectedPieceId: null,
         isDragging: false,
         dragStartOffset: null,
         pieceStartPosition: null,
@@ -121,51 +212,10 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
         isRestoredSolvedSession: false,
         hasShownSolvedDialog: false,
         status: GameStatus.paused,
+        layoutEdit: null,
       ),
     );
-    add(
-      PuzzleEvent.configure(
-        toInitial: true,
-        skipSolve: event.onboarding,
-        configurationPieces: _settings.unlockConfig ? [] : state.gridPieces.where((final e) => e.isConfigItem),
-      ),
-    );
-  }
-
-  FutureOr<void> _restoreLocalSnapshot(final _RestoreLocalSnapshot event, final Emitter<PuzzleState> emit) {
-    final snapshot = event.snapshot;
-    _isOnboardingSession = event.onboarding;
-    emit(
-      state.copyWith(
-        selectedDate: snapshot.selectedDate,
-        pieces: _applySnapshotPieces(snapshot.pieces),
-        moveHistory: snapshot.moveHistory,
-        moveIndex: snapshot.moveIndex,
-        firstMoveAt: snapshot.firstMoveAt,
-        lastResumedAt: snapshot.lastResumedAt,
-        activeElapsedMs: snapshot.activeElapsedMs,
-        solutionIdx: -1,
-        solutions: const [],
-        applicableSolutions: const [],
-        selectedPiece: null,
-        isDragging: false,
-        dragStartOffset: null,
-        pieceStartPosition: null,
-        previewPosition: null,
-        dragStartZone: null,
-        showPreview: false,
-        previewCollision: false,
-        drawnGroup: null,
-        drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
-        isDrawingGroup: false,
-        isRestoredSolvedSession: snapshot.isRestoredSolvedSession,
-        hasShownSolvedDialog: snapshot.hasShownSolvedDialog,
-        status: snapshot.status,
-      ),
-    );
-    if (!event.onboarding) {
-      add(const PuzzleEvent.solve(showResult: false));
-    }
+    add(PuzzleEvent.configure(toInitial: true, configurationPieces: configurationPieces));
   }
 
   FutureOr<void> _markSolvedDialogShown(final _MarkSolvedDialogShown event, final Emitter<PuzzleState> emit) {
@@ -188,27 +238,9 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     }
   }
 
-  List<PuzzlePieceUI> _applySnapshotPieces(final List<PuzzlePieceSnapshot> snapshots) {
-    final snapshotById = {for (final snapshot in snapshots) snapshot.id: snapshot};
-    return state.pieces.map((final piece) {
-      final snapshot = snapshotById[piece.id];
-      if (snapshot == null) {
-        return piece;
-      }
-      return piece.copyWith(
-        position: Offset(snapshot.position.dx, snapshot.position.dy),
-        rotation: snapshot.rotation,
-        isFlipped: snapshot.isFlipped,
-        placeZone: snapshot.placeZone,
-        isUsersItem: snapshot.isUsersItem,
-        isForbidden: snapshot.isConfigItem,
-      );
-    }).toList();
-  }
-
-  List<PuzzlePieceUI> _restoreSessionPieces(final PuzzleSessionData session) {
+  List<PuzzlePieceUI> _restoreSessionPieces(final PuzzleSessionData session, final Iterable<PuzzlePieceUI> pieces) {
     final snapshotById = {for (final snapshot in session.pieces) snapshot.id: snapshot};
-    final restoredPieces = state.pieces.map((final piece) {
+    final restoredPieces = pieces.map((final piece) {
       final snapshot = snapshotById[piece.id];
       if (snapshot == null) {
         return piece;
@@ -243,11 +275,11 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     ),
     rotatePiece: (final rp) => piece.copyWith(
       rotation: rp.rotation,
-      position: _moveHistoryService.snapOffset(state.gridConfig, rp.snapCorrection, false) ?? piece.position,
+      position: _moveHistoryService.snapOffset(state.gridConfig, state.boardConfig, rp.snapCorrection, false) ?? piece.position,
     ),
     flipPiece: (final fp) => piece.copyWith(
       isFlipped: fp.isFlipped,
-      position: _moveHistoryService.snapOffset(state.gridConfig, fp.snapCorrection, false) ?? piece.position,
+      position: _moveHistoryService.snapOffset(state.gridConfig, state.boardConfig, fp.snapCorrection, false) ?? piece.position,
     ),
     hintMove: (final hm) =>
         _applySessionPlacement(piece: piece, placement: hm.to, rotation: hm.rotationTo, isFlipped: hm.flippedTo),

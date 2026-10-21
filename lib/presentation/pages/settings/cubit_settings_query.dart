@@ -8,13 +8,7 @@ class CubitSettingsQuery implements SettingsQuery {
   final SettingsCubit cubit;
 
   @override
-  bool get unlockConfig => cubit.state.unlockConfig;
-
-  @override
   bool get preventOverlap => cubit.state.preventOverlap;
-
-  @override
-  bool get autoLockConfig => cubit.state.autoLockConfig;
 
   @override
   bool get separateMoveColors => cubit.state.separateMoveColors;

@@ -1,5 +1,7 @@
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
+import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:flutter/material.dart';
 
 extension SolutionIndicatorDifficultyX on SolutionIndicator {
   PuzzleSessionDifficulty get sessionDifficulty {
@@ -25,4 +27,18 @@ extension PuzzleSessionDifficultySolutionIndicatorX on PuzzleSessionDifficulty {
         return SolutionIndicator.countSolutions;
     }
   }
+}
+
+extension SolutionIndicatorTextX on SolutionIndicator {
+  IconData get icon => switch (this) {
+    SolutionIndicator.countSolutions => Icons.visibility_outlined,
+    SolutionIndicator.solvability => Icons.check_circle_outline,
+    SolutionIndicator.none => Icons.visibility_off_outlined,
+  };
+
+  String get description => switch (this) {
+    SolutionIndicator.countSolutions => S.current.onboardingDifficultyEasyDescription,
+    SolutionIndicator.solvability => S.current.onboardingDifficultyMediumDescription,
+    SolutionIndicator.none => S.current.onboardingDifficultyHardDescription,
+  };
 }

@@ -13,6 +13,7 @@ extension PuzzleBlocSolutionsPart on PuzzleBloc {
       ),
     );
     await Future<void>.delayed(Duration.zero);
+    final run = ++_solveRun;
     unawaited(
       _solvePuzzleUseCase
           .call(
@@ -21,6 +22,9 @@ extension PuzzleBlocSolutionsPart on PuzzleBloc {
         date: state.selectedDate,
       )
           .then((final solutions) {
+        if (run != _solveRun) {
+          return;
+        }
         debugPrint(
           'solving finished, found solutions: ${solutions.length}',
         );
@@ -86,6 +90,7 @@ extension PuzzleBlocSolutionsPart on PuzzleBloc {
         pieces: gridPieces,
         applicableSolutions: applicableSolutions,
         solutionIdx: solutionIndex,
+        selectedPieceId: null,
         moveHistory: [],
         moveIndex: 0,
         status: GameStatus.showingSolution,

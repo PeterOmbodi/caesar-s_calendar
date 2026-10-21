@@ -2,10 +2,12 @@ import 'dart:ui' show PointerDeviceKind;
 
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class DateSelector extends StatefulWidget {
   const DateSelector({
@@ -22,6 +24,7 @@ class DateSelector extends StatefulWidget {
     this.monthsToGridGap = 4,
     this.showMonthLabels = true,
     this.fitGridToWidth = false,
+    this.centerSelectionRequest = 0,
   });
 
   final DateTime selectedDate;
@@ -37,6 +40,9 @@ class DateSelector extends StatefulWidget {
   final bool showMonthLabels;
   final bool fitGridToWidth;
 
+  /// Increment to reveal the selection after an explicit external navigation.
+  final int centerSelectionRequest;
+
   @override
   State<DateSelector> createState() => _DateSelectorState();
 }
@@ -45,6 +51,25 @@ class _DateSelectorState extends State<DateSelector> {
   static const int _calendarYear = 2024; // Leap year to always include Feb 29.
 
   late final ScrollController _horizontalController;
+  String? _centeredLayout;
+
+  void _centerSelection(final double width, final double cellSize) {
+    final layout = '$width/$cellSize/${widget.columnGap}/${widget.centerSelectionRequest}';
+    if (_centeredLayout == layout) return;
+    _centeredLayout = layout;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_horizontalController.hasClients || _centeredLayout != layout) return;
+      final dayIndex = DateTime.utc(
+        _calendarYear,
+        widget.selectedDate.month,
+        widget.selectedDate.day,
+      ).difference(DateTime.utc(_calendarYear)).inDays;
+      final column = dayIndex ~/ 7;
+      final position = _horizontalController.position;
+      final offset = 12 + column * (cellSize + widget.columnGap) + cellSize / 2 - position.viewportDimension / 2;
+      _horizontalController.jumpTo(offset.clamp(position.minScrollExtent, position.maxScrollExtent));
+    });
+  }
 
   @override
   void initState() {
@@ -74,38 +99,16 @@ class _DateSelectorState extends State<DateSelector> {
       (final max, final item) => item.solvedVariants > max ? item.solvedVariants : max,
     );
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  DateFormat.MMMMd(Localizations.localeOf(context).toLanguageTag()).format(widget.selectedDate),
-                  style: textTheme.labelMedium,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: _HeatScaleLegend(colorScheme: colorScheme),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: widget.topDateGap),
         if (widget.fitGridToWidth)
           LayoutBuilder(
             builder: (final context, final constraints) => _buildGrid(
               columns: columns,
               monthLabels: monthLabels,
               statsByDate: statsByDate,
-              textTheme: textTheme,
+              textTheme: Theme.of(context).textTheme,
               colorScheme: colorScheme,
               maxSolved: maxSolved,
               cellSize: _fittedCellSize(constraints.maxWidth, columns.length),
@@ -116,7 +119,7 @@ class _DateSelectorState extends State<DateSelector> {
             columns: columns,
             monthLabels: monthLabels,
             statsByDate: statsByDate,
-            textTheme: textTheme,
+            textTheme: Theme.of(context).textTheme,
             colorScheme: colorScheme,
             maxSolved: maxSolved,
             cellSize: widget.cellSize,
@@ -141,36 +144,41 @@ class _DateSelectorState extends State<DateSelector> {
     required final ColorScheme colorScheme,
     required final int maxSolved,
     required final double cellSize,
-  }) => ScrollConfiguration(
-    behavior: const MaterialScrollBehavior().copyWith(
-      dragDevices: const <PointerDeviceKind>{
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-        PointerDeviceKind.stylus,
-      },
-    ),
-    child: Scrollbar(
-      controller: _horizontalController,
-      thumbVisibility: kIsWeb || _isDesktop(),
-      interactive: true,
-      child: SingleChildScrollView(
-        controller: _horizontalController,
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Column(
-          children: _buildScrollableContent(
-            columns: columns,
-            monthLabels: monthLabels,
-            statsByDate: statsByDate,
-            textTheme: textTheme,
-            colorScheme: colorScheme,
-            maxSolved: maxSolved,
-            cellSize: cellSize,
+  }) => LayoutBuilder(
+    builder: (final context, final constraints) {
+      _centerSelection(constraints.maxWidth, cellSize);
+      return ScrollConfiguration(
+        behavior: const MaterialScrollBehavior().copyWith(
+          dragDevices: const <PointerDeviceKind>{
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.trackpad,
+            PointerDeviceKind.stylus,
+          },
+        ),
+        child: Scrollbar(
+          controller: _horizontalController,
+          thumbVisibility: kIsWeb || _isDesktop(),
+          interactive: true,
+          child: SingleChildScrollView(
+            controller: _horizontalController,
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Column(
+              children: _buildScrollableContent(
+                columns: columns,
+                monthLabels: monthLabels,
+                statsByDate: statsByDate,
+                textTheme: textTheme,
+                colorScheme: colorScheme,
+                maxSolved: maxSolved,
+                cellSize: cellSize,
+              ),
+            ),
           ),
         ),
-      ),
-    ),
+      );
+    },
   );
 
   bool _isDesktop() {
@@ -315,7 +323,7 @@ class _DateSelectorState extends State<DateSelector> {
       final firstDay = columns[i].whereType<DateTime>().firstOrNull;
       if (firstDay == null) continue;
       if (firstDay.month != lastMonth) {
-        labels[i] = DateFormat.MMM().format(firstDay);
+        labels[i] = shortMonthName(firstDay.month);
         lastMonth = firstDay.month;
       }
     }
@@ -377,6 +385,7 @@ class _HeatmapDayCell extends StatelessWidget {
       return SizedBox(width: size, height: size);
     }
 
+    final glass = ScreenSpec.of(context).family == ChromeFamily.glass;
     return InkWell(
       borderRadius: BorderRadius.circular(3),
       onTap: () => onTap(day!),
@@ -384,7 +393,7 @@ class _HeatmapDayCell extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: _fillColor(),
+          color: glass ? appleColor(_resolveLevel(), GameColors.of(context)) : _fillColor(),
           borderRadius: BorderRadius.circular(3),
           border: Border.all(
             color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
@@ -399,6 +408,9 @@ class _HeatmapDayCell extends StatelessWidget {
     final level = _resolveLevel();
     return colorForLevel(level, colorScheme);
   }
+
+  static Color appleColor(final _HeatLevel level, final GameColors colors) =>
+      level == _HeatLevel.empty ? colors.gridLine : Color.lerp(colors.board, colors.active, .25 + level.index * .15)!;
 
   _HeatLevel _resolveLevel() {
     final solved = stats?.solvedVariants ?? 0;
@@ -450,13 +462,14 @@ class _HeatmapDayCell extends StatelessWidget {
 
 enum _HeatLevel { empty, inProgress, inProgressMany, inProgressSolved, solvedMany, solvedHigh }
 
-class _HeatScaleLegend extends StatelessWidget {
-  const _HeatScaleLegend({required this.colorScheme});
+class HeatmapLegend extends StatelessWidget {
+  const HeatmapLegend({super.key, this.large = false});
 
-  final ColorScheme colorScheme;
+  final bool large;
 
   @override
   Widget build(final BuildContext context) {
+    final glass = ScreenSpec.of(context).family == ChromeFamily.glass;
     final levels = <_HeatLevel>[
       _HeatLevel.inProgress,
       _HeatLevel.inProgressMany,
@@ -464,7 +477,9 @@ class _HeatScaleLegend extends StatelessWidget {
       _HeatLevel.solvedMany,
       _HeatLevel.solvedHigh,
     ];
-    final textStyle = Theme.of(context).textTheme.labelSmall;
+    final textStyle = large
+        ? Theme.of(context).textTheme.labelMedium?.copyWith(fontSize: 13)
+        : Theme.of(context).textTheme.labelSmall;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -472,7 +487,12 @@ class _HeatScaleLegend extends StatelessWidget {
         Text(S.current.historyLegendLess, style: textStyle),
         const SizedBox(width: 6),
         for (var i = 0; i < levels.length; i++) ...[
-          _LegendSquare(color: _HeatmapDayCell.colorForLevel(levels[i], colorScheme)),
+          _LegendSquare(
+            size: large ? 12 : 10,
+            color: glass
+                ? _HeatmapDayCell.appleColor(levels[i], GameColors.of(context))
+                : _HeatmapDayCell.colorForLevel(levels[i], Theme.of(context).colorScheme),
+          ),
           if (i < levels.length - 1) const SizedBox(width: 3),
         ],
         const SizedBox(width: 6),
@@ -483,14 +503,15 @@ class _HeatScaleLegend extends StatelessWidget {
 }
 
 class _LegendSquare extends StatelessWidget {
-  const _LegendSquare({required this.color});
+  const _LegendSquare({required this.color, this.size = 10});
 
   final Color color;
+  final double size;
 
   @override
   Widget build(final BuildContext context) => Container(
-    width: 10,
-    height: 10,
+    width: size,
+    height: size,
     decoration: BoxDecoration(
       color: color,
       borderRadius: BorderRadius.circular(2),

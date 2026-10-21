@@ -50,5 +50,9 @@ abstract class PuzzleHistoryRepository {
 
   Future<bool> hasAnyLocalSessions();
 
+  Stream<int> watchSolvedSolutionCount();
+
+  Future<String?> getConfigJson(final String configId);
+
   Future<void> clearLocalData();
 }

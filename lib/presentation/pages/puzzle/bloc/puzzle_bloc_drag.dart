@@ -2,26 +2,34 @@ part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocDragPart on PuzzleBloc {
   FutureOr<void> _onTapDown(final _OnTapDown event, final Emitter<PuzzleState> emit) {
-    if (_consumeTapAfterDrawnCommitSuppression()) {
-      emit(state.copyWith(selectedPiece: null));
+    _selectedOnTapDownId = null;
+    if (_consumeTapAfterDrawnCommitSuppression() || _isTapOfDoubleTapFlip(event.localPosition)) {
+      emit(state.copyWith(pointerPiece: null));
       return Future<void>.value();
     }
 
     final cell = state.gridConfig.cellAt(event.localPosition);
     if (cell != null && state.drawnGroup?.contains(cell) == true) {
-      emit(state.copyWith(selectedPiece: null));
+      emit(state.copyWith(pointerPiece: null));
       return Future<void>.value();
     }
 
     final piece = _findPieceAtPosition(event.localPosition);
-    if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
-      emit(state.copyWith(selectedPiece: piece));
+    if (piece != null && _canTouch(piece)) {
+      if (piece.id != state.selectedPieceId) {
+        _selectedOnTapDownId = piece.id;
+      }
+      emit(state.copyWith(pointerPiece: piece, selectedPieceId: piece.id));
+    } else {
+      emit(state.copyWith(pointerPiece: null));
     }
   }
 
   FutureOr<void> _onTapUp(final _OnTapUp event, final Emitter<PuzzleState> emit) {
-    if (_consumeTapAfterDrawnCommitSuppression()) {
-      emit(state.copyWith(selectedPiece: null, isDragging: false));
+    final isTapOfDoubleTapFlip = _isTapOfDoubleTapFlip(event.localPosition);
+    _lastDoubleTapFlip = null;
+    if (_consumeTapAfterDrawnCommitSuppression() || isTapOfDoubleTapFlip) {
+      emit(state.copyWith(pointerPiece: null, isDragging: false));
       return Future<void>.value();
     }
 
@@ -36,7 +44,8 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           state.copyWith(
             drawnGroup: updatedGroup,
             drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(updatedGroup),
-            selectedPiece: null,
+            pointerPiece: null,
+            selectedPieceId: null,
             isDragging: false,
             isDrawingGroup: false,
           ),
@@ -45,28 +54,40 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       }
     }
 
-    if (state.selectedPiece != null && !state.isDragging) {
-      add(PuzzleEvent.rotatePiece(state.selectedPiece!));
+    final pointerPiece = state.pointerPiece;
+    final wasSelectedOnTapDown = pointerPiece != null && _selectedOnTapDownId == pointerPiece.id;
+    _selectedOnTapDownId = null;
+    if (pointerPiece != null && !state.isDragging && !wasSelectedOnTapDown) {
+      add(const PuzzleEvent.rotateSelected());
     }
-    emit(state.copyWith(selectedPiece: null, isDragging: false));
+    emit(
+      state.copyWith(
+        pointerPiece: null,
+        isDragging: false,
+        selectedPieceId: pointerPiece == null ? null : state.selectedPieceId,
+      ),
+    );
   }
 
   FutureOr<void> _onPanStart(final _OnPanStart event, final Emitter<PuzzleState> emit) {
-    final piece = _findPieceAtPosition(event.localPosition) ?? state.selectedPiece;
-    if (piece != null && (!piece.isConfigItem || _settings.unlockConfig)) {
+    _selectedOnTapDownId = null;
+    final piece = _findPieceAtPosition(event.localPosition) ?? state.pointerPiece;
+    if (piece != null && _canTouch(piece)) {
+      final lifted = state.shown(piece).rescaledAround(event.localPosition, isLifted: true);
       final pieces = List<PuzzlePieceUI>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((final item) => item.id == piece.id);
       if (pieceIndex >= 0) {
         pieces.removeAt(pieceIndex);
-        pieces.add(piece);
+        pieces.add(lifted);
       } else {
         debugPrint('_onPanStart, piece not found!');
       }
       emit(
         state.copyWith(
           pieces: pieces,
-          selectedPiece: piece,
-          dragStartOffset: event.localPosition - piece.position,
+          pointerPiece: lifted,
+          selectedPieceId: piece.id,
+          dragStartOffset: event.localPosition - lifted.position,
           pieceStartPosition: piece.position,
           dragStartZone: _movementHandler.getZoneAtPosition(piece.position, state.gridConfig, state.boardConfig),
           isDragging: true,
@@ -79,14 +100,14 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     }
 
     final cell = state.gridConfig.cellAt(event.localPosition);
-    if (cell == null) {
+    if (cell == null || state.isEditingLayout) {
       return Future<void>.value();
     }
 
     final drawnGroup = state.drawnGroup;
     if (drawnGroup != null) {
       if (drawnGroup.contains(cell)) {
-        emit(state.copyWith(isDrawingGroup: true, selectedPiece: null, isDragging: false));
+        emit(state.copyWith(isDrawingGroup: true, pointerPiece: null, selectedPieceId: null, isDragging: false));
       }
       return Future<void>.value();
     }
@@ -98,7 +119,8 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           drawnGroup: newGroup,
           drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(newGroup),
           isDrawingGroup: true,
-          selectedPiece: null,
+          pointerPiece: null,
+          selectedPieceId: null,
           isDragging: false,
         ),
       );
@@ -124,9 +146,9 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       return Future<void>.value();
     }
 
-    if (state.selectedPiece != null && state.dragStartOffset != null) {
+    if (state.pointerPiece != null && state.dragStartOffset != null) {
       final newPosition = event.localPosition - state.dragStartOffset!;
-      final piece = state.selectedPiece!.copyWith(position: newPosition);
+      final piece = state.pointerPiece!.copyWith(position: newPosition);
       final pieces = List<PuzzlePieceUI>.from(state.pieces);
       final pieceIndex = pieces.indexWhere((final item) => item.id == piece.id);
       if (pieceIndex >= 0) {
@@ -134,22 +156,28 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       } else {
         debugPrint('_onPanUpdate, piece not found!');
       }
-      final currentZone = _movementHandler.getZoneAtPosition(newPosition, state.gridConfig, state.boardConfig);
+      final currentZone = _movementHandler.getDropZone(
+        piecePosition: newPosition,
+        finger: event.localPosition,
+        trayArea: state.trayArea,
+        grid: state.gridConfig,
+        board: state.boardConfig,
+      );
       switch (currentZone) {
         case PlaceZone.grid:
           final previewPosition = state.gridConfig.snapToGrid(newPosition);
           emit(
             state.copyWith(
               pieces: pieces,
-              selectedPiece: piece,
+              pointerPiece: piece,
               showPreview: true,
               previewPosition: previewPosition,
               previewCollision: _movementHandler.checkCollision(
                 piece: piece,
                 newPosition: previewPosition,
                 zone: currentZone!,
-                preventOverlap: _settings.preventOverlap,
-                pieces: pieces,
+                preventOverlap: _settings.preventOverlap || piece.isConfigItem,
+                pieces: _obstacles(pieces),
                 gridConfig: state.gridConfig,
                 boardConfig: state.boardConfig,
               ),
@@ -157,7 +185,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           );
         case PlaceZone.board:
         case null:
-          emit(state.copyWith(pieces: pieces, selectedPiece: piece, showPreview: false, previewCollision: false));
+          emit(state.copyWith(pieces: pieces, pointerPiece: piece, showPreview: false, previewCollision: false));
       }
     }
   }
@@ -168,23 +196,26 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       return Future<void>.value();
     }
 
-    if (state.selectedPiece != null) {
+    if (state.pointerPiece != null) {
       final prevState = state;
-      final selectedPiece = state.selectedPiece!;
+      final selectedPiece = state.pointerPiece!;
       final dropResult = _movementHandler.computeDropResult(
         selectedPiece: selectedPiece,
         pieceStartPosition: state.pieceStartPosition!,
         dragStartZone: state.dragStartZone,
         gridConfig: state.gridConfig,
         boardConfig: state.boardConfig,
-        pieces: state.pieces,
+        pieces: _obstacles(state.pieces),
         preventOverlap: _settings.preventOverlap || selectedPiece.isConfigItem,
+        anchor: state.dragStartOffset == null ? null : selectedPiece.position + state.dragStartOffset!,
+        trayArea: state.trayArea,
       );
 
-      if (dropResult.accepted) {
+      if (dropResult.accepted && (!selectedPiece.isConfigItem || dropResult.zone == PlaceZone.grid)) {
         final movedPiece = selectedPiece.copyWith(
           position: dropResult.snappedPosition!,
           placeZone: dropResult.zone!,
+          isLifted: false,
           isUsersItem: selectedPiece.isConfigItem ? selectedPiece.isUsersItem : true,
         );
         final move = dropResult.move!;
@@ -193,16 +224,17 @@ extension PuzzleBlocDragPart on PuzzleBloc {
           moveHistory.removeRange(state.moveIndex, moveHistory.length);
         }
         moveHistory.add(move);
-        final pieces = _updatePieceInList(movedPiece);
+        final pieces = _updatePieceInList(_withHintFlag(movedPiece));
         final shouldResolve = movedPiece.isConfigItem;
         final applicableSolutions = shouldResolve
             ? <Map<String, PlacementParams>>[]
             : _combineSolutions(state.solutions, pieces);
         final nextState = state.copyWith(
           pieces: pieces,
+          selectedPieceId: _selectableId(movedPiece),
           showPreview: false,
           previewPosition: null,
-          selectedPiece: null,
+          pointerPiece: null,
           dragStartOffset: null,
           pieceStartPosition: null,
           dragStartZone: null,
@@ -222,13 +254,14 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         debugPrint(
           'Collision detected, returning to original position, pieceStartPosition: ${state.pieceStartPosition}',
         );
-        final resetPiece = state.selectedPiece!.copyWith(position: state.pieceStartPosition);
+        final resetPiece = state.pointerPiece!.copyWith(position: state.pieceStartPosition, isLifted: false);
         emit(
           state.copyWith(
             pieces: _updatePieceInList(resetPiece),
+            selectedPieceId: _selectableId(resetPiece),
             showPreview: false,
             previewPosition: null,
-            selectedPiece: null,
+            pointerPiece: null,
             dragStartOffset: null,
             pieceStartPosition: null,
             dragStartZone: null,
@@ -245,14 +278,33 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         drawnGroup: null,
         drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
         isDrawingGroup: false,
-        selectedPiece: null,
+        pointerPiece: null,
         isDragging: false,
       ),
     );
   }
 
-  PuzzlePieceUI? _findPieceAtPosition(final Offset position) =>
-      state.pieces.lastWhereOrNull((final piece) => piece.containsPoint(position));
+  /// The piece a pointer at [position] would pick up.
+  String? pieceIdAt(final Offset position) => _findPieceAtPosition(position)?.id;
+
+  PuzzlePieceUI? _findPieceAtPosition(final Offset position) {
+    final selectedPiece = state.selectedPiece;
+    if (selectedPiece != null && state.shown(selectedPiece).containsPoint(position)) {
+      return selectedPiece;
+    }
+    return state.pieces.lastWhereOrNull((final piece) => _canTouch(piece) && state.shown(piece).containsPoint(position));
+  }
+
+  bool _isTapOfDoubleTapFlip(final Offset position) {
+    final flip = _lastDoubleTapFlip;
+    if (flip == null) {
+      return false;
+    }
+    final elapsedMs = DateTime.now().millisecondsSinceEpoch - flip.atMs;
+    return elapsedMs >= 0 &&
+        elapsedMs <= kDoubleTapTimeout.inMilliseconds &&
+        (position - flip.position).distance <= kDoubleTapSlop;
+  }
 
   bool _consumeTapAfterDrawnCommitSuppression() {
     final suppressedAt = _suppressTapAfterDrawnCommitAtMs;
@@ -271,4 +323,10 @@ extension PuzzleBlocDragPart on PuzzleBloc {
   List<PuzzlePieceUI> _updatePieceInList(final PuzzlePieceUI piece) => List<PuzzlePieceUI>.from(state.pieces)
     ..removeWhere((final p) => p.id == piece.id)
     ..add(piece);
+
+  bool _canTouch(final PuzzlePieceUI piece) => piece.isConfigItem == state.isEditingLayout;
+
+  // Game pieces are hidden while a layout is edited, so blocks may lie over them.
+  Iterable<PuzzlePieceUI> _obstacles(final Iterable<PuzzlePieceUI> pieces) =>
+      state.isEditingLayout ? pieces.where((final p) => p.isConfigItem) : pieces;
 }

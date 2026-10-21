@@ -33,8 +33,10 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 - Daily calendar puzzle based on the selected date
 - Drag-and-drop piece placement with support for touch and mouse
 - Draw piece shapes directly on the calendar grid and commit matching groups into placements
-- Single tap/click to rotate a piece
-- Double tap/click to flip a piece
+- Persistent piece selection, with tap/click to select and a second tap/click to rotate
+- Double tap/click on the selected piece to flip it
+- Mouse wheel to rotate and right click to flip a piece, plus keyboard shortcuts for toolbar actions
+- Platform-native controls, dialogs, and page transitions: Cupertino and Liquid Glass on Apple platforms, Material 3 on Android, with predictive back
 - Automatic solving powered by a reusable exact-cover solver based on Dancing Links
 - Hint system and full solution preview
 - Undo and redo for move history
@@ -42,7 +44,10 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 - Cross-device puzzle session sync for signed-in users on Android, iOS, and Web
 - Calendar history view with per-day activity stats
 - Statistics tab in the History screen with week/month/year filters and current year / all years scope, showing solve rate, hard-mode rate, best streak, hints used, time played, and average moves per solve
-- Configurable puzzle layout by unlocking fixed board blocks
+- Saved board layouts with a dedicated editor for repositioning fixed board blocks
+- Achievements with calendar completion progress, personal milestones, and image sharing
+- Contextual first-use tips and an animated how-to-play guide
+- Optional move sounds and vibration on supported devices
 - Theme switching: system, light, and dark
 - Solving timer and solution indicators
 - Localized UI with 26 language files in `lib/l10n`
@@ -53,7 +58,7 @@ https://github.com/user-attachments/assets/6a5798f9-dbef-4922-9eb7-72a822e51be6
 Goal:
 Place all puzzle pieces on the board so that exactly two cells remain free: the cells for the selected month and day.
 
-The current date can be changed through the history screen, and the board layout can also be customized by unlocking the predefined blocked cells.
+The current date can be changed through the history screen. Open the board layouts button in the header to choose, create, or edit a saved layout.
 
 Controls:
 
@@ -61,15 +66,40 @@ Controls:
 2. To draw a placement, drag across free grid cells to create a temporary group.
 3. Double tap a valid drawn group to place the matching piece there.
 4. Tap a free adjacent cell to add it to the group. Tap a cell in a drawn group to remove it.
-5. Tap or click a piece to rotate it.
-6. Double tap or double click a piece to flip it.
-7. Use the floating bottom toolbar for `History`, `Show solution`, `Undo`, `Redo`, and `Hint`.
-8. While viewing solutions, use the solution navigation arrows in place of `Undo` and `Redo`.
-9. Open `More` for `Info`, `Settings`, and `Reset`.
-10. Open `Info` to view the in-app how-to-play guide.
+5. Tap or click a piece to select it; tap or click it again to rotate it.
+6. Double tap or double click the selected piece to flip it. You can also use the toolbar's `Rotate` and `Flip` actions.
+7. Use the toolbar for `History`, `Hint`, `Undo`, and `Redo`. Its actions change when a piece is selected or a layout is being edited.
+8. While viewing solutions, use the solution navigation arrows and close the preview to return to the game.
+9. Open `More` for `All solutions`, `How to Play`, and `Start over`; wide screens show these actions in the side panel.
+10. Open `How to Play` to view the in-app guide with animated gesture examples.
 11. Open `History` to resume saved sessions or switch to another puzzle date.
 12. Use `Hint` to reveal one valid move.
-13. Open `Settings` to change gameplay and UI behavior.
+13. Open `Settings` from the header to change gameplay and UI behavior.
+
+### Mouse and keyboard
+
+With a mouse:
+
+- drag a piece to move it
+- scroll the wheel over a piece to rotate it
+- right click a piece to flip it
+
+Keyboard shortcuts (⌘ on Apple platforms, Ctrl elsewhere):
+
+| Action | Shortcut |
+| --- | --- |
+| Rotate selected piece | `R` |
+| Flip selected piece | `F` |
+| Undo | `⌘Z` / `Ctrl+Z` |
+| Redo | `⇧⌘Z` / `Ctrl+Shift+Z` |
+| Hint | `?` |
+| History | `H` |
+| All solutions | `S` |
+| Previous / next solution | `←` / `→` |
+| Close solutions | `Esc` |
+| Start over | `⌘⌫` / `Ctrl+Backspace` |
+
+While editing a board layout: `⌘S` / `Ctrl+S` saves, `Esc` cancels, `⌘⌫` / `Ctrl+Backspace` resets. With a keyboard connected, `How to Play` lists the shortcuts.
 
 Drawn groups use color feedback:
 
@@ -80,13 +110,13 @@ Drawn groups use color feedback:
 Settings currently include:
 
 - theme mode
-- unlock/lock board configuration
-- automatic re-locking of board configuration
 - overlap prevention
 - snap-to-grid on transform
 - separate move colors
 - solution indicator mode: hidden, solvability, or solution count
 - solving timer visibility
+- move sounds
+- vibration on devices with haptic feedback
 
 ## Persistence
 
@@ -104,7 +134,7 @@ The project uses Firebase Auth and Firestore for cloud-backed data.
 - Google sign-in and Apple sign-in enable a cloud-backed account.
 - Cloud data is keyed by Firebase Auth `uid`.
 
-The intended account and sync behavior is documented in [docs/account_sync_model.md](/c:/Users/Admin/StudioProjects/caesar-s_calendar2/docs/account_sync_model.md).
+The intended account and sync behavior is documented in [docs/account_sync_model.md](docs/account_sync_model.md).
 
 ## Getting Started
 
@@ -117,19 +147,21 @@ cd CaesarPuzzle
 
 ### 2. Install dependencies
 
+The Flutter version is pinned in `.fvmrc`. With [fvm](https://fvm.app), run `fvm install` and prefix the commands below with `fvm`.
+
 ```bash
 flutter pub get
 ```
 
 ### 3. Generate code
 
-Run this after changing `freezed`, `json_serializable`, `injectable`, or Drift-related sources:
+Generated files are not committed. Run this after cloning and after changing `freezed`, `json_serializable`, `injectable`, or Drift-related sources:
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-### 4. Generate localization files when ARB files change
+### 4. Generate localization files after cloning and when ARB files change
 
 ```bash
 flutter pub global run intl_utils:generate
@@ -149,7 +181,13 @@ flutter run
 flutter run -d chrome
 ```
 
-For Google sign-in on Web, set the OAuth Web Client ID in [web/index.html](/c:/Users/Admin/StudioProjects/caesar-s_calendar2/web/index.html):
+Release web builds use WebAssembly:
+
+```bash
+flutter build web --release --wasm
+```
+
+For Google sign-in on Web, set the OAuth Web Client ID in [web/index.html](web/index.html):
 
 ```bash
 <meta name="google-signin-client_id" content="YOUR_WEB_CLIENT_ID.apps.googleusercontent.com">

@@ -5,12 +5,15 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cu
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
+import 'package:caesar_puzzle/presentation/widgets/system_bars.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'generated/l10n.dart';
@@ -29,7 +32,14 @@ Future<void> main() async {
         ? HydratedStorageDirectory.web
         : HydratedStorageDirectory((await getApplicationDocumentsDirectory()).path),
   );
+  if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS)) {
+    await LiquidGlassWidgets.initialize();
+  }
   Bloc.observer = AppBlocObserver();
+  if (kIsWeb) {
+    // Right click flips a piece instead of opening the browser menu.
+    await BrowserContextMenu.disableContextMenu();
+  }
   runApp(
     Builder(
       builder: (final context) {
@@ -62,7 +72,7 @@ class MyApp extends StatelessWidget {
         builder: (final context, final child) {
           final brightness = Theme.of(context).brightness;
           AppColors.update(brightness);
-          return child!;
+          return SystemBars(child: child!);
         },
         localizationsDelegates: [
           S.delegate,

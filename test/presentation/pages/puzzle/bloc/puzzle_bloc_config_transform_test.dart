@@ -15,14 +15,12 @@ import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_piece_entity.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/layout_edit.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeSettingsQuery implements SettingsQuery {
-  @override
-  bool get autoLockConfig => false;
-
   @override
   bool get preventOverlap => false;
 
@@ -37,9 +35,6 @@ class _FakeSettingsQuery implements SettingsQuery {
 
   @override
   bool get snapToGridOnTransform => false;
-
-  @override
-  bool get unlockConfig => true;
 }
 
 class _FakeSolverService implements PuzzleSolverService {
@@ -67,6 +62,12 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
 
   @override
   Future<bool> hasAnyLocalSessions() async => false;
+
+  @override
+  Stream<int> watchSolvedSolutionCount() => Stream.value(0);
+
+  @override
+  Future<String?> getConfigJson(final String configId) async => null;
 
   @override
   Future<void> markSessionSolved({
@@ -131,21 +132,6 @@ PuzzlePieceUI _configPiece({
   isConfigItem: true,
 );
 
-PuzzlePieceUI _piece({
-  required final String id,
-  required final Offset position,
-  required final bool isConfigItem,
-}) => PuzzlePieceUI(
-  id: id,
-  position: position,
-  placeZone: PlaceZone.grid,
-  type: PieceType.square,
-  originalPath: generatePathForType(PieceType.square, 10),
-  color: () => Colors.blue,
-  centerPoint: const Offset(5, 5),
-  isConfigItem: isConfigItem,
-);
-
 Future<void> _drain() async {
   await Future<void>.delayed(const Duration(milliseconds: 40));
 }
@@ -205,10 +191,12 @@ void main() {
           gridConfig: grid,
           boardConfig: board,
           pieces: [a, b],
+          selectedPieceId: a.id,
+          layoutEdit: const LayoutEdit(start: []),
         ),
       );
 
-      bloc.add(PuzzleEvent.rotatePiece(a));
+      bloc.add(const PuzzleEvent.rotateSelected());
       await _drain();
 
       // Invalid move is shown first.
@@ -249,6 +237,8 @@ void main() {
           gridConfig: grid,
           boardConfig: board,
           pieces: [a, b],
+          selectedPieceId: b.id,
+          layoutEdit: const LayoutEdit(start: []),
         ),
       );
 
@@ -256,7 +246,7 @@ void main() {
       bloc.add(PuzzleEvent.onDoubleTapDown(tapPosition));
       await _drain();
 
-      // onDoubleTapDown selects top-most piece at point (B in this setup)
+      // Double tap flips the selected piece under the point (B in this setup)
       final transformedB = bloc.state.pieces.firstWhere(
         (final p) => p.id == 'B',
       );
@@ -269,54 +259,4 @@ void main() {
       expect(bloc.state.moveHistory, isEmpty);
     },
   );
-
-  test('config move resets timer, regular move starts it', () async {
-    const grid = PuzzleGridEntity(
-      cellSize: 10,
-      rows: 7,
-      columns: 7,
-      origin: Position(dx: 0, dy: 0),
-    );
-    const board = PuzzleBoardEntity(
-      cellSize: 10,
-      rows: 7,
-      columns: 7,
-      origin: Position(dx: 100, dy: 0),
-    );
-    final config = _piece(
-      id: 'cfg',
-      position: const Offset(10, 10),
-      isConfigItem: true,
-    );
-    final regular = _piece(
-      id: 'usr',
-      position: const Offset(30, 10),
-      isConfigItem: false,
-    );
-
-    bloc.emitForTest(
-      PuzzleState.initial().copyWith(
-        status: GameStatus.playing,
-        gridConfig: grid,
-        boardConfig: board,
-        pieces: [config, regular],
-        firstMoveAt: DateTime.now().millisecondsSinceEpoch - 2000,
-        lastResumedAt: DateTime.now().millisecondsSinceEpoch - 1000,
-        activeElapsedMs: 1200,
-      ),
-    );
-
-    bloc.add(PuzzleEvent.rotatePiece(config));
-    await _drain();
-
-    expect(bloc.state.firstMoveAt, isNull);
-    expect(bloc.state.lastResumedAt, isNull);
-    expect(bloc.state.activeElapsedMs, 0);
-
-    bloc.add(PuzzleEvent.rotatePiece(regular));
-    await _drain();
-
-    expect(bloc.state.firstMoveAt, isNotNull);
-    expect(bloc.state.lastResumedAt, isNotNull);
-  });
 }
