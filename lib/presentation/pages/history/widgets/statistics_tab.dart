@@ -17,109 +17,46 @@ class StatisticsTab extends StatelessWidget {
   Widget build(final BuildContext context) => BlocBuilder<HistoryCubit, HistoryState>(
     builder: (final context, final state) {
       final cubit = context.read<HistoryCubit>();
-      final cupertino = ScreenSpec.of(context).family == ChromeFamily.glass;
+      final glass = ScreenSpec.of(context).family == ChromeFamily.glass;
       final referenceDate = PeriodRangeResolver.referenceDateFor(state.selectedDate);
       final rangeLabel = _periodRangeLabel(context, state.statsPeriod, referenceDate);
-      if (cupertino) {
-        final colors = GameColors.of(context);
-        return ListView(
-          primary: false,
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(color: colors.board, borderRadius: BorderRadius.circular(20)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    S.current.historyStatsSessionsFromLabel,
-                    style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                  ),
-                  const SizedBox(height: 8),
-                  CupertinoSlidingSegmentedControl<StatsYearScope>(
-                    groupValue: state.statsYearScope,
-                    children: {
-                      StatsYearScope.currentYear: Text(S.current.historyYearScopeCurrent),
-                      StatsYearScope.allYears: Text(S.current.historyYearScopeAll),
-                    },
-                    onValueChanged: (final value) {
-                      if (value != null) context.read<HistoryCubit>().setStatsYearScope(value);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Text(S.current.historyStatsPeriodLabel, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
-                  const SizedBox(height: 8),
-                  CupertinoSlidingSegmentedControl<StatsPeriod>(
-                    groupValue: state.statsPeriod,
-                    children: {
-                      StatsPeriod.week: Text(S.current.historyPeriodWeek),
-                      StatsPeriod.month: Text(S.current.historyPeriodMonth),
-                      StatsPeriod.year: Text(S.current.historyPeriodYear),
-                    },
-                    onValueChanged: (final value) {
-                      if (value != null) context.read<HistoryCubit>().setStatsPeriod(value);
-                    },
-                  ),
-                ],
-              ),
-            ),
-            if (rangeLabel != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
-                child: Text(rangeLabel, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
-              )
-            else
-              const SizedBox(height: 16),
-            if (state.isPeriodStatsLoading)
-              const Center(child: CupertinoActivityIndicator())
-            else
-              Theme(
-                data: Theme.of(context).copyWith(
-                  cardTheme: CardThemeData(
-                    color: colors.board,
-                    elevation: 0,
-                    margin: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  ),
-                  colorScheme: Theme.of(context).colorScheme.copyWith(
-                    primary: colors.active,
-                    surfaceContainerHigh: colors.gridLine,
-                    onSurface: colors.text,
-                  ),
-                  textTheme: Theme.of(context).textTheme.apply(bodyColor: colors.text, displayColor: colors.text),
-                ),
-                child: _StatTile(
-                  stats: state.periodStats,
-                  period: state.statsPeriod,
-                  referenceDate: referenceDate,
-                  cupertino: true,
-                ),
-              ),
-          ],
-        );
-      }
+      final tile = _StatTile(
+        stats: state.periodStats,
+        period: state.statsPeriod,
+        referenceDate: referenceDate,
+        glass: glass,
+      );
       return ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        primary: false,
+        padding: EdgeInsets.fromLTRB(16, glass ? 8 : 12, 16, 24),
         children: [
-          _LabeledChipRow(
-            label: S.current.historyStatsSessionsFromLabel,
-            child: _YearScopeChips(selected: state.statsYearScope, onSelected: cubit.setStatsYearScope),
+          if (glass)
+            _CupertinoFilters(
+              yearScope: state.statsYearScope,
+              period: state.statsPeriod,
+              onYearScope: cubit.setStatsYearScope,
+              onPeriod: cubit.setStatsPeriod,
+            )
+          else
+            _MaterialFilters(
+              yearScope: state.statsYearScope,
+              period: state.statsPeriod,
+              onYearScope: cubit.setStatsYearScope,
+              onPeriod: cubit.setStatsPeriod,
+            ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: glass ? 12 : 0, vertical: glass ? 14 : 8),
+            child: Text(
+              rangeLabel ?? '',
+              style: TextStyle(fontSize: glass ? 13 : 12, color: GameColors.of(context).textSecondary),
+            ),
           ),
-          const SizedBox(height: 12),
-          _LabeledChipRow(
-            label: S.current.historyStatsPeriodLabel,
-            child: _PeriodChips(selected: state.statsPeriod, onSelected: cubit.setStatsPeriod),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            rangeLabel ?? '',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 16),
-          _StatTile(stats: state.periodStats, period: state.statsPeriod, referenceDate: referenceDate),
+          if (state.isPeriodStatsLoading)
+            const Center(child: CircularProgressIndicator.adaptive())
+          else if (glass)
+            _GlassCardTheme(child: tile)
+          else
+            tile,
         ],
       );
     },
@@ -136,6 +73,119 @@ class StatisticsTab extends StatelessWidget {
       case StatsPeriod.year:
         return null;
     }
+  }
+}
+
+class _MaterialFilters extends StatelessWidget {
+  const _MaterialFilters({
+    required this.yearScope,
+    required this.period,
+    required this.onYearScope,
+    required this.onPeriod,
+  });
+
+  final StatsYearScope yearScope;
+  final StatsPeriod period;
+  final ValueChanged<StatsYearScope> onYearScope;
+  final ValueChanged<StatsPeriod> onPeriod;
+
+  @override
+  Widget build(final BuildContext context) => Column(
+    children: [
+      _LabeledChipRow(
+        label: S.current.historyStatsSessionsFromLabel,
+        child: _YearScopeChips(selected: yearScope, onSelected: onYearScope),
+      ),
+      const SizedBox(height: 12),
+      _LabeledChipRow(
+        label: S.current.historyStatsPeriodLabel,
+        child: _PeriodChips(selected: period, onSelected: onPeriod),
+      ),
+    ],
+  );
+}
+
+class _CupertinoFilters extends StatelessWidget {
+  const _CupertinoFilters({
+    required this.yearScope,
+    required this.period,
+    required this.onYearScope,
+    required this.onPeriod,
+  });
+
+  final StatsYearScope yearScope;
+  final StatsPeriod period;
+  final ValueChanged<StatsYearScope> onYearScope;
+  final ValueChanged<StatsPeriod> onPeriod;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final labelStyle = TextStyle(fontSize: 13, color: colors.textSecondary);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: colors.board, borderRadius: BorderRadius.circular(20)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(S.current.historyStatsSessionsFromLabel, style: labelStyle),
+          const SizedBox(height: 8),
+          CupertinoSlidingSegmentedControl<StatsYearScope>(
+            groupValue: yearScope,
+            children: {
+              StatsYearScope.currentYear: Text(S.current.historyYearScopeCurrent),
+              StatsYearScope.allYears: Text(S.current.historyYearScopeAll),
+            },
+            onValueChanged: (final value) {
+              if (value != null) onYearScope(value);
+            },
+          ),
+          const SizedBox(height: 16),
+          Text(S.current.historyStatsPeriodLabel, style: labelStyle),
+          const SizedBox(height: 8),
+          CupertinoSlidingSegmentedControl<StatsPeriod>(
+            groupValue: period,
+            children: {
+              StatsPeriod.week: Text(S.current.historyPeriodWeek),
+              StatsPeriod.month: Text(S.current.historyPeriodMonth),
+              StatsPeriod.year: Text(S.current.historyPeriodYear),
+            },
+            onValueChanged: (final value) {
+              if (value != null) onPeriod(value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlassCardTheme extends StatelessWidget {
+  const _GlassCardTheme({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final theme = Theme.of(context);
+    return Theme(
+      data: theme.copyWith(
+        cardTheme: CardThemeData(
+          color: colors.board,
+          elevation: 0,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
+        colorScheme: theme.colorScheme.copyWith(
+          primary: colors.active,
+          surfaceContainerHigh: colors.gridLine,
+          onSurface: colors.text,
+        ),
+        textTheme: theme.textTheme.apply(bodyColor: colors.text, displayColor: colors.text),
+      ),
+      child: child,
+    );
   }
 }
 
@@ -214,12 +264,12 @@ class _YearScopeChips extends StatelessWidget {
 }
 
 class _StatTile extends StatelessWidget {
-  const _StatTile({required this.stats, required this.period, required this.referenceDate, this.cupertino = false});
-  final bool cupertino;
+  const _StatTile({required this.stats, required this.period, required this.referenceDate, required this.glass});
 
   final PeriodStats stats;
   final StatsPeriod period;
   final DateTime referenceDate;
+  final bool glass;
 
   int get _totalDaysInPeriod {
     final range = switch (period) {
@@ -269,18 +319,18 @@ class _StatTile extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            _StatRow(cupertino: cupertino, label: S.current.historyStatsStarted, value: '${stats.started}'),
-            _StatRow(cupertino: cupertino, label: S.current.historyStatsSolved, value: '${stats.solved}'),
-            _StatRow(cupertino: cupertino, label: S.current.historyStatsSolvedHard, value: '${stats.solvedHard}'),
-            _StatRow(cupertino: cupertino, label: S.current.historyStatsBestStreak, value: '${stats.bestStreakDays}'),
-            _StatRow(cupertino: cupertino, label: S.current.historyStatsHintsUsed, value: '${stats.hintsUsed}'),
+            _StatRow(glass: glass, label: S.current.historyStatsStarted, value: '${stats.started}'),
+            _StatRow(glass: glass, label: S.current.historyStatsSolved, value: '${stats.solved}'),
+            _StatRow(glass: glass, label: S.current.historyStatsSolvedHard, value: '${stats.solvedHard}'),
+            _StatRow(glass: glass, label: S.current.historyStatsBestStreak, value: '${stats.bestStreakDays}'),
+            _StatRow(glass: glass, label: S.current.historyStatsHintsUsed, value: '${stats.hintsUsed}'),
             _StatRow(
-              cupertino: cupertino,
+              glass: glass,
               label: S.current.historyStatsTotalTimePlayed,
               value: _formatTotalDuration(stats.totalTimePlayedMs),
             ),
             _StatRow(
-              cupertino: cupertino,
+              glass: glass,
               label: S.current.historyStatsAvgMovesPerSolve,
               value: stats.avgMovesPerSolve.toStringAsFixed(1),
             ),
@@ -333,15 +383,15 @@ class _ProgressStat extends StatelessWidget {
 }
 
 class _StatRow extends StatelessWidget {
-  const _StatRow({required this.label, required this.value, this.cupertino = false});
-  final bool cupertino;
+  const _StatRow({required this.label, required this.value, required this.glass});
 
   final String label;
   final String value;
+  final bool glass;
 
   @override
   Widget build(final BuildContext context) => Padding(
-    padding: EdgeInsets.symmetric(vertical: cupertino ? 12 : 4),
+    padding: EdgeInsets.symmetric(vertical: glass ? 12 : 4),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

@@ -1,16 +1,11 @@
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
-import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
-import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
-import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
-import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/pages/history/models/session_summary.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
-import 'package:intl/intl.dart';
 
 class SessionList extends StatelessWidget {
   const SessionList({
@@ -19,110 +14,6 @@ class SessionList extends StatelessWidget {
     required this.selectedDate,
     required this.onStartPuzzleForDay,
     required this.onResumeSession,
-    this.primaryScroll = true,
-  });
-
-  final List<PuzzleSessionData> sessions;
-  final DateTime selectedDate;
-  final ValueChanged<DateTime> onStartPuzzleForDay;
-  final ValueChanged<PuzzleSessionData> onResumeSession;
-  final bool primaryScroll;
-
-  @override
-  Widget build(final BuildContext context) {
-    if (ScreenSpec.of(context).family == ChromeFamily.glass) {
-      return _AppleSessionList(
-        sessions: sessions,
-        selectedDate: selectedDate,
-        onStartPuzzleForDay: onStartPuzzleForDay,
-        onResumeSession: onResumeSession,
-      );
-    }
-    final colors = GameColors.of(context);
-    final dateFormatter = DateFormat.yMMMd();
-    final timeFormatter = DateFormat.Hm();
-    if (sessions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.history_toggle_off, size: 28),
-            const SizedBox(height: 8),
-            Text(S.current.historyNoSessions),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: () => onStartPuzzleForDay(selectedDate),
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: Text(S.current.historyStartPuzzleForDay),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      shrinkWrap: !primaryScroll,
-      physics: primaryScroll ? null : const NeverScrollableScrollPhysics(),
-      itemCount: sessions.length + 1,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (final context, final index) {
-        if (index == 0) {
-          return FilledButton.icon(
-            onPressed: () => onStartPuzzleForDay(selectedDate),
-            icon: const Icon(Icons.play_arrow_rounded),
-            label: Text(S.current.historyStartPuzzleForDay),
-          );
-        }
-
-        final session = sessions[index - 1];
-        final start = DateTime.fromMillisecondsSinceEpoch(session.startedAt);
-        final isSolved = session.status == PuzzleSessionStatus.solved;
-        final statusLabel = isSolved ? S.current.historySolved : S.current.historyInProgress;
-        final durationMs = _displaySessionDurationMs(session);
-        final usedHints = session.moveHistory.whereType<HintMove>().length;
-        final subtitle =
-            '${S.current.historyMoves}: ${session.moveIndex}  |  ${S.current.hintUsed}: $usedHints  |  ${S.current.historyDuration}: ${_formatSessionDuration(durationMs)}';
-        final dateLabel = dateFormatter.format(session.puzzleDate);
-        final isCustomConfig = _isCustomSessionConfig(session);
-        final configLabel = _sessionConfigLabel(session);
-        final configColor = isCustomConfig ? AppColors.current.customConfigAccent : null;
-        return Card(
-          child: ListTile(
-            onTap: () => _confirmSessionResume(context, session, onResumeSession),
-            leading: Icon(
-              isSolved ? Icons.check_circle : Icons.timelapse,
-              color: isSolved ? colors.ok : colors.textSecondary,
-            ),
-            title: Row(
-              children: [
-                Expanded(child: Text('$statusLabel • ${session.difficulty.stars} ${session.difficulty.label}')),
-                const SizedBox(width: 8),
-                Icon(Icons.extension, size: 16, color: configColor),
-                const SizedBox(width: 4),
-                Text(
-                  configLabel,
-                  style: isCustomConfig ? TextStyle(color: configColor, fontWeight: FontWeight.w600) : null,
-                ),
-              ],
-            ),
-            subtitle: Text(
-              '$dateLabel • ${timeFormatter.format(start)}\n'
-              '$subtitle',
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _AppleSessionList extends StatelessWidget {
-  const _AppleSessionList({
-    required this.sessions,
-    required this.selectedDate,
-    required this.onStartPuzzleForDay,
-    required this.onResumeSession,
   });
 
   final List<PuzzleSessionData> sessions;
@@ -132,179 +23,235 @@ class _AppleSessionList extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-    final colors = GameColors.of(context);
+    final glass = ScreenSpec.of(context).family == ChromeFamily.glass;
     final locale = Localizations.localeOf(context).toLanguageTag();
+    final summaries = [for (final session in sessions) SessionSummary(session, locale: locale)];
+    void start() => onStartPuzzleForDay(selectedDate);
+    void open(final SessionSummary summary) => _confirmSessionResume(context, summary, onResumeSession);
+
     return ListView(
       primary: false,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      padding: EdgeInsets.fromLTRB(16, glass ? 0 : 8, 16, 24),
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: CupertinoButton(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-            onPressed: () => onStartPuzzleForDay(selectedDate),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(CupertinoIcons.play_fill, size: 14),
-                const SizedBox(width: 6),
-                Flexible(child: Text(S.current.historyStartPuzzleForDay, style: const TextStyle(fontSize: 14))),
-              ],
-            ),
-          ),
-        ),
+        if (glass) _CupertinoStartButton(onPressed: start) else _MaterialStartButton(onPressed: start),
         const SizedBox(height: 8),
-        if (sessions.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                Icon(CupertinoIcons.clock, size: 28, color: colors.textSecondary),
-                const SizedBox(height: 8),
-                Text(
-                  S.current.historyNoSessions,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: colors.textSecondary),
-                ),
-              ],
-            ),
-          )
+        if (summaries.isEmpty)
+          _EmptySessions(glass: glass)
+        else if (glass)
+          _CupertinoSessionGroup(summaries: summaries, onOpen: open)
         else
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: ColoredBox(
-              color: colors.board,
-              child: Column(
-                children: [
-                  for (var index = 0; index < sessions.length; index++) ...[
-                    if (index > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 46),
-                        child: Divider(height: 1, color: colors.gridLine),
-                      ),
-                    Builder(
-                      builder: (final context) {
-                        final session = sessions[index];
-                        final solved = session.status == PuzzleSessionStatus.solved;
-                        final start = DateTime.fromMillisecondsSinceEpoch(session.startedAt);
-                        return CupertinoButton(
-                          padding: const EdgeInsets.all(16),
-                          onPressed: () => _confirmSessionResume(context, session, onResumeSession),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                solved ? CupertinoIcons.check_mark_circled : CupertinoIcons.clock,
-                                size: 21,
-                                color: solved ? colors.ok : colors.accent,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      solved ? S.current.historySolved : S.current.historyInProgress,
-                                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: colors.text),
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Text(
-                                      '${DateFormat.yMMMd(locale).format(start)} · ${DateFormat.Hm(locale).format(start)}',
-                                      style: TextStyle(fontSize: 14, color: colors.textSecondary),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Wrap(
-                                      spacing: 12,
-                                      runSpacing: 4,
-                                      children: [
-                                        Text(
-                                          '${session.difficulty.stars} ${session.difficulty.label}',
-                                          style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                                        ),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.extension,
-                                              size: 16,
-                                              color: _isCustomSessionConfig(session)
-                                                  ? colors.customConfig
-                                                  : colors.textSecondary,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Flexible(
-                                              child: Text(
-                                                _sessionConfigLabel(session),
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  color: _isCustomSessionConfig(session)
-                                                      ? colors.customConfig
-                                                      : colors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      '${S.current.historyMoves}: ${session.moveIndex} · '
-                                      '${S.current.hintUsed}: ${session.moveHistory.whereType<HintMove>().length} · '
-                                      '${S.current.historyDuration}: ${_formatSessionDuration(_displaySessionDurationMs(session))}',
-                                      style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(CupertinoIcons.chevron_right, size: 15, color: colors.textSecondary),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
+          for (final summary in summaries) _MaterialSessionCard(summary: summary, onTap: () => open(summary)),
       ],
     );
   }
 }
 
-String _formatSessionDuration(final int milliseconds) {
-  final totalSeconds = (milliseconds / 1000).round();
-  final minutes = totalSeconds ~/ 60;
-  final seconds = totalSeconds % 60;
-  final minutesText = '$minutes'.padLeft(2, '0');
-  final secondsText = '$seconds'.padLeft(2, '0');
-  return '$minutesText:$secondsText';
+class _MaterialStartButton extends StatelessWidget {
+  const _MaterialStartButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(final BuildContext context) => FilledButton.icon(
+    onPressed: onPressed,
+    icon: const Icon(Icons.play_arrow_rounded),
+    label: Text(S.current.historyStartPuzzleForDay),
+  );
 }
 
-int _displaySessionDurationMs(final PuzzleSessionData session) {
-  final segmentEndMs = session.completedAt ?? session.updatedAt;
-  final segmentStartMs = session.lastResumedAt ?? (session.activeElapsedMs == 0 ? session.firstMoveAt : null);
-  if (segmentStartMs == null) {
-    return session.activeElapsedMs;
+class _CupertinoStartButton extends StatelessWidget {
+  const _CupertinoStartButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(final BuildContext context) => Align(
+    alignment: Alignment.centerLeft,
+    child: CupertinoButton(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      onPressed: onPressed,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(CupertinoIcons.play_fill, size: 14),
+          const SizedBox(width: 6),
+          Flexible(child: Text(S.current.historyStartPuzzleForDay, style: const TextStyle(fontSize: 14))),
+        ],
+      ),
+    ),
+  );
+}
+
+class _EmptySessions extends StatelessWidget {
+  const _EmptySessions({required this.glass});
+
+  final bool glass;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          Icon(glass ? CupertinoIcons.clock : Icons.history_toggle_off, size: 28, color: colors.textSecondary),
+          const SizedBox(height: 8),
+          Text(S.current.historyNoSessions, textAlign: TextAlign.center, style: TextStyle(color: colors.textSecondary)),
+        ],
+      ),
+    );
   }
-
-  final currentSegmentMs = (segmentEndMs - segmentStartMs).clamp(0, 1 << 31).toInt();
-  return session.activeElapsedMs + currentSegmentMs;
 }
 
-String _sessionConfigLabel(final PuzzleSessionData session) =>
-    _isCustomSessionConfig(session) ? S.current.historyConfigCustom : S.current.historyConfigStandard;
+class _ConfigBadge extends StatelessWidget {
+  const _ConfigBadge({required this.summary, this.style});
 
-bool _isCustomSessionConfig(final PuzzleSessionData session) => session.configId != StandardPuzzleConfig.id;
+  final SessionSummary summary;
+  final TextStyle? style;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final color = summary.isCustomConfig ? colors.customConfig : colors.textSecondary;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.extension, size: 16, color: color),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            summary.configLabel,
+            style: (style ?? const TextStyle()).copyWith(
+              color: color,
+              fontWeight: summary.isCustomConfig ? FontWeight.w600 : null,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MaterialSessionCard extends StatelessWidget {
+  const _MaterialSessionCard({required this.summary, required this.onTap});
+
+  final SessionSummary summary;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        onTap: onTap,
+        leading: Icon(
+          summary.solved ? Icons.check_circle : Icons.timelapse,
+          color: summary.solved ? colors.ok : colors.textSecondary,
+        ),
+        title: Row(
+          children: [
+            Expanded(child: Text('${summary.statusLabel} • ${summary.difficultyLabel}')),
+            const SizedBox(width: 8),
+            Flexible(child: _ConfigBadge(summary: summary)),
+          ],
+        ),
+        subtitle: Text('${summary.startedLabel}\n${summary.metricsLabel}'),
+      ),
+    );
+  }
+}
+
+class _CupertinoSessionGroup extends StatelessWidget {
+  const _CupertinoSessionGroup({required this.summaries, required this.onOpen});
+
+  final List<SessionSummary> summaries;
+  final ValueChanged<SessionSummary> onOpen;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: ColoredBox(
+        color: colors.board,
+        child: Column(
+          children: [
+            for (var index = 0; index < summaries.length; index++) ...[
+              if (index > 0)
+                Padding(
+                  padding: const EdgeInsets.only(left: 46),
+                  child: Divider(height: 1, color: colors.gridLine),
+                ),
+              _CupertinoSessionRow(summary: summaries[index], onPressed: () => onOpen(summaries[index])),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CupertinoSessionRow extends StatelessWidget {
+  const _CupertinoSessionRow({required this.summary, required this.onPressed});
+
+  final SessionSummary summary;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final secondary = TextStyle(fontSize: 13, color: colors.textSecondary);
+    return CupertinoButton(
+      padding: const EdgeInsets.all(16),
+      onPressed: onPressed,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            summary.solved ? CupertinoIcons.check_mark_circled : CupertinoIcons.clock,
+            size: 21,
+            color: summary.solved ? colors.ok : colors.accent,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  summary.statusLabel,
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: colors.text),
+                ),
+                const SizedBox(height: 5),
+                Text(summary.startedLabel, style: TextStyle(fontSize: 14, color: colors.textSecondary)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
+                  children: [
+                    Text(summary.difficultyLabel, style: secondary),
+                    _ConfigBadge(summary: summary, style: const TextStyle(fontSize: 13)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(summary.metricsLabel, style: secondary),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(CupertinoIcons.chevron_right, size: 15, color: colors.textSecondary),
+        ],
+      ),
+    );
+  }
+}
 
 Future<void> _confirmSessionResume(
   final BuildContext context,
-  final PuzzleSessionData session,
+  final SessionSummary summary,
   final ValueChanged<PuzzleSessionData> onResumeSession,
 ) async {
-  final isSolved = session.status == PuzzleSessionStatus.solved;
+  final isSolved = summary.solved;
   final shouldResume = await showAdaptiveDialog<bool>(
     context: context,
     builder: (final dialogContext) => PlatformAlertDialog(
@@ -324,6 +271,6 @@ Future<void> _confirmSessionResume(
   );
 
   if (shouldResume == true && context.mounted) {
-    onResumeSession(session);
+    onResumeSession(summary.session);
   }
 }
