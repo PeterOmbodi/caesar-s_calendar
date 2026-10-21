@@ -238,7 +238,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     }
   }
 
-  List<PuzzlePieceUI> _restoreSessionPieces(final PuzzleSessionData session, final List<PuzzlePieceUI> pieces) {
+  List<PuzzlePieceUI> _restoreSessionPieces(final PuzzleSessionData session, final Iterable<PuzzlePieceUI> pieces) {
     final snapshotById = {for (final snapshot in session.pieces) snapshot.id: snapshot};
     final restoredPieces = pieces.map((final piece) {
       final snapshot = snapshotById[piece.id];
