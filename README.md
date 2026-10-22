@@ -6,17 +6,26 @@ Live demo: [peterombodi.github.io/caesar-s_calendar](https://peterombodi.github.
 
 ## Screenshots
 
-| Main screen | Main screen - session started |
+| Main screen - iOS | Main screen - Android |
 | --- | --- |
-| <img width="360" alt="Main screen" src="https://github.com/user-attachments/assets/e03011a0-8f18-46a3-a637-e05742c5274e" /> | <img width="360" alt="Main screen - session started" src="https://github.com/user-attachments/assets/9451eff9-9ede-4ee8-bd2f-d8d8270d9c53" /> |
+| <img height="720" alt="Main screen" src="https://github.com/user-attachments/assets/6c5cf149-74e5-4bfd-ba47-2a10741dd23a" /> | <img height="720" alt="Main screen - session started" src="https://github.com/user-attachments/assets/ee0d2d31-f880-46a4-b1d8-47f16584fb87" /> |
 
-| History | Settings |
+| Gameplay - drag & drop piece | Gameplay - draw piece |
 | --- | --- |
-| <img width="360" alt="History" src="https://github.com/user-attachments/assets/dff6ec58-7be7-4bcd-b663-00d54eeec5ae" /> | <img width="360" alt="Settings" src="https://github.com/user-attachments/assets/7676f64b-082e-4576-bb9a-114c1115e60f" /> |
+| <img height="720" alt="Main screen" src="https://github.com/user-attachments/assets/df1fd573-ca1d-420d-a319-5e9078655673" /> | <img height="720" alt="Main screen - session started" src="https://github.com/user-attachments/assets/5d467eaf-d840-4bbd-92ad-26e8545fcb92" /> |
 
-| Result | Custom configuration |
+
+| History - iOS | History - Android |
 | --- | --- |
-| <img width="360" alt="Result" src="https://github.com/user-attachments/assets/8d199a9f-4eef-4b6f-84f2-6bf105689e52" /> | <img width="360" alt="Custom configuration" src="https://github.com/user-attachments/assets/40850fd9-c0a1-48e2-80ae-6b00e1f26191" /> |
+| <img height="720" alt="History" src="https://github.com/user-attachments/assets/9b2808aa-c4a5-4943-8f8f-7f8939d41ebe" /> | <img height="720" alt="Settings" src="https://github.com/user-attachments/assets/28bb4752-8c30-4e4f-bf53-362c59441308" /> |
+
+| Settings - iOS | Settings - Android |
+| --- | --- |
+| <img height="720" alt="History" src="https://github.com/user-attachments/assets/7ade7798-3419-4718-ba28-6e1085485967" /> | <img height="720" alt="Settings" src="https://github.com/user-attachments/assets/a329524a-3e17-4fef-b72d-8c9e803cea54" /> |
+
+| Achievements | Custom configuration |
+| --- | --- |
+| <img width="360" alt="Result" src="https://github.com/user-attachments/assets/36403fad-c307-4e83-bbac-bdc2caca3c37" /> | <img width="360" alt="Custom configuration" src="https://github.com/user-attachments/assets/9bec82fd-07ba-430c-b09d-a028481a9a10" /> |
 
 ## Video
 
