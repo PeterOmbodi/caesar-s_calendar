@@ -1,3 +1,7 @@
+## 1.12.1+44
+- use Liquid Glass switches and segmented controls on iOS
+- in iOS settings, only the switch toggles an option, as in the system Settings app
+
 ## 1.12.0+43
 - use Material 3 controls, dialogs, settings, and page transitions on Android, with predictive back
 - use native page transitions and back gestures on iOS for History and My Achievements
