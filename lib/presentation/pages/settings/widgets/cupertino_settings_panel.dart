@@ -9,6 +9,8 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summar
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/widgets/app_segmented_control.dart';
+import 'package:caesar_puzzle/presentation/widgets/app_switch.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,18 +49,14 @@ class CupertinoSettingsPanel extends StatelessWidget {
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(12),
-                          child: CupertinoSlidingSegmentedControl<AppTheme>(
-                            groupValue: state.theme,
-                            children: {
-                              AppTheme.system: Text(S.current.system),
-                              AppTheme.light: Text(S.current.light),
-                              AppTheme.dark: Text(S.current.dark),
+                          child: AppSegmentedControl<AppTheme>(
+                            value: state.theme,
+                            segments: {
+                              AppTheme.system: S.current.system,
+                              AppTheme.light: S.current.light,
+                              AppTheme.dark: S.current.dark,
                             },
-                            onValueChanged: (final theme) {
-                              if (theme != null) {
-                                cubit.setTheme(theme);
-                              }
-                            },
+                            onChanged: cubit.setTheme,
                           ),
                         ),
                       ],
@@ -252,8 +250,7 @@ class _SwitchRow extends StatelessWidget {
   Widget build(final BuildContext context) => _Row(
     title: title,
     subtitle: subtitle,
-    trailing: CupertinoSwitch(value: value, onChanged: onChanged),
-    onTap: () => onChanged(!value),
+    trailing: AppSwitch(value: value, onChanged: onChanged, semanticLabel: title),
   );
 }
 

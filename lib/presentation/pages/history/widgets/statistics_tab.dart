@@ -5,7 +5,7 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/history/bloc/history_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:caesar_puzzle/presentation/widgets/app_segmented_control.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -130,28 +130,24 @@ class _CupertinoFilters extends StatelessWidget {
         children: [
           Text(S.current.historyStatsSessionsFromLabel, style: labelStyle),
           const SizedBox(height: 8),
-          CupertinoSlidingSegmentedControl<StatsYearScope>(
-            groupValue: yearScope,
-            children: {
-              StatsYearScope.currentYear: Text(S.current.historyYearScopeCurrent),
-              StatsYearScope.allYears: Text(S.current.historyYearScopeAll),
-            },
-            onValueChanged: (final value) {
-              if (value != null) onYearScope(value);
+          AppSegmentedControl<StatsYearScope>(
+            value: yearScope,
+            onChanged: onYearScope,
+            segments: {
+              StatsYearScope.currentYear: S.current.historyYearScopeCurrent,
+              StatsYearScope.allYears: S.current.historyYearScopeAll,
             },
           ),
           const SizedBox(height: 16),
           Text(S.current.historyStatsPeriodLabel, style: labelStyle),
           const SizedBox(height: 8),
-          CupertinoSlidingSegmentedControl<StatsPeriod>(
-            groupValue: period,
-            children: {
-              StatsPeriod.week: Text(S.current.historyPeriodWeek),
-              StatsPeriod.month: Text(S.current.historyPeriodMonth),
-              StatsPeriod.year: Text(S.current.historyPeriodYear),
-            },
-            onValueChanged: (final value) {
-              if (value != null) onPeriod(value);
+          AppSegmentedControl<StatsPeriod>(
+            value: period,
+            onChanged: onPeriod,
+            segments: {
+              StatsPeriod.week: S.current.historyPeriodWeek,
+              StatsPeriod.month: S.current.historyPeriodMonth,
+              StatsPeriod.year: S.current.historyPeriodYear,
             },
           ),
         ],

@@ -6,7 +6,7 @@ import 'package:caesar_puzzle/presentation/pages/history/widgets/history_overvie
 import 'package:caesar_puzzle/presentation/pages/history/widgets/session_list.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/statistics_tab.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:caesar_puzzle/presentation/widgets/app_segmented_control.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -167,12 +167,10 @@ class _HistoryTabs extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: SizedBox(
             width: double.infinity,
-            child: CupertinoSlidingSegmentedControl<int>(
-              groupValue: activeTab,
-              onValueChanged: (final next) {
-                if (next != null) onTabChanged(next);
-              },
-              children: {0: Text(S.current.historyTabSessions), 1: Text(S.current.historyTabStatistics)},
+            child: AppSegmentedControl<int>(
+              value: activeTab,
+              onChanged: onTabChanged,
+              segments: {0: S.current.historyTabSessions, 1: S.current.historyTabStatistics},
             ),
           ),
         ),
