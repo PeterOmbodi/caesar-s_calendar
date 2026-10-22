@@ -4,11 +4,19 @@ Caesar's Puzzle is a cross-platform Flutter puzzle game inspired by calendar puz
 
 Live demo: [peterombodi.github.io/caesar-s_calendar](https://peterombodi.github.io/caesar-s_calendar/)
 
+<p align="center">
+  <img alt="Caesar's Calendar on Android, iPhone and the web" src="https://github.com/user-attachments/assets/eb474a46-e203-4b88-bfcb-2e8449aa058c" width="860">
+</p>
+
 ## Screenshots
 
 | Main screen - iOS | Main screen - Android |
 | --- | --- |
 | <img height="720" alt="Main screen" src="https://github.com/user-attachments/assets/6c5cf149-74e5-4bfd-ba47-2a10741dd23a" /> | <img height="720" alt="Main screen - session started" src="https://github.com/user-attachments/assets/ee0d2d31-f880-46a4-b1d8-47f16584fb87" /> |
+
+| Landscape on mobile | Web on desktop |
+| --- | --- |
+| <img width="360" alt="Main screen" src="https://github.com/user-attachments/assets/2dc85c85-7e79-4742-b758-39250556594f" /> | <img width="360" alt="Main screen - session started" src="https://github.com/user-attachments/assets/23f942d0-07d2-4f90-9e75-3cb5796d3126" /> |
 
 | Gameplay - drag & drop piece | Gameplay - draw piece |
 | --- | --- |
