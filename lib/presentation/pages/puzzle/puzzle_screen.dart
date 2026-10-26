@@ -14,6 +14,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cu
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_haptics.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_sounds.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/start_card.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
@@ -59,6 +60,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   late final StreamSubscription<PuzzleState> _feedbackSubscription;
   PuzzleSettingsPanelController _settingsPanelController = const PuzzleSettingsPanelController();
   final _boardKey = GlobalKey();
+  final _sounds = PuzzleSounds();
   var _isInitialized = false;
   var _isStartCardOpen = false;
   var _isPieceTipRequested = false;
@@ -89,7 +91,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         playHaptic(haptic);
       }
       if (settings.state.sounds) {
-        playClick();
+        _sounds.playClick();
       }
     });
     _isInitialized = true;
@@ -102,6 +104,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       _feedbackSubscription.cancel();
       _layoutsCubit.close();
     }
+    unawaited(_sounds.dispose());
     super.dispose();
   }
 
