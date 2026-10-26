@@ -1,3 +1,6 @@
+## 1.12.2+45
+- use the app's own move sound instead of the system click: it now plays on the web and no longer depends on Android system sound settings
+
 ## 1.12.1+44
 - use Liquid Glass switches and segmented controls on iOS
 - in iOS settings, only the switch toggles an option, as in the system Settings app
