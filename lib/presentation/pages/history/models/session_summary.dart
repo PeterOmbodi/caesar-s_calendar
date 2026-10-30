@@ -10,12 +10,12 @@ class SessionSummary {
   SessionSummary(this.session, {required final String locale})
     : solved = session.status == PuzzleSessionStatus.solved,
       isCustomConfig = session.configId != StandardPuzzleConfig.id,
-      startedLabel = _startedLabel(session.startedAt, locale);
+      timeLabel = _timeLabel(session, locale);
 
   final PuzzleSessionData session;
   final bool solved;
   final bool isCustomConfig;
-  final String startedLabel;
+  final String timeLabel;
 
   String get statusLabel => solved ? S.current.historySolved : S.current.historyInProgress;
 
@@ -30,9 +30,20 @@ class SessionSummary {
       '${S.current.hintUsed}: $hintsUsed · '
       '${S.current.historyDuration}: ${formatDuration(durationMs(session))}';
 
-  static String _startedLabel(final int startedAt, final String locale) {
-    final start = DateTime.fromMillisecondsSinceEpoch(startedAt);
-    return '${DateFormat.yMMMd(locale).format(start)} · ${DateFormat.Hm(locale).format(start)}';
+  /// Start time; for solved sessions also when they were solved.
+  static String _timeLabel(final PuzzleSessionData session, final String locale) {
+    final start = DateTime.fromMillisecondsSinceEpoch(session.startedAt);
+    final startLabel = '${DateFormat.yMMMd(locale).format(start)} · ${DateFormat.Hm(locale).format(start)}';
+    final completedAt = session.completedAt;
+    if (completedAt == null) {
+      return startLabel;
+    }
+    final end = DateTime.fromMillisecondsSinceEpoch(completedAt);
+    final sameDay = end.year == start.year && end.month == start.month && end.day == start.day;
+    final endLabel = sameDay
+        ? DateFormat.Hm(locale).format(end)
+        : '${DateFormat.MMMd(locale).format(end)} · ${DateFormat.Hm(locale).format(end)}';
+    return '$startLabel – $endLabel';
   }
 
   /// Includes the segment that was still running when the session was saved.

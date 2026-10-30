@@ -23,7 +23,8 @@ class DateRange {
 class PeriodRangeResolver {
   const PeriodRangeResolver._();
 
-  static const int _gridTemplateYear = 2024;
+  /// Leap year used to lay out all 366 month-days.
+  static const int gridTemplateYear = 2024;
 
   static DateTime referenceDateFor(final DateTime selectedDate, {final DateTime? now}) {
     final year = (now ?? DateTime.now()).year;
@@ -40,11 +41,11 @@ class PeriodRangeResolver {
   }
 
   static ({int startMonth, int startDay, int endMonth, int endDay}) _weekSlot(final DateTime referenceDate) {
-    final templateStart = DateTime.utc(_gridTemplateYear);
-    final templateDate = DateTime.utc(_gridTemplateYear, referenceDate.month, referenceDate.day);
+    final templateStart = DateTime.utc(gridTemplateYear);
+    final templateDate = DateTime.utc(gridTemplateYear, referenceDate.month, referenceDate.day);
     final dayOfYear = templateDate.difference(templateStart).inDays;
     final weekStartUtc = templateStart.add(Duration(days: (dayOfYear ~/ 7) * 7));
-    final templateEndUtc = DateTime.utc(_gridTemplateYear, 12, 31);
+    final templateEndUtc = DateTime.utc(gridTemplateYear, 12, 31);
     final weekEndUtcRaw = weekStartUtc.add(const Duration(days: 6));
     final weekEndUtc = weekEndUtcRaw.isAfter(templateEndUtc) ? templateEndUtc : weekEndUtcRaw;
     return (
@@ -64,14 +65,14 @@ class PeriodRangeResolver {
 
   static DateRange weekRange(final DateTime referenceDate) => weekRangeInYear(referenceDate.year, referenceDate);
 
-  static DateRange monthRangeInYear(final int year, final int month) => DateRange(
-    DateTime(year, month),
-    _localDateOnly(DateTime.utc(year, month + 1).subtract(const Duration(days: 1))),
-  );
+  static DateRange monthRangeInYear(final int year, final int month) =>
+      DateRange(DateTime(year, month), _localDateOnly(DateTime.utc(year, month + 1).subtract(const Duration(days: 1))));
 
   static DateRange monthRange(final DateTime date) => monthRangeInYear(date.year, date.month);
 
   static DateRange yearRange(final int year) => DateRange(DateTime(year), DateTime(year, 12, 31));
+
+  static DateRange get gridTemplateYearRange => yearRange(gridTemplateYear);
 
   static bool matches(
     final StatsPeriod period,
