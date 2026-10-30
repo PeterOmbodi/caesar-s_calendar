@@ -40,11 +40,15 @@ class PeriodRangeResolver {
     return day > lastDay ? lastDay : day;
   }
 
+  static int _templateDayOfYear(final DateTime date) =>
+      DateTime.utc(gridTemplateYear, date.month, date.day).difference(DateTime.utc(gridTemplateYear)).inDays;
+
+  /// 1-based number of the 7-day slot counted from Jan 1 (1..53), same for every year.
+  static int weekNumber(final DateTime date) => _templateDayOfYear(date) ~/ 7 + 1;
+
   static ({int startMonth, int startDay, int endMonth, int endDay}) _weekSlot(final DateTime referenceDate) {
     final templateStart = DateTime.utc(gridTemplateYear);
-    final templateDate = DateTime.utc(gridTemplateYear, referenceDate.month, referenceDate.day);
-    final dayOfYear = templateDate.difference(templateStart).inDays;
-    final weekStartUtc = templateStart.add(Duration(days: (dayOfYear ~/ 7) * 7));
+    final weekStartUtc = templateStart.add(Duration(days: (weekNumber(referenceDate) - 1) * 7));
     final templateEndUtc = DateTime.utc(gridTemplateYear, 12, 31);
     final weekEndUtcRaw = weekStartUtc.add(const Duration(days: 6));
     final weekEndUtc = weekEndUtcRaw.isAfter(templateEndUtc) ? templateEndUtc : weekEndUtcRaw;
