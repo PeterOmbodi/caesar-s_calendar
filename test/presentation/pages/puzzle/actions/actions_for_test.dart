@@ -47,7 +47,8 @@ PuzzleState _state({
 List<GameActionId> _ids(final List<GameAction> actions, final ActionSlot slot) =>
     actions.where((final a) => a.slot == slot).map((final a) => a.id).toList();
 
-GameAction _action(final List<GameAction> actions, final GameActionId id) => actions.singleWhere((final a) => a.id == id);
+GameAction _action(final List<GameAction> actions, final GameActionId id) =>
+    actions.singleWhere((final a) => a.id == id);
 
 void main() {
   group('modes', () {
@@ -102,7 +103,7 @@ void main() {
   group('assist actions per level', () {
     for (final (name, indicator, gate) in [
       ('Easy', _easy, AssistGate.open),
-      ('Medium', _medium, AssistGate.open),
+      ('Medium', _medium, AssistGate.warnEasy),
       ('Hard', _hard, AssistGate.confirmEasy),
     ]) {
       test('$name, solvable', () {

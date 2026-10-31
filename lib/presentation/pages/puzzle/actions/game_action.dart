@@ -27,6 +27,8 @@ enum AssistGate {
   noSolutions,
   // Hard level: the player confirms first, and the session then counts as Easy.
   confirmEasy,
+  // Medium level: the player is warned once that the session will count as Easy.
+  warnEasy,
 }
 
 @immutable
