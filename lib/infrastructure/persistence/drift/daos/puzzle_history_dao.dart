@@ -22,33 +22,19 @@ class CalendarStatsRow {
   final int unsolvedStarted;
 }
 
-@DriftAccessor(
-  tables: [
-    PuzzleConfigs,
-    PuzzleSolutionCounts,
-    PuzzleSessions,
-    PuzzleSolvedSolutions,
-  ],
-)
-class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
-    with _$PuzzleHistoryDaoMixin {
+@DriftAccessor(tables: [PuzzleConfigs, PuzzleSolutionCounts, PuzzleSessions, PuzzleSolvedSolutions])
+class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase> with _$PuzzleHistoryDaoMixin {
   PuzzleHistoryDao(super.db);
 
   Future<void> markSessionDirty(final String sessionId, final int updatedAt) async {
     await (update(puzzleSessions)..where((final row) => row.id.equals(sessionId))).write(
-      PuzzleSessionsCompanion(
-        syncState: const Value(1),
-        updatedAt: Value(updatedAt),
-      ),
+      PuzzleSessionsCompanion(syncState: const Value(1), updatedAt: Value(updatedAt)),
     );
   }
 
   Future<void> markConfigDirty(final String configId, final int updatedAt) async {
     await (update(puzzleConfigs)..where((final row) => row.id.equals(configId))).write(
-      PuzzleConfigsCompanion(
-        syncState: const Value(1),
-        updatedAt: Value(updatedAt),
-      ),
+      PuzzleConfigsCompanion(syncState: const Value(1), updatedAt: Value(updatedAt)),
     );
   }
 
@@ -58,16 +44,8 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     required final int updatedAt,
   }) async {
     await (update(puzzleSolutionCounts)
-          ..where(
-                (final row) =>
-            row.puzzleDate.equals(puzzleDate) & row.configId.equals(configId),
-          ))
-        .write(
-      PuzzleSolutionCountsCompanion(
-        syncState: const Value(1),
-        updatedAt: Value(updatedAt),
-      ),
-    );
+          ..where((final row) => row.puzzleDate.equals(puzzleDate) & row.configId.equals(configId)))
+        .write(PuzzleSolutionCountsCompanion(syncState: const Value(1), updatedAt: Value(updatedAt)));
   }
 
   Future<void> upsertConfig({
@@ -77,12 +55,7 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     required final int updatedAt,
   }) async {
     await into(puzzleConfigs).insertOnConflictUpdate(
-      PuzzleConfigsCompanion.insert(
-        id: id,
-        configJson: configJson,
-        createdAt: createdAt,
-        updatedAt: updatedAt,
-      ),
+      PuzzleConfigsCompanion.insert(id: id, configJson: configJson, createdAt: createdAt, updatedAt: updatedAt),
     );
   }
 
@@ -95,11 +68,7 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
   /// A null [name] removes the layout but keeps the row for sessions.
   Future<void> setConfigName(final String configId, final String? name, final int updatedAt) async {
     await (update(puzzleConfigs)..where((final row) => row.id.equals(configId))).write(
-      PuzzleConfigsCompanion(
-        layoutName: Value(name),
-        syncState: const Value(1),
-        updatedAt: Value(updatedAt),
-      ),
+      PuzzleConfigsCompanion(layoutName: Value(name), syncState: const Value(1), updatedAt: Value(updatedAt)),
     );
   }
 
@@ -128,12 +97,8 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     await into(puzzleSessions).insert(entry);
   }
 
-  Future<void> updateSession(final String sessionId,
-      final PuzzleSessionsCompanion entry,) async {
-    await (update(
-      puzzleSessions,
-    )
-      ..where((final row) => row.id.equals(sessionId))).write(entry);
+  Future<void> updateSession(final String sessionId, final PuzzleSessionsCompanion entry) async {
+    await (update(puzzleSessions)..where((final row) => row.id.equals(sessionId))).write(entry);
   }
 
   Future<void> markSessionSolved({
@@ -142,19 +107,12 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     required final int completedAt,
     required final int updatedAt,
   }) async {
-    await (update(
-      puzzleSessions,
-    )
-      ..where((final row) => row.id.equals(sessionId))).write(
-      PuzzleSessionsCompanion(
-        status: Value(status),
-        completedAt: Value(completedAt),
-        updatedAt: Value(updatedAt),
-      ),
+    await (update(puzzleSessions)..where((final row) => row.id.equals(sessionId))).write(
+      PuzzleSessionsCompanion(status: Value(status), completedAt: Value(completedAt), updatedAt: Value(updatedAt)),
     );
   }
 
-  Future<void> insertSolvedSignatures(final List<PuzzleSolvedSolutionsCompanion> entries,) async {
+  Future<void> insertSolvedSignatures(final List<PuzzleSolvedSolutionsCompanion> entries) async {
     await batch((final batch) {
       batch.insertAllOnConflictUpdate(puzzleSolvedSolutions, entries);
     });
@@ -170,49 +128,52 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<bool> hasAnySessions() async {
-    final row = await (selectOnly(puzzleSessions)
-          ..addColumns([puzzleSessions.id.count()]))
-        .getSingle();
+    final row = await (selectOnly(puzzleSessions)..addColumns([puzzleSessions.id.count()])).getSingle();
     return (row.read(puzzleSessions.id.count()) ?? 0) > 0;
   }
 
   Stream<int> watchSolvedSolutionCount() {
     final count = puzzleSolvedSolutions.solutionSignature.count();
-    return (selectOnly(puzzleSolvedSolutions)..addColumns([count])).watchSingle().map((final row) => row.read(count) ?? 0);
+    return (selectOnly(
+      puzzleSolvedSolutions,
+    )..addColumns([count])).watchSingle().map((final row) => row.read(count) ?? 0);
   }
+
+  Future<List<PuzzleSolvedSolution>> getSolvedSolutionsInRange({
+    required final String fromDate,
+    required final String toDate,
+  }) =>
+      (select(puzzleSolvedSolutions)..where(
+            (final row) => row.puzzleDate.isBiggerOrEqualValue(fromDate) & row.puzzleDate.isSmallerOrEqualValue(toDate),
+          ))
+          .get();
 
   Future<PuzzleSession?> getLatestUnsolvedSession({
     required final String puzzleDate,
     required final PuzzleSessionStatus status,
   }) =>
       (select(puzzleSessions)
-        ..where(
+            ..where(
               (final row) =>
-          row.puzzleDate.equals(puzzleDate) &
-          row.status.equalsValue(status) &
-          row.completedAt.isNull(),
-        )
-        ..orderBy([(final row) => OrderingTerm.desc(row.updatedAt)])
-        ..limit(1))
+                  row.puzzleDate.equals(puzzleDate) & row.status.equalsValue(status) & row.completedAt.isNull(),
+            )
+            ..orderBy([(final row) => OrderingTerm.desc(row.updatedAt)])
+            ..limit(1))
           .getSingleOrNull();
 
-  Stream<List<PuzzleSession>> watchSessionsByDate({
-    required final String puzzleDate,
-  }) =>
+  Stream<List<PuzzleSession>> watchSessionsByDate({required final String puzzleDate}) =>
       (select(puzzleSessions)
-        ..where((final row) => row.puzzleDate.equals(puzzleDate))
-        ..orderBy([(final row) => OrderingTerm.desc(row.updatedAt)]))
+            ..where((final row) => row.puzzleDate.equals(puzzleDate))
+            ..orderBy([(final row) => OrderingTerm.desc(row.updatedAt)]))
           .watch();
 
-  Stream<List<PuzzleSession>> watchSessionsByMonthDay({
-    required final String monthDay,
-  }) =>
+  Stream<List<PuzzleSession>> watchSessionsByMonthDay({required final String monthDay}) =>
       (select(puzzleSessions)
-        ..where((final row) => row.puzzleDate.substr(6, 5).equals(monthDay))
-        ..orderBy([
+            ..where((final row) => row.puzzleDate.substr(6, 5).equals(monthDay))
+            ..orderBy([
               (final row) => OrderingTerm.desc(row.puzzleDate),
               (final row) => OrderingTerm.desc(row.updatedAt),
-        ]))
+            ]))
           .watch();
 
   Stream<List<PuzzleSession>> watchSessionsInPuzzleDateRange({
@@ -220,11 +181,11 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     required final String toDate,
   }) =>
       (select(puzzleSessions)
-        ..where(
+            ..where(
               (final row) =>
-          row.puzzleDate.isBiggerOrEqualValue(fromDate) & row.puzzleDate.isSmallerOrEqualValue(toDate),
-        )
-        ..orderBy([(final row) => OrderingTerm.desc(row.puzzleDate)]))
+                  row.puzzleDate.isBiggerOrEqualValue(fromDate) & row.puzzleDate.isSmallerOrEqualValue(toDate),
+            )
+            ..orderBy([(final row) => OrderingTerm.desc(row.puzzleDate)]))
           .watch();
 
   Stream<List<CalendarStatsRow>> watchCalendarStats({
@@ -232,14 +193,8 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     required final String toDate,
     required final PuzzleSessionStatus unsolvedStatus,
   }) {
-    final totalsStream = _watchTotalSolutionsByDate(
-      fromDate: fromDate,
-      toDate: toDate,
-    );
-    final solvedStream = _watchSolvedVariantsByDate(
-      fromDate: fromDate,
-      toDate: toDate,
-    );
+    final totalsStream = _watchTotalSolutionsByDate(fromDate: fromDate, toDate: toDate);
+    final solvedStream = _watchSolvedVariantsByDate(fromDate: fromDate, toDate: toDate);
     final unsolvedStream = _watchUnsolvedStartedByDate(
       fromDate: fromDate,
       toDate: toDate,
@@ -256,23 +211,17 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
 
       void emitCombined() {
         if (!hasTotals || !hasSolved || !hasUnsolved) return;
-        final keys = <String>{
-          ...totals.keys,
-          ...solved.keys,
-          ...unsolved.keys,
-        }.toList()
-          ..sort();
+        final keys = <String>{...totals.keys, ...solved.keys, ...unsolved.keys}.toList()..sort();
         controller.add(
           keys
               .map(
-                (final key) =>
-                CalendarStatsRow(
+                (final key) => CalendarStatsRow(
                   puzzleDate: key,
                   totalSolutions: totals[key],
                   solvedVariants: solved[key] ?? 0,
                   unsolvedStarted: unsolved[key] ?? 0,
                 ),
-          )
+              )
               .toList(),
         );
       }
@@ -301,41 +250,28 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
-  Stream<Map<String, int?>> _watchTotalSolutionsByDate({
-    required final String fromDate,
-    required final String toDate,
-  }) {
+  Stream<Map<String, int?>> _watchTotalSolutionsByDate({required final String fromDate, required final String toDate}) {
     final totalExpr = puzzleSolutionCounts.totalSolutions.sum();
     final query = selectOnly(puzzleSolutionCounts)
       ..where(
         puzzleSolutionCounts.puzzleDate.isBiggerOrEqualValue(fromDate) &
-        puzzleSolutionCounts.puzzleDate.isSmallerOrEqualValue(toDate),
+            puzzleSolutionCounts.puzzleDate.isSmallerOrEqualValue(toDate),
       )
       ..addColumns([puzzleSolutionCounts.puzzleDate, totalExpr])
       ..groupBy([puzzleSolutionCounts.puzzleDate]);
 
     return query.watch().map(
-          (final rows) =>
-      {
-        for (final row in rows)
-          row.read(puzzleSolutionCounts.puzzleDate)!: row.read(totalExpr),
-      },
+      (final rows) => {for (final row in rows) row.read(puzzleSolutionCounts.puzzleDate)!: row.read(totalExpr)},
     );
   }
 
-  Stream<Map<String, int>> _watchSolvedVariantsByDate({
-    required final String fromDate,
-    required final String toDate,
-  }) {
+  Stream<Map<String, int>> _watchSolvedVariantsByDate({required final String fromDate, required final String toDate}) {
     final signaturesQuery = selectOnly(puzzleSolvedSolutions)
       ..where(
         puzzleSolvedSolutions.puzzleDate.isBiggerOrEqualValue(fromDate) &
             puzzleSolvedSolutions.puzzleDate.isSmallerOrEqualValue(toDate),
       )
-      ..addColumns([
-        puzzleSolvedSolutions.puzzleDate,
-        puzzleSolvedSolutions.sessionId,
-      ]);
+      ..addColumns([puzzleSolvedSolutions.puzzleDate, puzzleSolvedSolutions.sessionId]);
     final completedSessionsQuery = selectOnly(puzzleSessions)
       ..where(
         puzzleSessions.completedAt.isNotNull() &
@@ -363,11 +299,7 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
           }
           final date = row.read(puzzleSolvedSolutions.puzzleDate);
           if (date == null) continue;
-          result.update(
-            date,
-            (final value) => value + 1,
-            ifAbsent: () => 1,
-          );
+          result.update(date, (final value) => value + 1, ifAbsent: () => 1);
         }
         controller.add(result);
       }
@@ -403,20 +335,16 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase>
     final query = selectOnly(puzzleSessions)
       ..where(
         puzzleSessions.status.equalsValue(unsolvedStatus) &
-        puzzleSessions.firstMoveAt.isNotNull() &
-        puzzleSessions.completedAt.isNull() &
-        puzzleSessions.puzzleDate.isBiggerOrEqualValue(fromDate) &
-        puzzleSessions.puzzleDate.isSmallerOrEqualValue(toDate),
+            puzzleSessions.firstMoveAt.isNotNull() &
+            puzzleSessions.completedAt.isNull() &
+            puzzleSessions.puzzleDate.isBiggerOrEqualValue(fromDate) &
+            puzzleSessions.puzzleDate.isSmallerOrEqualValue(toDate),
       )
       ..addColumns([puzzleSessions.puzzleDate, countExpr])
       ..groupBy([puzzleSessions.puzzleDate]);
 
     return query.watch().map(
-          (final rows) =>
-      {
-        for (final row in rows)
-          row.read(puzzleSessions.puzzleDate)!: (row.read(countExpr) ?? 0),
-      },
+      (final rows) => {for (final row in rows) row.read(puzzleSessions.puzzleDate)!: (row.read(countExpr) ?? 0)},
     );
   }
 }

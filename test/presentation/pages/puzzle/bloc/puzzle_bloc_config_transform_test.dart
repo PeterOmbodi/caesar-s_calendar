@@ -19,6 +19,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/layout_edit.dart
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
 
 class _FakeSettingsQuery implements SettingsQuery {
   @override
@@ -65,6 +66,10 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
 
   @override
   Stream<int> watchSolvedSolutionCount() => Stream.value(0);
+
+  @override
+  Future<List<SolvedSolutionRecord>> getSolvedSolutions({required final DateTime from, required final DateTime to}) async =>
+      const [];
 
   @override
   Future<String?> getConfigJson(final String configId) async => null;

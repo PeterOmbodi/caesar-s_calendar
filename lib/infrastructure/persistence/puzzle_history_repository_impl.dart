@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
+import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/infrastructure/dto/move_history_dto.dart';
 import 'package:caesar_puzzle/infrastructure/dto/puzzle_piece_snapshot_dto.dart';
@@ -33,12 +34,7 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
       return configId;
     }
     final nowMs = now.millisecondsSinceEpoch;
-    await _dao.upsertConfig(
-      id: configId,
-      configJson: configJson,
-      createdAt: nowMs,
-      updatedAt: nowMs,
-    );
+    await _dao.upsertConfig(id: configId, configJson: configJson, createdAt: nowMs, updatedAt: nowMs);
     await _dao.markConfigDirty(configId, nowMs);
     return configId;
   }
@@ -148,23 +144,36 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
 
   @override
   Stream<List<CalendarDayStats>> watchCalendarStats({required final DateTime from, required final DateTime to}) => _dao
-        .watchCalendarStats(
-          fromDate: _dateKey(from),
-          toDate: _dateKey(to),
-          unsolvedStatus: PuzzleSessionStatus.unsolved,
-        )
-        .map((final rows) => _fillMissingDays(from, to, rows));
+      .watchCalendarStats(fromDate: _dateKey(from), toDate: _dateKey(to), unsolvedStatus: PuzzleSessionStatus.unsolved)
+      .map((final rows) => _fillMissingDays(from, to, rows));
 
   @override
-  Stream<List<PuzzleSessionData>> watchSessionsByDate({required final DateTime puzzleDate}) =>
-      _dao.watchSessionsByDate(puzzleDate: _dateKey(puzzleDate)).map(
-        (final rows) => rows.map(_sessionFromRow).toList(),
-      );
+  Stream<List<PuzzleSessionData>> watchSessionsByDate({required final DateTime puzzleDate}) => _dao
+      .watchSessionsByDate(puzzleDate: _dateKey(puzzleDate))
+      .map((final rows) => rows.map(_sessionFromRow).toList());
 
   @override
   Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({required final DateTime puzzleDate}) => _dao
       .watchSessionsByMonthDay(monthDay: _monthDayKey(puzzleDate))
       .map((final rows) => rows.map(_sessionFromRow).toList());
+
+  @override
+  Future<List<SolvedSolutionRecord>> getSolvedSolutions({
+    required final DateTime from,
+    required final DateTime to,
+  }) async {
+    final rows = await _dao.getSolvedSolutionsInRange(fromDate: _dateKey(from), toDate: _dateKey(to));
+    return [
+      for (final row in rows)
+        SolvedSolutionRecord(
+          puzzleDate: _dateFromKey(row.puzzleDate),
+          configId: row.configId,
+          signature: row.solutionSignature,
+          sessionId: row.sessionId,
+          solvedAt: row.solvedAt,
+        ),
+    ];
+  }
 
   @override
   Stream<List<PuzzleSessionData>> watchSessionsInPuzzleDateRange({
@@ -196,14 +205,8 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
   @override
   Future<void> clearLocalData() => _dao.clearAllData();
 
-  List<CalendarDayStats> _fillMissingDays(
-    final DateTime from,
-    final DateTime to,
-    final List<CalendarStatsRow> rows,
-  ) {
-    final rowByDate = {
-      for (final row in rows) row.puzzleDate: row,
-    };
+  List<CalendarDayStats> _fillMissingDays(final DateTime from, final DateTime to, final List<CalendarStatsRow> rows) {
+    final rowByDate = {for (final row in rows) row.puzzleDate: row};
     final stats = <CalendarDayStats>[];
     var current = DateTime(from.year, from.month, from.day);
     final last = DateTime(to.year, to.month, to.day);
@@ -252,9 +255,8 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
     return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
   }
 
-  String _encodePieces(final List<PuzzlePieceSnapshot> pieces) => jsonEncode(
-        pieces.map((final item) => PuzzlePieceSnapshotDto.fromDomain(item).toMap()).toList(),
-      );
+  String _encodePieces(final List<PuzzlePieceSnapshot> pieces) =>
+      jsonEncode(pieces.map((final item) => PuzzlePieceSnapshotDto.fromDomain(item).toMap()).toList());
 
   List<PuzzlePieceSnapshot> _decodePieces(final String json) => (jsonDecode(json) as List)
       .map((final item) => PuzzlePieceSnapshotDto.fromMap(Map<String, dynamic>.from(item as Map)).toDomain())
