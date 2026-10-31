@@ -84,4 +84,3 @@ class PublicProfileService {
     return row.read(countExpr) ?? 0;
   }
 }
-

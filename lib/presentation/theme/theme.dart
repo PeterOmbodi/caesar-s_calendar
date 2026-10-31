@@ -11,9 +11,8 @@ class AppThemeData {
   static final ThemeData dark = _build(GameColors.dark, AppColors.dark.primary, Brightness.dark);
 
   /// Desktop browsers behave like Material whatever the host OS.
-  static TargetPlatform? get _platform => kIsWeb &&
-          defaultTargetPlatform != TargetPlatform.iOS &&
-          defaultTargetPlatform != TargetPlatform.android
+  static TargetPlatform? get _platform =>
+      kIsWeb && defaultTargetPlatform != TargetPlatform.iOS && defaultTargetPlatform != TargetPlatform.android
       ? TargetPlatform.linux
       : null;
 

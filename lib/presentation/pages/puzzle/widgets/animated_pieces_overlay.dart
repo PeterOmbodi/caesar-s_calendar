@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 typedef PieceId = String;
 
 class AnimatedPiecesOverlay extends StatefulWidget {
-
   const AnimatedPiecesOverlay({
     super.key,
     required this.pieces,
@@ -170,7 +169,6 @@ class _AnimatedPiecesOverlayState extends State<AnimatedPiecesOverlay> with Tick
 }
 
 class PieceTween {
-
   PieceTween({required this.from, required this.to});
   final PuzzlePieceUI from;
   final PuzzlePieceUI to;

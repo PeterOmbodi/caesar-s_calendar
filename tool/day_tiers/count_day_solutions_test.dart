@@ -55,8 +55,10 @@ void main() {
 
     final sorted = counts.values.toList()..sort();
     int percentile(final int p) => sorted[((sorted.length - 1) * p / 100).round()];
-    print('min ${sorted.first}, max ${sorted.last}, '
-        'mean ${(sorted.reduce((final a, final b) => a + b) / sorted.length).toStringAsFixed(1)}');
+    print(
+      'min ${sorted.first}, max ${sorted.last}, '
+      'mean ${(sorted.reduce((final a, final b) => a + b) / sorted.length).toStringAsFixed(1)}',
+    );
     const marks = [10, 20, 25, 33, 40, 50, 60, 67, 75, 80, 90];
     print('percentiles: ${[for (final p in marks) 'p$p=${percentile(p)}'].join(', ')}');
     final hardest = counts.entries.toList()..sort((final a, final b) => a.value.compareTo(b.value));

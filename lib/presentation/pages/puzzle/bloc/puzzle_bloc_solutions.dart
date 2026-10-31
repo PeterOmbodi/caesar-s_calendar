@@ -17,22 +17,22 @@ extension PuzzleBlocSolutionsPart on PuzzleBloc {
     unawaited(
       _solvePuzzleUseCase
           .call(
-        pieces: state.pieces.map((final p) => p.toDomain(state.gridConfig)),
-        grid: state.gridConfig,
-        date: state.selectedDate,
-      )
+            pieces: state.pieces.map((final p) => p.toDomain(state.gridConfig)),
+            grid: state.gridConfig,
+            date: state.selectedDate,
+          )
           .then((final solutions) {
-        if (run != _solveRun) {
-          return;
-        }
-        debugPrint(
-          'solving finished, found solutions: ${solutions.length}',
-        );
-        add(PuzzleEvent.setSolvingResults(solutions));
-        if (event.showResult) {
-          add(const PuzzleEvent.showSolution(0));
-        }
-      }),
+            if (run != _solveRun) {
+              return;
+            }
+            debugPrint(
+              'solving finished, found solutions: ${solutions.length}',
+            );
+            add(PuzzleEvent.setSolvingResults(solutions));
+            if (event.showResult) {
+              add(const PuzzleEvent.showSolution(0));
+            }
+          }),
     );
   }
 

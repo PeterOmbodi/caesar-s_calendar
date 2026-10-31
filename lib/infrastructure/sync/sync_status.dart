@@ -25,4 +25,3 @@ class SyncStatus {
     lastError: clearError ? null : (lastError ?? this.lastError),
   );
 }
-

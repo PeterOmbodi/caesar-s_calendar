@@ -250,8 +250,7 @@ class PuzzleBoardPainter extends CustomPainter {
     return Rect.fromLTWH(topLeft.dx, topLeft.dy, grid.cellSize, grid.cellSize);
   }
 
-  String _labelText(final int cellIndex) =>
-      cellIndex < 12 ? shortMonthName(cellIndex + 1) : '${cellIndex - 11}';
+  String _labelText(final int cellIndex) => cellIndex < 12 ? shortMonthName(cellIndex + 1) : '${cellIndex - 11}';
 
   bool _isTarget(final int cellIndex) =>
       cellIndex < 12 && selectedDate.month == cellIndex + 1 || cellIndex - 11 == selectedDate.day;

@@ -44,7 +44,10 @@ class _GlassCircleButtonState extends State<GlassCircleButton> {
       customBorder: const CircleBorder(),
       onTap: widget.onPressed,
       onHighlightChanged: (final value) => setState(() => _pressed = value),
-      child: SizedBox.square(dimension: widget.size, child: Center(child: widget.child)),
+      child: SizedBox.square(
+        dimension: widget.size,
+        child: Center(child: widget.child),
+      ),
     );
     final surface = GlassSurface.isLiquid(context)
         ? AnimatedScale(

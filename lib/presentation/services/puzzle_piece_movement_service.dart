@@ -24,11 +24,11 @@ class PuzzleDropResult {
     required final PlaceZone zone,
     required final MovePiece move,
   }) : this._(
-          accepted: true,
-          snappedPosition: snappedPosition,
-          zone: zone,
-          move: move,
-        );
+         accepted: true,
+         snappedPosition: snappedPosition,
+         zone: zone,
+         move: move,
+       );
 
   const PuzzleDropResult.rejected() : this._(accepted: false);
 
@@ -90,8 +90,7 @@ class PuzzlePieceMovementService {
             .where((final p) => p.id != piece.id && p.placeZone == zone)
             .map(
               (final other) => other.copyWith(
-                originalPath:
-                    generatePathForType(other.type, gridConfig.cellSize),
+                originalPath: generatePathForType(other.type, gridConfig.cellSize),
               ),
             );
         final otherDomains = others.map((final ui) => ui.toDomain(gridConfig));
@@ -195,8 +194,7 @@ class PuzzlePieceMovementService {
       return const PuzzleDropResult.rejected();
     }
 
-    final fromConfig =
-        dragStartZone == PlaceZone.grid ? gridConfig : boardConfig;
+    final fromConfig = dragStartZone == PlaceZone.grid ? gridConfig : boardConfig;
     final toConfig = newZone == PlaceZone.grid ? gridConfig : boardConfig;
     final move = MovePiece(
       selectedPiece.id,

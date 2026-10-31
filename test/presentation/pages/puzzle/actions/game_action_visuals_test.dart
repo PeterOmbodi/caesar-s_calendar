@@ -21,6 +21,9 @@ void main() {
     final appleUndo = GameActionId.undo.shortcut(apple: true)! as SingleActivator;
     final otherRedo = GameActionId.redo.shortcut(apple: false)! as SingleActivator;
     expect((appleUndo.trigger, appleUndo.meta, appleUndo.control), (LogicalKeyboardKey.keyZ, true, false));
-    expect((otherRedo.trigger, otherRedo.meta, otherRedo.control, otherRedo.shift), (LogicalKeyboardKey.keyZ, false, true, true));
+    expect(
+      (otherRedo.trigger, otherRedo.meta, otherRedo.control, otherRedo.shift),
+      (LogicalKeyboardKey.keyZ, false, true, true),
+    );
   });
 }

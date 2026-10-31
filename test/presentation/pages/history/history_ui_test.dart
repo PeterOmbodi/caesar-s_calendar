@@ -116,7 +116,7 @@ void main() {
       final boundary = key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
       final pixel = await tester.runAsync(() async {
         final image = await boundary.toImage();
-          final bytes = (await image.toByteData())!;
+        final bytes = (await image.toByteData())!;
         final offset = (10 * image.width + 100) * 4;
         final result = [for (var i = 0; i < 4; i++) bytes.getUint8(offset + i)];
         image.dispose();

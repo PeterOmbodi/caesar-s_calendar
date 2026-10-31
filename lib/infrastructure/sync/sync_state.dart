@@ -10,4 +10,3 @@ enum SyncState {
   static SyncState fromCode(final int code) =>
       SyncState.values.firstWhere((final s) => s.code == code, orElse: () => SyncState.clean);
 }
-

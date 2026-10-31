@@ -47,7 +47,10 @@ class InsetSection extends StatelessWidget {
         if (footer != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Text(footer, style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary)),
+            child: Text(
+              footer,
+              style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
+            ),
           ),
       ],
     );
@@ -109,7 +112,10 @@ class InsetRow extends StatelessWidget {
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
-                  Text(subtitle, style: TextStyle(fontSize: 15, height: 20 / 15, color: colors.textSecondary)),
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 15, height: 20 / 15, color: colors.textSecondary),
+                  ),
                 ],
                 if (illustration != null) ...[const SizedBox(height: 10), illustration],
               ],

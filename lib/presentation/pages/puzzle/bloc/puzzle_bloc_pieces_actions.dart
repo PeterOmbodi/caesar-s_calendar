@@ -457,7 +457,6 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     return result;
   }
 
-
   PuzzlePieceUI _applyPlacementToPiece(final PuzzlePieceUI piece, final PlacementParams params) {
     final cellSize = state.gridConfig.cellSize;
     final origin = state.gridConfig.origin;

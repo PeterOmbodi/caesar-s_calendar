@@ -17,8 +17,7 @@ class StandardPuzzleConfig {
 
   // SHA-256 of:
   // [{"pieceId":"zone1","row":0,"col":6,"rot":0,"flip":false},{"pieceId":"zone2","row":6,"col":3,"rot":0,"flip":false}]
-  static const String id =
-      'f6b4b9084919c768b93a63e6767a04b14b8961be32d7059138ac58b4feae7a6d';
+  static const String id = 'f6b4b9084919c768b93a63e6767a04b14b8961be32d7059138ac58b4feae7a6d';
 
   static const Map<String, StandardConfigPlacement> placementsByPieceId = {
     'zone1': StandardConfigPlacement(

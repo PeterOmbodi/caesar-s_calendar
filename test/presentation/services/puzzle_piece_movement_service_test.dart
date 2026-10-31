@@ -31,31 +31,25 @@ void main() {
     required final PieceType type,
     required final Offset position,
     final PlaceZone zone = PlaceZone.grid,
-  }) =>
-      PuzzlePieceUI(
-        id: id,
-        position: position,
-        placeZone: zone,
-        type: type,
-        originalPath: generatePathForType(type, grid.cellSize),
-        color: () => Colors.blue,
-        centerPoint: const Offset(5, 5),
-      );
+  }) => PuzzlePieceUI(
+    id: id,
+    position: position,
+    placeZone: zone,
+    type: type,
+    originalPath: generatePathForType(type, grid.cellSize),
+    color: () => Colors.blue,
+    centerPoint: const Offset(5, 5),
+  );
 
   test('getZoneAtPosition returns grid, board and null', () {
-    expect(service.getZoneAtPosition(const Offset(5, 5), grid, board),
-        PlaceZone.grid);
-    expect(service.getZoneAtPosition(const Offset(105, 5), grid, board),
-        PlaceZone.board);
-    expect(
-        service.getZoneAtPosition(const Offset(90, 90), grid, board), isNull);
+    expect(service.getZoneAtPosition(const Offset(5, 5), grid, board), PlaceZone.grid);
+    expect(service.getZoneAtPosition(const Offset(105, 5), grid, board), PlaceZone.board);
+    expect(service.getZoneAtPosition(const Offset(90, 90), grid, board), isNull);
   });
 
   test('checkCollision detects overlap on grid when preventOverlap=true', () {
-    final a =
-        piece(id: 'a', type: PieceType.square, position: const Offset(10, 10));
-    final b =
-        piece(id: 'b', type: PieceType.square, position: const Offset(10, 10));
+    final a = piece(id: 'a', type: PieceType.square, position: const Offset(10, 10));
+    final b = piece(id: 'b', type: PieceType.square, position: const Offset(10, 10));
 
     final hasCollision = service.checkCollision(
       piece: a,
@@ -71,8 +65,7 @@ void main() {
   });
 
   test('computeDropResult rejects drop outside grid and board', () {
-    final selected = piece(
-        id: 'a', type: PieceType.square, position: const Offset(999, 999));
+    final selected = piece(id: 'a', type: PieceType.square, position: const Offset(999, 999));
 
     final result = service.computeDropResult(
       selectedPiece: selected,
@@ -110,14 +103,8 @@ void main() {
     expect(result.accepted, isTrue);
     expect(result.zone, PlaceZone.board);
     expect(result.snappedPosition, isNotNull);
-    expect(
-        board.cellSize * board.columns + board.origin.dx >=
-            result.snappedPosition!.dx,
-        isTrue);
-    expect(
-        board.cellSize * board.rows + board.origin.dy >=
-            result.snappedPosition!.dy,
-        isTrue);
+    expect(board.cellSize * board.columns + board.origin.dx >= result.snappedPosition!.dx, isTrue);
+    expect(board.cellSize * board.rows + board.origin.dy >= result.snappedPosition!.dy, isTrue);
   });
 
   test('lifted piece dropped into the tray shrinks around the finger and stays inside', () {
@@ -168,8 +155,12 @@ void main() {
   });
 
   test('rescaledAround keeps the anchor over the same point of the piece', () {
-    final inTray = piece(id: 'a', type: PieceType.lShape, position: const Offset(120, 30), zone: PlaceZone.board)
-        .copyWith(rotation: 1.5707963267948966);
+    final inTray = piece(
+      id: 'a',
+      type: PieceType.lShape,
+      position: const Offset(120, 30),
+      zone: PlaceZone.board,
+    ).copyWith(rotation: 1.5707963267948966);
     const anchor = Offset(131, 37);
     final local = inTray.transformLocalPoint(const Offset(7, 3));
 

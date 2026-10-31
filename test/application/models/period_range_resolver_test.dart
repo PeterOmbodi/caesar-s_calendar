@@ -205,7 +205,12 @@ void main() {
         isTrue,
       );
       expect(
-        PeriodRangeResolver.matches(StatsPeriod.year, StatsYearScope.currentYear, referenceDate, DateTime(2024, 12, 31)),
+        PeriodRangeResolver.matches(
+          StatsPeriod.year,
+          StatsYearScope.currentYear,
+          referenceDate,
+          DateTime(2024, 12, 31),
+        ),
         isFalse,
       );
     });

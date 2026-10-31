@@ -1,4 +1,3 @@
-
 /// Node for Dancing Links.
 /// Each node is linked to its neighbors in four directions,
 /// and also stores a reference to its column (if it's not a header node).

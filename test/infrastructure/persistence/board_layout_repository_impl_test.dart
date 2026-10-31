@@ -25,8 +25,9 @@ void main() {
 
   tearDown(() => db.close());
 
-  Future<List<String>> names() async =>
-      [for (final layout in await repository.watchLayouts().first) layout.isStandard ? '<standard>' : layout.name];
+  Future<List<String>> names() async => [
+    for (final layout in await repository.watchLayouts().first) layout.isStandard ? '<standard>' : layout.name,
+  ];
 
   test('Standard is always listed first', () async {
     expect(await names(), ['<standard>']);

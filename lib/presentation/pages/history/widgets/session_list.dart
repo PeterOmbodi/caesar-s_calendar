@@ -96,7 +96,11 @@ class _EmptySessions extends StatelessWidget {
         children: [
           Icon(glass ? CupertinoIcons.clock : Icons.history_toggle_off, size: 28, color: colors.textSecondary),
           const SizedBox(height: 8),
-          Text(S.current.historyNoSessions, textAlign: TextAlign.center, style: TextStyle(color: colors.textSecondary)),
+          Text(
+            S.current.historyNoSessions,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: colors.textSecondary),
+          ),
         ],
       ),
     );

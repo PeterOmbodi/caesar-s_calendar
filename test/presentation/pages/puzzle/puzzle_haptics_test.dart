@@ -5,8 +5,11 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_haptics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Move _move(final PlaceZone to) =>
-    MovePiece('P', from: MovePlacement(position: const Position.zero()), to: MovePlacement(zone: to, position: const Position.zero()));
+Move _move(final PlaceZone to) => MovePiece(
+  'P',
+  from: MovePlacement(position: const Position.zero()),
+  to: MovePlacement(zone: to, position: const Position.zero()),
+);
 
 PuzzleState _after(final PuzzleState state, final Move move) =>
     state.copyWith(moveHistory: [...state.moveHistory, move], moveIndex: state.moveIndex + 1);

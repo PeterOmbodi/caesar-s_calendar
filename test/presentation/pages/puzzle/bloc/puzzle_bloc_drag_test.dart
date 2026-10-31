@@ -71,8 +71,10 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Stream<int> watchSolvedSolutionCount() => Stream.value(0);
 
   @override
-  Future<List<SolvedSolutionRecord>> getSolvedSolutions({required final DateTime from, required final DateTime to}) async =>
-      const [];
+  Future<List<SolvedSolutionRecord>> getSolvedSolutions({
+    required final DateTime from,
+    required final DateTime to,
+  }) async => const [];
 
   @override
   Future<String?> getConfigJson(final String configId) async => null;

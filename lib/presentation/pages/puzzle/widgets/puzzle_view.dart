@@ -138,7 +138,10 @@ class PuzzleView extends StatelessWidget {
                     if (state.isDragging && state.pointerPiece != null)
                       IgnorePointer(
                         child: CustomPaint(
-                          painter: _DraggedPiecePainter(piece: state.pointerPiece!, cellSize: state.gridConfig.cellSize),
+                          painter: _DraggedPiecePainter(
+                            piece: state.pointerPiece!,
+                            cellSize: state.gridConfig.cellSize,
+                          ),
                         ),
                       ),
                   ],
@@ -164,8 +167,13 @@ class _DraggedPiecePainter extends CustomPainter {
   final double cellSize;
 
   @override
-  void paint(final Canvas canvas, final Size size) =>
-      PiecePaintHelper.drawPiece(canvas, piece, cellSize: cellSize, look: PieceLook.lifted, hatched: piece.isConfigItem);
+  void paint(final Canvas canvas, final Size size) => PiecePaintHelper.drawPiece(
+    canvas,
+    piece,
+    cellSize: cellSize,
+    look: PieceLook.lifted,
+    hatched: piece.isConfigItem,
+  );
 
   @override
   bool shouldRepaint(covariant final _DraggedPiecePainter oldDelegate) =>

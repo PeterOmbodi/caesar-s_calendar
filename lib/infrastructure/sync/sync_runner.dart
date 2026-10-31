@@ -115,4 +115,3 @@ class SyncRunner {
     stop();
   }
 }
-

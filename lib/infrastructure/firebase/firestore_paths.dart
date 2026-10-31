@@ -10,4 +10,3 @@ class FirestorePaths {
 
   static String publicUserDoc(final String uid) => '$publicUsers/$uid';
 }
-

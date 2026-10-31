@@ -165,7 +165,10 @@ class _AccountSectionState extends State<AccountSection> {
         onPressed: auth.isLoading ? null : cubit.signInWithGoogle,
       ),
       if (auth.isLoading)
-        const Padding(padding: EdgeInsets.only(top: 16), child: Center(child: CircularProgressIndicator.adaptive())),
+        const Padding(
+          padding: EdgeInsets.only(top: 16),
+          child: Center(child: CircularProgressIndicator.adaptive()),
+        ),
     ];
   }
 
@@ -237,7 +240,10 @@ class _AccountSectionState extends State<AccountSection> {
 
   Widget _note(final String text, final Color color) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 4),
-    child: Text(text, style: TextStyle(fontSize: 15, height: 20 / 15, color: color)),
+    child: Text(
+      text,
+      style: TextStyle(fontSize: 15, height: 20 / 15, color: color),
+    ),
   );
 
   bool get _supportsAppleSignIn {

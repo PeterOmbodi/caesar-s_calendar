@@ -1,10 +1,8 @@
 /// A helper class representing a cell (grid coordinate) on the board.
 class Cell {
-
   Cell(this.row, this.col);
 
-  factory Cell.fromMap(final Map<String, dynamic> map) =>
-      Cell(map['row'], map['col']);
+  factory Cell.fromMap(final Map<String, dynamic> map) => Cell(map['row'], map['col']);
   final int row;
   final int col;
 

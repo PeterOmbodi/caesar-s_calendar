@@ -471,9 +471,7 @@ class _ConfettiViewState extends State<ConfettiView> {
     const sx0 = 0.1, sy0 = -0.1, ty0 = 2400.0;
     final w0 = (maxX - minX) * sx0.abs();
     final h0 = (maxY - minY) * sx0.abs();
-    final s = (size.width / w0 < size.height / h0)
-        ? size.width / w0
-        : size.height / h0;
+    final s = (size.width / w0 < size.height / h0) ? size.width / w0 : size.height / h0;
     final ox = minX * sx0;
     final oy = ty0 + sy0 * maxY;
     double X(final num x) => (x * sx0 - ox) * s;
@@ -808,16 +806,16 @@ class _ConfettiViewState extends State<ConfettiView> {
 
   @override
   Widget build(final BuildContext context) => ConfettiWidget(
-      confettiController: _controllerCenter,
-      blastDirectionality: BlastDirectionality.explosive,
-      colors: const [
-        Colors.green,
-        Colors.blue,
-        Colors.pink,
-        Colors.orange,
-        Colors.purple,
-      ],
-      maximumSize: Size(64, 64),
-      createParticlePath: drawPuzzle,
-    );
+    confettiController: _controllerCenter,
+    blastDirectionality: BlastDirectionality.explosive,
+    colors: const [
+      Colors.green,
+      Colors.blue,
+      Colors.pink,
+      Colors.orange,
+      Colors.purple,
+    ],
+    maximumSize: Size(64, 64),
+    createParticlePath: drawPuzzle,
+  );
 }
