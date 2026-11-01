@@ -1,86 +1,58 @@
+import 'package:caesar_puzzle/application/contracts/leaderboard_repository.dart';
+import 'package:caesar_puzzle/application/leaderboard/leaderboard_publisher.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
-import 'package:caesar_puzzle/infrastructure/firebase/firestore_paths.dart';
-import 'package:caesar_puzzle/infrastructure/persistence/drift/app_database.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
 
+/// Leaderboard visibility: the player's public profile exists only while it is on.
 @lazySingleton
 class PublicProfileService {
   PublicProfileService({
-    required final AppDatabase db,
-    required final FirebaseFirestore firestore,
     required final AuthService auth,
-  }) : _db = db,
-       _firestore = firestore,
-       _auth = auth;
+    required final LeaderboardRepository leaderboards,
+    required final LeaderboardPublisher publisher,
+  }) : _auth = auth,
+       _leaderboards = leaderboards,
+       _publisher = publisher;
 
-  final AppDatabase _db;
-  final FirebaseFirestore _firestore;
   final AuthService _auth;
+  final LeaderboardRepository _leaderboards;
+  final LeaderboardPublisher _publisher;
+
+  final _enabled = <String, bool>{};
+  String? _lastPublishedKey;
 
   Future<bool> isEnabled() async {
-    final uid = _auth.currentUser?.uid;
-    if (!_auth.isAvailable || uid == null) {
-      return false;
-    }
-    return (await _firestore.doc(FirestorePaths.publicUserDoc(uid)).get()).exists;
+    final uid = _uid;
+    if (uid == null) return false;
+    return _enabled[uid] ??= await _leaderboards.hasProfile(uid);
   }
 
   Future<void> setEnabled(final bool enabled) async {
-    final uid = _auth.currentUser?.uid;
-    if (!_auth.isAvailable || uid == null) return;
-
-    if (!enabled) {
-      await _firestore.doc(FirestorePaths.publicUserDoc(uid)).delete();
-      return;
-    }
-
-    await _publishNow(enabling: true);
-  }
-
-  Future<void> publishNow() => _publishNow(enabling: false);
-
-  Future<void> _publishNow({required final bool enabling}) async {
-    if (!_auth.isAvailable) return;
-    final uid = _auth.currentUser?.uid;
+    final uid = _uid;
     if (uid == null) return;
-    final profileExists = await isEnabled();
-    if (!enabling && !profileExists) return;
-
-    final solvedSessions = await _countSolvedSessions();
-    final solvedVariants = await _countSolvedVariants();
-
-    final payload = <String, Object?>{
-      'uid': uid,
-      'solvedSessions': solvedSessions,
-      'solvedVariants': solvedVariants,
-      'updatedAt': DateTime.now().millisecondsSinceEpoch,
-    };
-    final displayName = _auth.currentDisplayName;
-    final photoUrl = _auth.currentPhotoUrl;
-    if (displayName != null && displayName.isNotEmpty) {
-      payload['displayName'] = displayName;
+    if (enabled) {
+      await _publish(uid, force: true);
+    } else {
+      await _leaderboards.deleteAll(uid);
+      _lastPublishedKey = null;
     }
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      payload['photoUrl'] = photoUrl;
-    }
-    await _firestore.doc(FirestorePaths.publicUserDoc(uid)).set(payload, SetOptions(merge: true));
+    _enabled[uid] = enabled;
   }
 
-  Future<int> _countSolvedSessions() async {
-    final countExpr = _db.puzzleSessions.id.count();
-    final query = _db.selectOnly(_db.puzzleSessions)
-      ..where(_db.puzzleSessions.completedAt.isNotNull())
-      ..addColumns([countExpr]);
-    final row = await query.getSingle();
-    return row.read(countExpr) ?? 0;
+  /// Publishes only when visibility is on and the data changed since the last publish.
+  Future<void> publishNow() async {
+    final uid = _uid;
+    if (uid == null || !await isEnabled()) return;
+    await _publish(uid, force: false);
   }
 
-  Future<int> _countSolvedVariants() async {
-    final countExpr = _db.puzzleSolvedSolutions.solutionSignature.count();
-    final query = _db.selectOnly(_db.puzzleSolvedSolutions)..addColumns([countExpr]);
-    final row = await query.getSingle();
-    return row.read(countExpr) ?? 0;
+  String? get _uid => _auth.isAvailable ? _auth.currentUser?.uid : null;
+
+  Future<void> _publish(final String uid, {required final bool force}) async {
+    final snapshot = await _publisher.build(uid: uid, displayName: _auth.currentDisplayName, now: DateTime.now());
+    final key = '$uid|${snapshot.key}';
+    if (!force && key == _lastPublishedKey) return;
+    await _leaderboards.publish(uid: uid, snapshot: snapshot);
+    _lastPublishedKey = key;
   }
 }

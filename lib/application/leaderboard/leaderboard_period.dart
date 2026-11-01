@@ -30,5 +30,7 @@ class LeaderboardKeys {
     };
   }
 
+  static bool isDayBoard(final String boardId) => boardId.startsWith('d');
+
   static String _two(final int value) => value.toString().padLeft(2, '0');
 }

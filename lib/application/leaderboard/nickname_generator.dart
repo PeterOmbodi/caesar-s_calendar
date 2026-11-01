@@ -32,8 +32,7 @@ class NicknameGenerator {
     return runes.length <= length ? value : String.fromCharCodes(runes.take(length));
   }
 
-  // 32-bit FNV-1a: stable across platforms and app runs, unlike String.hashCode.
-  // The multiply by 0x01000193 is split so it stays exact on the web.
+  // 32-bit FNV-1a, stable unlike String.hashCode; the multiply is split to stay exact on the web.
   static int _hash(final String value) {
     var hash = 0x811c9dc5;
     for (final unit in value.codeUnits) {

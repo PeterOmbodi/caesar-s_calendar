@@ -8,7 +8,7 @@ import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
 import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 
-/// Result of one level on one date: first clean solve time and extra unique solutions.
+/// One level on one date: first clean solve time and extra unique solutions.
 class DayResult {
   const DayResult({
     required this.date,
@@ -113,7 +113,7 @@ class LeaderboardScoring {
     );
   }
 
-  /// Cumulative: Hard counts Hard days, Medium counts Medium and Hard. A solve with hints counts as Easy.
+  /// Cumulative: Hard counts Hard days, Medium counts Medium and Hard. Hints break both.
   static Map<PuzzleSessionDifficulty, LevelStreak> streaks(
     final Iterable<PuzzleSessionData> sessions, {
     required final DateTime today,

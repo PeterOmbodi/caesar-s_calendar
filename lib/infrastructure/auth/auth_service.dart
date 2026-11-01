@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:caesar_puzzle/application/contracts/leaderboard_repository.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_failure.dart';
 import 'package:caesar_puzzle/infrastructure/firebase/firebase_bootstrap.dart';
 import 'package:caesar_puzzle/infrastructure/firebase/firestore_paths.dart';
@@ -16,9 +17,11 @@ class AuthService {
     required final FirebaseAuth firebaseAuth,
     required final FirebaseFirestore firestore,
     required final GoogleSignIn googleSignIn,
+    required final LeaderboardRepository leaderboards,
   }) : _auth = firebaseAuth,
        _firestore = firestore,
-       _google = googleSignIn;
+       _google = googleSignIn,
+       _leaderboards = leaderboards;
 
   static const _googleWebClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
   static const _webPopupSignInTimeout = Duration(minutes: 2);
@@ -26,6 +29,7 @@ class AuthService {
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
   final GoogleSignIn _google;
+  final LeaderboardRepository _leaderboards;
 
   bool get isAvailable => FirebaseBootstrap.result?.enabled ?? false;
 
@@ -163,13 +167,14 @@ class AuthService {
       await _reauthenticate(user, providerKind);
     }
 
+    // Cloud data first: once the user is deleted, security rules reject the cleanup.
     final uid = user.uid;
-    await user.delete();
     try {
       await _deleteCloudData(uid);
     } catch (e) {
-      debugPrint('Cloud cleanup after account deletion failed: $e');
+      debugPrint('Cloud cleanup before account deletion failed: $e');
     }
+    await user.delete();
     await _signOutProviderSessions();
   }
 
@@ -262,7 +267,7 @@ class AuthService {
     await _deleteCollection(FirestorePaths.userConfigs(uid));
     await _deleteCollection(FirestorePaths.userSolvedSolutions(uid));
     await _deleteCollection('${FirestorePaths.userDoc(uid)}/solutionCounts');
-    await _firestore.doc(FirestorePaths.publicUserDoc(uid)).delete().catchError((_) {});
+    await _leaderboards.deleteAll(uid).catchError((final Object _) {});
     await _firestore.doc(FirestorePaths.userDoc(uid)).delete().catchError((_) {});
   }
 
