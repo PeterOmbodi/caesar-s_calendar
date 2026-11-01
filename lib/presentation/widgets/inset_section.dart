@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -12,6 +13,7 @@ class InsetSection extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
+    if (ScreenSpec.of(context).family != ChromeFamily.glass) return _material(context);
     final colors = GameColors.of(context);
     final header = this.header;
     final footer = this.footer;
@@ -55,6 +57,46 @@ class InsetSection extends StatelessWidget {
       ],
     );
   }
+
+  Widget _material(final BuildContext context) {
+    final theme = Theme.of(context);
+    final header = this.header;
+    final footer = this.footer;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (header != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Semantics(
+              header: true,
+              child: Text(header, style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary)),
+            ),
+          ),
+        Card.filled(
+          margin: EdgeInsets.zero,
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final (index, child) in children.indexed) ...[
+                if (index > 0) const Divider(height: 1, indent: 16, endIndent: 16),
+                child,
+              ],
+            ],
+          ),
+        ),
+        if (footer != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Text(
+              footer,
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ),
+      ],
+    );
+  }
 }
 
 class InsetRow extends StatelessWidget {
@@ -86,6 +128,7 @@ class InsetRow extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
+    if (ScreenSpec.of(context).family != ChromeFamily.glass) return _material();
     final colors = GameColors.of(context);
     final subtitle = this.subtitle;
     final trailing = this.trailing;
@@ -134,6 +177,28 @@ class InsetRow extends StatelessWidget {
               type: MaterialType.transparency,
               child: InkWell(onTap: onTap, child: row),
             ),
+    );
+  }
+
+  Widget _material() {
+    final subtitle = this.subtitle;
+    final illustration = this.illustration;
+    final icon = this.icon;
+    return ListTile(
+      leading: leading ?? (icon == null ? null : Icon(icon, color: titleColor)),
+      title: Text(title, style: titleColor == null ? null : TextStyle(color: titleColor)),
+      subtitle: subtitle == null && illustration == null
+          ? null
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (subtitle != null) Text(subtitle),
+                if (illustration != null) ...[const SizedBox(height: 10), illustration],
+              ],
+            ),
+      trailing: trailing,
+      onTap: onTap,
     );
   }
 }

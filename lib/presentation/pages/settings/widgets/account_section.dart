@@ -2,6 +2,7 @@ import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_status.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/achievements/achievements_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/leaderboard_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
@@ -247,11 +248,13 @@ class _AccountSectionState extends State<AccountSection> {
               ignoring: publicProfile.isLoading,
               child: Opacity(
                 opacity: publicProfile.isLoading ? 0.5 : 1,
-                child: AppSwitch(
-                  value: publicProfile.enabled,
-                  onChanged: _setLeaderboardVisibility,
-                  semanticLabel: S.current.accountLeaderboardVisibility,
-                ),
+                child: ScreenSpec.of(context).family == ChromeFamily.glass
+                    ? AppSwitch(
+                        value: publicProfile.enabled,
+                        onChanged: _setLeaderboardVisibility,
+                        semanticLabel: S.current.accountLeaderboardVisibility,
+                      )
+                    : Switch(value: publicProfile.enabled, onChanged: _setLeaderboardVisibility),
               ),
             ),
           ),
