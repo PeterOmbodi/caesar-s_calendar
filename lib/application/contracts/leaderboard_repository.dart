@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_entry.dart';
+import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 
 abstract class LeaderboardRepository {
   Future<bool> hasProfile(final String uid);
@@ -14,4 +15,10 @@ abstract class LeaderboardRepository {
 
   /// 1-based place; equal results share it.
   Future<int> rank(final String boardId, final LeaderboardEntry entry);
+
+  Future<List<StreakEntry>> topStreaks(final PuzzleSessionDifficulty level, {final int limit = 50});
+
+  Future<StreakEntry?> streakEntry(final PuzzleSessionDifficulty level, final String uid);
+
+  Future<int> streakRank(final PuzzleSessionDifficulty level, final StreakEntry entry);
 }

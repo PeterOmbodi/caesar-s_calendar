@@ -23,6 +23,26 @@ class LeaderboardEntry {
   final DateTime? expireAt;
 }
 
+class StreakEntry {
+  const StreakEntry({
+    required this.uid,
+    required this.nickname,
+    required this.colorIndex,
+    required this.best,
+    required this.current,
+    required this.lastDay,
+  });
+
+  final String uid;
+  final String nickname;
+  final int colorIndex;
+  final int best;
+
+  /// As published; it is stale once [lastDay] is before yesterday.
+  final int current;
+  final DateTime? lastDay;
+}
+
 class LeaderboardProfile {
   const LeaderboardProfile({
     required this.nickname,

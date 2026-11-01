@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/application/contracts/leaderboard_repository.dart';
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_entry.dart';
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_period.dart';
+import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/infrastructure/firebase/firestore_paths.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:injectable/injectable.dart';
@@ -75,6 +76,32 @@ class LeaderboardRepositoryImpl implements LeaderboardRepository {
     return count + 1;
   }
 
+  @override
+  Future<List<StreakEntry>> topStreaks(final PuzzleSessionDifficulty level, {final int limit = 50}) async {
+    final field = _bestStreakField(level);
+    final snapshot = await _firestore
+        .collection(FirestorePaths.publicUsers)
+        .where(field, isGreaterThan: 0)
+        .orderBy(field, descending: true)
+        .limit(limit)
+        .get();
+    return [for (final doc in snapshot.docs) _streakFromMap(level, doc.id, doc.data())];
+  }
+
+  @override
+  Future<StreakEntry?> streakEntry(final PuzzleSessionDifficulty level, final String uid) async {
+    final data = (await _profile(uid).get()).data();
+    return data == null ? null : _streakFromMap(level, uid, data);
+  }
+
+  @override
+  Future<int> streakRank(final PuzzleSessionDifficulty level, final StreakEntry entry) async {
+    final better = _firestore
+        .collection(FirestorePaths.publicUsers)
+        .where(_bestStreakField(level), isGreaterThan: entry.best);
+    return ((await better.count().get()).count ?? 0) + 1;
+  }
+
   DocumentReference<Map<String, dynamic>> _profile(final String uid) =>
       _firestore.doc(FirestorePaths.publicUserDoc(uid));
 
@@ -104,6 +131,25 @@ class LeaderboardRepositoryImpl implements LeaderboardRepository {
       secondary: data[isDay ? 'extra' : 'days'] as int,
       reachedAt: (data['reachedAt'] as Timestamp).toDate(),
       expireAt: (data['expireAt'] as Timestamp?)?.toDate(),
+    );
+  }
+
+  static String _bestStreakField(final PuzzleSessionDifficulty level) => 'bestStreak${_capitalized(level.name)}';
+
+  static StreakEntry _streakFromMap(
+    final PuzzleSessionDifficulty level,
+    final String uid,
+    final Map<String, dynamic> data,
+  ) {
+    final name = _capitalized(level.name);
+    final lastDay = data['streakLastDay$name'] as String?;
+    return StreakEntry(
+      uid: uid,
+      nickname: data['nickname'] as String,
+      colorIndex: data['colorIndex'] as int,
+      best: data['bestStreak$name'] as int? ?? 0,
+      current: data['currentStreak$name'] as int? ?? 0,
+      lastDay: lastDay == null ? null : DateTime.parse(lastDay),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_status.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/achievements/achievements_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/leaderboard/leaderboard_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
@@ -237,7 +238,7 @@ class _AccountSectionState extends State<AccountSection> {
         footer: S.current.accountLeaderboardFooter,
         children: [
           InsetRow(
-            icon: Icons.leaderboard_outlined,
+            icon: Icons.visibility_outlined,
             title: S.current.accountLeaderboardVisibility,
             subtitle: S.current.accountLeaderboardNickname(
               NicknameGenerator.nickname(uid: user.uid as String, displayName: displayName),
@@ -253,6 +254,13 @@ class _AccountSectionState extends State<AccountSection> {
                 ),
               ),
             ),
+          ),
+          InsetRow(
+            icon: Icons.leaderboard_outlined,
+            title: S.current.leaderboardTitle,
+            trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
+            onTap: () =>
+                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
           ),
         ],
       ),
