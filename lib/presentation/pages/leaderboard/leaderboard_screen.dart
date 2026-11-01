@@ -154,13 +154,22 @@ class _TabSelector extends StatelessWidget {
         onChanged: (final tab) => unawaited(cubit.selectTab(tab)),
       );
     }
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final MapEntry(key: tab, value: label) in labels.entries)
-          ChoiceChip(label: Text(label), selected: tab == selected, onSelected: (_) => unawaited(cubit.selectTab(tab))),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
+      child: Row(
+        children: [
+          for (final MapEntry(key: tab, value: label) in labels.entries)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 8),
+              child: ChoiceChip(
+                label: Text(label),
+                selected: tab == selected,
+                onSelected: (_) => unawaited(cubit.selectTab(tab)),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

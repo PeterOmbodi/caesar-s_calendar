@@ -41,8 +41,13 @@ class _Repository implements LeaderboardRepository {
   Future<LeaderboardEntry?> entry(final String boardId, final String uid) async =>
       boards[boardId]?.where((final e) => e.uid == uid).firstOrNull;
 
+  bool offline = false;
+
   @override
-  Future<int> rank(final String boardId, final LeaderboardEntry entry) async => 42;
+  Future<int> rank(final String boardId, final LeaderboardEntry entry) async {
+    if (offline) throw StateError('unavailable');
+    return 42;
+  }
 
   @override
   Future<List<StreakEntry>> topStreaks(final PuzzleSessionDifficulty level, {final int limit = 50}) async =>
@@ -134,6 +139,21 @@ void main() {
     expect(c.state.me?.rank, 42);
     expect(c.state.me?.score, 30);
     expect(c.state.me?.secondary, 2);
+  });
+
+  test('table stays when the own rank needs the server and it is unavailable', () async {
+    repository.boards['w2026-44_medium'] = [_entry('a', 100), _entry('me', 30)];
+    repository.outsideTop.add('me');
+    repository.offline = true;
+    final c = cubit();
+    await c.open(PuzzleSessionDifficulty.medium);
+
+    await c.selectTab(LeaderboardTab.week);
+    await c.load(now: _now);
+
+    expect(c.state.error, isNull);
+    expect(c.state.rows, hasLength(1));
+    expect(c.state.me, isNull);
   });
 
   test('day tier: always on Medium, on Hard only with an own result', () async {

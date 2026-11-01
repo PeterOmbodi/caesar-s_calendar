@@ -104,13 +104,12 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
     final request = ++_request;
     final tab = state.tab;
     emit(state.copyWith(isLoading: true, error: () => null));
+    final uid = _auth.isAvailable ? _auth.currentUser?.uid : null;
+    var visibility = uid == null ? LeaderboardVisibility.signedOut : state.visibility;
     try {
-      final uid = _auth.isAvailable ? _auth.currentUser?.uid : null;
-      final visibility = uid == null
-          ? LeaderboardVisibility.signedOut
-          : await _profile.isEnabled()
-          ? LeaderboardVisibility.visible
-          : LeaderboardVisibility.hidden;
+      if (uid != null) {
+        visibility = await _profile.isEnabled() ? LeaderboardVisibility.visible : LeaderboardVisibility.hidden;
+      }
       final today = now ?? DateTime.now();
       final (rows, me) = tab == LeaderboardTab.streaks
           ? await _loadStreaks(uid, today)
@@ -128,8 +127,11 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
         ),
       );
     } catch (e) {
+      debugPrint('Leaderboard load failed: $e');
       if (request != _request) return;
-      emit(state.copyWith(isLoading: false, rows: const [], me: () => null, error: () => e));
+      emit(
+        state.copyWith(isLoading: false, rows: const [], me: () => null, visibility: visibility, error: () => e),
+      );
     }
   }
 
@@ -137,9 +139,15 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
     final top = await _repository.top(boardId);
     final rows = _ranked([for (final e in top) (e.uid, e.nickname, e.colorIndex, e.score, e.secondary)], uid);
     if (uid == null || rows.any((final row) => row.isMe)) return (rows, null);
-    final own = await _repository.entry(boardId, uid);
-    if (own == null) return (rows, null);
-    return (rows, _row(await _repository.rank(boardId, own), own.nickname, own.colorIndex, own.score, own.secondary));
+    return (
+      rows,
+      await _ownRow(() async {
+        final own = await _repository.entry(boardId, uid);
+        if (own == null) return null;
+        final rank = await _repository.rank(boardId, own);
+        return _row(rank, own.nickname, own.colorIndex, own.score, own.secondary);
+      }),
+    );
   }
 
   Future<(List<LeaderboardRow>, LeaderboardRow?)> _loadStreaks(final String? uid, final DateTime today) async {
@@ -147,10 +155,25 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
     final top = await _repository.topStreaks(_level);
     final rows = _ranked([for (final e in top) (e.uid, e.nickname, e.colorIndex, e.best, current(e))], uid);
     if (uid == null || rows.any((final row) => row.isMe)) return (rows, null);
-    final own = await _repository.streakEntry(_level, uid);
-    if (own == null || own.best == 0) return (rows, null);
-    final rank = await _repository.streakRank(_level, own);
-    return (rows, _row(rank, own.nickname, own.colorIndex, own.best, current(own)));
+    return (
+      rows,
+      await _ownRow(() async {
+        final own = await _repository.streakEntry(_level, uid);
+        if (own == null || own.best == 0) return null;
+        final rank = await _repository.streakRank(_level, own);
+        return _row(rank, own.nickname, own.colorIndex, own.best, current(own));
+      }),
+    );
+  }
+
+  /// The own row needs the server (a document read and a count); without it the table is still shown.
+  static Future<LeaderboardRow?> _ownRow(final Future<LeaderboardRow?> Function() load) async {
+    try {
+      return await load();
+    } catch (e) {
+      debugPrint('Leaderboard own row failed: $e');
+      return null;
+    }
   }
 
   /// Equal scores share a place: 1, 2, 2, 4.
