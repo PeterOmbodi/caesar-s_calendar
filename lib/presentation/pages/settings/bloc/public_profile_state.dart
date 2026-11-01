@@ -5,7 +5,6 @@ abstract class PublicProfileState with _$PublicProfileState {
   const factory PublicProfileState({
     required final bool isAvailable,
     required final bool isLoading,
-    required final bool isUpdating,
     required final bool enabled,
     required final SyncStatus syncStatus,
     final String? errorMessage,
@@ -14,7 +13,6 @@ abstract class PublicProfileState with _$PublicProfileState {
   factory PublicProfileState.initial({required final SyncStatus syncStatus}) => PublicProfileState(
     isAvailable: true,
     isLoading: true,
-    isUpdating: false,
     enabled: false,
     syncStatus: syncStatus,
   );

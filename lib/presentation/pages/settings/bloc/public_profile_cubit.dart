@@ -60,22 +60,11 @@ class PublicProfileCubit extends Cubit<PublicProfileState> {
     await _loadForCurrentUser();
   }
 
-  Future<void> toggleEnabled(final bool enabled) async {
-    if (!_auth.isAvailable || _auth.currentUser == null || state.isUpdating) return;
-
-    emit(state.copyWith(isUpdating: true, enabled: enabled, errorMessage: null));
-    try {
-      await _profiles.setEnabled(enabled).timeout(operationTimeout);
-      emit(state.copyWith(isUpdating: false, enabled: enabled, errorMessage: null));
-    } catch (e) {
-      var actual = !enabled;
-      try {
-        actual = await _profiles.isEnabled().timeout(operationTimeout);
-      } catch (_) {
-        // Keep the last confirmed value when Firestore is still unavailable.
-      }
-      emit(state.copyWith(isUpdating: false, enabled: actual, errorMessage: e.toString()));
-    }
+  void toggleEnabled(final bool enabled) {
+    if (!_auth.isAvailable || _auth.currentUser == null) return;
+    _profiles.setEnabled(enabled);
+    emit(state.copyWith(enabled: enabled, errorMessage: null));
+    _syncRunner.publishProfileNow();
   }
 
   void requestSyncNow() {
@@ -90,16 +79,16 @@ class PublicProfileCubit extends Cubit<PublicProfileState> {
 
     final user = _auth.currentUser;
     if (user == null) {
-      emit(state.copyWith(isAvailable: true, isLoading: false, enabled: false, isUpdating: false, errorMessage: null));
+      emit(state.copyWith(isAvailable: true, isLoading: false, enabled: false, errorMessage: null));
       return;
     }
 
     emit(state.copyWith(isAvailable: true, isLoading: true, errorMessage: null));
     try {
       final enabled = await _profiles.isEnabled().timeout(operationTimeout);
-      emit(state.copyWith(isLoading: false, enabled: enabled, isUpdating: false, errorMessage: null));
+      emit(state.copyWith(isLoading: false, enabled: enabled, errorMessage: null));
     } catch (e) {
-      emit(state.copyWith(isLoading: false, enabled: false, isUpdating: false, errorMessage: e.toString()));
+      emit(state.copyWith(isLoading: false, enabled: false, errorMessage: e.toString()));
     }
   }
 

@@ -17,6 +17,18 @@ class LeaderboardPublisher {
 
   final PuzzleHistoryRepository _history;
 
+  /// Profile with zero streaks and no entries, valid for the security rules.
+  LeaderboardSnapshot emptySnapshot({required final String uid, required final String? displayName}) =>
+      LeaderboardSnapshot(
+        profile: LeaderboardProfile(
+          nickname: NicknameGenerator.nickname(uid: uid, displayName: displayName),
+          nicknameSource: 'generated',
+          colorIndex: NicknameGenerator.colorIndex(uid),
+          streaks: {for (final level in LeaderboardScoring.levels) level: LevelStreak.empty},
+        ),
+        entries: const {},
+      );
+
   Future<LeaderboardSnapshot> build({
     required final String uid,
     required final String? displayName,

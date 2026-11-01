@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:caesar_puzzle/application/contracts/leaderboard_repository.dart';
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_publisher.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 /// Leaderboard visibility: the player's public profile exists only while it is on.
@@ -19,6 +22,7 @@ class PublicProfileService {
   final LeaderboardPublisher _publisher;
 
   final _enabled = <String, bool>{};
+  final _pendingDeletion = <String>{};
   String? _lastPublishedKey;
 
   Future<bool> isEnabled() async {
@@ -27,32 +31,50 @@ class PublicProfileService {
     return _enabled[uid] ??= await _leaderboards.hasProfile(uid);
   }
 
-  Future<void> setEnabled(final bool enabled) async {
+  /// Applies at once; publishing and deletion run later in [publishNow].
+  void setEnabled(final bool enabled) {
     final uid = _uid;
     if (uid == null) return;
-    if (enabled) {
-      await _publish(uid, force: true);
-    } else {
-      await _leaderboards.deleteAll(uid);
-      _lastPublishedKey = null;
-    }
     _enabled[uid] = enabled;
+    _lastPublishedKey = null;
+    if (enabled) {
+      _pendingDeletion.remove(uid);
+      // Not awaited: Firestore applies the write locally and sends it once online.
+      final profile = _publisher.emptySnapshot(uid: uid, displayName: _auth.currentDisplayName);
+      unawaited(
+        _leaderboards
+            .publish(uid: uid, snapshot: profile)
+            .catchError((final Object e) => debugPrint('Leaderboard profile create failed: $e')),
+      );
+    } else {
+      _pendingDeletion.add(uid);
+    }
   }
 
-  /// Publishes only when visibility is on and the data changed since the last publish.
+  /// Runs a pending deletion, then publishes if visibility is on and the data changed since the last publish.
   Future<void> publishNow() async {
     final uid = _uid;
-    if (uid == null || !await isEnabled()) return;
-    await _publish(uid, force: false);
+    if (uid == null) return;
+    if (_pendingDeletion.contains(uid)) {
+      await _leaderboards.deleteAll(uid);
+      _pendingDeletion.remove(uid);
+    }
+    if (!await isEnabled()) return;
+    await _publish(uid);
   }
 
   String? get _uid => _auth.isAvailable ? _auth.currentUser?.uid : null;
 
-  Future<void> _publish(final String uid, {required final bool force}) async {
+  Future<void> _publish(final String uid) async {
     final snapshot = await _publisher.build(uid: uid, displayName: _auth.currentDisplayName, now: DateTime.now());
     final key = '$uid|${snapshot.key}';
-    if (!force && key == _lastPublishedKey) return;
+    if (_enabled[uid] != true || key == _lastPublishedKey) return;
     await _leaderboards.publish(uid: uid, snapshot: snapshot);
     _lastPublishedKey = key;
+    // Turned off while publishing: the deletion may have run before this write landed.
+    if (_enabled[uid] != true) {
+      _lastPublishedKey = null;
+      _pendingDeletion.add(uid);
+    }
   }
 }

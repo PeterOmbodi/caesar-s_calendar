@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_status.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
@@ -5,6 +6,7 @@ import 'package:caesar_puzzle/presentation/pages/achievements/achievements_scree
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/app_switch.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -66,6 +68,32 @@ class _AccountSectionState extends State<AccountSection> {
       return;
     }
     await cubit.cancelCloudReplace();
+  }
+
+  Future<void> _setLeaderboardVisibility(final bool enabled) async {
+    final cubit = context.read<PublicProfileCubit>();
+    if (!enabled) {
+      final confirmed = await showAdaptiveDialog<bool>(
+        context: context,
+        builder: (final dialogContext) => PlatformAlertDialog(
+          title: Text(S.current.accountLeaderboardHideTitle),
+          content: Text(S.current.accountLeaderboardHideMessage),
+          actions: [
+            PlatformDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(S.current.historySessionDialogCancel),
+            ),
+            PlatformDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              cupertino: (_, _) => CupertinoDialogActionData(isDestructiveAction: true),
+              child: Text(S.current.accountLeaderboardHideConfirm),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || confirmed != true) return;
+    }
+    cubit.toggleEnabled(enabled);
   }
 
   Future<void> _showDeleteAccountDialog() async {
@@ -201,6 +229,30 @@ class _AccountSectionState extends State<AccountSection> {
             trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
             onTap: () =>
                 Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AchievementsScreen())),
+          ),
+        ],
+      ),
+      _sectionGap,
+      InsetSection(
+        footer: S.current.accountLeaderboardFooter,
+        children: [
+          InsetRow(
+            icon: Icons.leaderboard_outlined,
+            title: S.current.accountLeaderboardVisibility,
+            subtitle: S.current.accountLeaderboardNickname(
+              NicknameGenerator.nickname(uid: user.uid as String, displayName: displayName),
+            ),
+            trailing: IgnorePointer(
+              ignoring: publicProfile.isLoading,
+              child: Opacity(
+                opacity: publicProfile.isLoading ? 0.5 : 1,
+                child: AppSwitch(
+                  value: publicProfile.enabled,
+                  onChanged: _setLeaderboardVisibility,
+                  semanticLabel: S.current.accountLeaderboardVisibility,
+                ),
+              ),
+            ),
           ),
         ],
       ),

@@ -20,8 +20,10 @@ class _History implements PuzzleHistoryRepository {
   }) => Stream.value(sessions);
 
   @override
-  Future<List<SolvedSolutionRecord>> getSolvedSolutions({required final DateTime from, required final DateTime to}) async =>
-      const [];
+  Future<List<SolvedSolutionRecord>> getSolvedSolutions({
+    required final DateTime from,
+    required final DateTime to,
+  }) async => const [];
 
   @override
   dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
@@ -60,8 +62,10 @@ int _points(final int month, final int day) =>
 void main() {
   final now = DateTime(2026, 10, 30, 21);
 
-  Future<LeaderboardSnapshot> build(final List<PuzzleSessionData> sessions, {final String? displayName = 'Peter Ombodi'}) =>
-      LeaderboardPublisher(_History(sessions)).build(uid: 'u1', displayName: displayName, now: now);
+  Future<LeaderboardSnapshot> build(
+    final List<PuzzleSessionData> sessions, {
+    final String? displayName = 'Peter Ombodi',
+  }) => LeaderboardPublisher(_History(sessions)).build(uid: 'u1', displayName: displayName, now: now);
 
   test('publishes today and the current week, month and year per level', () async {
     final snapshot = await build([
@@ -131,5 +135,15 @@ void main() {
 
     expect(a.key, b.key);
     expect(a.key, isNot(c.key));
+  });
+
+  test('empty snapshot has zero streaks for both levels and no entries', () {
+    final snapshot = LeaderboardPublisher(_History(const [])).emptySnapshot(uid: 'u1', displayName: 'Peter Ombodi');
+
+    expect(snapshot.entries, isEmpty);
+    expect(snapshot.profile.nickname, 'Peter O.');
+    final levels = [PuzzleSessionDifficulty.medium, PuzzleSessionDifficulty.hard];
+    expect(snapshot.profile.streaks.keys, unorderedEquals(levels));
+    expect(snapshot.profile.streaks.values.every((final s) => s.best == 0 && s.current == 0), isTrue);
   });
 }
