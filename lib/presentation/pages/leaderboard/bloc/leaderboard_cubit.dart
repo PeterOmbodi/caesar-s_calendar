@@ -4,7 +4,6 @@ import 'package:caesar_puzzle/application/leaderboard/day_difficulty.dart';
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_entry.dart';
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_period.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
-import 'package:caesar_puzzle/infrastructure/achievements/public_profile_service.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
@@ -32,8 +31,6 @@ class LeaderboardRow {
   final bool isMe;
 }
 
-enum LeaderboardVisibility { signedOut, hidden, visible }
-
 @immutable
 class LeaderboardState {
   const LeaderboardState({
@@ -42,7 +39,6 @@ class LeaderboardState {
     this.rows = const [],
     this.me,
     this.dayTier,
-    this.visibility = LeaderboardVisibility.signedOut,
     this.error,
   });
 
@@ -55,7 +51,6 @@ class LeaderboardState {
 
   /// Shown on Medium, and on Hard only after the player's own solve today.
   final int? dayTier;
-  final LeaderboardVisibility visibility;
   final Object? error;
 
   LeaderboardState copyWith({
@@ -64,7 +59,6 @@ class LeaderboardState {
     final List<LeaderboardRow>? rows,
     final LeaderboardRow? Function()? me,
     final int? Function()? dayTier,
-    final LeaderboardVisibility? visibility,
     final Object? Function()? error,
   }) => LeaderboardState(
     tab: tab ?? this.tab,
@@ -72,19 +66,17 @@ class LeaderboardState {
     rows: rows ?? this.rows,
     me: me == null ? this.me : me(),
     dayTier: dayTier == null ? this.dayTier : dayTier(),
-    visibility: visibility ?? this.visibility,
     error: error == null ? this.error : error(),
   );
 }
 
 @injectable
 class LeaderboardCubit extends Cubit<LeaderboardState> {
-  LeaderboardCubit(this._repository, this._auth, this._profile)
+  LeaderboardCubit(this._repository, this._auth)
     : super(const LeaderboardState(tab: LeaderboardTab.today, isLoading: true));
 
   final LeaderboardRepository _repository;
   final AuthService _auth;
-  final PublicProfileService _profile;
 
   PuzzleSessionDifficulty _level = PuzzleSessionDifficulty.hard;
   int _request = 0;
@@ -105,11 +97,7 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
     final tab = state.tab;
     emit(state.copyWith(isLoading: true, error: () => null));
     final uid = _auth.isAvailable ? _auth.currentUser?.uid : null;
-    var visibility = uid == null ? LeaderboardVisibility.signedOut : state.visibility;
     try {
-      if (uid != null) {
-        visibility = await _profile.isEnabled() ? LeaderboardVisibility.visible : LeaderboardVisibility.hidden;
-      }
       final today = now ?? DateTime.now();
       final (rows, me) = tab == LeaderboardTab.streaks
           ? await _loadStreaks(uid, today)
@@ -123,15 +111,12 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
           rows: rows,
           me: () => me,
           dayTier: () => showTier ? DayDifficulty.tier(today.month, today.day) : null,
-          visibility: visibility,
         ),
       );
     } catch (e) {
       debugPrint('Leaderboard load failed: $e');
       if (request != _request) return;
-      emit(
-        state.copyWith(isLoading: false, rows: const [], me: () => null, visibility: visibility, error: () => e),
-      );
+      emit(state.copyWith(isLoading: false, rows: const [], me: () => null, error: () => e));
     }
   }
 

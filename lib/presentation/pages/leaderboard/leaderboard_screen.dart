@@ -6,12 +6,15 @@ import 'package:caesar_puzzle/application/leaderboard/leaderboard_period.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
+import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/session_summary.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/bloc/leaderboard_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/widgets/leaderboard_row_view.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/app_segmented_control.dart';
@@ -53,52 +56,107 @@ class LeaderboardScreen extends StatelessWidget {
         ),
       );
     }
-    return BlocProvider(
-      create: (_) {
-        final cubit = getIt<LeaderboardCubit>();
-        unawaited(cubit.open(level));
-        return cubit;
-      },
-      child: BlocBuilder<LeaderboardCubit, LeaderboardState>(
-        builder: (final context, final state) => Scaffold(
-          backgroundColor: colors.background,
-          body: RefreshIndicator.adaptive(
-            onRefresh: context.read<LeaderboardCubit>().load,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                const _AppBar(),
-                SliverSafeArea(
-                  top: false,
-                  sliver: SliverPadding(
-                    padding: padding.copyWith(bottom: 16),
-                    sliver: SliverList.list(
-                      children: [
-                        _Note(S.current.leaderboardLevelNote(level.label)),
-                        const SizedBox(height: 16),
-                        _TabSelector(selected: state.tab),
-                        const SizedBox(height: 16),
-                        _PeriodLine(tab: state.tab, dayTier: state.dayTier),
-                        if (_hint(state.visibility) case final hint?) ...[const SizedBox(height: 8), _Note(hint)],
-                        const SizedBox(height: 16),
-                        _Body(state: state),
-                      ],
-                    ),
+    return Scaffold(
+      backgroundColor: colors.background,
+      body: BlocBuilder<AuthCubit, AuthState>(
+        buildWhen: (final p, final n) => p.user?.uid != n.user?.uid,
+        builder: (final context, final auth) => BlocBuilder<PublicProfileCubit, PublicProfileState>(
+          buildWhen: (final p, final n) => p.enabled != n.enabled || p.isLoading != n.isLoading,
+          builder: (final context, final profile) {
+            if (auth.user == null) {
+              return _Gate(
+                padding: padding,
+                text: S.current.leaderboardSignedOutHint(S.current.accountLeaderboardVisibility),
+                action: S.current.leaderboardSignIn,
+                onPressed: () => unawaited(showAccountSectionSheet(context)),
+              );
+            }
+            if (profile.isLoading) {
+              return const CustomScrollView(
+                slivers: [
+                  _AppBar(),
+                  SliverFillRemaining(child: Center(child: CircularProgressIndicator.adaptive())),
+                ],
+              );
+            }
+            if (!profile.enabled) {
+              return _Gate(
+                padding: padding,
+                text: S.current.leaderboardHiddenHint(S.current.accountLeaderboardVisibility),
+                action: S.current.leaderboardTurnOn,
+                onPressed: () => context.read<PublicProfileCubit>().toggleEnabled(true),
+              );
+            }
+            return BlocProvider(
+              key: ValueKey(auth.user?.uid),
+              create: (_) {
+                final cubit = getIt<LeaderboardCubit>();
+                unawaited(cubit.open(level));
+                return cubit;
+              },
+              child: BlocBuilder<LeaderboardCubit, LeaderboardState>(
+                builder: (final context, final state) => RefreshIndicator.adaptive(
+                  onRefresh: context.read<LeaderboardCubit>().load,
+                  child: CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      const _AppBar(),
+                      SliverSafeArea(
+                        top: false,
+                        sliver: SliverPadding(
+                          padding: padding.copyWith(bottom: 16),
+                          sliver: SliverList.list(
+                            children: [
+                              _Note(S.current.leaderboardLevelNote(level.label)),
+                              const SizedBox(height: 16),
+                              _TabSelector(selected: state.tab),
+                              const SizedBox(height: 16),
+                              _PeriodLine(tab: state.tab, dayTier: state.dayTier),
+                              const SizedBox(height: 16),
+                              _Body(state: state),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
   }
+}
 
-  static String? _hint(final LeaderboardVisibility visibility) => switch (visibility) {
-    LeaderboardVisibility.signedOut => S.current.leaderboardSignedOutHint(S.current.accountLeaderboardVisibility),
-    LeaderboardVisibility.hidden => S.current.leaderboardHiddenHint(S.current.accountLeaderboardVisibility),
-    LeaderboardVisibility.visible => null,
-  };
+class _Gate extends StatelessWidget {
+  const _Gate({required this.padding, required this.text, required this.action, required this.onPressed});
+
+  final EdgeInsets padding;
+  final String text;
+  final String action;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(final BuildContext context) => CustomScrollView(
+    slivers: [
+      const _AppBar(),
+      SliverPadding(
+        padding: padding,
+        sliver: SliverList.list(
+          children: [
+            Text(text, style: TextStyle(fontSize: 15, height: 20 / 15, color: GameColors.of(context).text)),
+            const SizedBox(height: 16),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: FilledButton(onPressed: onPressed, child: Text(action)),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 }
 
 class _AppBar extends StatelessWidget {

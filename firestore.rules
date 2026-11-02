@@ -55,7 +55,7 @@ service cloud.firestore {
           && isStreak(data, 'Hard');
       }
 
-      allow read: if true;
+      allow read: if isSignedIn();
       allow create, update: if isOwner(uid) && isProfile(request.resource.data);
       allow delete: if isOwner(uid);
     }
@@ -98,14 +98,14 @@ service cloud.firestore {
             : isPeriodEntry(data, 366));
       }
 
-      allow read: if true;
+      allow read: if isSignedIn();
       allow create, update: if isOwner(uid) && isBoardId() && isEntry(request.resource.data);
       allow delete: if isOwner(uid);
     }
 
     // Lets a player find all of their own entries to delete them.
     match /{path=**}/entries/{uid} {
-      allow read: if true;
+      allow read: if isSignedIn();
     }
   }
 }

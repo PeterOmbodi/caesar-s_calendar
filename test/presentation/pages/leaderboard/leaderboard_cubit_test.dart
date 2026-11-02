@@ -2,7 +2,6 @@ import 'package:caesar_puzzle/application/contracts/leaderboard_repository.dart'
 import 'package:caesar_puzzle/application/leaderboard/day_difficulty.dart';
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_entry.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
-import 'package:caesar_puzzle/infrastructure/achievements/public_profile_service.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/bloc/leaderboard_cubit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -89,23 +88,10 @@ class _User implements User {
   dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Profile implements PublicProfileService {
-  _Profile({this.enabled = true});
-
-  final bool enabled;
-
-  @override
-  Future<bool> isEnabled() async => enabled;
-
-  @override
-  dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 void main() {
   late _Repository repository;
 
-  LeaderboardCubit cubit({final String? uid = 'me', final bool enabled = true}) =>
-      LeaderboardCubit(repository, _Auth(uid), _Profile(enabled: enabled));
+  LeaderboardCubit cubit({final String? uid = 'me'}) => LeaderboardCubit(repository, _Auth(uid));
 
   setUp(() => repository = _Repository());
 
@@ -123,7 +109,6 @@ void main() {
     expect(c.state.rows.map((final r) => r.rank), [1, 1, 3]);
     expect(c.state.rows[1].isMe, isTrue);
     expect(c.state.me, isNull);
-    expect(c.state.visibility, LeaderboardVisibility.visible);
   });
 
   test('own result outside the top comes with its rank', () async {
@@ -184,12 +169,5 @@ void main() {
     await c.load(now: _now);
 
     expect([for (final r in c.state.rows) (r.score, r.secondary)], [(10, 0), (5, 3)]);
-    expect(c.state.visibility, LeaderboardVisibility.signedOut);
-  });
-
-  test('visibility off is reported', () async {
-    final c = cubit(enabled: false);
-    await c.open(PuzzleSessionDifficulty.hard);
-    expect(c.state.visibility, LeaderboardVisibility.hidden);
   });
 }
