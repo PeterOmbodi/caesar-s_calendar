@@ -43,13 +43,30 @@ class LeaderboardRepositoryImpl implements LeaderboardRepository {
   }
 
   @override
+  Future<void> renameAll(final String uid, final String nickname) async {
+    final refs = await _ownEntries(uid);
+    await _inBatches(refs, (final batch, final ref) => batch.update(ref, {'nickname': nickname}));
+  }
+
+  @override
   Future<void> deleteAll(final String uid) async {
+    final refs = [...await _ownEntries(uid), _profile(uid)];
+    await _inBatches(refs, (final batch, final ref) => batch.delete(ref));
+  }
+
+  Future<List<DocumentReference<Map<String, dynamic>>>> _ownEntries(final String uid) async {
     final own = await _firestore.collectionGroup(FirestorePaths.leaderboardEntries).where('uid', isEqualTo: uid).get();
-    final refs = [for (final doc in own.docs) doc.reference, _profile(uid)];
+    return [for (final doc in own.docs) doc.reference];
+  }
+
+  Future<void> _inBatches(
+    final List<DocumentReference<Map<String, dynamic>>> refs,
+    final void Function(WriteBatch batch, DocumentReference<Map<String, dynamic>> ref) apply,
+  ) async {
     for (var i = 0; i < refs.length; i += _batchLimit) {
       final batch = _firestore.batch();
       for (final ref in refs.skip(i).take(_batchLimit)) {
-        batch.delete(ref);
+        apply(batch, ref);
       }
       await batch.commit();
     }

@@ -7,6 +7,9 @@ abstract class LeaderboardRepository {
 
   Future<void> publish({required final String uid, required final LeaderboardSnapshot snapshot});
 
+  /// Sets [nickname] in every entry of the player, past periods included.
+  Future<void> renameAll(final String uid, final String nickname);
+
   /// Removes the profile and every entry of the player.
   Future<void> deleteAll(final String uid);
 

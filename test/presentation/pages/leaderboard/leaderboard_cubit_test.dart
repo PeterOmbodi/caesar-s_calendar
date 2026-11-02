@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:caesar_puzzle/application/contracts/leaderboard_repository.dart';
 import 'package:caesar_puzzle/application/leaderboard/day_difficulty.dart';
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_entry.dart';
@@ -28,13 +30,16 @@ StreakEntry _streak(final String uid, final int best, final int current, final D
 );
 
 class _Repository implements LeaderboardRepository {
+  Completer<void>? gate;
   final boards = <String, List<LeaderboardEntry>>{};
   final streaks = <StreakEntry>[];
   final outsideTop = <String>{};
 
   @override
-  Future<List<LeaderboardEntry>> top(final String boardId, {final int limit = 50}) async =>
-      (boards[boardId] ?? const []).where((final e) => !outsideTop.contains(e.uid)).take(limit).toList();
+  Future<List<LeaderboardEntry>> top(final String boardId, {final int limit = 50}) async {
+    await gate?.future;
+    return (boards[boardId] ?? const []).where((final e) => !outsideTop.contains(e.uid)).take(limit).toList();
+  }
 
   @override
   Future<LeaderboardEntry?> entry(final String boardId, final String uid) async =>
@@ -169,5 +174,25 @@ void main() {
     await c.load(now: _now);
 
     expect([for (final r in c.state.rows) (r.score, r.secondary)], [(10, 0), (5, 3)]);
+  });
+
+  test('closing during a load does not emit', () async {
+    repository.gate = Completer<void>();
+    final c = cubit();
+    final load = c.open(PuzzleSessionDifficulty.hard);
+    await c.close();
+
+    repository.gate!.complete();
+    await expectLater(load, completes);
+  });
+
+  test('closing during a failing load does not emit', () async {
+    repository.gate = Completer<void>();
+    final c = cubit();
+    final load = c.open(PuzzleSessionDifficulty.hard);
+    await c.close();
+
+    repository.gate!.completeError(StateError('unavailable'));
+    await expectLater(load, completes);
   });
 }

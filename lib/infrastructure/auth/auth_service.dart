@@ -168,12 +168,8 @@ class AuthService {
     }
 
     // Cloud data first: once the user is deleted, security rules reject the cleanup.
-    final uid = user.uid;
-    try {
-      await _deleteCloudData(uid);
-    } catch (e) {
-      debugPrint('Cloud cleanup before account deletion failed: $e');
-    }
+    // A failed cleanup stops the deletion, so the player can retry instead of losing access to the data.
+    await _deleteCloudData(user.uid);
     await user.delete();
     await _signOutProviderSessions();
   }
@@ -267,7 +263,7 @@ class AuthService {
     await _deleteCollection(FirestorePaths.userConfigs(uid));
     await _deleteCollection(FirestorePaths.userSolvedSolutions(uid));
     await _deleteCollection('${FirestorePaths.userDoc(uid)}/solutionCounts');
-    await _leaderboards.deleteAll(uid).catchError((final Object _) {});
+    await _leaderboards.deleteAll(uid);
     await _firestore.doc(FirestorePaths.userDoc(uid)).delete().catchError((_) {});
   }
 

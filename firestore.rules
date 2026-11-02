@@ -98,8 +98,15 @@ service cloud.firestore {
             : isPeriodEntry(data, 366));
       }
 
+      // Renaming touches past boards too, where a full entry would no longer pass the date check.
+      function isRename() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nickname'])
+          && isNickname(request.resource.data);
+      }
+
       allow read: if isSignedIn();
-      allow create, update: if isOwner(uid) && isBoardId() && isEntry(request.resource.data);
+      allow create: if isOwner(uid) && isBoardId() && isEntry(request.resource.data);
+      allow update: if isOwner(uid) && isBoardId() && (isEntry(request.resource.data) || isRename());
       allow delete: if isOwner(uid);
     }
 

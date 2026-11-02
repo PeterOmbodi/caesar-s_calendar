@@ -93,6 +93,7 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
   }
 
   Future<void> load({final DateTime? now}) async {
+    if (isClosed) return;
     final request = ++_request;
     final tab = state.tab;
     emit(state.copyWith(isLoading: true, error: () => null));
@@ -102,7 +103,7 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
       final (rows, me) = tab == LeaderboardTab.streaks
           ? await _loadStreaks(uid, today)
           : await _loadBoard(LeaderboardKeys.board(_period(tab), today, _level), uid);
-      if (request != _request) return;
+      if (isClosed || request != _request) return;
       final hasOwnResult = me != null || rows.any((final row) => row.isMe);
       final showTier = tab == LeaderboardTab.today && (_level == PuzzleSessionDifficulty.medium || hasOwnResult);
       emit(
@@ -115,7 +116,7 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
       );
     } catch (e) {
       debugPrint('Leaderboard load failed: $e');
-      if (request != _request) return;
+      if (isClosed || request != _request) return;
       emit(state.copyWith(isLoading: false, rows: const [], me: () => null, error: () => e));
     }
   }
@@ -192,9 +193,11 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
 
   static bool _isAlive(final DateTime? lastDay, final DateTime today) {
     if (lastDay == null) return false;
-    final days = DateTime.utc(today.year, today.month, today.day)
-        .difference(DateTime.utc(lastDay.year, lastDay.month, lastDay.day))
-        .inDays;
+    final days = DateTime.utc(
+      today.year,
+      today.month,
+      today.day,
+    ).difference(DateTime.utc(lastDay.year, lastDay.month, lastDay.day)).inDays;
     return days <= 1;
   }
 
