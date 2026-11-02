@@ -38,11 +38,11 @@ class LeaderboardScreen extends StatelessWidget {
     if (level == PuzzleSessionDifficulty.easy) {
       return Scaffold(
         backgroundColor: colors.background,
+        appBar: const _LeaderboardAppBar(),
         body: CustomScrollView(
           slivers: [
-            const _AppBar(),
             SliverPadding(
-              padding: padding,
+              padding: padding.copyWith(top: 16),
               sliver: SliverToBoxAdapter(
                 child: _Note(
                   S.current.leaderboardEasyNote(
@@ -58,6 +58,7 @@ class LeaderboardScreen extends StatelessWidget {
     }
     return Scaffold(
       backgroundColor: colors.background,
+      appBar: const _LeaderboardAppBar(),
       body: BlocBuilder<AuthCubit, AuthState>(
         buildWhen: (final p, final n) => p.user?.uid != n.user?.uid,
         builder: (final context, final auth) => BlocBuilder<PublicProfileCubit, PublicProfileState>(
@@ -72,12 +73,7 @@ class LeaderboardScreen extends StatelessWidget {
               );
             }
             if (profile.isLoading) {
-              return const CustomScrollView(
-                slivers: [
-                  _AppBar(),
-                  SliverFillRemaining(child: Center(child: CircularProgressIndicator.adaptive())),
-                ],
-              );
+              return const Center(child: CircularProgressIndicator.adaptive());
             }
             if (!profile.enabled) {
               return _Gate(
@@ -100,14 +96,13 @@ class LeaderboardScreen extends StatelessWidget {
                   child: CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
-                      const _AppBar(),
                       SliverSafeArea(
                         top: false,
                         sliver: SliverPadding(
-                          padding: padding.copyWith(bottom: 16),
+                          padding: padding.copyWith(top: 16, bottom: 16),
                           sliver: SliverList.list(
                             children: [
-                              _Note(S.current.leaderboardLevelNote(level.label)),
+                              _LevelLine(level: level),
                               const SizedBox(height: 16),
                               _TabSelector(selected: state.tab),
                               const SizedBox(height: 16),
@@ -141,9 +136,8 @@ class _Gate extends StatelessWidget {
   @override
   Widget build(final BuildContext context) => CustomScrollView(
     slivers: [
-      const _AppBar(),
       SliverPadding(
-        padding: padding,
+        padding: padding.copyWith(top: 16),
         sliver: SliverList.list(
           children: [
             Text(text, style: TextStyle(fontSize: 15, height: 20 / 15, color: GameColors.of(context).text)),
@@ -159,22 +153,52 @@ class _Gate extends StatelessWidget {
   );
 }
 
-class _AppBar extends StatelessWidget {
-  const _AppBar();
+class _LeaderboardAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _LeaderboardAppBar();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(final BuildContext context) {
+    final title = Text(S.current.leaderboardTitle);
+    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
+      return AppBar(leading: const BackButton(), title: title);
+    }
+    return CupertinoNavigationBar(
+      backgroundColor: GameColors.of(context).background,
+      brightness: Theme.of(context).brightness,
+      border: null,
+      leading: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
+        onPressed: () => Navigator.of(context).maybePop(),
+        child: Icon(CupertinoIcons.back, semanticLabel: MaterialLocalizations.of(context).backButtonTooltip),
+      ),
+      middle: title,
+    );
+  }
+}
+
+class _LevelLine extends StatelessWidget {
+  const _LevelLine({required this.level});
+
+  final PuzzleSessionDifficulty level;
 
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final title = Text(S.current.leaderboardTitle);
-    if (ScreenSpec.of(context).family == ChromeFamily.glass) {
-      return CupertinoSliverNavigationBar(
-        largeTitle: title,
-        backgroundColor: colors.background,
-        border: null,
-        transitionBetweenRoutes: false,
-      );
-    }
-    return SliverAppBar.large(title: title, backgroundColor: colors.background);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${level.stars} ${level.label}',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: colors.text),
+        ),
+        const SizedBox(height: 2),
+        _Note(S.current.leaderboardChangeLevel),
+      ],
+    );
   }
 }
 
