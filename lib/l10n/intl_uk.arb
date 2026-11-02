@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Твої результати та серії буде видалено з усіх рейтингів. Твоя історія залишиться.",
   "accountLeaderboardHideTitle": "Приховати з рейтингів?",
   "accountLeaderboardNickname": "Як {nickname}",
+  "accountLeaderboardShowName": "Показувати моє ім'я",
   "accountLeaderboardVisibility": "Показувати в рейтингах",
   "accountLocalProfile": "Локальний профіль",
   "accountNotSyncedYet": "Ще не синхронізовано",

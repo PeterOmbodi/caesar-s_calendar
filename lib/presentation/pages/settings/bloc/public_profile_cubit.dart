@@ -67,6 +67,13 @@ class PublicProfileCubit extends Cubit<PublicProfileState> {
     _syncRunner.publishProfileNow();
   }
 
+  void toggleShowName(final bool showName) {
+    if (!_auth.isAvailable || _auth.currentUser == null) return;
+    _profiles.setShowName(showName);
+    emit(state.copyWith(showName: showName));
+    _syncRunner.publishProfileNow();
+  }
+
   void requestSyncNow() {
     _syncRunner.requestSync();
   }
@@ -86,7 +93,7 @@ class PublicProfileCubit extends Cubit<PublicProfileState> {
     emit(state.copyWith(isAvailable: true, isLoading: true, errorMessage: null));
     try {
       final enabled = await _profiles.isEnabled().timeout(operationTimeout);
-      emit(state.copyWith(isLoading: false, enabled: enabled, errorMessage: null));
+      emit(state.copyWith(isLoading: false, enabled: enabled, showName: _profiles.showName, errorMessage: null));
     } catch (e) {
       emit(state.copyWith(isLoading: false, enabled: false, errorMessage: e.toString()));
     }

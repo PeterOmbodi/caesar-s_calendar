@@ -48,7 +48,7 @@ service cloud.firestore {
             'nickname', 'nicknameSource', 'colorIndex', 'updatedAt', 'schemaVersion',
             'bestStreakMedium', 'currentStreakMedium', 'bestStreakHard', 'currentStreakHard'])
           && isNickname(data)
-          && data.nicknameSource in ['generated', 'custom']
+          && data.nicknameSource in ['generated', 'name', 'custom']
           && data.updatedAt is timestamp
           && data.schemaVersion == 1
           && isStreak(data, 'Medium')

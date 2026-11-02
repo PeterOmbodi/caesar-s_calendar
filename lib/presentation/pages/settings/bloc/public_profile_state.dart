@@ -6,6 +6,7 @@ abstract class PublicProfileState with _$PublicProfileState {
     required final bool isAvailable,
     required final bool isLoading,
     required final bool enabled,
+    @Default(false) final bool showName,
     required final SyncStatus syncStatus,
     final String? errorMessage,
   }) = _PublicProfileState;

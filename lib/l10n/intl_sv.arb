@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Dina resultat och sviter tas bort från alla topplistor. Din historik finns kvar.",
   "accountLeaderboardHideTitle": "Dölj från topplistor?",
   "accountLeaderboardNickname": "Som {nickname}",
+  "accountLeaderboardShowName": "Visa mitt namn",
   "accountLeaderboardVisibility": "Visa i topplistor",
   "accountLocalProfile": "Lokal profil",
   "accountNotSyncedYet": "Inte synkroniserad än",

@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Dine resultater og stimer fjernes fra alle ranglister. Din historik bevares.",
   "accountLeaderboardHideTitle": "Skjul fra ranglister?",
   "accountLeaderboardNickname": "Som {nickname}",
+  "accountLeaderboardShowName": "Vis mit navn",
   "accountLeaderboardVisibility": "Vis på ranglister",
   "accountLocalProfile": "Lokal profil",
   "accountNotSyncedYet": "Ikke synkroniseret endnu",

@@ -72,6 +72,14 @@ class _AccountSectionState extends State<AccountSection> {
     await cubit.cancelCloudReplace();
   }
 
+  Widget _switch({
+    required final bool value,
+    required final ValueChanged<bool> onChanged,
+    required final String label,
+  }) => ScreenSpec.of(context).family == ChromeFamily.glass
+      ? AppSwitch(value: value, onChanged: onChanged, semanticLabel: label)
+      : Switch(value: value, onChanged: onChanged);
+
   Future<void> _setLeaderboardVisibility(final bool enabled) async {
     final cubit = context.read<PublicProfileCubit>();
     if (!enabled) {
@@ -242,22 +250,33 @@ class _AccountSectionState extends State<AccountSection> {
             icon: Icons.visibility_outlined,
             title: S.current.accountLeaderboardVisibility,
             subtitle: S.current.accountLeaderboardNickname(
-              NicknameGenerator.nickname(uid: user.uid as String, displayName: displayName),
+              NicknameGenerator.nickname(
+                uid: user.uid as String,
+                displayName: publicProfile.showName ? displayName : null,
+              ),
             ),
             trailing: IgnorePointer(
               ignoring: publicProfile.isLoading,
               child: Opacity(
                 opacity: publicProfile.isLoading ? 0.5 : 1,
-                child: ScreenSpec.of(context).family == ChromeFamily.glass
-                    ? AppSwitch(
-                        value: publicProfile.enabled,
-                        onChanged: _setLeaderboardVisibility,
-                        semanticLabel: S.current.accountLeaderboardVisibility,
-                      )
-                    : Switch(value: publicProfile.enabled, onChanged: _setLeaderboardVisibility),
+                child: _switch(
+                  value: publicProfile.enabled,
+                  onChanged: _setLeaderboardVisibility,
+                  label: S.current.accountLeaderboardVisibility,
+                ),
               ),
             ),
           ),
+          if (publicProfile.enabled)
+            InsetRow(
+              icon: Icons.badge_outlined,
+              title: S.current.accountLeaderboardShowName,
+              trailing: _switch(
+                value: publicProfile.showName,
+                onChanged: profileCubit.toggleShowName,
+                label: S.current.accountLeaderboardShowName,
+              ),
+            ),
           InsetRow(
             icon: Icons.leaderboard_outlined,
             title: S.current.leaderboardTitle,

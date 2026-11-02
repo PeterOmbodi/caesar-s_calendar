@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "I tuoi risultati e le tue serie verranno rimossi da tutte le classifiche. La tua cronologia resta.",
   "accountLeaderboardHideTitle": "Nascondere dalle classifiche?",
   "accountLeaderboardNickname": "Come {nickname}",
+  "accountLeaderboardShowName": "Mostra il mio nome",
   "accountLeaderboardVisibility": "Mostra nelle classifiche",
   "accountLocalProfile": "Profilo locale",
   "accountNotSyncedYet": "Non ancora sincronizzato",

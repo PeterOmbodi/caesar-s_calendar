@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Vaši rezultati in nizi bodo odstranjeni z vseh lestvic. Vaša zgodovina ostane.",
   "accountLeaderboardHideTitle": "Skrijem z lestvic?",
   "accountLeaderboardNickname": "Kot {nickname}",
+  "accountLeaderboardShowName": "Prikaži moje ime",
   "accountLeaderboardVisibility": "Prikaži na lestvicah",
   "accountLocalProfile": "Lokalni profil",
   "accountNotSyncedYet": "Še ni sinhronizirano",

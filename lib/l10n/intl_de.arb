@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Deine Ergebnisse und Serien werden aus allen Bestenlisten entfernt. Dein Verlauf bleibt erhalten.",
   "accountLeaderboardHideTitle": "Aus Bestenlisten entfernen?",
   "accountLeaderboardNickname": "Als {nickname}",
+  "accountLeaderboardShowName": "Meinen Namen zeigen",
   "accountLeaderboardVisibility": "In Bestenlisten anzeigen",
   "accountLocalProfile": "Lokales Profil",
   "accountNotSyncedYet": "Noch nicht synchronisiert",

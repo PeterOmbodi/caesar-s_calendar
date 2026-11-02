@@ -109,7 +109,7 @@ void main() {
     ], displayName: null);
 
     expect(snapshot.profile.nickname, matches(RegExp(r'^\w+ \w+ \d\d$')));
-    expect(snapshot.profile.nicknameSource, 'generated');
+    expect(snapshot.profile.nicknameSource, LeaderboardProfile.sourceGenerated);
     expect(snapshot.profile.streaks[PuzzleSessionDifficulty.hard]!.current, 2);
     expect(snapshot.profile.streaks[PuzzleSessionDifficulty.medium]!.best, 2);
   });
@@ -142,6 +142,7 @@ void main() {
 
     expect(snapshot.entries, isEmpty);
     expect(snapshot.profile.nickname, 'Peter O.');
+    expect(snapshot.profile.nicknameSource, LeaderboardProfile.sourceName);
     final levels = [PuzzleSessionDifficulty.medium, PuzzleSessionDifficulty.hard];
     expect(snapshot.profile.streaks.keys, unorderedEquals(levels));
     expect(snapshot.profile.streaks.values.every((final s) => s.best == 0 && s.current == 0), isTrue);

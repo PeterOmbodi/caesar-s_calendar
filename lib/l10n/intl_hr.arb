@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Vaši rezultati i nizovi bit će uklonjeni sa svih ljestvica. Vaša povijest ostaje.",
   "accountLeaderboardHideTitle": "Sakriti s ljestvica?",
   "accountLeaderboardNickname": "Kao {nickname}",
+  "accountLeaderboardShowName": "Prikaži moje ime",
   "accountLeaderboardVisibility": "Prikaži na ljestvicama",
   "accountLocalProfile": "Lokalni profil",
   "accountNotSyncedYet": "Još nije sinkronizirano",

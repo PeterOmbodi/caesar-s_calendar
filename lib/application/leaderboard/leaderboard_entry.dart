@@ -51,6 +51,9 @@ class LeaderboardProfile {
     required this.streaks,
   });
 
+  static const sourceName = 'name';
+  static const sourceGenerated = 'generated';
+
   final String nickname;
   final String nicknameSource;
   final int colorIndex;

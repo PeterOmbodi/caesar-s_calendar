@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Tus resultados y rachas se eliminarán de todas las clasificaciones. Tu historial se conserva.",
   "accountLeaderboardHideTitle": "¿Ocultar de las clasificaciones?",
   "accountLeaderboardNickname": "Como {nickname}",
+  "accountLeaderboardShowName": "Mostrar mi nombre",
   "accountLeaderboardVisibility": "Mostrar en las clasificaciones",
   "accountLocalProfile": "Perfil local",
   "accountNotSyncedYet": "Aún no sincronizado",

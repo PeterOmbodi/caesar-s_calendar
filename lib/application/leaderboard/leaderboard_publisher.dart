@@ -3,6 +3,7 @@ import 'package:caesar_puzzle/application/leaderboard/leaderboard_entry.dart';
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_period.dart';
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_scoring.dart';
 import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
+import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:injectable/injectable.dart';
 
 /// Builds what a player publishes for the current day, week, month and year.
@@ -20,14 +21,24 @@ class LeaderboardPublisher {
   /// Profile with zero streaks and no entries, valid for the security rules.
   LeaderboardSnapshot emptySnapshot({required final String uid, required final String? displayName}) =>
       LeaderboardSnapshot(
-        profile: LeaderboardProfile(
-          nickname: NicknameGenerator.nickname(uid: uid, displayName: displayName),
-          nicknameSource: 'generated',
-          colorIndex: NicknameGenerator.colorIndex(uid),
-          streaks: {for (final level in LeaderboardScoring.levels) level: LevelStreak.empty},
-        ),
+        profile: _profile(uid, displayName, {for (final level in LeaderboardScoring.levels) level: LevelStreak.empty}),
         entries: const {},
       );
+
+  /// [displayName] is null when the player hides the name.
+  static LeaderboardProfile _profile(
+    final String uid,
+    final String? displayName,
+    final Map<PuzzleSessionDifficulty, LevelStreak> streaks,
+  ) {
+    final fromName = NicknameGenerator.fromName(displayName);
+    return LeaderboardProfile(
+      nickname: fromName ?? NicknameGenerator.fromUid(uid),
+      nicknameSource: fromName == null ? LeaderboardProfile.sourceGenerated : LeaderboardProfile.sourceName,
+      colorIndex: NicknameGenerator.colorIndex(uid),
+      streaks: streaks,
+    );
+  }
 
   Future<LeaderboardSnapshot> build({
     required final String uid,
@@ -43,8 +54,9 @@ class LeaderboardPublisher {
       solutions,
     );
 
-    final nickname = NicknameGenerator.nickname(uid: uid, displayName: displayName);
-    final colorIndex = NicknameGenerator.colorIndex(uid);
+    final profile = _profile(uid, displayName, LeaderboardScoring.streaks(sessions, today: today));
+    final nickname = profile.nickname;
+    final colorIndex = profile.colorIndex;
     LeaderboardEntry entry(
       final int score,
       final int secondary,
@@ -84,14 +96,6 @@ class LeaderboardPublisher {
       }
     }
 
-    return LeaderboardSnapshot(
-      profile: LeaderboardProfile(
-        nickname: nickname,
-        nicknameSource: 'generated',
-        colorIndex: colorIndex,
-        streaks: LeaderboardScoring.streaks(sessions, today: today),
-      ),
-      entries: entries,
-    );
+    return LeaderboardSnapshot(profile: profile, entries: entries);
   }
 }

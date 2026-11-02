@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Twoje wyniki i serie zostaną usunięte ze wszystkich rankingów. Twoja historia zostanie zachowana.",
   "accountLeaderboardHideTitle": "Ukryć w rankingach?",
   "accountLeaderboardNickname": "Jako {nickname}",
+  "accountLeaderboardShowName": "Pokazuj moje imię",
   "accountLeaderboardVisibility": "Pokazuj w rankingach",
   "accountLocalProfile": "Profil lokalny",
   "accountNotSyncedYet": "Jeszcze nie zsynchronizowano",

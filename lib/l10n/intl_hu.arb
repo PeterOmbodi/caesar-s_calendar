@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Az eredményeid és sorozataid minden ranglistáról törlődnek. Az előzményeid megmaradnak.",
   "accountLeaderboardHideTitle": "Elrejted a ranglistákról?",
   "accountLeaderboardNickname": "Ezen a néven: {nickname}",
+  "accountLeaderboardShowName": "A nevem megjelenítése",
   "accountLeaderboardVisibility": "Megjelenés a ranglistákon",
   "accountLocalProfile": "Helyi profil",
   "accountNotSyncedYet": "Még nincs szinkronizálva",

@@ -2,7 +2,8 @@ import 'package:caesar_puzzle/application/leaderboard/leaderboard_entry.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 
 abstract class LeaderboardRepository {
-  Future<bool> hasProfile(final String uid);
+  /// Null when the player has no public profile.
+  Future<String?> nicknameSource(final String uid);
 
   Future<void> publish({required final String uid, required final LeaderboardSnapshot snapshot});
 

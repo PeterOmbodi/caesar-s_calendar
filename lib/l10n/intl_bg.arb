@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Резултатите и сериите ви ще бъдат премахнати от всички класации. Историята ви се запазва.",
   "accountLeaderboardHideTitle": "Скриване от класациите?",
   "accountLeaderboardNickname": "Като {nickname}",
+  "accountLeaderboardShowName": "Показвай името ми",
   "accountLeaderboardVisibility": "Показвай в класациите",
   "accountLocalProfile": "Локален профил",
   "accountNotSyncedYet": "Още не е синхронизирано",

@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Jūsų rezultatai ir serijos bus pašalinti iš visų reitingų. Jūsų istorija išliks.",
   "accountLeaderboardHideTitle": "Paslėpti iš reitingų?",
   "accountLeaderboardNickname": "Kaip {nickname}",
+  "accountLeaderboardShowName": "Rodyti mano vardą",
   "accountLeaderboardVisibility": "Rodyti reitinguose",
   "accountLocalProfile": "Vietinis profilis",
   "accountNotSyncedYet": "Dar nesinchronizuota",

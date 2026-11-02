@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Tuloksesi ja putkesi poistetaan kaikilta tulostauluilta. Historiasi säilyy.",
   "accountLeaderboardHideTitle": "Piilotetaanko tulostauluilta?",
   "accountLeaderboardNickname": "Nimellä {nickname}",
+  "accountLeaderboardShowName": "Näytä nimeni",
   "accountLeaderboardVisibility": "Näytä tulostauluilla",
   "accountLocalProfile": "Paikallinen profiili",
   "accountNotSyncedYet": "Ei vielä synkronoitu",

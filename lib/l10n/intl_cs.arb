@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Vaše výsledky a série budou odstraněny ze všech žebříčků. Vaše historie zůstane.",
   "accountLeaderboardHideTitle": "Skrýt ze žebříčků?",
   "accountLeaderboardNickname": "Jako {nickname}",
+  "accountLeaderboardShowName": "Zobrazovat mé jméno",
   "accountLeaderboardVisibility": "Zobrazovat v žebříčcích",
   "accountLocalProfile": "Místní profil",
   "accountNotSyncedYet": "Zatím nesynchronizováno",

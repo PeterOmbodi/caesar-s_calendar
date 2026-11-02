@@ -36,6 +36,9 @@ class _FakePublicProfileService implements PublicProfileService {
   void setEnabled(final bool enabled) => calls.add(enabled);
 
   @override
+  bool get showName => false;
+
+  @override
   dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
 }
 

@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Your results and streaks will be removed from all leaderboards. Your own history is kept.",
   "accountLeaderboardHideTitle": "Hide from leaderboards?",
   "accountLeaderboardNickname": "As {nickname}",
+  "accountLeaderboardShowName": "Show my name",
   "accountLeaderboardVisibility": "Show in leaderboards",
   "accountLocalProfile": "Local profile",
   "accountNotSyncedYet": "Not synced yet",

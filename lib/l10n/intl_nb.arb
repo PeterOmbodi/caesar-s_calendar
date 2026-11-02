@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Resultatene og rekkene dine fjernes fra alle topplister. Historikken din beholdes.",
   "accountLeaderboardHideTitle": "Skjul fra topplister?",
   "accountLeaderboardNickname": "Som {nickname}",
+  "accountLeaderboardShowName": "Vis navnet mitt",
   "accountLeaderboardVisibility": "Vis på topplister",
   "accountLocalProfile": "Lokal profil",
   "accountNotSyncedYet": "Ikke synkronisert ennå",

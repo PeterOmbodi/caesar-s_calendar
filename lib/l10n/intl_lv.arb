@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Jūsu rezultāti un sērijas tiks dzēsti no visiem līderu sarakstiem. Jūsu vēsture tiek saglabāta.",
   "accountLeaderboardHideTitle": "Paslēpt no līderu sarakstiem?",
   "accountLeaderboardNickname": "Kā {nickname}",
+  "accountLeaderboardShowName": "Rādīt manu vārdu",
   "accountLeaderboardVisibility": "Rādīt līderu sarakstos",
   "accountLocalProfile": "Lokālais profils",
   "accountNotSyncedYet": "Vēl nav sinhronizēts",

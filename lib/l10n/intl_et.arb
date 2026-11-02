@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Sinu tulemused ja seeriad eemaldatakse kõigist edetabelitest. Sinu ajalugu jääb alles.",
   "accountLeaderboardHideTitle": "Peita edetabelitest?",
   "accountLeaderboardNickname": "Nimega {nickname}",
+  "accountLeaderboardShowName": "Näita minu nime",
   "accountLeaderboardVisibility": "Näita edetabelites",
   "accountLocalProfile": "Kohalik profiil",
   "accountNotSyncedYet": "Pole veel sünkroonitud",

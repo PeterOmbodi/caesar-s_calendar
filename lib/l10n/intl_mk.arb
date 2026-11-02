@@ -20,6 +20,7 @@
   "accountLeaderboardHideMessage": "Вашите резултати и низи ќе бидат отстранети од сите ранг-листи. Вашата историја останува.",
   "accountLeaderboardHideTitle": "Да се скрие од ранг-листите?",
   "accountLeaderboardNickname": "Како {nickname}",
+  "accountLeaderboardShowName": "Прикажи го моето име",
   "accountLeaderboardVisibility": "Прикажи на ранг-листите",
   "accountLocalProfile": "Локален профил",
   "accountNotSyncedYet": "Сè уште не е синхронизирано",

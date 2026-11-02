@@ -6,11 +6,12 @@ class NicknameGenerator {
   static const colorCount = 8;
 
   static String nickname({required final String uid, final String? displayName}) =>
-      _fromName(displayName) ?? _fromUid(uid);
+      fromName(displayName) ?? fromUid(uid);
 
   static int colorIndex(final String uid) => _hash(uid) % colorCount;
 
-  static String? _fromName(final String? displayName) {
+  /// Null when the name is empty or looks like an email.
+  static String? fromName(final String? displayName) {
     final name = displayName?.trim() ?? '';
     if (name.isEmpty || name.contains('@')) return null;
     final words = name.split(RegExp(r'\s+'));
@@ -19,7 +20,7 @@ class NicknameGenerator {
     return '$first$initial';
   }
 
-  static String _fromUid(final String uid) {
+  static String fromUid(final String uid) {
     final hash = _hash(uid);
     final adjective = _adjectives[hash % _adjectives.length];
     final animal = _animals[(hash ~/ _adjectives.length) % _animals.length];

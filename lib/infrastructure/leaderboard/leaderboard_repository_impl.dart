@@ -15,7 +15,10 @@ class LeaderboardRepositoryImpl implements LeaderboardRepository {
   final FirebaseFirestore _firestore;
 
   @override
-  Future<bool> hasProfile(final String uid) async => (await _profile(uid).get()).exists;
+  Future<String?> nicknameSource(final String uid) async {
+    final data = (await _profile(uid).get()).data();
+    return data == null ? null : data['nicknameSource'] as String? ?? LeaderboardProfile.sourceGenerated;
+  }
 
   @override
   Future<void> publish({required final String uid, required final LeaderboardSnapshot snapshot}) async {
