@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:caesar_puzzle/application/models/board_layout.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
@@ -29,6 +30,9 @@ class SyncService {
 
   static const _prefsKeyPrefix = 'sync_last_ms_';
 
+  /// Per-collection checkpoint: the latest server time already downloaded, in microseconds.
+  static const _checkpointPrefix = 'sync_server_us_';
+
   Future<bool> hasCloudData(final String uid) async {
     if (!_auth.isAvailable) return false;
     if (await _collectionHasDocs(FirestorePaths.userSessions(uid))) return true;
@@ -40,7 +44,10 @@ class SyncService {
 
   Future<void> clearAllSyncCheckpoints() async {
     final prefs = await SharedPreferences.getInstance();
-    final keysToRemove = prefs.getKeys().where((final key) => key.startsWith(_prefsKeyPrefix)).toList();
+    final keysToRemove = prefs
+        .getKeys()
+        .where((final key) => key.startsWith(_prefsKeyPrefix) || key.startsWith(_checkpointPrefix))
+        .toList();
     for (final key in keysToRemove) {
       await prefs.remove(key);
     }
@@ -51,13 +58,8 @@ class SyncService {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final lastSyncMs = prefs.getInt('$_prefsKeyPrefix$uid') ?? 0;
-
     await _uploadDirty(uid);
-    await _downloadUpdates(uid, sinceMs: lastSyncMs);
-
-    await prefs.setInt('$_prefsKeyPrefix$uid', DateTime.now().millisecondsSinceEpoch);
+    await _downloadUpdates(uid);
   }
 
   Future<void> _uploadDirty(final String uid) async {
@@ -84,6 +86,7 @@ class SyncService {
           'pieceSetId': row.pieceSetId,
           'createdAt': row.createdAt,
           'updatedAt': row.updatedAt,
+          'serverUpdatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
       );
@@ -117,6 +120,7 @@ class SyncService {
           'lastResumedAt': row.lastResumedAt,
           'activeElapsedMs': row.activeElapsedMs,
           'updatedAt': row.updatedAt,
+          'serverUpdatedAt': FieldValue.serverTimestamp(),
           'completedAt': row.completedAt,
           'piecesSnapshotJson': row.piecesSnapshotJson,
           'moveHistoryJson': row.moveHistoryJson,
@@ -157,6 +161,7 @@ class SyncService {
           'solvedAt': row.solvedAt,
           'sessionId': row.sessionId,
           'updatedAt': row.updatedAt,
+          'serverUpdatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
       );
@@ -192,6 +197,7 @@ class SyncService {
           'totalSolutions': row.totalSolutions,
           'computedAt': row.computedAt,
           'updatedAt': row.updatedAt,
+          'serverUpdatedAt': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
       );
@@ -207,148 +213,155 @@ class SyncService {
     }
   }
 
-  Future<void> _downloadUpdates(final String uid, {required final int sinceMs}) async {
-    await _downloadSessions(uid, sinceMs: sinceMs);
-    await _downloadConfigs(uid, sinceMs: sinceMs);
-    await _downloadSolvedSolutions(uid, sinceMs: sinceMs);
-    await _downloadSolutionCounts(uid, sinceMs: sinceMs);
+  Future<void> _downloadUpdates(final String uid) async {
+    await _downloadSessions(uid);
+    await _downloadConfigs(uid);
+    await _downloadSolvedSolutions(uid);
+    await _downloadSolutionCounts(uid);
   }
 
-  Future<void> _downloadSessions(final String uid, {required final int sinceMs}) async {
-    final snap = await _firestore
-        .collection(FirestorePaths.userSessions(uid))
-        .where('updatedAt', isGreaterThan: sinceMs)
-        .get();
-    for (final doc in snap.docs) {
-      final data = doc.data();
-      final remoteUpdatedAt = (data['updatedAt'] as int?) ?? 0;
-      final local = await (_db.select(_db.puzzleSessions)..where((final t) => t.id.equals(doc.id))).getSingleOrNull();
-      if (local != null && local.updatedAt >= remoteUpdatedAt) continue;
-
-      await _db
-          .into(_db.puzzleSessions)
-          .insertOnConflictUpdate(
-            PuzzleSessionsCompanion.insert(
-              id: doc.id,
-              puzzleDate: (data['puzzleDate'] as String?) ?? '',
-              configId: (data['configId'] as String?) ?? '',
-              difficulty: Value(_difficultyFromIndex(data['difficulty'] as int?)),
-              status: _statusFromIndex(data['status'] as int?),
-              startedAt: (data['startedAt'] as int?) ?? 0,
-              firstMoveAt: Value(data['firstMoveAt'] as int?),
-              lastResumedAt: Value(data['lastResumedAt'] as int?),
-              activeElapsedMs: (data['activeElapsedMs'] as int?) ?? 0,
-              updatedAt: remoteUpdatedAt,
-              completedAt: Value(data['completedAt'] as int?),
-              piecesSnapshotJson: (data['piecesSnapshotJson'] as String?) ?? '[]',
-              moveHistoryJson: (data['moveHistoryJson'] as String?) ?? '[]',
-              moveIndex: (data['moveIndex'] as int?) ?? 0,
-              moveHistoryVersion: (data['moveHistoryVersion'] as int?) ?? 1,
-              remoteId: Value(doc.id),
-              syncState: Value(SyncState.clean.code),
-            ),
-          );
+  /// Downloads what reached the server after the collection's checkpoint (server time: uploads can be late
+  /// and device clocks skewed). Without a checkpoint, e.g. on the first run of this version, downloads everything.
+  Future<void> _download(
+    final String uid,
+    final String collection,
+    final String name,
+    final Future<void> Function(QueryDocumentSnapshot<Map<String, dynamic>> doc) apply,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$_checkpointPrefix${name}_$uid';
+    final checkpoint = prefs.getInt(key);
+    Query<Map<String, dynamic>> query = _firestore.collection(collection);
+    if (checkpoint != null) {
+      query = query.where('serverUpdatedAt', isGreaterThan: Timestamp.fromMicrosecondsSinceEpoch(checkpoint));
     }
-  }
-
-  Future<void> _downloadConfigs(final String uid, {required final int sinceMs}) async {
-    final snap = await _firestore
-        .collection(FirestorePaths.userConfigs(uid))
-        .where('updatedAt', isGreaterThan: sinceMs)
-        .get();
+    final snap = await query.get();
+    var latest = checkpoint ?? 0;
     for (final doc in snap.docs) {
-      final data = doc.data();
-      final remoteUpdatedAt = (data['updatedAt'] as int?) ?? 0;
-      final local = await (_db.select(_db.puzzleConfigs)..where((final t) => t.id.equals(doc.id))).getSingleOrNull();
-      if (local != null && local.updatedAt >= remoteUpdatedAt) continue;
-
-      await _db
-          .into(_db.puzzleConfigs)
-          .insertOnConflictUpdate(
-            PuzzleConfigsCompanion.insert(
-              id: doc.id,
-              configJson: (data['configJson'] as String?) ?? '[]',
-              layoutName: Value(data['name'] as String?),
-              pieceSetId: Value((data['pieceSetId'] as String?) ?? BoardLayout.classicPieceSet),
-              createdAt: (data['createdAt'] as int?) ?? remoteUpdatedAt,
-              updatedAt: remoteUpdatedAt,
-              remoteId: Value(doc.id),
-              syncState: Value(SyncState.clean.code),
-            ),
-          );
+      await apply(doc);
+      // Null while this device's own write is still pending.
+      if (doc.data()['serverUpdatedAt'] case final Timestamp time) {
+        latest = math.max(latest, time.microsecondsSinceEpoch);
+      }
     }
+    await prefs.setInt(key, latest);
   }
 
-  Future<void> _downloadSolvedSolutions(final String uid, {required final int sinceMs}) async {
-    final snap = await _firestore
-        .collection(FirestorePaths.userSolvedSolutions(uid))
-        .where('updatedAt', isGreaterThan: sinceMs)
-        .get();
-    for (final doc in snap.docs) {
-      final data = doc.data();
-      final remoteUpdatedAt = (data['updatedAt'] as int?) ?? 0;
-      final puzzleDate = (data['puzzleDate'] as String?) ?? '';
-      final configId = (data['configId'] as String?) ?? '';
-      final signature = (data['solutionSignature'] as String?) ?? '';
+  Future<void> _downloadSessions(final String uid) =>
+      _download(uid, FirestorePaths.userSessions(uid), 'sessions', (final doc) async {
+        final data = doc.data();
+        final remoteUpdatedAt = (data['updatedAt'] as int?) ?? 0;
+        final local = await (_db.select(_db.puzzleSessions)..where((final t) => t.id.equals(doc.id))).getSingleOrNull();
+        if (local != null && local.updatedAt >= remoteUpdatedAt) return;
 
-      final local =
-          await (_db.select(_db.puzzleSolvedSolutions)..where(
-                (final t) =>
-                    t.puzzleDate.equals(puzzleDate) &
-                    t.configId.equals(configId) &
-                    t.solutionSignature.equals(signature),
-              ))
-              .getSingleOrNull();
-      if (local != null && local.updatedAt >= remoteUpdatedAt) continue;
+        await _db
+            .into(_db.puzzleSessions)
+            .insertOnConflictUpdate(
+              PuzzleSessionsCompanion.insert(
+                id: doc.id,
+                puzzleDate: (data['puzzleDate'] as String?) ?? '',
+                configId: (data['configId'] as String?) ?? '',
+                difficulty: Value(_difficultyFromIndex(data['difficulty'] as int?)),
+                status: _statusFromIndex(data['status'] as int?),
+                startedAt: (data['startedAt'] as int?) ?? 0,
+                firstMoveAt: Value(data['firstMoveAt'] as int?),
+                lastResumedAt: Value(data['lastResumedAt'] as int?),
+                activeElapsedMs: (data['activeElapsedMs'] as int?) ?? 0,
+                updatedAt: remoteUpdatedAt,
+                completedAt: Value(data['completedAt'] as int?),
+                piecesSnapshotJson: (data['piecesSnapshotJson'] as String?) ?? '[]',
+                moveHistoryJson: (data['moveHistoryJson'] as String?) ?? '[]',
+                moveIndex: (data['moveIndex'] as int?) ?? 0,
+                moveHistoryVersion: (data['moveHistoryVersion'] as int?) ?? 1,
+                remoteId: Value(doc.id),
+                syncState: Value(SyncState.clean.code),
+              ),
+            );
+      });
 
-      await _db
-          .into(_db.puzzleSolvedSolutions)
-          .insertOnConflictUpdate(
-            PuzzleSolvedSolutionsCompanion.insert(
-              puzzleDate: puzzleDate,
-              configId: configId,
-              solutionSignature: signature,
-              solvedAt: (data['solvedAt'] as int?) ?? remoteUpdatedAt,
-              sessionId: (data['sessionId'] as String?) ?? '',
-              updatedAt: remoteUpdatedAt,
-              remoteId: Value(doc.id),
-              syncState: Value(SyncState.clean.code),
-            ),
-          );
-    }
-  }
+  Future<void> _downloadConfigs(final String uid) =>
+      _download(uid, FirestorePaths.userConfigs(uid), 'configs', (final doc) async {
+        final data = doc.data();
+        final remoteUpdatedAt = (data['updatedAt'] as int?) ?? 0;
+        final local = await (_db.select(_db.puzzleConfigs)..where((final t) => t.id.equals(doc.id))).getSingleOrNull();
+        if (local != null && local.updatedAt >= remoteUpdatedAt) return;
 
-  Future<void> _downloadSolutionCounts(final String uid, {required final int sinceMs}) async {
-    final snap = await _firestore
-        .collection('${FirestorePaths.userDoc(uid)}/solutionCounts')
-        .where('updatedAt', isGreaterThan: sinceMs)
-        .get();
-    for (final doc in snap.docs) {
-      final data = doc.data();
-      final remoteUpdatedAt = (data['updatedAt'] as int?) ?? 0;
-      final puzzleDate = (data['puzzleDate'] as String?) ?? '';
-      final configId = (data['configId'] as String?) ?? '';
+        await _db
+            .into(_db.puzzleConfigs)
+            .insertOnConflictUpdate(
+              PuzzleConfigsCompanion.insert(
+                id: doc.id,
+                configJson: (data['configJson'] as String?) ?? '[]',
+                layoutName: Value(data['name'] as String?),
+                pieceSetId: Value((data['pieceSetId'] as String?) ?? BoardLayout.classicPieceSet),
+                createdAt: (data['createdAt'] as int?) ?? remoteUpdatedAt,
+                updatedAt: remoteUpdatedAt,
+                remoteId: Value(doc.id),
+                syncState: Value(SyncState.clean.code),
+              ),
+            );
+      });
 
-      final local = await (_db.select(
-        _db.puzzleSolutionCounts,
-      )..where((final t) => t.puzzleDate.equals(puzzleDate) & t.configId.equals(configId))).getSingleOrNull();
-      if (local != null && local.updatedAt >= remoteUpdatedAt) continue;
+  Future<void> _downloadSolvedSolutions(final String uid) =>
+      _download(uid, FirestorePaths.userSolvedSolutions(uid), 'solvedSolutions', (final doc) async {
+        final data = doc.data();
+        final remoteUpdatedAt = (data['updatedAt'] as int?) ?? 0;
+        final puzzleDate = (data['puzzleDate'] as String?) ?? '';
+        final configId = (data['configId'] as String?) ?? '';
+        final signature = (data['solutionSignature'] as String?) ?? '';
 
-      await _db
-          .into(_db.puzzleSolutionCounts)
-          .insertOnConflictUpdate(
-            PuzzleSolutionCountsCompanion.insert(
-              puzzleDate: puzzleDate,
-              configId: configId,
-              totalSolutions: (data['totalSolutions'] as int?) ?? 0,
-              computedAt: (data['computedAt'] as int?) ?? remoteUpdatedAt,
-              updatedAt: remoteUpdatedAt,
-              remoteId: Value(doc.id),
-              syncState: Value(SyncState.clean.code),
-            ),
-          );
-    }
-  }
+        final local =
+            await (_db.select(_db.puzzleSolvedSolutions)..where(
+                  (final t) =>
+                      t.puzzleDate.equals(puzzleDate) &
+                      t.configId.equals(configId) &
+                      t.solutionSignature.equals(signature),
+                ))
+                .getSingleOrNull();
+        if (local != null && local.updatedAt >= remoteUpdatedAt) return;
+
+        await _db
+            .into(_db.puzzleSolvedSolutions)
+            .insertOnConflictUpdate(
+              PuzzleSolvedSolutionsCompanion.insert(
+                puzzleDate: puzzleDate,
+                configId: configId,
+                solutionSignature: signature,
+                solvedAt: (data['solvedAt'] as int?) ?? remoteUpdatedAt,
+                sessionId: (data['sessionId'] as String?) ?? '',
+                updatedAt: remoteUpdatedAt,
+                remoteId: Value(doc.id),
+                syncState: Value(SyncState.clean.code),
+              ),
+            );
+      });
+
+  Future<void> _downloadSolutionCounts(final String uid) =>
+      _download(uid, '${FirestorePaths.userDoc(uid)}/solutionCounts', 'solutionCounts', (final doc) async {
+        final data = doc.data();
+        final remoteUpdatedAt = (data['updatedAt'] as int?) ?? 0;
+        final puzzleDate = (data['puzzleDate'] as String?) ?? '';
+        final configId = (data['configId'] as String?) ?? '';
+
+        final local = await (_db.select(
+          _db.puzzleSolutionCounts,
+        )..where((final t) => t.puzzleDate.equals(puzzleDate) & t.configId.equals(configId))).getSingleOrNull();
+        if (local != null && local.updatedAt >= remoteUpdatedAt) return;
+
+        await _db
+            .into(_db.puzzleSolutionCounts)
+            .insertOnConflictUpdate(
+              PuzzleSolutionCountsCompanion.insert(
+                puzzleDate: puzzleDate,
+                configId: configId,
+                totalSolutions: (data['totalSolutions'] as int?) ?? 0,
+                computedAt: (data['computedAt'] as int?) ?? remoteUpdatedAt,
+                updatedAt: remoteUpdatedAt,
+                remoteId: Value(doc.id),
+                syncState: Value(SyncState.clean.code),
+              ),
+            );
+      });
 
   Future<bool> _collectionHasDocs(final String path) async {
     final snap = await _firestore.collection(path).limit(1).get();
