@@ -231,11 +231,12 @@ class SyncService {
     final prefs = await SharedPreferences.getInstance();
     final key = '$_checkpointPrefix${name}_$uid';
     final checkpoint = prefs.getInt(key);
-    Query<Map<String, dynamic>> query = _firestore.collection(collection);
-    if (checkpoint != null) {
-      query = query.where('serverUpdatedAt', isGreaterThan: Timestamp.fromMicrosecondsSinceEpoch(checkpoint));
-    }
-    final snap = await query.get();
+    final all = _firestore.collection(collection);
+    final snap =
+        await (checkpoint == null
+                ? all
+                : all.where('serverUpdatedAt', isGreaterThan: Timestamp.fromMicrosecondsSinceEpoch(checkpoint)))
+            .get();
     var latest = checkpoint ?? 0;
     for (final doc in snap.docs) {
       await apply(doc);
