@@ -281,8 +281,7 @@ class _AccountSectionState extends State<AccountSection> {
             icon: Icons.leaderboard_outlined,
             title: S.current.leaderboardTitle,
             trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
-            onTap: () =>
-                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
           ),
         ],
       ),
