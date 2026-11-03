@@ -21,43 +21,58 @@ class LeaderboardRepositoryImpl implements LeaderboardRepository {
   }
 
   @override
-  Future<void> publish({required final String uid, required final LeaderboardSnapshot snapshot}) async {
-    final profile = snapshot.profile;
-    final batch = _firestore.batch()
-      ..set(_profile(uid), {
-        'nickname': profile.nickname,
-        'nicknameSource': profile.nicknameSource,
-        'colorIndex': profile.colorIndex,
-        'updatedAt': FieldValue.serverTimestamp(),
-        'schemaVersion': 1,
-        for (final MapEntry(key: level, value: streak) in profile.streaks.entries) ...{
-          'bestStreak${_capitalized(level.name)}': streak.best,
-          'currentStreak${_capitalized(level.name)}': streak.current,
-          if (streak.lastDay case final lastDay?) 'streakLastDay${_capitalized(level.name)}': _dayKey(lastDay),
-        },
-      });
+  Future<void> createProfile({required final String uid, required final LeaderboardProfile profile}) =>
+      _profile(uid).set(_profileMap(profile, forUpdate: false));
+
+  @override
+  Future<bool> publish({required final String uid, required final LeaderboardSnapshot snapshot}) async {
+    // `update` fails on a missing profile, so withdrawn consent rejects the whole batch.
+    final batch = _firestore.batch()..update(_profile(uid), _profileMap(snapshot.profile, forUpdate: true));
     for (final MapEntry(key: boardId, value: entry) in snapshot.entries.entries) {
       batch.set(_entries(boardId).doc(uid), _toMap(boardId, entry));
     }
-    await batch.commit();
+    try {
+      await batch.commit();
+      return true;
+    } on FirebaseException catch (e) {
+      if (e.code == 'not-found') return false;
+      rethrow;
+    }
   }
 
   @override
   Future<void> renameAll(final String uid, final String nickname) async {
-    final refs = await _ownEntries(uid);
+    final stale = await _ownEntries(uid).where('nickname', isNotEqualTo: nickname).get();
+    final refs = [for (final doc in stale.docs) doc.reference];
     await _inBatches(refs, (final batch, final ref) => batch.update(ref, {'nickname': nickname}));
   }
 
   @override
   Future<void> deleteAll(final String uid) async {
-    final refs = [...await _ownEntries(uid), _profile(uid)];
-    await _inBatches(refs, (final batch, final ref) => batch.delete(ref));
+    // Profile first: later publishes are rejected, earlier ones' entries are found below.
+    await _profile(uid).delete();
+    final own = await _ownEntries(uid).get();
+    await _inBatches([for (final doc in own.docs) doc.reference], (final batch, final ref) => batch.delete(ref));
   }
 
-  Future<List<DocumentReference<Map<String, dynamic>>>> _ownEntries(final String uid) async {
-    final own = await _firestore.collectionGroup(FirestorePaths.leaderboardEntries).where('uid', isEqualTo: uid).get();
-    return [for (final doc in own.docs) doc.reference];
-  }
+  Query<Map<String, dynamic>> _ownEntries(final String uid) =>
+      _firestore.collectionGroup(FirestorePaths.leaderboardEntries).where('uid', isEqualTo: uid);
+
+  static Map<String, Object?> _profileMap(final LeaderboardProfile profile, {required final bool forUpdate}) => {
+    'nickname': profile.nickname,
+    'nicknameSource': profile.nicknameSource,
+    'colorIndex': profile.colorIndex,
+    'updatedAt': FieldValue.serverTimestamp(),
+    'schemaVersion': 1,
+    for (final MapEntry(key: level, value: streak) in profile.streaks.entries) ...{
+      'bestStreak${_capitalized(level.name)}': streak.best,
+      'currentStreak${_capitalized(level.name)}': streak.current,
+      if (streak.lastDay case final lastDay?)
+        'streakLastDay${_capitalized(level.name)}': _dayKey(lastDay)
+      else if (forUpdate)
+        'streakLastDay${_capitalized(level.name)}': FieldValue.delete(),
+    },
+  };
 
   Future<void> _inBatches(
     final List<DocumentReference<Map<String, dynamic>>> refs,

@@ -6,28 +6,44 @@ import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+const _anonymous = 'Swift Otter 47';
+const _named = 'Peter O.';
+
+/// Models the server: the profile document and the nickname in past entries.
 class _Repository implements LeaderboardRepository {
   String? source;
-  final published = <String>[];
-  final renamed = <String>[];
+  String? entriesNickname;
+  int publishes = 0;
   int deletions = 0;
+  bool failRename = false;
 
   @override
   Future<String?> nicknameSource(final String uid) async => source;
 
   @override
-  Future<void> publish({required final String uid, required final LeaderboardSnapshot snapshot}) async {
-    published.add(snapshot.profile.nickname);
+  Future<void> createProfile({required final String uid, required final LeaderboardProfile profile}) async =>
+      source = profile.nicknameSource;
+
+  @override
+  Future<bool> publish({required final String uid, required final LeaderboardSnapshot snapshot}) async {
+    if (source == null) return false;
+    publishes++;
     source = snapshot.profile.nicknameSource;
+    entriesNickname ??= snapshot.profile.nickname;
+    return true;
   }
 
   @override
-  Future<void> renameAll(final String uid, final String nickname) async => renamed.add(nickname);
+  Future<void> renameAll(final String uid, final String nickname) async {
+    if (failRename) throw StateError('unavailable');
+    if (entriesNickname != null) entriesNickname = nickname;
+  }
 
   @override
   Future<void> deleteAll(final String uid) async {
     deletions++;
     source = null;
+    entriesNickname = null;
   }
 
   @override
@@ -35,37 +51,45 @@ class _Repository implements LeaderboardRepository {
 }
 
 class _Publisher implements LeaderboardPublisher {
-  int builds = 0;
+  /// Runs between reading consent and writing.
+  void Function()? duringBuild;
+  int _version = 0;
 
-  LeaderboardSnapshot _snapshot(final String? displayName, final int version) => LeaderboardSnapshot(
-    profile: LeaderboardProfile(
-      nickname: displayName ?? 'Swift Otter 47',
-      nicknameSource: displayName == null ? LeaderboardProfile.sourceGenerated : LeaderboardProfile.sourceName,
-      colorIndex: 0,
-      streaks: const {},
-    ),
-    entries: {
-      'd2026-11-02_hard': LeaderboardEntry(
-        uid: 'me',
-        nickname: displayName ?? 'Swift Otter 47',
-        colorIndex: 0,
-        score: version,
-        secondary: 0,
-        reachedAt: DateTime(2026, 11, 2),
-      ),
-    },
+  static LeaderboardProfile _profile(final String? displayName) => LeaderboardProfile(
+    nickname: displayName ?? _anonymous,
+    nicknameSource: displayName == null ? LeaderboardProfile.sourceGenerated : LeaderboardProfile.sourceName,
+    colorIndex: 0,
+    streaks: const {},
   );
 
   @override
   LeaderboardSnapshot emptySnapshot({required final String uid, required final String? displayName}) =>
-      _snapshot(displayName, 0);
+      LeaderboardSnapshot(profile: _profile(displayName), entries: const {});
 
   @override
   Future<LeaderboardSnapshot> build({
     required final String uid,
     required final String? displayName,
     required final DateTime now,
-  }) async => _snapshot(displayName, ++builds);
+  }) async {
+    final hook = duringBuild;
+    duringBuild = null;
+    hook?.call();
+    final profile = _profile(displayName);
+    return LeaderboardSnapshot(
+      profile: profile,
+      entries: {
+        'd2026-11-03_hard': LeaderboardEntry(
+          uid: 'me',
+          nickname: profile.nickname,
+          colorIndex: 0,
+          score: 60000 + ++_version,
+          secondary: 0,
+          reachedAt: DateTime(2026, 11, 3),
+        ),
+      },
+    );
+  }
 
   @override
   dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
@@ -79,7 +103,7 @@ class _Auth implements AuthService {
   User? get currentUser => _User();
 
   @override
-  String? get currentDisplayName => 'Peter O.';
+  String? get currentDisplayName => _named;
 
   @override
   dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
@@ -95,65 +119,102 @@ class _User implements User {
 
 void main() {
   late _Repository repository;
-  late PublicProfileService service;
+  late _Publisher publisher;
+
+  PublicProfileService service() => PublicProfileService(auth: _Auth(), leaderboards: repository, publisher: publisher);
 
   setUp(() {
     repository = _Repository();
-    service = PublicProfileService(auth: _Auth(), leaderboards: repository, publisher: _Publisher());
+    publisher = _Publisher();
   });
 
-  test('turning on publishes even before the profile reaches the server', () async {
-    service.setEnabled(true);
-    repository.source = null;
-
-    await service.publishNow();
-
-    expect(repository.published, isNotEmpty);
-  });
-
-  test('consent withdrawn on another device stops publishing', () async {
-    repository.source = LeaderboardProfile.sourceGenerated;
-    expect(await service.isEnabled(), isTrue);
-
-    repository.source = null;
-    final before = repository.published.length;
-    await service.publishNow();
-
-    expect(repository.published.length, before);
-    expect(await service.isEnabled(), isFalse);
-  });
-
-  test('changing the name setting renames past entries too', () async {
-    repository.source = LeaderboardProfile.sourceName;
-    await service.isEnabled();
-
-    service.setShowName(false);
-    await service.publishNow();
-
-    expect(repository.renamed, ['Swift Otter 47']);
+  test('turning on creates the profile, then results are published', () async {
+    final s = service()..setEnabled(true);
     expect(repository.source, LeaderboardProfile.sourceGenerated);
+
+    await s.publishNow();
+
+    expect(repository.publishes, 1);
+  });
+
+  test('consent withdrawn on another device before reading stops publishing', () async {
+    repository.source = LeaderboardProfile.sourceGenerated;
+    final s = service();
+    expect(await s.isEnabled(), isTrue);
+
+    repository.source = null;
+    await s.publishNow();
+
+    expect(repository.publishes, 0);
+    expect(await s.isEnabled(), isFalse);
+  });
+
+  test('consent withdrawn while the snapshot is built does not recreate the profile', () async {
+    repository.source = LeaderboardProfile.sourceGenerated;
+    final s = service();
+    publisher.duringBuild = () => repository.deleteAll('me');
+
+    await s.publishNow();
+
+    expect(repository.source, isNull);
+    expect(repository.publishes, 0);
+    expect(await s.isEnabled(), isFalse);
+  });
+
+  test('a name toggle during a publish is kept and published by the next run', () async {
+    repository.source = LeaderboardProfile.sourceName;
+    repository.entriesNickname = _named;
+    final s = service();
+    await s.isEnabled();
+    publisher.duringBuild = () => s.setShowName(false);
+
+    await s.publishNow();
+    expect(s.showName, isFalse);
+
+    await s.publishNow();
+    expect(s.showName, isFalse);
+    expect(repository.source, LeaderboardProfile.sourceGenerated);
+    expect(repository.entriesNickname, _anonymous);
+  });
+
+  test('a failed rename is repaired after a restart', () async {
+    repository.source = LeaderboardProfile.sourceName;
+    repository.entriesNickname = _named;
+    final first = service();
+    await first.isEnabled();
+    first.setShowName(false);
+    repository.failRename = true;
+
+    await expectLater(first.publishNow(), throwsStateError);
+    expect(repository.source, LeaderboardProfile.sourceGenerated);
+    expect(repository.entriesNickname, _named);
+
+    repository.failRename = false;
+    await service().publishNow();
+
+    expect(repository.entriesNickname, _anonymous);
   });
 
   test('name setting from another device is picked up', () async {
     repository.source = LeaderboardProfile.sourceGenerated;
-    await service.isEnabled();
+    final s = service();
+    await s.isEnabled();
 
     repository.source = LeaderboardProfile.sourceName;
-    await service.publishNow();
+    await s.publishNow();
 
-    expect(service.showName, isTrue);
-    expect(repository.renamed, isEmpty);
+    expect(s.showName, isTrue);
   });
 
   test('turning off deletes and does not publish', () async {
     repository.source = LeaderboardProfile.sourceGenerated;
-    await service.isEnabled();
+    final s = service();
+    await s.isEnabled();
 
-    service.setEnabled(false);
-    final before = repository.published.length;
-    await service.publishNow();
+    s.setEnabled(false);
+    await s.publishNow();
 
     expect(repository.deletions, 1);
-    expect(repository.published.length, before);
+    expect(repository.publishes, 0);
   });
 }

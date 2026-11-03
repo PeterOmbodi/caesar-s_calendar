@@ -24,10 +24,10 @@ class PublicProfileService {
 
   final _enabled = <String, bool>{};
   final _showName = <String, bool>{};
+  // The server value overrides a local name toggle only after that toggle is published.
+  final _nameVersion = <String, int>{};
+  final _publishedNameVersion = <String, int>{};
   final _pendingDeletion = <String>{};
-  // Local choices not yet published; the server state must not override them.
-  final _pendingEnable = <String>{};
-  final _pendingRename = <String>{};
   String? _lastPublishedKey;
 
   Future<bool> isEnabled() async {
@@ -45,10 +45,10 @@ class PublicProfileService {
     final uid = _uid;
     if (uid == null) return;
     _showName[uid] = showName;
-    _pendingRename.add(uid);
+    _nameVersion[uid] = (_nameVersion[uid] ?? 0) + 1;
   }
 
-  /// Applies at once; publishing and deletion run later in [publishNow].
+  /// Applies at once; publishing and deletion run in [publishNow].
   void setEnabled(final bool enabled) {
     final uid = _uid;
     if (uid == null) return;
@@ -56,22 +56,19 @@ class PublicProfileService {
     _lastPublishedKey = null;
     if (enabled) {
       _pendingDeletion.remove(uid);
-      _pendingEnable.add(uid);
       // Not awaited: Firestore applies the write locally and sends it once online.
-      final profile = _publisher.emptySnapshot(uid: uid, displayName: _displayName(uid));
+      final profile = _publisher.emptySnapshot(uid: uid, displayName: _displayName(uid)).profile;
       unawaited(
         _leaderboards
-            .publish(uid: uid, snapshot: profile)
+            .createProfile(uid: uid, profile: profile)
             .catchError((final Object e) => debugPrint('Leaderboard profile create failed: $e')),
       );
     } else {
-      _pendingEnable.remove(uid);
-      _pendingRename.remove(uid);
       _pendingDeletion.add(uid);
     }
   }
 
-  /// Runs a pending deletion, otherwise publishes if consent is still given and the data changed.
+  /// Deletes if pending, otherwise publishes while consent holds and fixes stale nicknames.
   Future<void> publishNow() async {
     final uid = _uid;
     if (uid == null) return;
@@ -80,43 +77,36 @@ class PublicProfileService {
       _pendingDeletion.remove(uid);
       return;
     }
-    // Consent may have been withdrawn or the name setting changed on another device.
-    if (!_pendingEnable.contains(uid)) await _refresh(uid);
+    // Consent or the name setting may have changed on another device.
+    await _refresh(uid);
     if (_enabled[uid] != true) return;
-    final nickname = await _publish(uid);
-    _pendingEnable.remove(uid);
-    if (nickname != null && _pendingRename.contains(uid)) {
-      await _leaderboards.renameAll(uid, nickname);
-      _pendingRename.remove(uid);
+    final nameVersion = _nameVersion[uid] ?? 0;
+    final snapshot = await _publisher.build(uid: uid, displayName: _displayName(uid), now: DateTime.now());
+    if (_enabled[uid] != true) return;
+    final key = '$uid|${snapshot.key}';
+    if (key != _lastPublishedKey) {
+      if (!await _leaderboards.publish(uid: uid, snapshot: snapshot)) {
+        _enabled[uid] = false;
+        _lastPublishedKey = null;
+        return;
+      }
+      _lastPublishedKey = key;
     }
+    // A toggle during this run is published by the run it queues.
+    if ((_nameVersion[uid] ?? 0) == nameVersion) _publishedNameVersion[uid] = nameVersion;
+    await _leaderboards.renameAll(uid, snapshot.profile.nickname);
   }
 
   Future<void> _refresh(final String uid) async {
     final source = await _leaderboards.nicknameSource(uid);
     _enabled[uid] = source != null;
     if (source == null) _lastPublishedKey = null;
-    if (!_pendingRename.contains(uid)) _showName[uid] = source == LeaderboardProfile.sourceName;
+    if ((_publishedNameVersion[uid] ?? 0) == (_nameVersion[uid] ?? 0)) {
+      _showName[uid] = source == LeaderboardProfile.sourceName;
+    }
   }
 
   String? _displayName(final String uid) => (_showName[uid] ?? false) ? _auth.currentDisplayName : null;
 
   String? get _uid => _auth.isAvailable ? _auth.currentUser?.uid : null;
-
-  /// Returns the published nickname, or null when visibility was turned off meanwhile.
-  Future<String?> _publish(final String uid) async {
-    final snapshot = await _publisher.build(uid: uid, displayName: _displayName(uid), now: DateTime.now());
-    final key = '$uid|${snapshot.key}';
-    if (_enabled[uid] != true) return null;
-    if (key != _lastPublishedKey) {
-      await _leaderboards.publish(uid: uid, snapshot: snapshot);
-      _lastPublishedKey = key;
-    }
-    // Turned off while publishing: the deletion may have run before this write landed.
-    if (_enabled[uid] != true) {
-      _lastPublishedKey = null;
-      _pendingDeletion.add(uid);
-      return null;
-    }
-    return snapshot.profile.nickname;
-  }
 }
