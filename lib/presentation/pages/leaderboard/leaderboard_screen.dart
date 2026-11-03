@@ -140,7 +140,10 @@ class _Gate extends StatelessWidget {
         padding: padding.copyWith(top: 16),
         sliver: SliverList.list(
           children: [
-            Text(text, style: TextStyle(fontSize: 15, height: 20 / 15, color: GameColors.of(context).text)),
+            Text(
+              text,
+              style: TextStyle(fontSize: 15, height: 20 / 15, color: GameColors.of(context).text),
+            ),
             const SizedBox(height: 16),
             Align(
               alignment: AlignmentDirectional.centerStart,
@@ -358,7 +361,9 @@ class _Body extends StatelessWidget {
         ),
         if (me != null) ...[
           const SizedBox(height: 16),
-          InsetSection(children: [LeaderboardRowView(row: me, values: _values(me))]),
+          InsetSection(
+            children: [LeaderboardRowView(row: me, values: _values(me))],
+          ),
         ],
       ],
     );
@@ -370,12 +375,12 @@ class _Body extends StatelessWidget {
     LeaderboardTab.streaks => S.current.leaderboardStreaksHeader,
   };
 
-  (String, String?) _values(final LeaderboardRow row) => switch (state.tab) {
-    LeaderboardTab.today => (
-      SessionSummary.formatDuration(row.score),
-      row.secondary > 0 ? '+${row.secondary}' : null,
+  static (String, String?) _values(final LeaderboardRow row) => switch (row.value) {
+    TimeValue(:final timeMs, :final extraSolutions) => (
+      SessionSummary.formatDuration(timeMs),
+      extraSolutions > 0 ? '+$extraSolutions' : null,
     ),
-    LeaderboardTab.streaks => ('${row.score}', row.secondary > 0 ? '${row.secondary}' : null),
-    _ => ('${row.score}', '${row.secondary}'),
+    PointsValue(:final points, :final days) => ('$points', '$days'),
+    StreakValue(:final best, :final current) => ('$best', current > 0 ? '$current' : null),
   };
 }

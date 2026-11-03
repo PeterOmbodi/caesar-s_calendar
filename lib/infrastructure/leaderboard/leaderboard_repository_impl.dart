@@ -29,7 +29,7 @@ class LeaderboardRepositoryImpl implements LeaderboardRepository {
     // `update` fails on a missing profile, so withdrawn consent rejects the whole batch.
     final batch = _firestore.batch()..update(_profile(uid), _profileMap(snapshot.profile, forUpdate: true));
     for (final MapEntry(key: boardId, value: entry) in snapshot.entries.entries) {
-      batch.set(_entries(boardId).doc(uid), _toMap(boardId, entry));
+      batch.set(_entries(boardId).doc(uid), _toMap(entry));
     }
     try {
       await batch.commit();
@@ -104,9 +104,10 @@ class LeaderboardRepositoryImpl implements LeaderboardRepository {
 
   @override
   Future<int> rank(final String boardId, final LeaderboardEntry entry) async {
-    final better = LeaderboardKeys.isDayBoard(boardId)
-        ? _entries(boardId).where('timeMs', isLessThan: entry.score)
-        : _entries(boardId).where('points', isGreaterThan: entry.score);
+    final better = switch (entry) {
+      DayEntry(:final timeMs) => _entries(boardId).where('timeMs', isLessThan: timeMs),
+      PeriodEntry(:final points) => _entries(boardId).where('points', isGreaterThan: points),
+    };
     final count = (await better.count().get()).count ?? 0;
     return count + 1;
   }
@@ -143,30 +144,43 @@ class LeaderboardRepositoryImpl implements LeaderboardRepository {
   CollectionReference<Map<String, dynamic>> _entries(final String boardId) =>
       _firestore.collection(FirestorePaths.leaderboardEntriesOf(boardId));
 
-  static Map<String, Object?> _toMap(final String boardId, final LeaderboardEntry entry) {
-    final isDay = LeaderboardKeys.isDayBoard(boardId);
-    return {
-      'uid': entry.uid,
-      'nickname': entry.nickname,
-      'colorIndex': entry.colorIndex,
-      isDay ? 'timeMs' : 'points': entry.score,
-      isDay ? 'extra' : 'days': entry.secondary,
-      'reachedAt': Timestamp.fromDate(entry.reachedAt),
-      if (entry.expireAt case final expireAt?) 'expireAt': Timestamp.fromDate(expireAt),
-    };
-  }
+  static Map<String, Object?> _toMap(final LeaderboardEntry entry) => {
+    'uid': entry.uid,
+    'nickname': entry.nickname,
+    'colorIndex': entry.colorIndex,
+    ...switch (entry) {
+      DayEntry(:final timeMs, :final extraSolutions) => {'timeMs': timeMs, 'extra': extraSolutions},
+      PeriodEntry(:final points, :final days) => {'points': points, 'days': days},
+    },
+    'reachedAt': Timestamp.fromDate(entry.reachedAt),
+    if (entry.expireAt case final expireAt?) 'expireAt': Timestamp.fromDate(expireAt),
+  };
 
   static LeaderboardEntry _fromMap(final String boardId, final Map<String, dynamic> data) {
-    final isDay = LeaderboardKeys.isDayBoard(boardId);
-    return LeaderboardEntry(
-      uid: data['uid'] as String,
-      nickname: data['nickname'] as String,
-      colorIndex: data['colorIndex'] as int,
-      score: data[isDay ? 'timeMs' : 'points'] as int,
-      secondary: data[isDay ? 'extra' : 'days'] as int,
-      reachedAt: (data['reachedAt'] as Timestamp).toDate(),
-      expireAt: (data['expireAt'] as Timestamp?)?.toDate(),
-    );
+    final uid = data['uid'] as String;
+    final nickname = data['nickname'] as String;
+    final colorIndex = data['colorIndex'] as int;
+    final reachedAt = (data['reachedAt'] as Timestamp).toDate();
+    final expireAt = (data['expireAt'] as Timestamp?)?.toDate();
+    return LeaderboardKeys.isDayBoard(boardId)
+        ? DayEntry(
+            uid: uid,
+            nickname: nickname,
+            colorIndex: colorIndex,
+            reachedAt: reachedAt,
+            expireAt: expireAt,
+            timeMs: data['timeMs'] as int,
+            extraSolutions: data['extra'] as int,
+          )
+        : PeriodEntry(
+            uid: uid,
+            nickname: nickname,
+            colorIndex: colorIndex,
+            reachedAt: reachedAt,
+            expireAt: expireAt,
+            points: data['points'] as int,
+            days: data['days'] as int,
+          );
   }
 
   static String _bestStreakField(final PuzzleSessionDifficulty level) => 'bestStreak${_capitalized(level.name)}';

@@ -11,14 +11,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 final _now = DateTime(2026, 11, 1, 20);
 
-LeaderboardEntry _entry(final String uid, final int score, [final int secondary = 0]) => LeaderboardEntry(
-  uid: uid,
-  nickname: 'Player $uid',
-  colorIndex: 0,
-  score: score,
-  secondary: secondary,
-  reachedAt: _now,
-);
+DayEntry _time(final String uid, final int timeMs) =>
+    DayEntry(uid: uid, nickname: 'Player $uid', colorIndex: 0, reachedAt: _now, timeMs: timeMs, extraSolutions: 0);
+
+PeriodEntry _points(final String uid, final int points, [final int days = 1]) =>
+    PeriodEntry(uid: uid, nickname: 'Player $uid', colorIndex: 0, reachedAt: _now, points: points, days: days);
 
 StreakEntry _streak(final String uid, final int best, final int current, final DateTime lastDay) => StreakEntry(
   uid: uid,
@@ -102,9 +99,9 @@ void main() {
 
   test('ranks equal results together and marks the player', () async {
     repository.boards['d2026-11-01_hard'] = [
-      _entry('a', 60000),
-      _entry('me', 60000),
-      _entry('b', 70000),
+      _time('a', 60000),
+      _time('me', 60000),
+      _time('b', 70000),
     ];
     final c = cubit();
 
@@ -117,7 +114,7 @@ void main() {
   });
 
   test('own result outside the top comes with its rank', () async {
-    repository.boards['w2026-44_medium'] = [_entry('a', 100), _entry('me', 30, 2)];
+    repository.boards['w2026-44_medium'] = [_points('a', 100), _points('me', 30, 2)];
     repository.outsideTop.add('me');
     final c = cubit();
     await c.open(PuzzleSessionDifficulty.medium);
@@ -127,12 +124,12 @@ void main() {
 
     expect(c.state.rows, hasLength(1));
     expect(c.state.me?.rank, 42);
-    expect(c.state.me?.score, 30);
-    expect(c.state.me?.secondary, 2);
+    final me = c.state.me!.value as PointsValue;
+    expect((me.points, me.days), (30, 2));
   });
 
   test('table stays when the own rank needs the server and it is unavailable', () async {
-    repository.boards['w2026-44_medium'] = [_entry('a', 100), _entry('me', 30)];
+    repository.boards['w2026-44_medium'] = [_points('a', 100), _points('me', 30)];
     repository.outsideTop.add('me');
     repository.offline = true;
     final c = cubit();
@@ -152,7 +149,7 @@ void main() {
     await hard.load(now: _now);
     expect(hard.state.dayTier, isNull);
 
-    repository.boards['d2026-11-01_hard'] = [_entry('me', 60000)];
+    repository.boards['d2026-11-01_hard'] = [_time('me', 60000)];
     await hard.load(now: _now);
     expect(hard.state.dayTier, DayDifficulty.tier(11, 1));
 
@@ -173,7 +170,8 @@ void main() {
     await c.selectTab(LeaderboardTab.streaks);
     await c.load(now: _now);
 
-    expect([for (final r in c.state.rows) (r.score, r.secondary)], [(10, 0), (5, 3)]);
+    final values = [for (final r in c.state.rows) r.value as StreakValue];
+    expect([for (final v in values) (v.best, v.current)], [(10, 0), (5, 3)]);
   });
 
   test('closing during a load does not emit', () async {

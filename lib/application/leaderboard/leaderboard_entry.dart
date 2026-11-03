@@ -1,15 +1,11 @@
 import 'package:caesar_puzzle/application/leaderboard/leaderboard_scoring.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 
-/// Day boards: [score] is the time in ms (lower is better), [secondary] the extra solutions.
-/// Period boards: [score] is points (higher is better), [secondary] the solved days.
-class LeaderboardEntry {
+sealed class LeaderboardEntry {
   const LeaderboardEntry({
     required this.uid,
     required this.nickname,
     required this.colorIndex,
-    required this.score,
-    required this.secondary,
     required this.reachedAt,
     this.expireAt,
   });
@@ -17,10 +13,40 @@ class LeaderboardEntry {
   final String uid;
   final String nickname;
   final int colorIndex;
-  final int score;
-  final int secondary;
   final DateTime reachedAt;
   final DateTime? expireAt;
+}
+
+/// Day board: the first clean solve; lower time ranks higher.
+final class DayEntry extends LeaderboardEntry {
+  const DayEntry({
+    required super.uid,
+    required super.nickname,
+    required super.colorIndex,
+    required super.reachedAt,
+    super.expireAt,
+    required this.timeMs,
+    required this.extraSolutions,
+  });
+
+  final int timeMs;
+  final int extraSolutions;
+}
+
+/// Week, month or year board; more points rank higher.
+final class PeriodEntry extends LeaderboardEntry {
+  const PeriodEntry({
+    required super.uid,
+    required super.nickname,
+    required super.colorIndex,
+    required super.reachedAt,
+    super.expireAt,
+    required this.points,
+    required this.days,
+  });
+
+  final int points;
+  final int days;
 }
 
 class StreakEntry {
@@ -75,7 +101,11 @@ class LeaderboardSnapshot {
     }
     for (final id in entries.keys.toList()..sort()) {
       final entry = entries[id]!;
-      buffer.write('|$id:${entry.score}:${entry.secondary}:${entry.reachedAt.millisecondsSinceEpoch}');
+      final values = switch (entry) {
+        DayEntry(:final timeMs, :final extraSolutions) => '$timeMs:$extraSolutions',
+        PeriodEntry(:final points, :final days) => '$points:$days',
+      };
+      buffer.write('|$id:$values:${entry.reachedAt.millisecondsSinceEpoch}');
     }
     return buffer.toString();
   }

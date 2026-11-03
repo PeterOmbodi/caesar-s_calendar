@@ -55,43 +55,33 @@ class LeaderboardPublisher {
     );
 
     final profile = _profile(uid, displayName, LeaderboardScoring.streaks(sessions, today: today));
-    final nickname = profile.nickname;
-    final colorIndex = profile.colorIndex;
-    LeaderboardEntry entry(
-      final int score,
-      final int secondary,
-      final DateTime reachedAt, [
-      final DateTime? expireAt,
-    ]) => LeaderboardEntry(
-      uid: uid,
-      nickname: nickname,
-      colorIndex: colorIndex,
-      score: score,
-      secondary: secondary,
-      reachedAt: reachedAt,
-      expireAt: expireAt,
-    );
 
     final entries = <String, LeaderboardEntry>{};
     for (final level in LeaderboardScoring.levels) {
       for (final day in days) {
         if (day.level == level && day.date == today && day.timeMs >= _minDayTimeMs && day.timeMs <= _maxDayTimeMs) {
-          entries[LeaderboardKeys.board(LeaderboardPeriod.today, today, level)] = entry(
-            day.timeMs,
-            day.extraSolutions,
-            day.firstSolvedAt,
-            today.add(_dayEntryLifetime),
+          entries[LeaderboardKeys.board(LeaderboardPeriod.today, today, level)] = DayEntry(
+            uid: uid,
+            nickname: profile.nickname,
+            colorIndex: profile.colorIndex,
+            reachedAt: day.firstSolvedAt,
+            expireAt: today.add(_dayEntryLifetime),
+            timeMs: day.timeMs,
+            extraSolutions: day.extraSolutions,
           );
         }
       }
       for (final period in [LeaderboardPeriod.week, LeaderboardPeriod.month, LeaderboardPeriod.year]) {
         final result = LeaderboardScoring.periodResult(days, level, LeaderboardKeys.range(period, today));
         if (result == null) continue;
-        entries[LeaderboardKeys.board(period, today, level)] = entry(
-          result.points,
-          result.days,
-          result.reachedAt,
-          period == LeaderboardPeriod.week ? today.add(_weekEntryLifetime) : null,
+        entries[LeaderboardKeys.board(period, today, level)] = PeriodEntry(
+          uid: uid,
+          nickname: profile.nickname,
+          colorIndex: profile.colorIndex,
+          reachedAt: result.reachedAt,
+          expireAt: period == LeaderboardPeriod.week ? today.add(_weekEntryLifetime) : null,
+          points: result.points,
+          days: result.days,
         );
       }
     }

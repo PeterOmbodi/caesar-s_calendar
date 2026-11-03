@@ -10,24 +10,57 @@ import 'package:injectable/injectable.dart';
 
 enum LeaderboardTab { today, week, month, year, streaks }
 
-/// Day boards: [score] is the time in ms and [secondary] the extra solutions.
-/// Period boards: points and solved days. Streaks: best and current streak.
+/// What a row ranks by; rows with an equal [rankKey] share a place.
+sealed class RowValue {
+  const RowValue();
+
+  int get rankKey;
+}
+
+final class TimeValue extends RowValue {
+  const TimeValue({required this.timeMs, required this.extraSolutions});
+
+  final int timeMs;
+  final int extraSolutions;
+
+  @override
+  int get rankKey => timeMs;
+}
+
+final class PointsValue extends RowValue {
+  const PointsValue({required this.points, required this.days});
+
+  final int points;
+  final int days;
+
+  @override
+  int get rankKey => points;
+}
+
+final class StreakValue extends RowValue {
+  const StreakValue({required this.best, required this.current});
+
+  final int best;
+  final int current;
+
+  @override
+  int get rankKey => best;
+}
+
 @immutable
 class LeaderboardRow {
   const LeaderboardRow({
     required this.rank,
     required this.nickname,
     required this.colorIndex,
-    required this.score,
-    required this.secondary,
+    required this.value,
     required this.isMe,
   });
 
   final int rank;
   final String nickname;
   final int colorIndex;
-  final int score;
-  final int secondary;
+  final RowValue value;
   final bool isMe;
 }
 
@@ -123,7 +156,7 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
 
   Future<(List<LeaderboardRow>, LeaderboardRow?)> _loadBoard(final String boardId, final String? uid) async {
     final top = await _repository.top(boardId);
-    final rows = _ranked([for (final e in top) (e.uid, e.nickname, e.colorIndex, e.score, e.secondary)], uid);
+    final rows = _ranked([for (final e in top) (e.uid, e.nickname, e.colorIndex, _entryValue(e))], uid);
     if (uid == null || rows.any((final row) => row.isMe)) return (rows, null);
     return (
       rows,
@@ -131,15 +164,16 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
         final own = await _repository.entry(boardId, uid);
         if (own == null) return null;
         final rank = await _repository.rank(boardId, own);
-        return _row(rank, own.nickname, own.colorIndex, own.score, own.secondary);
+        return _row(rank, own.nickname, own.colorIndex, _entryValue(own));
       }),
     );
   }
 
   Future<(List<LeaderboardRow>, LeaderboardRow?)> _loadStreaks(final String? uid, final DateTime today) async {
-    int current(final StreakEntry e) => _isAlive(e.lastDay, today) ? e.current : 0;
+    StreakValue value(final StreakEntry e) =>
+        StreakValue(best: e.best, current: _isAlive(e.lastDay, today) ? e.current : 0);
     final top = await _repository.topStreaks(_level);
-    final rows = _ranked([for (final e in top) (e.uid, e.nickname, e.colorIndex, e.best, current(e))], uid);
+    final rows = _ranked([for (final e in top) (e.uid, e.nickname, e.colorIndex, value(e))], uid);
     if (uid == null || rows.any((final row) => row.isMe)) return (rows, null);
     return (
       rows,
@@ -147,7 +181,7 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
         final own = await _repository.streakEntry(_level, uid);
         if (own == null || own.best == 0) return null;
         final rank = await _repository.streakRank(_level, own);
-        return _row(rank, own.nickname, own.colorIndex, own.best, current(own));
+        return _row(rank, own.nickname, own.colorIndex, value(own));
       }),
     );
   }
@@ -162,15 +196,20 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
     }
   }
 
-  /// Equal scores share a place: 1, 2, 2, 4.
+  static RowValue _entryValue(final LeaderboardEntry entry) => switch (entry) {
+    DayEntry(:final timeMs, :final extraSolutions) => TimeValue(timeMs: timeMs, extraSolutions: extraSolutions),
+    PeriodEntry(:final points, :final days) => PointsValue(points: points, days: days),
+  };
+
+  /// Equal values share a place: 1, 2, 2, 4.
   static List<LeaderboardRow> _ranked(
-    final List<(String uid, String nickname, int colorIndex, int score, int secondary)> entries,
+    final List<(String uid, String nickname, int colorIndex, RowValue value)> entries,
     final String? uid,
   ) {
     final rows = <LeaderboardRow>[];
-    for (final (index, (entryUid, nickname, colorIndex, score, secondary)) in entries.indexed) {
-      final rank = index > 0 && rows.last.score == score ? rows.last.rank : index + 1;
-      rows.add(_row(rank, nickname, colorIndex, score, secondary, isMe: entryUid == uid));
+    for (final (index, (entryUid, nickname, colorIndex, value)) in entries.indexed) {
+      final rank = index > 0 && rows.last.value.rankKey == value.rankKey ? rows.last.rank : index + 1;
+      rows.add(_row(rank, nickname, colorIndex, value, isMe: entryUid == uid));
     }
     return rows;
   }
@@ -179,17 +218,9 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
     final int rank,
     final String nickname,
     final int colorIndex,
-    final int score,
-    final int secondary, {
+    final RowValue value, {
     final bool isMe = true,
-  }) => LeaderboardRow(
-    rank: rank,
-    nickname: nickname,
-    colorIndex: colorIndex,
-    score: score,
-    secondary: secondary,
-    isMe: isMe,
-  );
+  }) => LeaderboardRow(rank: rank, nickname: nickname, colorIndex: colorIndex, value: value, isMe: isMe);
 
   static bool _isAlive(final DateTime? lastDay, final DateTime today) {
     if (lastDay == null) return false;

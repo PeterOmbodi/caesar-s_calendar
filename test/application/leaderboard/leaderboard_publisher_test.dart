@@ -76,29 +76,32 @@ void main() {
       _solved(DateTime(2026, 9, 1)),
     ]);
 
-    expect(snapshot.entries.keys, unorderedEquals([
-      'd2026-10-30_hard',
-      'w2026-44_hard',
-      'm2026-10_hard',
-      'y2026_hard',
-      'w2026-44_medium',
-      'm2026-10_medium',
-      'y2026_medium',
-    ]));
+    expect(
+      snapshot.entries.keys,
+      unorderedEquals([
+        'd2026-10-30_hard',
+        'w2026-44_hard',
+        'm2026-10_hard',
+        'y2026_hard',
+        'w2026-44_medium',
+        'm2026-10_medium',
+        'y2026_medium',
+      ]),
+    );
 
-    final day = snapshot.entries['d2026-10-30_hard']!;
-    expect(day.score, 90000);
-    expect(day.secondary, 0);
+    final day = snapshot.entries['d2026-10-30_hard']! as DayEntry;
+    expect(day.timeMs, 90000);
+    expect(day.extraSolutions, 0);
     expect(day.nickname, 'Peter O.');
     expect(day.expireAt, DateTime(2026, 11, 29));
 
-    final week = snapshot.entries['w2026-44_hard']!;
-    expect(week.score, _points(10, 29) + _points(10, 30));
-    expect(week.secondary, 2);
+    final week = snapshot.entries['w2026-44_hard']! as PeriodEntry;
+    expect(week.points, _points(10, 29) + _points(10, 30));
+    expect(week.days, 2);
     expect(week.expireAt, isNotNull);
 
-    final year = snapshot.entries['y2026_hard']!;
-    expect(year.score, _points(9, 1) + _points(10, 29) + _points(10, 30));
+    final year = snapshot.entries['y2026_hard']! as PeriodEntry;
+    expect(year.points, _points(9, 1) + _points(10, 29) + _points(10, 30));
     expect(year.expireAt, isNull);
   });
 
