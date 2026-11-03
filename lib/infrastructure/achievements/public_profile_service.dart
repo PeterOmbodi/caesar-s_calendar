@@ -16,15 +16,20 @@ class _PlayerState {
   bool deletionPending = false;
   String? publishedKey;
 
+  /// Bumped by each local turn on or off; a server answer to a request started before it is stale.
+  int consentVersion = 0;
+
   /// Bumped by each name toggle; the server value may override [showName] only once the toggle is published.
   int nameVersion = 0;
   int publishedNameVersion = 0;
 
   bool get hasUnpublishedName => nameVersion != publishedNameVersion;
 
-  void applyServer({required final String? source}) {
-    enabled = source != null;
-    if (source == null) publishedKey = null;
+  void applyServer({required final String? source, required final int consentVersionAtStart}) {
+    if (consentVersion == consentVersionAtStart) {
+      enabled = source != null;
+      if (source == null) publishedKey = null;
+    }
     if (!hasUnpublishedName) showName = source == LeaderboardProfile.sourceName;
   }
 
@@ -37,15 +42,18 @@ class _PlayerState {
     enabled = true;
     deletionPending = false;
     publishedKey = null;
+    consentVersion++;
   }
 
   void disable() {
     enabled = false;
     deletionPending = true;
     publishedKey = null;
+    consentVersion++;
   }
 
-  void consentLost() {
+  void consentLost({required final int consentVersionAtStart}) {
+    if (consentVersion != consentVersionAtStart) return;
     enabled = false;
     publishedKey = null;
   }
@@ -76,7 +84,7 @@ class PublicProfileService {
     final uid = _uid;
     if (uid == null) return false;
     final player = _player(uid);
-    if (player.enabled == null) player.applyServer(source: await _leaderboards.nicknameSource(uid));
+    if (player.enabled == null) await _readServer(uid, player);
     return player.enabled ?? false;
   }
 
@@ -112,27 +120,30 @@ class PublicProfileService {
     final player = _player(uid);
 
     if (player.deletionPending) {
+      final consentVersion = player.consentVersion;
       await _leaderboards.deleteAll(uid);
-      // Turned on again while deleting: the deletion may have removed the new profile.
-      if (player.enabled ?? false) {
-        _createProfile(uid, player);
-      } else {
+      if (player.consentVersion == consentVersion) {
         player.deletionPending = false;
+      } else if (player.enabled ?? false) {
+        // Turned on again while deleting: the deletion may have removed the new profile.
+        _createProfile(uid, player);
       }
       return;
     }
 
     // Consent or the name setting may have changed on another device.
-    player.applyServer(source: await _leaderboards.nicknameSource(uid));
-    if (player.enabled != true) return;
+    await _readServer(uid, player);
+    // A local turn on or off from here on is handled by the run it queues.
+    final consentVersion = player.consentVersion;
+    if (player.enabled != true || player.deletionPending) return;
 
     final nameVersion = player.nameVersion;
     final snapshot = await _publisher.build(uid: uid, displayName: _displayName(player), now: DateTime.now());
-    if (player.enabled != true) return;
+    if (player.consentVersion != consentVersion) return;
     final key = snapshot.key;
     if (key != player.publishedKey) {
       if (!await _leaderboards.publish(uid: uid, snapshot: snapshot)) {
-        player.consentLost();
+        player.consentLost(consentVersionAtStart: consentVersion);
         return;
       }
     }
@@ -142,6 +153,12 @@ class PublicProfileService {
   }
 
   _PlayerState _player(final String uid) => _players.putIfAbsent(uid, _PlayerState.new);
+
+  Future<void> _readServer(final String uid, final _PlayerState player) async {
+    final consentVersion = player.consentVersion;
+    final source = await _leaderboards.nicknameSource(uid);
+    player.applyServer(source: source, consentVersionAtStart: consentVersion);
+  }
 
   void _createProfile(final String uid, final _PlayerState player) {
     player.deletionPending = false;

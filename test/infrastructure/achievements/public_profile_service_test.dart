@@ -25,8 +25,17 @@ class _Repository implements LeaderboardRepository {
   Object? deleteFailure;
   Object? renameFailure;
 
+  /// Holds the next profile read until the test completes it.
+  Completer<void>? readGate;
+
   @override
-  Future<String?> nicknameSource(final String uid) async => source;
+  Future<String?> nicknameSource(final String uid) async {
+    final value = source;
+    final gate = readGate;
+    readGate = null;
+    await gate?.future;
+    return value;
+  }
 
   @override
   Future<void> createProfile({required final String uid, required final LeaderboardProfile profile}) async =>
@@ -304,5 +313,36 @@ void main() {
     expect(repository.source, LeaderboardProfile.sourceGenerated);
     await s.publishNow();
     expect(repository.publishes, 1);
+  });
+
+  test('turning off while the profile is read is not undone by the stale answer', () async {
+    repository.source = LeaderboardProfile.sourceGenerated;
+    final s = service();
+    final gate = repository.readGate = Completer<void>();
+
+    final run = s.publishNow();
+    await pumpEventQueue();
+    s.setEnabled(false);
+    gate.complete();
+    await run;
+    expect(await s.isEnabled(), isFalse);
+    expect(repository.publishes, 0);
+
+    await s.publishNow();
+    expect(repository.deletions, 1);
+    expect(repository.source, isNull);
+  });
+
+  test('turning off during the first read in isEnabled is kept', () async {
+    repository.source = LeaderboardProfile.sourceGenerated;
+    final s = service();
+    final gate = repository.readGate = Completer<void>();
+
+    final read = s.isEnabled();
+    await pumpEventQueue();
+    s.setEnabled(false);
+    gate.complete();
+
+    expect(await read, isFalse);
   });
 }
