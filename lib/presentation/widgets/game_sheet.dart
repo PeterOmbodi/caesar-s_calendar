@@ -11,6 +11,7 @@ Future<T?> showGameSheet<T>(
   required final WidgetBuilder builder,
 }) {
   final spec = ScreenSpec.of(context);
+  if (spec.family != ChromeFamily.glass) return _showMaterialSheet(context, spec, title: title, builder: builder);
   if (spec.window == WindowClass.compact && !spec.isLandscape) {
     return showModalBottomSheet<T>(
       context: context,
@@ -37,6 +38,76 @@ Future<T?> showGameSheet<T>(
         ),
       ),
     ),
+  );
+}
+
+Future<T?> _showMaterialSheet<T>(
+  final BuildContext context,
+  final ScreenSpec spec, {
+  required final String title,
+  required final WidgetBuilder builder,
+}) {
+  if (spec.window == WindowClass.compact && !spec.isLandscape) {
+    return showModalBottomSheet<T>(
+      context: context,
+      useRootNavigator: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (final sheetContext) => ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.9),
+        child: _MaterialSheetBody(title: title, builder: builder),
+      ),
+    );
+  }
+  return showDialog<T>(
+    context: context,
+    builder: (_) => Dialog(
+      clipBehavior: Clip.antiAlias,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560, maxHeight: 760),
+        child: _MaterialSheetBody(title: title, builder: builder),
+      ),
+    ),
+  );
+}
+
+class _MaterialSheetBody extends StatelessWidget {
+  const _MaterialSheetBody({required this.title, required this.builder});
+
+  final String title;
+  final WidgetBuilder builder;
+
+  @override
+  Widget build(final BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(24, 8, 12, 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text(title, style: Theme.of(context).textTheme.headlineSmall),
+              ),
+            ),
+            IconButton(
+              tooltip: S.current.toolbarClose,
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      ),
+      Flexible(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 24 + MediaQuery.paddingOf(context).bottom),
+          child: Builder(builder: builder),
+        ),
+      ),
+    ],
   );
 }
 

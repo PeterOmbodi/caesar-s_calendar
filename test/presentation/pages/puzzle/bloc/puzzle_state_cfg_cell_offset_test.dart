@@ -13,23 +13,20 @@ PuzzlePieceUI _configPiece({
   required final String id,
   required final PieceType type,
   required final Offset position,
-}) =>
-    PuzzlePieceUI(
-      id: id,
-      position: position,
-      placeZone: PlaceZone.grid,
-      type: type,
-      originalPath: generatePathForType(type, 10),
-      color: () => Colors.blue,
-      centerPoint: const Offset(5, 5),
-      isConfigItem: true,
-      isUsersItem: true,
-    );
+}) => PuzzlePieceUI(
+  id: id,
+  position: position,
+  placeZone: PlaceZone.grid,
+  type: type,
+  originalPath: generatePathForType(type, 10),
+  color: () => Colors.blue,
+  centerPoint: const Offset(5, 5),
+  isConfigItem: true,
+  isUsersItem: true,
+);
 
 void main() {
-  test(
-      'cfgCellOffset maps index 0 to small config top-left and index 2 to large config top-left',
-      () {
+  test('cfgCellOffset maps index 0 to small config top-left and index 2 to large config top-left', () {
     const grid = PuzzleGridEntity(
       cellSize: 10,
       rows: 7,

@@ -34,6 +34,7 @@ class PiecePaintHelper {
     canvas.saveLayer(null, Paint()..color = Color.fromRGBO(0, 0, 0, alpha));
     return true;
   }
+
   static const Offset selectionLift = Offset(0, -3);
 
   static const _hairline = Color(0x2E000000);
@@ -96,12 +97,12 @@ class PiecePaintHelper {
         _drawHatch(canvas, path, colors.customConfig);
       }
       canvas.drawPath(
-          path,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = isHighlighted ? selectionStroke : 1.5
-            ..color = isHighlighted ? colors.selection : colors.boardBorder,
-        );
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = isHighlighted ? selectionStroke : 1.5
+          ..color = isHighlighted ? colors.selection : colors.boardBorder,
+      );
       return;
     }
 

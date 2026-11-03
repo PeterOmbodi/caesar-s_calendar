@@ -112,7 +112,7 @@ class PuzzleHistoryUseCase {
     return AchievementStats(
       solvedDates: {for (final day in solvedDays) (day.month, day.day)},
       solvedHard: solved.where((final s) => s.difficulty == PuzzleSessionDifficulty.hard).length,
-      bestStreakDays: solvedDays.isEmpty ? 0 : _longestRunInRange(solvedDays, _spanOf(solvedDays)),
+      bestStreakDays: _longestRunInRangeByMonthDay(_streakDays(solved), PeriodRangeResolver.gridTemplateYearRange),
       solutionsFound: solutionsFound,
       fastestSolveMs: fastestMs,
       cleanSolves: solved.where((final s) => !s.moveHistory.any((final move) => move is HintMove)).length,
@@ -145,6 +145,7 @@ class PuzzleHistoryUseCase {
     var totalTimePlayedMs = 0;
     var totalMovesSolved = 0;
     final solvedDays = <DateTime>{};
+    final streakDays = <DateTime>{};
 
     for (final session in sessions) {
       if (!PeriodRangeResolver.matches(period, yearScope, referenceDate, session.puzzleDate)) {
@@ -162,6 +163,9 @@ class PuzzleHistoryUseCase {
           solvedHard += 1;
         }
         solvedDays.add(session.puzzleDate);
+        if (_solvedOnItsDay(session)) {
+          streakDays.add(session.puzzleDate);
+        }
       }
     }
 
@@ -170,11 +174,25 @@ class PuzzleHistoryUseCase {
       solved: solved,
       solvedHard: solvedHard,
       solvedDays: solvedDays.length,
-      bestStreakDays: _bestStreak(solvedDays, period, yearScope, referenceDate),
+      bestStreakDays: _bestStreak(streakDays, period, yearScope, referenceDate),
       hintsUsed: hintsUsed,
       totalTimePlayedMs: totalTimePlayedMs,
       totalMovesSolved: totalMovesSolved,
     );
+  }
+
+  static Set<DateTime> _streakDays(final Iterable<PuzzleSessionData> solved) => {
+    for (final session in solved)
+      if (_solvedOnItsDay(session)) session.puzzleDate,
+  };
+
+  /// Streaks count only puzzles solved on their own date.
+  static bool _solvedOnItsDay(final PuzzleSessionData session) {
+    final completedAt = session.completedAt;
+    if (completedAt == null) return false;
+    final completed = DateTime.fromMillisecondsSinceEpoch(completedAt);
+    final date = session.puzzleDate;
+    return completed.year == date.year && completed.month == date.month && completed.day == date.day;
   }
 
   int _bestStreak(
@@ -186,35 +204,21 @@ class PuzzleHistoryUseCase {
     if (solvedDays.isEmpty) {
       return 0;
     }
-    switch (period) {
-      case StatsPeriod.week:
-      case StatsPeriod.month:
-        final range = period == StatsPeriod.week
-            ? PeriodRangeResolver.weekRange(referenceDate)
-            : PeriodRangeResolver.monthRange(referenceDate);
-        return switch (yearScope) {
-          StatsYearScope.currentYear => _longestRunInRange(solvedDays, range),
-          StatsYearScope.allYears => _longestRunInRangeByMonthDay(solvedDays, range),
-        };
-      case StatsPeriod.year:
-        return switch (yearScope) {
-          StatsYearScope.currentYear => _longestRunInRange(
-            solvedDays,
-            PeriodRangeResolver.yearRange(referenceDate.year),
-          ),
-          StatsYearScope.allYears => _longestRunInRange(solvedDays, _spanOf(solvedDays)),
-        };
+    if (yearScope == StatsYearScope.currentYear) {
+      final range = switch (period) {
+        StatsPeriod.week => PeriodRangeResolver.weekRange(referenceDate),
+        StatsPeriod.month => PeriodRangeResolver.monthRange(referenceDate),
+        StatsPeriod.year => PeriodRangeResolver.yearRange(referenceDate.year),
+      };
+      return _longestRunInRange(solvedDays, range);
     }
-  }
-
-  DateRange _spanOf(final Set<DateTime> dates) {
-    var earliest = dates.first;
-    var latest = dates.first;
-    for (final date in dates) {
-      if (date.isBefore(earliest)) earliest = date;
-      if (date.isAfter(latest)) latest = date;
-    }
-    return DateRange(earliest, latest);
+    const gridYear = PeriodRangeResolver.gridTemplateYear;
+    final range = switch (period) {
+      StatsPeriod.week => PeriodRangeResolver.weekRangeInYear(gridYear, referenceDate),
+      StatsPeriod.month => PeriodRangeResolver.monthRangeInYear(gridYear, referenceDate.month),
+      StatsPeriod.year => PeriodRangeResolver.gridTemplateYearRange,
+    };
+    return _longestRunInRangeByMonthDay(solvedDays, range);
   }
 
   int _longestRunInRange(final Set<DateTime> solvedDays, final DateRange range) {

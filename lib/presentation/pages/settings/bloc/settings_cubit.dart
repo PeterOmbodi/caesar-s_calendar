@@ -24,7 +24,8 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
   void togglePreventOverlap(final bool v) => emit(state.copyWith(preventOverlap: v));
   void toggleSnapToGrid(final bool v) => emit(state.copyWith(snapToGridOnTransform: v));
   void toggleSeparateColors(final bool v) => emit(state.copyWith(separateMoveColors: v));
-  void setSolutionIndicator(final SolutionIndicator? v) => emit(state.copyWith(solutionIndicator: v ?? SolutionIndicator.none));
+  void setSolutionIndicator(final SolutionIndicator? v) =>
+      emit(state.copyWith(solutionIndicator: v ?? SolutionIndicator.none));
   void toggleShowTimer(final bool v) => emit(state.copyWith(showTimer: v));
   void toggleHaptics(final bool v) => emit(state.copyWith(haptics: v));
   void toggleSounds(final bool v) => emit(state.copyWith(sounds: v));
@@ -32,11 +33,19 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
 
   @override
   SettingsState? fromJson(final Map<String, dynamic> json) {
-    try { return SettingsState.fromJson(json); } catch (_) { return null; }
+    try {
+      return SettingsState.fromJson(json);
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
   Map<String, dynamic>? toJson(final SettingsState state) {
-    try { return state.toJson(); } catch (_) { return null; }
+    try {
+      return state.toJson();
+    } catch (_) {
+      return null;
+    }
   }
 }

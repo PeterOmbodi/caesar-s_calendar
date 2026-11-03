@@ -211,7 +211,10 @@ class _PuzzleDayPickerState extends State<PuzzleDayPicker> {
               decoration: BoxDecoration(
                 color: selected ? colors.target : colors.target.withValues(alpha: 0),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: selected ? colors.targetLine : colors.targetLine.withValues(alpha: 0), width: 2),
+                border: Border.all(
+                  color: selected ? colors.targetLine : colors.targetLine.withValues(alpha: 0),
+                  width: 2,
+                ),
               ),
               child: FittedBox(
                 fit: BoxFit.scaleDown,

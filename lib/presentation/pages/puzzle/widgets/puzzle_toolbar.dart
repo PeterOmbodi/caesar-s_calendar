@@ -168,6 +168,33 @@ class PuzzleToolbar extends StatelessWidget {
           context.read<PuzzleBloc>().markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
           allowedEvent();
         }
+      case AssistGate.warnEasy:
+        final bloc = context.read<PuzzleBloc>();
+        if (bloc.currentSessionDifficulty == PuzzleSessionDifficulty.easy) {
+          allowedEvent();
+          return;
+        }
+        final result = await showAdaptiveDialog<bool>(
+          context: context,
+          builder: (final context) => PlatformAlertDialog(
+            title: Text(S.of(context).assistToEasyDialogTitle),
+            content: Text(S.of(context).assistToEasyDialogMessage),
+            actions: [
+              PlatformDialogAction(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(S.of(context).solutionsFoundDialogCancel),
+              ),
+              PlatformDialogAction(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(S.of(context).assistToEasyDialogContinue),
+              ),
+            ],
+          ),
+        );
+        if (result == true && context.mounted) {
+          bloc.markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
+          allowedEvent();
+        }
     }
   }
 

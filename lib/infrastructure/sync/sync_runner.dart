@@ -92,7 +92,8 @@ class SyncRunner {
         if (shouldSync) {
           await _sync.syncOnce();
         }
-        if (shouldPublishProfile) {
+        // Synced sessions from other devices can change leaderboard results.
+        if (shouldSync || shouldPublishProfile) {
           await _publicProfile.publishNow();
         }
         _status.setSuccess();
@@ -115,4 +116,3 @@ class SyncRunner {
     stop();
   }
 }
-

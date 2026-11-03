@@ -54,7 +54,12 @@ class GlassSurface extends StatelessWidget {
     final fill = color ?? colors.glass;
     final radius = borderRadius.topLeft;
     if (allowLiquid && isLiquid(context) && radius.x == radius.y && borderRadius == BorderRadius.all(radius)) {
-      return liquid(context, shape: LiquidRoundedSuperellipse(borderRadius: radius.x), fill: fill, child: child);
+      return liquid(
+        context,
+        shape: LiquidRoundedSuperellipse(borderRadius: radius.x),
+        fill: fill,
+        child: child,
+      );
     }
     return DecoratedBox(
       decoration: BoxDecoration(

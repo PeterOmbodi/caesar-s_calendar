@@ -275,11 +275,15 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     ),
     rotatePiece: (final rp) => piece.copyWith(
       rotation: rp.rotation,
-      position: _moveHistoryService.snapOffset(state.gridConfig, state.boardConfig, rp.snapCorrection, false) ?? piece.position,
+      position:
+          _moveHistoryService.snapOffset(state.gridConfig, state.boardConfig, rp.snapCorrection, false) ??
+          piece.position,
     ),
     flipPiece: (final fp) => piece.copyWith(
       isFlipped: fp.isFlipped,
-      position: _moveHistoryService.snapOffset(state.gridConfig, state.boardConfig, fp.snapCorrection, false) ?? piece.position,
+      position:
+          _moveHistoryService.snapOffset(state.gridConfig, state.boardConfig, fp.snapCorrection, false) ??
+          piece.position,
     ),
     hintMove: (final hm) =>
         _applySessionPlacement(piece: piece, placement: hm.to, rotation: hm.rotationTo, isFlipped: hm.flippedTo),

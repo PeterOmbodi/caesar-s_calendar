@@ -21,7 +21,10 @@ class KeyCap extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        child: Text(text, style: TextStyle(fontSize: 12, height: 1, fontWeight: FontWeight.w500, color: color)),
+        child: Text(
+          text,
+          style: TextStyle(fontSize: 12, height: 1, fontWeight: FontWeight.w500, color: color),
+        ),
       ),
     );
   }

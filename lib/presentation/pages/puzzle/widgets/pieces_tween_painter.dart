@@ -7,7 +7,6 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_help
 import 'package:flutter/material.dart';
 
 class PiecesTweenPainter extends CustomPainter {
-
   PiecesTweenPainter({
     required this.tweens,
     required this.t,

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart';
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
+import 'package:caesar_puzzle/application/models/period_stats.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/application/models/stats_period.dart';
@@ -9,6 +10,7 @@ import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
 
 class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   _FakePuzzleHistoryRepository(this.sessions, {final Stream<int>? solutionCount})
@@ -37,6 +39,12 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
 
   @override
   Stream<int> watchSolvedSolutionCount() => solutionCount;
+
+  @override
+  Future<List<SolvedSolutionRecord>> getSolvedSolutions({
+    required final DateTime from,
+    required final DateTime to,
+  }) async => const [];
 
   @override
   Future<String?> getConfigJson(final String configId) async => null;
@@ -72,8 +80,7 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Stream<List<PuzzleSessionData>> watchSessionsByDate({required final DateTime puzzleDate}) => const Stream.empty();
 
   @override
-  Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({required final DateTime puzzleDate}) =>
-      const Stream.empty();
+  Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({required final DateTime puzzleDate}) => const Stream.empty();
 }
 
 int _sessionCounter = 0;
@@ -93,7 +100,9 @@ PuzzleSessionData _session({
 }) {
   _sessionCounter += 1;
   final effectiveStartedAt = startedAt ?? _defaultRealTimestamp;
-  final effectiveCompletedAt = solved ? (completedAt ?? _defaultRealTimestamp) : null;
+  final effectiveCompletedAt = solved
+      ? (completedAt ?? DateTime(puzzleDate.year, puzzleDate.month, puzzleDate.day, 12))
+      : null;
   return PuzzleSessionData(
     id: 'session-$_sessionCounter',
     puzzleDate: puzzleDate,
@@ -149,7 +158,11 @@ void main() {
       final useCase = PuzzleHistoryUseCase(_FakePuzzleHistoryRepository(sessions));
 
       final stats = await useCase
-          .watchPeriodStats(period: StatsPeriod.week, yearScope: StatsYearScope.currentYear, referenceDate: referenceDate)
+          .watchPeriodStats(
+            period: StatsPeriod.week,
+            yearScope: StatsYearScope.currentYear,
+            referenceDate: referenceDate,
+          )
           .first;
 
       expect(stats.started, 3);
@@ -182,7 +195,11 @@ void main() {
       final useCase = PuzzleHistoryUseCase(_FakePuzzleHistoryRepository(sessions));
 
       final stats = await useCase
-          .watchPeriodStats(period: StatsPeriod.week, yearScope: StatsYearScope.currentYear, referenceDate: referenceDate)
+          .watchPeriodStats(
+            period: StatsPeriod.week,
+            yearScope: StatsYearScope.currentYear,
+            referenceDate: referenceDate,
+          )
           .first;
 
       expect(stats.started, 1);
@@ -231,30 +248,116 @@ void main() {
   });
 
   group('watchPeriodStats: year + allYears', () {
-    test('best streak is a real all-time run that can cross a calendar-year boundary', () async {
-      final referenceDate = DateTime(2025, 8, 6);
+    test('best streak merges years by month-day, like the calendar grid', () async {
       final sessions = [
-        _session(puzzleDate: DateTime(2024, 1, 1), solved: true),
+        _session(puzzleDate: DateTime(2025, 1, 1), solved: true),
+        _session(puzzleDate: DateTime(2026, 1, 2), solved: true),
+        _session(puzzleDate: DateTime(2024, 1, 3), solved: true),
+      ];
+      final stats = await _yearAllYearsStats(sessions);
+
+      expect(stats.solvedDays, 3);
+      expect(stats.bestStreakDays, 3);
+    });
+
+    test('Feb 29 links Feb 28 and Mar 1 from other years', () async {
+      final sessions = [
+        _session(puzzleDate: DateTime(2025, 2, 28), solved: true),
+        _session(puzzleDate: DateTime(2024, 2, 29), solved: true),
+        _session(puzzleDate: DateTime(2026, 3, 1), solved: true),
+      ];
+      final stats = await _yearAllYearsStats(sessions);
+
+      expect(stats.bestStreakDays, 3);
+    });
+
+    test('Dec 31 does not continue into Jan 1', () async {
+      final sessions = [
         _session(puzzleDate: DateTime(2024, 12, 30), solved: true),
         _session(puzzleDate: DateTime(2024, 12, 31), solved: true),
         _session(puzzleDate: DateTime(2025, 1, 1), solved: true),
-        _session(puzzleDate: DateTime(2025, 1, 2), solved: true),
+      ];
+      final stats = await _yearAllYearsStats(sessions);
+
+      expect(stats.bestStreakDays, 2);
+    });
+  });
+
+  group('watchPeriodStats: month + allYears', () {
+    test('February includes Feb 29 even when the reference year is not leap', () async {
+      final sessions = [
+        _session(puzzleDate: DateTime(2025, 2, 28), solved: true),
+        _session(puzzleDate: DateTime(2024, 2, 29), solved: true),
+        _session(puzzleDate: DateTime(2025, 2, 27), solved: true),
       ];
       final useCase = PuzzleHistoryUseCase(_FakePuzzleHistoryRepository(sessions));
 
       final stats = await useCase
-          .watchPeriodStats(period: StatsPeriod.year, yearScope: StatsYearScope.allYears, referenceDate: referenceDate)
+          .watchPeriodStats(
+            period: StatsPeriod.month,
+            yearScope: StatsYearScope.allYears,
+            referenceDate: DateTime(2026, 2, 10),
+          )
+          .first;
+
+      expect(stats.bestStreakDays, 3);
+    });
+  });
+
+  group('streaks count only puzzles solved on their own date', () {
+    final sessions = [
+      _session(puzzleDate: DateTime(2026, 10, 20), solved: true),
+      _session(puzzleDate: DateTime(2026, 10, 21), solved: true),
+      _session(puzzleDate: DateTime(2026, 10, 22), solved: true),
+      _session(puzzleDate: DateTime(2026, 10, 23), solved: true, completedAt: DateTime(2026, 10, 22, 19, 11)),
+      _session(puzzleDate: DateTime(2026, 10, 24), solved: true, completedAt: DateTime(2026, 10, 30, 9)),
+    ];
+
+    test('in period stats, while solved days still count every solve', () async {
+      final useCase = PuzzleHistoryUseCase(_FakePuzzleHistoryRepository(sessions));
+
+      final stats = await useCase
+          .watchPeriodStats(
+            period: StatsPeriod.month,
+            yearScope: StatsYearScope.currentYear,
+            referenceDate: DateTime(2026, 10, 30),
+          )
           .first;
 
       expect(stats.solvedDays, 5);
-      expect(stats.bestStreakDays, 4);
+      expect(stats.bestStreakDays, 3);
     });
+
+    test('in achievements', () async {
+      final useCase = PuzzleHistoryUseCase(_FakePuzzleHistoryRepository(sessions));
+
+      final achievements = await useCase.watchAchievements().first;
+
+      expect(achievements.solvedDates.length, 5);
+      expect(achievements.bestStreakDays, 3);
+    });
+  });
+
+  test('watchAchievements best streak merges years by month-day', () async {
+    final useCase = PuzzleHistoryUseCase(
+      _FakePuzzleHistoryRepository([
+        _session(puzzleDate: DateTime(2025, 1, 1), solved: true),
+        _session(puzzleDate: DateTime(2026, 1, 2), solved: true),
+        _session(puzzleDate: DateTime(2026, 1, 3)),
+      ]),
+    );
+
+    final achievements = await useCase.watchAchievements().first;
+
+    expect(achievements.bestStreakDays, 2);
   });
 
   test('watchAchievements updates the solution count when solutions arrive after sessions', () async {
     final solutionCount = StreamController<int>();
     final useCase = PuzzleHistoryUseCase(
-      _FakePuzzleHistoryRepository([_session(puzzleDate: DateTime(2026, 10, 8), solved: true)], solutionCount: solutionCount.stream),
+      _FakePuzzleHistoryRepository([
+        _session(puzzleDate: DateTime(2026, 10, 8), solved: true),
+      ], solutionCount: solutionCount.stream),
     );
     final counts = <int>[];
     final subscription = useCase.watchAchievements().listen((final stats) => counts.add(stats.solutionsFound));
@@ -268,4 +371,12 @@ void main() {
     await subscription.cancel();
     await solutionCount.close();
   });
+}
+
+Future<PeriodStats> _yearAllYearsStats(final List<PuzzleSessionData> sessions) {
+  final useCase = PuzzleHistoryUseCase(_FakePuzzleHistoryRepository(sessions));
+  final reference = DateTime(2026, 10, 30);
+  return useCase
+      .watchPeriodStats(period: StatsPeriod.year, yearScope: StatsYearScope.allYears, referenceDate: reference)
+      .first;
 }

@@ -419,7 +419,10 @@ class _Tile extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(label, style: TextStyle(fontSize: 13, height: 17 / 13, color: colors.textSecondary)),
+              Text(
+                label,
+                style: TextStyle(fontSize: 13, height: 17 / 13, color: colors.textSecondary),
+              ),
             ],
           ),
         ),

@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/achievements/achievements_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/leaderboard/leaderboard_screen.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,12 @@ class _GlassHistoryAppBar extends StatelessWidget implements PreferredSizeWidget
       mainAxisSize: MainAxisSize.min,
       children: [
         _CupertinoHistoryNavigationButton(
+          semanticLabel: S.current.leaderboardTitle,
+          icon: Icons.leaderboard_outlined,
+          onPressed: () =>
+              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
+        ),
+        _CupertinoHistoryNavigationButton(
           semanticLabel: S.current.achievementsTitle,
           icon: Icons.emoji_events_outlined,
           onPressed: () =>
@@ -71,6 +78,11 @@ class _MaterialHistoryAppBar extends StatelessWidget implements PreferredSizeWid
     leading: const BackButton(),
     title: Text(S.current.historyTitle),
     actions: [
+      _HistoryActionButton(
+        tooltip: S.current.leaderboardTitle,
+        icon: Icons.leaderboard_outlined,
+        onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
+      ),
       _HistoryActionButton(
         tooltip: S.current.achievementsTitle,
         icon: Icons.emoji_events_outlined,

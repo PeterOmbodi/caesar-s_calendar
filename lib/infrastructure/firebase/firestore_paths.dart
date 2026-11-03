@@ -2,6 +2,7 @@ class FirestorePaths {
   static const String users = 'users';
   static const String publicUsers = 'publicUsers';
   static const String leaderboards = 'leaderboards';
+  static const String leaderboardEntries = 'entries';
 
   static String userDoc(final String uid) => '$users/$uid';
   static String userSessions(final String uid) => '${userDoc(uid)}/sessions';
@@ -9,5 +10,5 @@ class FirestorePaths {
   static String userSolvedSolutions(final String uid) => '${userDoc(uid)}/solvedSolutions';
 
   static String publicUserDoc(final String uid) => '$publicUsers/$uid';
+  static String leaderboardEntriesOf(final String boardId) => '$leaderboards/$boardId/$leaderboardEntries';
 }
-

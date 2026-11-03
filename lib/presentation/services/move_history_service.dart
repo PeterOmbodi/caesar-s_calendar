@@ -106,8 +106,14 @@ class MoveHistoryService {
     final to = tray.relativePosition(inside);
     final snapMove = MovePiece(
       selectedPiece.id,
-      from: MovePlacement(zone: PlaceZone.board, position: Position(dx: from.dx, dy: from.dy)),
-      to: MovePlacement(zone: PlaceZone.board, position: Position(dx: to.dx, dy: to.dy)),
+      from: MovePlacement(
+        zone: PlaceZone.board,
+        position: Position(dx: from.dx, dy: from.dy),
+      ),
+      to: MovePlacement(
+        zone: PlaceZone.board,
+        position: Position(dx: to.dx, dy: to.dy),
+      ),
     );
     return (selectedPiece.copyWith(position: inside), snapMove);
   }

@@ -2,8 +2,10 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/session_summary.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 PuzzleSessionData _session({
+  final int startedAt = 0,
   final int activeElapsedMs = 0,
   final int? firstMoveAt,
   final int? lastResumedAt,
@@ -15,7 +17,7 @@ PuzzleSessionData _session({
   configId: 'cfg',
   difficulty: PuzzleSessionDifficulty.hard,
   status: PuzzleSessionStatus.unsolved,
-  startedAt: 0,
+  startedAt: startedAt,
   firstMoveAt: firstMoveAt,
   lastResumedAt: lastResumedAt,
   activeElapsedMs: activeElapsedMs,
@@ -37,5 +39,33 @@ void main() {
   test('formatDuration pads to mm:ss and keeps long minutes', () {
     expect(SessionSummary.formatDuration(65000), '01:05');
     expect(SessionSummary.formatDuration(125 * 60000), '125:00');
+  });
+
+  group('timeLabel', () {
+    setUpAll(() => initializeDateFormatting('en'));
+
+    final start = DateTime(2026, 10, 24, 17, 27).millisecondsSinceEpoch;
+
+    test('shows only the start while in progress', () {
+      expect(SessionSummary(_session(startedAt: start), locale: 'en').timeLabel, 'Oct 24, 2026 · 17:27');
+    });
+
+    test('adds the solve time on the same day', () {
+      final end = DateTime(2026, 10, 24, 17, 45).millisecondsSinceEpoch;
+      final summary = SessionSummary(
+        _session(startedAt: start, completedAt: end),
+        locale: 'en',
+      );
+      expect(summary.timeLabel, 'Oct 24, 2026 · 17:27 – 17:45');
+    });
+
+    test('adds the solve date when solved on another day', () {
+      final end = DateTime(2026, 10, 25, 8, 40).millisecondsSinceEpoch;
+      final summary = SessionSummary(
+        _session(startedAt: start, completedAt: end),
+        locale: 'en',
+      );
+      expect(summary.timeLabel, 'Oct 24, 2026 · 17:27 – Oct 25 · 08:40');
+    });
   });
 }

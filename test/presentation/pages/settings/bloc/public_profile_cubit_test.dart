@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:caesar_puzzle/infrastructure/achievements/public_profile_service.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
@@ -9,33 +7,36 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('toggle is re-enabled when the profile update times out', () async {
+  test('toggle applies at once and queues the publish', () async {
     final status = SyncStatusService();
-    final cubit = PublicProfileCubit.withOperationTimeout(
-      _HangingPublicProfileService(),
-      _FakeAuthService(),
-      _FakeSyncRunner(),
-      status,
-      operationTimeout: const Duration(milliseconds: 10),
-    );
+    final profiles = _FakePublicProfileService();
+    final runner = _FakeSyncRunner();
+    final cubit = PublicProfileCubit(profiles, _FakeAuthService(), runner, status);
     await cubit.stream.firstWhere((final state) => !state.isLoading);
 
-    await cubit.toggleEnabled(true);
-
-    expect(cubit.state.isUpdating, isFalse);
+    cubit.toggleEnabled(true);
+    expect(cubit.state.enabled, isTrue);
+    cubit.toggleEnabled(false);
     expect(cubit.state.enabled, isFalse);
-    expect(cubit.state.errorMessage, contains('TimeoutException'));
+
+    expect(profiles.calls, [true, false]);
+    expect(runner.publishRequests, 2);
     await cubit.close();
     await status.dispose();
   });
 }
 
-class _HangingPublicProfileService implements PublicProfileService {
+class _FakePublicProfileService implements PublicProfileService {
+  final calls = <bool>[];
+
   @override
   Future<bool> isEnabled() async => false;
 
   @override
-  Future<void> setEnabled(final bool enabled) => Completer<void>().future;
+  void setEnabled(final bool enabled) => calls.add(enabled);
+
+  @override
+  bool get showName => false;
 
   @override
   dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
@@ -61,6 +62,11 @@ class _FakeUser implements User {
 }
 
 class _FakeSyncRunner implements SyncRunner {
+  int publishRequests = 0;
+
+  @override
+  void publishProfileNow() => publishRequests++;
+
   @override
   dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
 }

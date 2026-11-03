@@ -1,4 +1,3 @@
-
 class PuzzleSettingsPanelController {
   const PuzzleSettingsPanelController({this.isInlinePanelVisible = false});
 

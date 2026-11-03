@@ -14,12 +14,12 @@ class SyncStatusService {
   void setSyncing() => _emit(_state.copyWith(isSyncing: true, clearError: true));
 
   void setSuccess() => _emit(
-        _state.copyWith(
-          isSyncing: false,
-          lastSuccessAtMs: DateTime.now().millisecondsSinceEpoch,
-          clearError: true,
-        ),
-      );
+    _state.copyWith(
+      isSyncing: false,
+      lastSuccessAtMs: DateTime.now().millisecondsSinceEpoch,
+      clearError: true,
+    ),
+  );
 
   void setError(final Object error) => _emit(_state.copyWith(isSyncing: false, lastError: error.toString()));
 
@@ -32,4 +32,3 @@ class SyncStatusService {
     await _controller.close();
   }
 }
-

@@ -174,7 +174,9 @@ class _HistoryTabs extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(child: IndexedStack(index: activeTab, children: children)),
+        Expanded(
+          child: IndexedStack(index: activeTab, children: children),
+        ),
       ],
     );
   }
@@ -228,7 +230,9 @@ class _MaterialHistoryTabsState extends State<_MaterialHistoryTabs> with SingleT
           Tab(text: S.current.historyTabStatistics),
         ],
       ),
-      Expanded(child: TabBarView(controller: _controller, children: widget.children)),
+      Expanded(
+        child: TabBarView(controller: _controller, children: widget.children),
+      ),
     ],
   );
 }

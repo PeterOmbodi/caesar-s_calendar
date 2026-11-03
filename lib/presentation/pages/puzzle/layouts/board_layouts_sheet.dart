@@ -48,7 +48,10 @@ Future<void> showBoardLayoutsSheet(final BuildContext context) {
 }
 
 Future<String?> showLayoutNameDialog(final BuildContext context, final String title, final String initial) =>
-    showAdaptiveDialog<String>(context: context, builder: (_) => _NameDialog(title: title, initial: initial));
+    showAdaptiveDialog<String>(
+      context: context,
+      builder: (_) => _NameDialog(title: title, initial: initial),
+    );
 
 class _BoardLayoutsPanel extends StatefulWidget {
   const _BoardLayoutsPanel({required this.isSheet});
@@ -119,7 +122,12 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
                       Expanded(
                         child: Text(
                           S.current.headerLayoutsTooltip,
-                          style: TextStyle(fontSize: 20, height: 25 / 20, fontWeight: FontWeight.w600, color: colors.text),
+                          style: TextStyle(
+                            fontSize: 20,
+                            height: 25 / 20,
+                            fontWeight: FontWeight.w600,
+                            color: colors.text,
+                          ),
                         ),
                       ),
                       TextButton.icon(
@@ -280,7 +288,6 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
         ),
       ) ??
       false;
-
 }
 
 class _LayoutRow extends StatelessWidget {
@@ -323,10 +330,19 @@ class _LayoutRow extends StatelessWidget {
                   children: [
                     Text.rich(
                       TextSpan(
-                        style: TextStyle(fontSize: 16, height: 21 / 16, fontWeight: FontWeight.w500, color: colors.text),
+                        style: TextStyle(
+                          fontSize: 16,
+                          height: 21 / 16,
+                          fontWeight: FontWeight.w500,
+                          color: colors.text,
+                        ),
                         children: [
                           TextSpan(text: layout.isStandard ? S.current.historyConfigStandard : layout.name),
-                          if (layout.isStandard) WidgetSpan(alignment: PlaceholderAlignment.middle, child: _BuiltInChip(colors: colors)),
+                          if (layout.isStandard)
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: _BuiltInChip(colors: colors),
+                            ),
                         ],
                       ),
                       maxLines: 1,
@@ -445,7 +461,10 @@ class _ThumbnailPainter extends CustomPainter {
   @override
   void paint(final Canvas canvas, final Size size) {
     const cell = _BoardThumbnail.cell;
-    final board = RRect.fromRectAndRadius(Rect.fromLTWH(0.5, 0.5, size.width - 1, size.height - 1), const Radius.circular(4));
+    final board = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0.5, 0.5, size.width - 1, size.height - 1),
+      const Radius.circular(4),
+    );
     canvas
       ..drawRRect(board, Paint()..color = colors.board)
       ..drawRRect(
@@ -461,7 +480,10 @@ class _ThumbnailPainter extends CustomPainter {
     final targetPaint = Paint()..color = colors.targetLine;
     for (final c in targets) {
       canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTWH(2 + c.col * cell, 2 + c.row * cell, cell - 2, cell - 2), const Radius.circular(1.5)),
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(2 + c.col * cell, 2 + c.row * cell, cell - 2, cell - 2),
+          const Radius.circular(1.5),
+        ),
         targetPaint,
       );
     }

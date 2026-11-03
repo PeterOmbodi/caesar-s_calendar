@@ -47,7 +47,11 @@ class BoardLayoutsCubit extends Cubit<BoardLayoutsState> {
   late final StreamSubscription<List<BoardLayout>> _subscription;
   final _counting = <String>{};
 
-  Future<void> countSolutions(final Iterable<LayoutEntry> entries, final DateTime date, final SolutionCounter count) async {
+  Future<void> countSolutions(
+    final Iterable<LayoutEntry> entries,
+    final DateTime date,
+    final SolutionCounter count,
+  ) async {
     for (final entry in entries) {
       final key = _countKey(entry, date);
       if (state.solutionCounts.containsKey(key) || !_counting.add(key)) {

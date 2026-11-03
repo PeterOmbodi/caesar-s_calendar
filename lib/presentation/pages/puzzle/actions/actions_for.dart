@@ -56,9 +56,11 @@ List<GameAction> actionsFor(final PuzzleState state, final SolutionIndicator ind
   final isAssistDisabled = state.isSolving || (showsSolvability && solutionsCount == 0);
   final assistGate = solutionsCount == 0
       ? AssistGate.noSolutions
-      : showsSolvability
-      ? AssistGate.open
-      : AssistGate.confirmEasy;
+      : switch (indicator) {
+          SolutionIndicator.countSolutions => AssistGate.open,
+          SolutionIndicator.solvability => AssistGate.warnEasy,
+          SolutionIndicator.none => AssistGate.confirmEasy,
+        };
 
   return [
     history,

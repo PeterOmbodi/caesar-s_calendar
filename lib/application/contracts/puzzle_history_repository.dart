@@ -1,11 +1,9 @@
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
+import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
 
 abstract class PuzzleHistoryRepository {
-  Future<String> upsertConfig({
-    required final String configJson,
-    final DateTime? createdAt,
-  });
+  Future<String> upsertConfig({required final String configJson, final DateTime? createdAt});
 
   Future<void> upsertSolutionCount({
     required final DateTime puzzleDate,
@@ -26,31 +24,24 @@ abstract class PuzzleHistoryRepository {
     final DateTime? completedAt,
   });
 
-  Stream<List<CalendarDayStats>> watchCalendarStats({
-    required final DateTime from,
-    required final DateTime to,
-  });
+  Stream<List<CalendarDayStats>> watchCalendarStats({required final DateTime from, required final DateTime to});
 
-  Stream<List<PuzzleSessionData>> watchSessionsByDate({
-    required final DateTime puzzleDate,
-  });
+  Stream<List<PuzzleSessionData>> watchSessionsByDate({required final DateTime puzzleDate});
 
-  Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({
-    required final DateTime puzzleDate,
-  });
+  Stream<List<PuzzleSessionData>> watchSessionsByMonthDay({required final DateTime puzzleDate});
 
   Stream<List<PuzzleSessionData>> watchSessionsInPuzzleDateRange({
     required final DateTime from,
     required final DateTime to,
   });
 
-  Future<PuzzleSessionData?> getLatestUnsolvedSession({
-    required final DateTime puzzleDate,
-  });
+  Future<PuzzleSessionData?> getLatestUnsolvedSession({required final DateTime puzzleDate});
 
   Future<bool> hasAnyLocalSessions();
 
   Stream<int> watchSolvedSolutionCount();
+
+  Future<List<SolvedSolutionRecord>> getSolvedSolutions({required final DateTime from, required final DateTime to});
 
   Future<String?> getConfigJson(final String configId);
 

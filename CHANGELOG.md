@@ -1,3 +1,13 @@
+## 1.13.0+46
+- add leaderboards for the daily puzzle on the Medium and Hard levels: time today, points for the week, month and year, and streaks
+- taking part is optional and turned on in the account; the nickname is anonymous unless you choose to show your name
+- points depend on the difficulty of the day; only the daily puzzle solved on its own date on the Standard layout counts
+- on Medium, hints and showing solutions first warn that the game will count as Easy
+- streaks in History and My achievements count only puzzles solved on their own date, and History shows when a session was solved
+- account sheet, sections and rows use Material on Android
+- fix sync missing sessions uploaded late by another device
+- deleting the account also deletes cloud data and leaderboard entries
+
 ## 1.12.2+45
 - use the app's own move sound instead of the system click: it now plays on the web and no longer depends on Android system sound settings
 

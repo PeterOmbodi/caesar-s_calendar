@@ -4,4 +4,3 @@ class PlacementParams {
   final int row, col, rotationSteps;
   final bool isFlipped;
 }
-

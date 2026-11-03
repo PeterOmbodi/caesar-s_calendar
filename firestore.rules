@@ -10,6 +10,25 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function isInt(value, min, max) {
+      return value is int && value >= min && value <= max;
+    }
+
+    function isNickname(data) {
+      return data.nickname is string && data.nickname.size() > 0 && data.nickname.size() <= 24
+        && isInt(data.colorIndex, 0, 7);
+    }
+
+    function isDayOrNull(value) {
+      return value == null || (value is string && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));
+    }
+
+    function isStreak(data, level) {
+      return isInt(data['bestStreak' + level], 0, 100000)
+        && isInt(data['currentStreak' + level], 0, 100000)
+        && isDayOrNull(data.get('streakLastDay' + level, null));
+    }
+
     // Private per-user data (sessions/configs/solvedSolutions/etc.)
     match /users/{uid} {
       allow read, write: if isOwner(uid);
@@ -18,17 +37,82 @@ service cloud.firestore {
       }
     }
 
-    // Public profile + public stats (sanitized)
+    // Exists only while the player shows up in leaderboards.
     match /publicUsers/{uid} {
-      allow read: if true;
-      allow write: if isOwner(uid);
+      function isProfile(data) {
+        return data.keys().hasOnly([
+            'nickname', 'nicknameSource', 'colorIndex', 'updatedAt', 'schemaVersion',
+            'bestStreakMedium', 'currentStreakMedium', 'streakLastDayMedium',
+            'bestStreakHard', 'currentStreakHard', 'streakLastDayHard'])
+          && data.keys().hasAll([
+            'nickname', 'nicknameSource', 'colorIndex', 'updatedAt', 'schemaVersion',
+            'bestStreakMedium', 'currentStreakMedium', 'bestStreakHard', 'currentStreakHard'])
+          && isNickname(data)
+          && data.nicknameSource in ['generated', 'name', 'custom']
+          && data.updatedAt is timestamp
+          && data.schemaVersion == 1
+          && isStreak(data, 'Medium')
+          && isStreak(data, 'Hard');
+      }
+
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(uid) && isProfile(request.resource.data);
+      allow delete: if isOwner(uid);
     }
 
-    // Phase 2: leaderboards (write via Cloud Functions only)
-    match /leaderboards/{period}/entries/{uid} {
-      allow read: if true;
-      allow write: if false;
+    // boardId: d2026-10-30_hard, w2026-44_medium, m2026-10_hard, y2026_medium.
+    match /leaderboards/{boardId}/entries/{uid} {
+      function isBoardId() {
+        return boardId.matches('^(d[0-9]{4}-[0-9]{2}-[0-9]{2}|w[0-9]{4}-[0-9]{2}|m[0-9]{4}-[0-9]{2}|y[0-9]{4})_(medium|hard)$');
+      }
+
+      // Local dates: the day board accepts writes from a day before to two days after its date.
+      function isCurrentDay() {
+        let day = timestamp.date(int(boardId[1:5]), int(boardId[6:8]), int(boardId[9:11]));
+        return request.time > day - duration.value(1, 'd') && request.time < day + duration.value(2, 'd');
+      }
+
+      function isDayEntry(data) {
+        return data.keys().hasOnly(['uid', 'nickname', 'colorIndex', 'timeMs', 'extra', 'reachedAt', 'expireAt'])
+          && data.keys().hasAll(['uid', 'nickname', 'colorIndex', 'timeMs', 'extra', 'reachedAt', 'expireAt'])
+          && isInt(data.timeMs, 10000, 86400000)
+          && isInt(data.extra, 0, 10)
+          && isCurrentDay();
+      }
+
+      function isPeriodEntry(data, maxDays) {
+        return data.keys().hasOnly(['uid', 'nickname', 'colorIndex', 'points', 'days', 'reachedAt', 'expireAt'])
+          && data.keys().hasAll(['uid', 'nickname', 'colorIndex', 'points', 'days', 'reachedAt'])
+          && isInt(data.days, 1, maxDays)
+          && isInt(data.points, 10, 30 * maxDays);
+      }
+
+      function isEntry(data) {
+        return data.uid == uid
+          && isNickname(data)
+          && data.reachedAt is timestamp
+          && (data.get('expireAt', null) == null || data.expireAt is timestamp)
+          && (boardId[0] == 'd' ? isDayEntry(data)
+            : boardId[0] == 'w' ? isPeriodEntry(data, 7)
+            : boardId[0] == 'm' ? isPeriodEntry(data, 31)
+            : isPeriodEntry(data, 366));
+      }
+
+      // Renaming touches past boards too, where a full entry would no longer pass the date check.
+      function isRename() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nickname'])
+          && isNickname(request.resource.data);
+      }
+
+      allow read: if isSignedIn();
+      allow create: if isOwner(uid) && isBoardId() && isEntry(request.resource.data);
+      allow update: if isOwner(uid) && isBoardId() && (isEntry(request.resource.data) || isRename());
+      allow delete: if isOwner(uid);
+    }
+
+    // Lets a player find all of their own entries to delete them.
+    match /{path=**}/entries/{uid} {
+      allow read: if isSignedIn();
     }
   }
 }
-

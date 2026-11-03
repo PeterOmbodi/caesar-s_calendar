@@ -82,7 +82,9 @@ class _StartCardState extends State<_StartCard> with WidgetsBindingObserver {
     final holes = [for (final cell in _cells) cell.inflate(2)];
     return Stack(
       children: [
-        Positioned.fill(child: CustomPaint(painter: SpotlightPainter(holes: holes))),
+        Positioned.fill(
+          child: CustomPaint(painter: SpotlightPainter(holes: holes)),
+        ),
         Positioned.fill(
           child: CustomSingleChildLayout(
             delegate: _CardLayout(holes: holes, padding: MediaQuery.paddingOf(context)),

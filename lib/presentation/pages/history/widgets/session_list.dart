@@ -96,7 +96,11 @@ class _EmptySessions extends StatelessWidget {
         children: [
           Icon(glass ? CupertinoIcons.clock : Icons.history_toggle_off, size: 28, color: colors.textSecondary),
           const SizedBox(height: 8),
-          Text(S.current.historyNoSessions, textAlign: TextAlign.center, style: TextStyle(color: colors.textSecondary)),
+          Text(
+            S.current.historyNoSessions,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: colors.textSecondary),
+          ),
         ],
       ),
     );
@@ -156,7 +160,7 @@ class _MaterialSessionCard extends StatelessWidget {
             Flexible(child: _ConfigBadge(summary: summary)),
           ],
         ),
-        subtitle: Text('${summary.startedLabel}\n${summary.metricsLabel}'),
+        subtitle: Text('${summary.timeLabel}\n${summary.metricsLabel}'),
       ),
     );
   }
@@ -223,7 +227,7 @@ class _CupertinoSessionRow extends StatelessWidget {
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: colors.text),
                 ),
                 const SizedBox(height: 5),
-                Text(summary.startedLabel, style: TextStyle(fontSize: 14, color: colors.textSecondary)),
+                Text(summary.timeLabel, style: TextStyle(fontSize: 14, color: colors.textSecondary)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 12,

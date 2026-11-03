@@ -25,5 +25,4 @@ Set<Cell> blockedCellsOf(final Iterable<PlacementParams> placements) {
 }
 
 /// Same cells give the same key, however the blocks that cover them are turned.
-String cellsKey(final Iterable<Cell> cells) =>
-    (cells.map((final c) => c.row * 100 + c.col).toList()..sort()).join(',');
+String cellsKey(final Iterable<Cell> cells) => (cells.map((final c) => c.row * 100 + c.col).toList()..sort()).join(',');

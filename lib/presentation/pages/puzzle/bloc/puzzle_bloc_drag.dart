@@ -292,7 +292,9 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     if (selectedPiece != null && state.shown(selectedPiece).containsPoint(position)) {
       return selectedPiece;
     }
-    return state.pieces.lastWhereOrNull((final piece) => _canTouch(piece) && state.shown(piece).containsPoint(position));
+    return state.pieces.lastWhereOrNull(
+      (final piece) => _canTouch(piece) && state.shown(piece).containsPoint(position),
+    );
   }
 
   bool _isTapOfDoubleTapFlip(final Offset position) {

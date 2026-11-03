@@ -26,6 +26,7 @@ import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
 
 class _FakeSettingsQuery implements SettingsQuery {
   @override
@@ -68,8 +69,7 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Future<void> clearLocalData() async {}
 
   @override
-  Future<String> createSession(final PuzzleSessionData session) async =>
-      'session-id';
+  Future<String> createSession(final PuzzleSessionData session) async => 'session-id';
 
   @override
   Future<PuzzleSessionData?> getLatestUnsolvedSession({
@@ -81,6 +81,12 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
 
   @override
   Stream<int> watchSolvedSolutionCount() => Stream.value(0);
+
+  @override
+  Future<List<SolvedSolutionRecord>> getSolvedSolutions({
+    required final DateTime from,
+    required final DateTime to,
+  }) async => const [];
 
   @override
   Future<String?> getConfigJson(final String configId) async => configs[configId];
@@ -216,8 +222,20 @@ void main() {
       PuzzleState.initial().copyWith(
         gridConfig: grid,
         pieces: [
-          _piece(id: 'zone1', type: PieceType.zone1, position: const Offset(60, 0), zone: PlaceZone.grid, isConfigItem: true),
-          _piece(id: 'zone2', type: PieceType.zone2, position: const Offset(30, 60), zone: PlaceZone.grid, isConfigItem: true),
+          _piece(
+            id: 'zone1',
+            type: PieceType.zone1,
+            position: const Offset(60, 0),
+            zone: PlaceZone.grid,
+            isConfigItem: true,
+          ),
+          _piece(
+            id: 'zone2',
+            type: PieceType.zone2,
+            position: const Offset(30, 60),
+            zone: PlaceZone.grid,
+            isConfigItem: true,
+          ),
           _piece(id: 'Square', type: PieceType.square, position: const Offset(110, 10), zone: PlaceZone.board),
         ],
       ),
@@ -229,7 +247,10 @@ void main() {
     expect(count, 2);
     final blocked = {for (final p in solver.lastPieces.where((final p) => p.isConfigItem)) ...p.absoluteCells};
     expect(blocked, blockedCellsOf(layout));
-    expect(bloc.state.blockedCells, blockedCellsOf([PlacementParams('zone1', 0, 6, 0, false), PlacementParams('zone2', 6, 3, 0, false)]));
+    expect(
+      bloc.state.blockedCells,
+      blockedCellsOf([PlacementParams('zone1', 0, 6, 0, false), PlacementParams('zone2', 6, 3, 0, false)]),
+    );
     await bloc.close();
   });
 
@@ -245,8 +266,20 @@ void main() {
       PuzzleState.initial().copyWith(
         gridConfig: grid,
         pieces: [
-          _piece(id: 'zone1', type: PieceType.zone1, position: const Offset(60, 0), zone: PlaceZone.grid, isConfigItem: true),
-          _piece(id: 'zone2', type: PieceType.zone2, position: const Offset(30, 60), zone: PlaceZone.grid, isConfigItem: true),
+          _piece(
+            id: 'zone1',
+            type: PieceType.zone1,
+            position: const Offset(60, 0),
+            zone: PlaceZone.grid,
+            isConfigItem: true,
+          ),
+          _piece(
+            id: 'zone2',
+            type: PieceType.zone2,
+            position: const Offset(30, 60),
+            zone: PlaceZone.grid,
+            isConfigItem: true,
+          ),
           _piece(id: 'Square', type: PieceType.square, position: const Offset(110, 10), zone: PlaceZone.board),
         ],
       ),
@@ -310,8 +343,20 @@ void main() {
           status: GameStatus.playing,
           gridConfig: grid,
           pieces: [
-            _piece(id: 'zone1', type: PieceType.zone1, position: const Offset(60, 0), zone: PlaceZone.grid, isConfigItem: true),
-            _piece(id: 'zone2', type: PieceType.zone2, position: const Offset(30, 60), zone: PlaceZone.grid, isConfigItem: true),
+            _piece(
+              id: 'zone1',
+              type: PieceType.zone1,
+              position: const Offset(60, 0),
+              zone: PlaceZone.grid,
+              isConfigItem: true,
+            ),
+            _piece(
+              id: 'zone2',
+              type: PieceType.zone2,
+              position: const Offset(30, 60),
+              zone: PlaceZone.grid,
+              isConfigItem: true,
+            ),
             _piece(id: 'Square', type: PieceType.square, position: Offset.zero, zone: PlaceZone.grid),
           ],
           moveHistory: [gameMove],

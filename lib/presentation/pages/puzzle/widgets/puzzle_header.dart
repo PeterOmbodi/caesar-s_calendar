@@ -69,10 +69,7 @@ class PuzzleHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (buttonsRight)
-            const SizedBox(width: GlassCircleButton.defaultSize * 2 + buttonGap)
-          else
-            layouts,
+          if (buttonsRight) const SizedBox(width: GlassCircleButton.defaultSize * 2 + buttonGap) else layouts,
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -88,7 +85,10 @@ class PuzzleHeader extends StatelessWidget {
                       style: type.subtitle.copyWith(color: colors.textSecondary),
                       children: [
                         if (isEditing)
-                          TextSpan(text: S.current.headerEditingLayout, style: TextStyle(color: colors.customConfig))
+                          TextSpan(
+                            text: S.current.headerEditingLayout,
+                            style: TextStyle(color: colors.customConfig),
+                          )
                         else
                           TextSpan(text: '${S.current.headerDailyPuzzle} · ${indicator.sessionDifficulty.label}'),
                         if (isCustomConfig && !isEditing)

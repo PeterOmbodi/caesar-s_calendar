@@ -55,7 +55,10 @@ DrawnGroup _group(final int cells) => DrawnGroup(
 void main() {
   group('Easy', () {
     test('shows the solution count', () {
-      expect(statusFor(_state(), _easy), const PuzzleStatus(StatusMessage.solutionsCount, tone: StatusTone.ok, count: 50));
+      expect(
+        statusFor(_state(), _easy),
+        const PuzzleStatus(StatusMessage.solutionsCount, tone: StatusTone.ok, count: 50),
+      );
       expect(statusFor(_state(placed: 3, solutions: 22), _easy).count, 22);
     });
 
@@ -64,7 +67,10 @@ void main() {
     });
 
     test('dead end', () {
-      expect(statusFor(_state(placed: 5, solutions: 0), _easy), const PuzzleStatus(StatusMessage.noSolutions, tone: StatusTone.bad));
+      expect(
+        statusFor(_state(placed: 5, solutions: 0), _easy),
+        const PuzzleStatus(StatusMessage.noSolutions, tone: StatusTone.bad),
+      );
     });
 
     test('searching while the solver runs', () {
@@ -79,11 +85,17 @@ void main() {
     });
 
     test('solvable while solutions remain', () {
-      expect(statusFor(_state(placed: 2, solutions: 7), _medium), const PuzzleStatus(StatusMessage.solvable, tone: StatusTone.ok));
+      expect(
+        statusFor(_state(placed: 2, solutions: 7), _medium),
+        const PuzzleStatus(StatusMessage.solvable, tone: StatusTone.ok),
+      );
     });
 
     test('dead end', () {
-      expect(statusFor(_state(placed: 5, solutions: 0), _medium), const PuzzleStatus(StatusMessage.deadEnd, tone: StatusTone.bad));
+      expect(
+        statusFor(_state(placed: 5, solutions: 0), _medium),
+        const PuzzleStatus(StatusMessage.deadEnd, tone: StatusTone.bad),
+      );
     });
   });
 

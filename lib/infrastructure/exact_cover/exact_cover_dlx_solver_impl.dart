@@ -62,9 +62,7 @@ class _ExactCoverSolverPayload {
 
   factory _ExactCoverSolverPayload.fromMap(final Map<String, dynamic> map) => _ExactCoverSolverPayload(
     grid: Map<String, dynamic>.from(map['grid'] as Map),
-    pieces: (map['pieces'] as List)
-        .map((final item) => Map<String, dynamic>.from(item as Map))
-        .toList(),
+    pieces: (map['pieces'] as List).map((final item) => Map<String, dynamic>.from(item as Map)).toList(),
     dateIso8601: map['dateIso8601'] as String,
   );
 

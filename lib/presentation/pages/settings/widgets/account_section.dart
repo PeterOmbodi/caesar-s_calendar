@@ -1,10 +1,14 @@
+import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_status.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/achievements/achievements_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/leaderboard/leaderboard_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/app_switch.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -66,6 +70,40 @@ class _AccountSectionState extends State<AccountSection> {
       return;
     }
     await cubit.cancelCloudReplace();
+  }
+
+  Widget _switch({
+    required final bool value,
+    required final ValueChanged<bool> onChanged,
+    required final String label,
+  }) => ScreenSpec.of(context).family == ChromeFamily.glass
+      ? AppSwitch(value: value, onChanged: onChanged, semanticLabel: label)
+      : Switch(value: value, onChanged: onChanged);
+
+  Future<void> _setLeaderboardVisibility(final bool enabled) async {
+    final cubit = context.read<PublicProfileCubit>();
+    if (!enabled) {
+      final confirmed = await showAdaptiveDialog<bool>(
+        context: context,
+        builder: (final dialogContext) => PlatformAlertDialog(
+          title: Text(S.current.accountLeaderboardHideTitle),
+          content: Text(S.current.accountLeaderboardHideMessage),
+          actions: [
+            PlatformDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(S.current.historySessionDialogCancel),
+            ),
+            PlatformDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              cupertino: (_, _) => CupertinoDialogActionData(isDestructiveAction: true),
+              child: Text(S.current.accountLeaderboardHideConfirm),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || confirmed != true) return;
+    }
+    cubit.toggleEnabled(enabled);
   }
 
   Future<void> _showDeleteAccountDialog() async {
@@ -165,7 +203,10 @@ class _AccountSectionState extends State<AccountSection> {
         onPressed: auth.isLoading ? null : cubit.signInWithGoogle,
       ),
       if (auth.isLoading)
-        const Padding(padding: EdgeInsets.only(top: 16), child: Center(child: CircularProgressIndicator.adaptive())),
+        const Padding(
+          padding: EdgeInsets.only(top: 16),
+          child: Center(child: CircularProgressIndicator.adaptive()),
+        ),
     ];
   }
 
@@ -198,6 +239,50 @@ class _AccountSectionState extends State<AccountSection> {
             trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
             onTap: () =>
                 Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AchievementsScreen())),
+          ),
+        ],
+      ),
+      _sectionGap,
+      InsetSection(
+        footer: S.current.accountLeaderboardFooter,
+        children: [
+          InsetRow(
+            icon: Icons.visibility_outlined,
+            title: S.current.accountLeaderboardVisibility,
+            subtitle: S.current.accountLeaderboardNickname(
+              NicknameGenerator.nickname(
+                uid: user.uid as String,
+                displayName: publicProfile.showName ? displayName : null,
+              ),
+            ),
+            trailing: IgnorePointer(
+              ignoring: publicProfile.isLoading,
+              child: Opacity(
+                opacity: publicProfile.isLoading ? 0.5 : 1,
+                child: _switch(
+                  value: publicProfile.enabled,
+                  onChanged: _setLeaderboardVisibility,
+                  label: S.current.accountLeaderboardVisibility,
+                ),
+              ),
+            ),
+          ),
+          if (publicProfile.enabled)
+            InsetRow(
+              icon: Icons.badge_outlined,
+              title: S.current.accountLeaderboardShowName,
+              trailing: _switch(
+                value: publicProfile.showName,
+                onChanged: profileCubit.toggleShowName,
+                label: S.current.accountLeaderboardShowName,
+              ),
+            ),
+          InsetRow(
+            icon: Icons.leaderboard_outlined,
+            title: S.current.leaderboardTitle,
+            trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
+            onTap: () =>
+                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
           ),
         ],
       ),
@@ -237,7 +322,10 @@ class _AccountSectionState extends State<AccountSection> {
 
   Widget _note(final String text, final Color color) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 4),
-    child: Text(text, style: TextStyle(fontSize: 15, height: 20 / 15, color: color)),
+    child: Text(
+      text,
+      style: TextStyle(fontSize: 15, height: 20 / 15, color: color),
+    ),
   );
 
   bool get _supportsAppleSignIn {

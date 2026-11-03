@@ -142,7 +142,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   listener: (final context, final state) => _showPieceTip(),
                 ),
                 BlocListener<SettingsCubit, SettingsState>(
-                  listenWhen: (final previous, final current) => previous.solutionIndicator != current.solutionIndicator,
+                  listenWhen: (final previous, final current) =>
+                      previous.solutionIndicator != current.solutionIndicator,
                   listener: (final context, final state) {
                     context.read<PuzzleBloc>().markCurrentSessionDifficulty(state.solutionIndicator.sessionDifficulty);
                   },
@@ -161,7 +162,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
               ],
               child: Stack(
                 children: [
-                    AnimatedPositioned(
+                  AnimatedPositioned(
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOutCubic,
                     left: gameplayInsets.left,
@@ -179,7 +180,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                       final reserved = GameChrome.reservedInsets(context);
                       // No animation on phones: a squeezed header wraps and reports a huge height.
                       return AnimatedPositioned(
-                        duration: spec.window == WindowClass.compact ? Duration.zero : const Duration(milliseconds: 220),
+                        duration: spec.window == WindowClass.compact
+                            ? Duration.zero
+                            : const Duration(milliseconds: 220),
                         curve: Curves.easeOutCubic,
                         left: gameplayInsets.left + (beside ? trayLeft - 16 : reserved.left),
                         top: 0,
