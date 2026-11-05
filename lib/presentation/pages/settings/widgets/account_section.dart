@@ -2,7 +2,6 @@ import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_status.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
-import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/achievements/achievements_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/leaderboard_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
@@ -71,14 +70,6 @@ class _AccountSectionState extends State<AccountSection> {
     }
     await cubit.cancelCloudReplace();
   }
-
-  Widget _switch({
-    required final bool value,
-    required final ValueChanged<bool> onChanged,
-    required final String label,
-  }) => ScreenSpec.of(context).family == ChromeFamily.glass
-      ? AppSwitch(value: value, onChanged: onChanged, semanticLabel: label)
-      : Switch(value: value, onChanged: onChanged);
 
   Future<void> _setLeaderboardVisibility(final bool enabled) async {
     final cubit = context.read<PublicProfileCubit>();
@@ -255,26 +246,20 @@ class _AccountSectionState extends State<AccountSection> {
                 displayName: publicProfile.showName ? displayName : null,
               ),
             ),
-            trailing: IgnorePointer(
-              ignoring: publicProfile.isLoading,
-              child: Opacity(
-                opacity: publicProfile.isLoading ? 0.5 : 1,
-                child: _switch(
-                  value: publicProfile.enabled,
-                  onChanged: _setLeaderboardVisibility,
-                  label: S.current.accountLeaderboardVisibility,
-                ),
-              ),
+            trailing: AppSwitch(
+              value: publicProfile.enabled,
+              onChanged: publicProfile.isLoading ? null : _setLeaderboardVisibility,
+              semanticLabel: S.current.accountLeaderboardVisibility,
             ),
           ),
           if (publicProfile.enabled)
             InsetRow(
               icon: Icons.badge_outlined,
               title: S.current.accountLeaderboardShowName,
-              trailing: _switch(
+              trailing: AppSwitch(
                 value: publicProfile.showName,
                 onChanged: profileCubit.toggleShowName,
-                label: S.current.accountLeaderboardShowName,
+                semanticLabel: S.current.accountLeaderboardShowName,
               ),
             ),
           InsetRow(
