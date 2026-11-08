@@ -7,8 +7,6 @@ import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
-/// What this device knows about one player's leaderboard participation. Every change goes through
-/// a method here, so the transitions around each `await` in [PublicProfileService] stay checkable.
 class _PlayerState {
   /// Null until read from the server.
   bool? enabled;
@@ -64,7 +62,6 @@ class _PlayerState {
   }
 }
 
-/// Leaderboard visibility: the player's public profile exists only while it is on.
 @lazySingleton
 class PublicProfileService {
   PublicProfileService({
@@ -113,7 +110,6 @@ class PublicProfileService {
     _createProfile(uid, player);
   }
 
-  /// Deletes if pending, otherwise publishes while consent holds and fixes stale nicknames.
   Future<void> publishNow() async {
     final uid = _uid;
     if (uid == null) return;

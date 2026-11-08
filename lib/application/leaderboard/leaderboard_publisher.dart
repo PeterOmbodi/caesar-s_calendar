@@ -6,7 +6,6 @@ import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:injectable/injectable.dart';
 
-/// Builds what a player publishes for the current day, week, month and year.
 @lazySingleton
 class LeaderboardPublisher {
   LeaderboardPublisher(this._history);

@@ -8,7 +8,6 @@ import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
 import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 
-/// One level on one date: first clean solve time and extra unique solutions.
 class DayResult {
   const DayResult({
     required this.date,

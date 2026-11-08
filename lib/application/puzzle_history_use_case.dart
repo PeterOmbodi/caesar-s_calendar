@@ -186,7 +186,6 @@ class PuzzleHistoryUseCase {
       if (_solvedOnItsDay(session)) session.puzzleDate,
   };
 
-  /// Streaks count only puzzles solved on their own date.
   static bool _solvedOnItsDay(final PuzzleSessionData session) {
     final completedAt = session.completedAt;
     if (completedAt == null) return false;

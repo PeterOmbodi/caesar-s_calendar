@@ -30,7 +30,6 @@ class SessionSummary {
       '${S.current.hintUsed}: $hintsUsed · '
       '${S.current.historyDuration}: ${formatDuration(durationMs(session))}';
 
-  /// Start time; for solved sessions also when they were solved.
   static String _timeLabel(final PuzzleSessionData session, final String locale) {
     final start = DateTime.fromMillisecondsSinceEpoch(session.startedAt);
     final startLabel = '${DateFormat.yMMMd(locale).format(start)} · ${DateFormat.Hm(locale).format(start)}';

@@ -86,7 +86,6 @@ class LeaderboardProfile {
   final Map<PuzzleSessionDifficulty, LevelStreak> streaks;
 }
 
-/// Everything one player publishes, keyed by board id.
 class LeaderboardSnapshot {
   const LeaderboardSnapshot({required this.profile, required this.entries});
 
