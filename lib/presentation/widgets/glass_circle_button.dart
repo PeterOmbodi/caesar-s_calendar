@@ -54,8 +54,7 @@ class _GlassCircleButtonState extends State<GlassCircleButton> {
             scale: _pressed ? _pressedScale : 1,
             duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 180),
             curve: Curves.easeOutBack,
-            child: GlassSurface.liquid(
-              context,
+            child: LiquidGlassPanel(
               shape: const LiquidOval(),
               fill: colors.glass,
               child: Material(type: MaterialType.transparency, shape: const CircleBorder(), child: tap),
