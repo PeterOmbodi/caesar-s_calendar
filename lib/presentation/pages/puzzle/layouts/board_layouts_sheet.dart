@@ -18,14 +18,6 @@ Future<void> showBoardLayoutsSheet(final BuildContext context) {
   final puzzleBloc = context.read<PuzzleBloc>();
   final layoutsCubit = context.read<BoardLayoutsCubit>();
   final settingsCubit = context.read<SettingsCubit>();
-  Widget panel({required final bool isSheet}) => MultiBlocProvider(
-    providers: [
-      BlocProvider<PuzzleBloc>.value(value: puzzleBloc),
-      BlocProvider<BoardLayoutsCubit>.value(value: layoutsCubit),
-      BlocProvider<SettingsCubit>.value(value: settingsCubit),
-    ],
-    child: _BoardLayoutsPanel(isSheet: isSheet),
-  );
 
   if (spec.window == WindowClass.compact && !spec.isLandscape) {
     return showModalBottomSheet<void>(
@@ -33,7 +25,12 @@ Future<void> showBoardLayoutsSheet(final BuildContext context) {
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => panel(isSheet: true),
+      builder: (_) => _ScopedPanel(
+        puzzleBloc: puzzleBloc,
+        layoutsCubit: layoutsCubit,
+        settingsCubit: settingsCubit,
+        isSheet: true,
+      ),
     );
   }
   return showDialog<void>(
@@ -41,7 +38,12 @@ Future<void> showBoardLayoutsSheet(final BuildContext context) {
     builder: (_) => Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420, maxHeight: 560),
-        child: panel(isSheet: false),
+        child: _ScopedPanel(
+          puzzleBloc: puzzleBloc,
+          layoutsCubit: layoutsCubit,
+          settingsCubit: settingsCubit,
+          isSheet: false,
+        ),
       ),
     ),
   );
@@ -52,6 +54,30 @@ Future<String?> showLayoutNameDialog(final BuildContext context, final String ti
       context: context,
       builder: (_) => _NameDialog(title: title, initial: initial),
     );
+
+class _ScopedPanel extends StatelessWidget {
+  const _ScopedPanel({
+    required this.puzzleBloc,
+    required this.layoutsCubit,
+    required this.settingsCubit,
+    required this.isSheet,
+  });
+
+  final PuzzleBloc puzzleBloc;
+  final BoardLayoutsCubit layoutsCubit;
+  final SettingsCubit settingsCubit;
+  final bool isSheet;
+
+  @override
+  Widget build(final BuildContext context) => MultiBlocProvider(
+    providers: [
+      BlocProvider<PuzzleBloc>.value(value: puzzleBloc),
+      BlocProvider<BoardLayoutsCubit>.value(value: layoutsCubit),
+      BlocProvider<SettingsCubit>.value(value: settingsCubit),
+    ],
+    child: _BoardLayoutsPanel(isSheet: isSheet),
+  );
+}
 
 class _BoardLayoutsPanel extends StatefulWidget {
   const _BoardLayoutsPanel({required this.isSheet});
@@ -158,7 +184,11 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
                           blocked: entry.blocked,
                           date: today,
                         ),
-                        meta: _meta(colors, indicator, entry, layouts.solutionsFor(entry, today)),
+                        meta: _LayoutMeta(
+                          indicator: indicator,
+                          isStandard: entry.layout.isStandard,
+                          count: layouts.solutionsFor(entry, today),
+                        ),
                         isCurrent: isCurrent,
                         onTap: isCurrent ? null : () => _switchTo(entry),
                         onRename: entry.layout.isStandard || entry == unsaved ? null : () => _rename(entry.layout),
@@ -203,19 +233,6 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
         cubit.countSolutions(entries, date, bloc.countSolutionsFor);
       }
     });
-  }
-
-  Widget _meta(final GameColors colors, final SolutionIndicator indicator, final LayoutEntry entry, final int? count) {
-    final style = TextStyle(fontSize: 13, height: 17 / 13, color: colors.textSecondary);
-    if (count == 0) {
-      return Text(S.current.layoutsNoSolutionToday, style: style.copyWith(color: colors.bad));
-    }
-    final text = switch (indicator) {
-      SolutionIndicator.countSolutions => count == null ? '…' : S.current.layoutsSolutionsToday(count),
-      SolutionIndicator.solvability => count == null ? '…' : S.current.layoutsSolvableToday,
-      SolutionIndicator.none => entry.layout.isStandard ? S.current.layoutsClassicBoard : S.current.layoutsCustomBoard,
-    };
-    return Text(text, style: style);
   }
 
   Future<void> _switchTo(final LayoutEntry entry) async {
@@ -543,5 +560,29 @@ class _NameDialogState extends State<_NameDialog> {
     if (name.isNotEmpty) {
       Navigator.of(context).pop(name);
     }
+  }
+}
+
+class _LayoutMeta extends StatelessWidget {
+  const _LayoutMeta({required this.indicator, required this.isStandard, required this.count});
+
+  final SolutionIndicator indicator;
+  final bool isStandard;
+  final int? count;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final style = TextStyle(fontSize: 13, height: 17 / 13, color: colors.textSecondary);
+    final count = this.count;
+    if (count == 0) {
+      return Text(S.current.layoutsNoSolutionToday, style: style.copyWith(color: colors.bad));
+    }
+    final text = switch (indicator) {
+      SolutionIndicator.countSolutions => count == null ? '…' : S.current.layoutsSolutionsToday(count),
+      SolutionIndicator.solvability => count == null ? '…' : S.current.layoutsSolvableToday,
+      SolutionIndicator.none => isStandard ? S.current.layoutsClassicBoard : S.current.layoutsCustomBoard,
+    };
+    return Text(text, style: style);
   }
 }

@@ -68,45 +68,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     }
   }
 
-  Widget _appBar(final BuildContext context, {required final bool canShare}) {
-    final colors = GameColors.of(context);
-    final title = Text(S.current.achievementsTitle);
-    Widget shareButton(final Widget Function(VoidCallback onPressed) builder) => Builder(
-      builder: (final buttonContext) => builder(() => _share(buttonContext)),
-    );
-    if (ScreenSpec.of(context).family == ChromeFamily.glass) {
-      return CupertinoSliverNavigationBar(
-        largeTitle: title,
-        trailing: canShare
-            ? shareButton(
-                (final onPressed) => CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: onPressed,
-                  child: Icon(Icons.adaptive.share, semanticLabel: S.current.achievementsShare),
-                ),
-              )
-            : null,
-        backgroundColor: colors.background,
-        border: null,
-        transitionBetweenRoutes: false,
-      );
-    }
-    return SliverAppBar.large(
-      title: title,
-      backgroundColor: colors.background,
-      actions: [
-        if (canShare)
-          shareButton(
-            (final onPressed) => IconButton(
-              tooltip: S.current.achievementsShare,
-              icon: Icon(Icons.adaptive.share),
-              onPressed: onPressed,
-            ),
-          ),
-      ],
-    );
-  }
-
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
@@ -120,7 +81,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           final stats = snapshot.data;
           return CustomScrollView(
             slivers: [
-              _appBar(context, canShare: stats != null && stats.solvedDates.isNotEmpty),
+              _AppBar(onShare: stats != null && stats.solvedDates.isNotEmpty ? _share : null),
               if (stats == null)
                 const SliverFillRemaining(child: Center(child: CircularProgressIndicator.adaptive()))
               else
@@ -163,6 +124,52 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       ),
     );
   }
+}
+
+class _AppBar extends StatelessWidget {
+  const _AppBar({required this.onShare});
+
+  /// Gets the button's context, the anchor of the share popover on iPad.
+  final ValueChanged<BuildContext>? onShare;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final title = Text(S.current.achievementsTitle);
+    final onShare = this.onShare;
+    final isGlass = ScreenSpec.of(context).family == ChromeFamily.glass;
+    final share = onShare == null ? null : _ShareButton(onShare: onShare, isGlass: isGlass);
+    if (isGlass) {
+      return CupertinoSliverNavigationBar(
+        largeTitle: title,
+        trailing: share,
+        backgroundColor: colors.background,
+        border: null,
+        transitionBetweenRoutes: false,
+      );
+    }
+    return SliverAppBar.large(title: title, backgroundColor: colors.background, actions: [?share]);
+  }
+}
+
+class _ShareButton extends StatelessWidget {
+  const _ShareButton({required this.onShare, required this.isGlass});
+
+  final ValueChanged<BuildContext> onShare;
+  final bool isGlass;
+
+  @override
+  Widget build(final BuildContext context) => isGlass
+      ? CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => onShare(context),
+          child: Icon(Icons.adaptive.share, semanticLabel: S.current.achievementsShare),
+        )
+      : IconButton(
+          tooltip: S.current.achievementsShare,
+          icon: Icon(Icons.adaptive.share),
+          onPressed: () => onShare(context),
+        );
 }
 
 class _Header extends StatelessWidget {

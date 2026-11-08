@@ -9,6 +9,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_displa
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/app_switch.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +18,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const _webVersionUri = 'https://peterombodi.github.io/caesar-s_calendar/';
+const _sectionGap = SizedBox(height: 28);
 
 class AccountSection extends StatefulWidget {
   const AccountSection({required this.auth, super.key});
@@ -28,8 +30,6 @@ class AccountSection extends StatefulWidget {
 }
 
 class _AccountSectionState extends State<AccountSection> {
-  static const _sectionGap = SizedBox(height: 28);
-
   @override
   void didUpdateWidget(covariant final AccountSection oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -142,7 +142,7 @@ class _AccountSectionState extends State<AccountSection> {
     final auth = widget.auth;
     final colors = GameColors.of(context);
     if (!auth.isAvailable) {
-      return _note(S.current.accountFirebaseUnavailable, colors.textSecondary);
+      return _Note(S.current.accountFirebaseUnavailable, color: colors.textSecondary);
     }
     final publicProfile = context.watch<PublicProfileCubit>().state;
     final syncError = publicProfile.syncStatus.lastError;
@@ -155,8 +155,21 @@ class _AccountSectionState extends State<AccountSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (user == null) ..._signedOut(colors, auth) else ..._signedIn(colors, auth, publicProfile, user),
-        for (final error in errors) Padding(padding: const EdgeInsets.only(top: 12), child: _note(error, colors.bad)),
+        if (user == null)
+          _SignedOut(auth: auth)
+        else
+          _SignedIn(
+            auth: auth,
+            user: user,
+            publicProfile: publicProfile,
+            onSetVisibility: _setLeaderboardVisibility,
+            onDeleteAccount: _showDeleteAccountDialog,
+          ),
+        for (final error in errors)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: _Note(error, color: colors.bad),
+          ),
         if (!kIsWeb) ...[
           _sectionGap,
           InsetSection(
@@ -168,170 +181,206 @@ class _AccountSectionState extends State<AccountSection> {
       ],
     );
   }
+}
 
-  List<Widget> _signedOut(final GameColors colors, final AuthState auth) {
-    final cubit = context.read<AuthCubit>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return [
-      _note(S.current.accountAndSyncDescription, colors.textSecondary),
-      const SizedBox(height: 16),
-      if (_supportsAppleSignIn) ...[
-        // Apple's button style: black on light, white on dark.
-        _SignInButton(
-          label: S.current.accountContinueWithApple,
-          icon: Icons.apple,
-          background: isDark ? Colors.white : Colors.black,
-          foreground: isDark ? Colors.black : Colors.white,
-          onPressed: auth.isLoading ? null : cubit.signInWithApple,
-        ),
-        const SizedBox(height: 10),
-      ],
-      _SignInButton(
-        label: S.current.accountContinueWithGoogle,
-        background: colors.board,
-        foreground: colors.text,
-        border: colors.boardBorder,
-        onPressed: auth.isLoading ? null : cubit.signInWithGoogle,
-      ),
-      if (auth.isLoading)
-        const Padding(
-          padding: EdgeInsets.only(top: 16),
-          child: Center(child: CircularProgressIndicator.adaptive()),
-        ),
-    ];
+String? _providerLabel(final User? user) {
+  for (final profile in user?.providerData ?? const <UserInfo>[]) {
+    switch (profile.providerId) {
+      case 'google.com':
+        return 'Google';
+      case 'apple.com':
+        return 'Apple';
+    }
   }
+  return null;
+}
 
-  List<Widget> _signedIn(
-    final GameColors colors,
-    final AuthState auth,
-    final PublicProfileState publicProfile,
-    final dynamic user,
-  ) {
-    final cubit = context.read<AuthCubit>();
-    final profileCubit = context.read<PublicProfileCubit>();
-    final sync = publicProfile.syncStatus;
-    final displayName = AccountDisplay.bestDisplayName(user);
-    final provider = _providerLabel(user);
-    return [
-      InsetSection(
-        children: [
-          InsetRow(
-            leading: AccountAvatar(
-              photoUrl: AccountDisplay.bestPhotoUrl(user),
-              fallbackLabel: AccountDisplay.avatarInitial(displayName),
-              radius: 18,
-            ),
-            title: displayName ?? S.current.accountSignedInFallback,
-            subtitle: provider == null ? null : S.current.accountSignedInWith(provider),
-          ),
-          InsetRow(
-            icon: Icons.emoji_events_outlined,
-            title: S.current.achievementsTitle,
-            trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
-            onTap: () =>
-                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AchievementsScreen())),
-          ),
-        ],
-      ),
-      _sectionGap,
-      InsetSection(
-        footer: S.current.accountLeaderboardFooter,
-        children: [
-          InsetRow(
-            icon: Icons.visibility_outlined,
-            title: S.current.accountLeaderboardVisibility,
-            subtitle: S.current.accountLeaderboardNickname(
-              NicknameGenerator.nickname(
-                uid: user.uid as String,
-                displayName: publicProfile.showName ? displayName : null,
-              ),
-            ),
-            trailing: AppSwitch(
-              value: publicProfile.enabled,
-              onChanged: publicProfile.isLoading ? null : _setLeaderboardVisibility,
-              semanticLabel: S.current.accountLeaderboardVisibility,
-            ),
-          ),
-          if (publicProfile.enabled)
-            InsetRow(
-              icon: Icons.badge_outlined,
-              title: S.current.accountLeaderboardShowName,
-              trailing: AppSwitch(
-                value: publicProfile.showName,
-                onChanged: profileCubit.toggleShowName,
-                semanticLabel: S.current.accountLeaderboardShowName,
-              ),
-            ),
-          InsetRow(
-            icon: Icons.leaderboard_outlined,
-            title: S.current.leaderboardTitle,
-            trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
-          ),
-        ],
-      ),
-      _sectionGap,
-      InsetSection(
-        children: [
-          InsetRow(
-            icon: Icons.sync,
-            title: S.current.accountSyncNow,
-            subtitle: sync.isSyncing ? S.current.accountSyncInProgress : _syncedLabel(sync),
-            trailing: sync.isSyncing
-                ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator.adaptive(strokeWidth: 2))
-                : null,
-            onTap: sync.isSyncing || auth.isLoading ? null : profileCubit.requestSyncNow,
-          ),
-        ],
-      ),
-      _sectionGap,
-      InsetSection(
-        children: [
-          InsetRow(
-            icon: Icons.logout,
-            title: S.current.accountSignOut,
-            titleColor: colors.accent,
-            onTap: auth.isLoading ? null : cubit.signOut,
-          ),
-          InsetRow(
-            icon: Icons.delete_outline,
-            title: S.current.accountDeleteAction,
-            titleColor: colors.bad,
-            onTap: auth.isLoading ? null : _showDeleteAccountDialog,
-          ),
-        ],
-      ),
-    ];
-  }
+class _Note extends StatelessWidget {
+  const _Note(this.text, {required this.color});
 
-  Widget _note(final String text, final Color color) => Padding(
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(final BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 4),
     child: Text(
       text,
       style: TextStyle(fontSize: 15, height: 20 / 15, color: color),
     ),
   );
+}
 
-  bool get _supportsAppleSignIn {
-    if (kIsWeb) return true;
+class _SignedOut extends StatelessWidget {
+  const _SignedOut({required this.auth});
+
+  final AuthState auth;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final cubit = context.read<AuthCubit>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+    final supportsAppleSignIn = kIsWeb || platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _Note(S.current.accountAndSyncDescription, color: colors.textSecondary),
+        const SizedBox(height: 16),
+        if (supportsAppleSignIn) ...[
+          // Apple's button style: black on light, white on dark.
+          _SignInButton(
+            label: S.current.accountContinueWithApple,
+            icon: Icons.apple,
+            background: isDark ? Colors.white : Colors.black,
+            foreground: isDark ? Colors.black : Colors.white,
+            onPressed: auth.isLoading ? null : cubit.signInWithApple,
+          ),
+          const SizedBox(height: 10),
+        ],
+        _SignInButton(
+          label: S.current.accountContinueWithGoogle,
+          background: colors.board,
+          foreground: colors.text,
+          border: colors.boardBorder,
+          onPressed: auth.isLoading ? null : cubit.signInWithGoogle,
+        ),
+        if (auth.isLoading)
+          const Padding(
+            padding: EdgeInsets.only(top: 16),
+            child: Center(child: CircularProgressIndicator.adaptive()),
+          ),
+      ],
+    );
   }
+}
 
-  String? _providerLabel(final dynamic user) {
-    for (final profile in user?.providerData ?? const []) {
-      switch (profile.providerId) {
-        case 'google.com':
-          return 'Google';
-        case 'apple.com':
-          return 'Apple';
-      }
-    }
-    return null;
+class _SignedIn extends StatelessWidget {
+  const _SignedIn({
+    required this.auth,
+    required this.user,
+    required this.publicProfile,
+    required this.onSetVisibility,
+    required this.onDeleteAccount,
+  });
+
+  final AuthState auth;
+  final User user;
+  final PublicProfileState publicProfile;
+  final ValueChanged<bool> onSetVisibility;
+  final VoidCallback onDeleteAccount;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final cubit = context.read<AuthCubit>();
+    final profileCubit = context.read<PublicProfileCubit>();
+    final displayName = AccountDisplay.bestDisplayName(user);
+    final provider = _providerLabel(user);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InsetSection(
+          children: [
+            InsetRow(
+              leading: AccountAvatar(
+                photoUrl: AccountDisplay.bestPhotoUrl(user),
+                fallbackLabel: AccountDisplay.avatarInitial(displayName),
+                radius: 18,
+              ),
+              title: displayName ?? S.current.accountSignedInFallback,
+              subtitle: provider == null ? null : S.current.accountSignedInWith(provider),
+            ),
+            InsetRow(
+              icon: Icons.emoji_events_outlined,
+              title: S.current.achievementsTitle,
+              trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
+              onTap: () =>
+                  Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AchievementsScreen())),
+            ),
+          ],
+        ),
+        _sectionGap,
+        InsetSection(
+          footer: S.current.accountLeaderboardFooter,
+          children: [
+            InsetRow(
+              icon: Icons.visibility_outlined,
+              title: S.current.accountLeaderboardVisibility,
+              subtitle: S.current.accountLeaderboardNickname(
+                NicknameGenerator.nickname(uid: user.uid, displayName: publicProfile.showName ? displayName : null),
+              ),
+              trailing: AppSwitch(
+                value: publicProfile.enabled,
+                onChanged: publicProfile.isLoading ? null : onSetVisibility,
+                semanticLabel: S.current.accountLeaderboardVisibility,
+              ),
+            ),
+            if (publicProfile.enabled)
+              InsetRow(
+                icon: Icons.badge_outlined,
+                title: S.current.accountLeaderboardShowName,
+                trailing: AppSwitch(
+                  value: publicProfile.showName,
+                  onChanged: profileCubit.toggleShowName,
+                  semanticLabel: S.current.accountLeaderboardShowName,
+                ),
+              ),
+            InsetRow(
+              icon: Icons.leaderboard_outlined,
+              title: S.current.leaderboardTitle,
+              trailing: Icon(Icons.chevron_right, color: colors.textSecondary),
+              onTap: () =>
+                  Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
+            ),
+          ],
+        ),
+        _sectionGap,
+        InsetSection(
+          children: [_SyncRow(sync: publicProfile.syncStatus, isAuthLoading: auth.isLoading)],
+        ),
+        _sectionGap,
+        InsetSection(
+          children: [
+            InsetRow(
+              icon: Icons.logout,
+              title: S.current.accountSignOut,
+              titleColor: colors.accent,
+              onTap: auth.isLoading ? null : cubit.signOut,
+            ),
+            InsetRow(
+              icon: Icons.delete_outline,
+              title: S.current.accountDeleteAction,
+              titleColor: colors.bad,
+              onTap: auth.isLoading ? null : onDeleteAccount,
+            ),
+          ],
+        ),
+      ],
+    );
   }
+}
 
-  String _syncedLabel(final SyncStatus status) {
-    final ms = status.lastSuccessAtMs;
+class _SyncRow extends StatelessWidget {
+  const _SyncRow({required this.sync, required this.isAuthLoading});
+
+  final SyncStatus sync;
+  final bool isAuthLoading;
+
+  @override
+  Widget build(final BuildContext context) => InsetRow(
+    icon: Icons.sync,
+    title: S.current.accountSyncNow,
+    subtitle: sync.isSyncing ? S.current.accountSyncInProgress : _syncedLabel(context),
+    trailing: sync.isSyncing
+        ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator.adaptive(strokeWidth: 2))
+        : null,
+    onTap: sync.isSyncing || isAuthLoading ? null : context.read<PublicProfileCubit>().requestSyncNow,
+  );
+
+  String _syncedLabel(final BuildContext context) {
+    final ms = sync.lastSuccessAtMs;
     if (ms == null) {
       return S.current.accountNotSyncedYet;
     }
