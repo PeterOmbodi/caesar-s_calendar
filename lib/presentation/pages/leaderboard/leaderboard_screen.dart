@@ -8,7 +8,6 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
-import 'package:caesar_puzzle/presentation/pages/history/models/session_summary.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/bloc/leaderboard_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/widgets/leaderboard_row_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
@@ -357,12 +356,12 @@ class _Body extends StatelessWidget {
       children: [
         InsetSection(
           header: _header(state.tab),
-          children: [for (final row in state.rows) LeaderboardRowView(row: row, values: _values(row))],
+          children: [for (final row in state.rows) LeaderboardRowView(row: row)],
         ),
         if (me != null) ...[
           const SizedBox(height: 16),
           InsetSection(
-            children: [LeaderboardRowView(row: me, values: _values(me))],
+            children: [LeaderboardRowView(row: me)],
           ),
         ],
       ],
@@ -373,14 +372,5 @@ class _Body extends StatelessWidget {
     LeaderboardTab.today => S.current.leaderboardTimeHeader,
     LeaderboardTab.week || LeaderboardTab.month || LeaderboardTab.year => S.current.leaderboardPointsHeader,
     LeaderboardTab.streaks => S.current.leaderboardStreaksHeader,
-  };
-
-  static (String, String?) _values(final LeaderboardRow row) => switch (row.value) {
-    TimeValue(:final timeMs, :final extraSolutions) => (
-      SessionSummary.formatDuration(timeMs),
-      extraSolutions > 0 ? '+$extraSolutions' : null,
-    ),
-    PointsValue(:final points, :final days) => ('$points', '$days'),
-    StreakValue(:final best, :final current) => ('$best', current > 0 ? '$current' : null),
   };
 }
