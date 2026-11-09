@@ -7,8 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-/// Frosted panel: blurred backdrop, translucent fill, hairline border and a soft shadow.
-/// On native iOS and macOS a panel with equal corners is drawn as Liquid Glass.
 class GlassSurface extends StatelessWidget {
   const GlassSurface({super.key, required this.borderRadius, required this.child, this.color, this.allowLiquid = true});
 
@@ -19,7 +17,7 @@ class GlassSurface extends StatelessWidget {
   final Widget child;
   final Color? color;
 
-  /// False keeps the frosted fill, for panels with text.
+  /// Text is hard to read on Liquid Glass.
   final bool allowLiquid;
 
   static bool isLiquid(final BuildContext context) => !kIsWeb && ScreenSpec.of(context).family == ChromeFamily.glass;
@@ -76,13 +74,6 @@ class LiquidGlassPanel extends StatelessWidget {
       glassColor: fill.withValues(alpha: fill.a * GlassSurface.liquidTintScale),
       blur: ChromeTheme.of(context).blurSigma / 2,
     ),
-    child: Theme(
-      // iOS buttons highlight on press instead of a Material ripple.
-      data: Theme.of(context).copyWith(
-        splashFactory: NoSplash.splashFactory,
-        highlightColor: GameColors.of(context).icon.withValues(alpha: 0.12),
-      ),
-      child: child,
-    ),
+    child: child,
   );
 }

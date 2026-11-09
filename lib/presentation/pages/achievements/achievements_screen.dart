@@ -129,7 +129,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 class _AppBar extends StatelessWidget {
   const _AppBar({required this.onShare});
 
-  /// Gets the button's context, the anchor of the share popover on iPad.
   final ValueChanged<BuildContext>? onShare;
 
   @override

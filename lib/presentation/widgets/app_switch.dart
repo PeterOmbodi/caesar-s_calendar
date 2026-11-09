@@ -9,7 +9,6 @@ class AppSwitch extends StatelessWidget {
 
   final bool value;
 
-  /// Null disables the switch: it ignores taps and keys and is announced as disabled.
   final ValueChanged<bool>? onChanged;
   final String semanticLabel;
 
@@ -17,10 +16,16 @@ class AppSwitch extends StatelessWidget {
   Widget build(final BuildContext context) {
     final onChanged = this.onChanged;
     if (ScreenSpec.of(context).family != ChromeFamily.glass) {
-      return _Labeled(label: semanticLabel, child: Switch(value: value, onChanged: onChanged));
+      return _Labeled(
+        label: semanticLabel,
+        child: Switch(value: value, onChanged: onChanged),
+      );
     }
     if (!GlassSurface.isLiquid(context)) {
-      return _Labeled(label: semanticLabel, child: CupertinoSwitch(value: value, onChanged: onChanged));
+      return _Labeled(
+        label: semanticLabel,
+        child: CupertinoSwitch(value: value, onChanged: onChanged),
+      );
     }
     if (onChanged != null) {
       return GlassSwitch(value: value, onChanged: onChanged, useOwnLayer: true, semanticLabel: semanticLabel);

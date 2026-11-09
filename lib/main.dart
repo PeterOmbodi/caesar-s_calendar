@@ -1,9 +1,11 @@
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/bloc/app_bloc_observer.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:caesar_puzzle/presentation/widgets/system_bars.dart';
 import 'package:flutter/foundation.dart';
@@ -70,9 +72,17 @@ class MyApp extends StatelessWidget {
         themeMode: settings.theme.toThemeMode(),
         locale: settings.locale,
         builder: (final context, final child) {
-          final brightness = Theme.of(context).brightness;
-          AppColors.update(brightness);
-          return SystemBars(child: child!);
+          final theme = Theme.of(context);
+          AppColors.update(theme.brightness);
+          final app = SystemBars(child: child!);
+          if (ScreenSpec.of(context).family != ChromeFamily.glass) return app;
+          return Theme(
+            data: theme.copyWith(
+              splashFactory: NoSplash.splashFactory,
+              highlightColor: GameColors.of(context).icon.withValues(alpha: 0.12),
+            ),
+            child: app,
+          );
         },
         localizationsDelegates: [
           S.delegate,
