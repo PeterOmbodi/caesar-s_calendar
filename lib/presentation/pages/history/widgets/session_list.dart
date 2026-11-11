@@ -3,9 +3,9 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/session_summary.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class SessionList extends StatelessWidget {
   const SessionList({
@@ -256,25 +256,15 @@ Future<void> _confirmSessionResume(
   final ValueChanged<PuzzleSessionData> onResumeSession,
 ) async {
   final isSolved = summary.solved;
-  final shouldResume = await showAdaptiveDialog<bool>(
-    context: context,
-    builder: (final dialogContext) => PlatformAlertDialog(
-      title: Text(isSolved ? S.current.historyOpenSolvedSessionTitle : S.current.historyResumeSessionTitle),
-      content: Text(isSolved ? S.current.historyOpenSolvedSessionContent : S.current.historyResumeSessionContent),
-      actions: [
-        PlatformDialogAction(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(S.current.historySessionDialogCancel),
-        ),
-        PlatformDialogAction(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text(isSolved ? S.current.historySessionDialogOpen : S.current.historySessionDialogResume),
-        ),
-      ],
-    ),
+  final shouldResume = await ConfirmDialog.show(
+    context,
+    title: isSolved ? S.current.historyOpenSolvedSessionTitle : S.current.historyResumeSessionTitle,
+    message: isSolved ? S.current.historyOpenSolvedSessionContent : S.current.historyResumeSessionContent,
+    cancelLabel: S.current.historySessionDialogCancel,
+    confirmLabel: isSolved ? S.current.historySessionDialogOpen : S.current.historySessionDialogResume,
   );
 
-  if (shouldResume == true && context.mounted) {
+  if (shouldResume && context.mounted) {
     onResumeSession(summary.session);
   }
 }

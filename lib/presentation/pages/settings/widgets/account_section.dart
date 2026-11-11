@@ -8,12 +8,12 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cu
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/app_switch.dart';
+import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -45,26 +45,16 @@ class _AccountSectionState extends State<AccountSection> {
 
   Future<void> _showCloudReplaceDialog() async {
     final cubit = context.read<AuthCubit>();
-    final shouldContinue = await showAdaptiveDialog<bool>(
-      context: context,
-      builder: (final dialogContext) => PlatformAlertDialog(
-        title: Text(S.current.accountCloudReplaceTitle),
-        content: Text(S.current.accountCloudReplaceMessage),
-        actions: [
-          PlatformDialogAction(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(S.current.accountCloudReplaceCancel),
-          ),
-          PlatformDialogAction(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            cupertino: (_, _) => CupertinoDialogActionData(isDefaultAction: true),
-            child: Text(S.current.accountCloudReplaceContinue),
-          ),
-        ],
-      ),
+    final shouldContinue = await ConfirmDialog.show(
+      context,
+      title: S.current.accountCloudReplaceTitle,
+      message: S.current.accountCloudReplaceMessage,
+      cancelLabel: S.current.accountCloudReplaceCancel,
+      confirmLabel: S.current.accountCloudReplaceContinue,
+      isDefault: true,
     );
     if (!mounted) return;
-    if (shouldContinue == true) {
+    if (shouldContinue) {
       await cubit.confirmCloudReplace();
       return;
     }
@@ -74,25 +64,15 @@ class _AccountSectionState extends State<AccountSection> {
   Future<void> _setLeaderboardVisibility(final bool enabled) async {
     final cubit = context.read<PublicProfileCubit>();
     if (!enabled) {
-      final confirmed = await showAdaptiveDialog<bool>(
-        context: context,
-        builder: (final dialogContext) => PlatformAlertDialog(
-          title: Text(S.current.accountLeaderboardHideTitle),
-          content: Text(S.current.accountLeaderboardHideMessage),
-          actions: [
-            PlatformDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(S.current.historySessionDialogCancel),
-            ),
-            PlatformDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              cupertino: (_, _) => CupertinoDialogActionData(isDestructiveAction: true),
-              child: Text(S.current.accountLeaderboardHideConfirm),
-            ),
-          ],
-        ),
+      final confirmed = await ConfirmDialog.show(
+        context,
+        title: S.current.accountLeaderboardHideTitle,
+        message: S.current.accountLeaderboardHideMessage,
+        cancelLabel: S.current.historySessionDialogCancel,
+        confirmLabel: S.current.accountLeaderboardHideConfirm,
+        destructive: true,
       );
-      if (!mounted || confirmed != true) return;
+      if (!mounted || !confirmed) return;
     }
     cubit.toggleEnabled(enabled);
   }
@@ -100,32 +80,20 @@ class _AccountSectionState extends State<AccountSection> {
   Future<void> _showDeleteAccountDialog() async {
     final cubit = context.read<AuthCubit>();
     final provider = _providerLabel(widget.auth.user);
-    final shouldDelete = await showAdaptiveDialog<bool>(
-      context: context,
-      builder: (final dialogContext) => PlatformAlertDialog(
-        title: Text(S.current.accountDeleteTitle),
-        content: Text(
-          [
-            S.current.accountDeleteMessage,
-            if (provider != null) S.current.accountDeleteConfirmIdentityMessage(provider),
-          ].join('\n\n'),
-        ),
-        actions: [
-          PlatformDialogAction(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(S.current.historySessionDialogCancel),
-          ),
-          PlatformDialogAction(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            cupertino: (_, _) => CupertinoDialogActionData(isDestructiveAction: true),
-            child: Text(
-              provider == null ? S.current.accountDeleteAction : S.current.accountDeleteContinueToProvider(provider),
-            ),
-          ),
-        ],
-      ),
+    final shouldDelete = await ConfirmDialog.show(
+      context,
+      title: S.current.accountDeleteTitle,
+      message: [
+        S.current.accountDeleteMessage,
+        if (provider != null) S.current.accountDeleteConfirmIdentityMessage(provider),
+      ].join('\n\n'),
+      cancelLabel: S.current.historySessionDialogCancel,
+      confirmLabel: provider == null
+          ? S.current.accountDeleteAction
+          : S.current.accountDeleteContinueToProvider(provider),
+      destructive: true,
     );
-    if (!mounted || shouldDelete != true) return;
+    if (!mounted || !shouldDelete) return;
     await cubit.deleteAccount();
   }
 

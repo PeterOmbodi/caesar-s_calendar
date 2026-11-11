@@ -8,6 +8,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cu
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
+import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -285,26 +286,14 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
     required final String message,
     required final String action,
     final bool destructive = false,
-  }) async =>
-      await showAdaptiveDialog<bool>(
-        context: context,
-        builder: (final dialogContext) => PlatformAlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: [
-            PlatformDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(S.current.layoutsCancel),
-            ),
-            PlatformDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              cupertino: (_, _) => CupertinoDialogActionData(isDestructiveAction: destructive),
-              child: Text(action),
-            ),
-          ],
-        ),
-      ) ??
-      false;
+  }) => ConfirmDialog.show(
+    context,
+    title: title,
+    message: message,
+    cancelLabel: S.current.layoutsCancel,
+    confirmLabel: action,
+    destructive: destructive,
+  );
 }
 
 class _LayoutRow extends StatelessWidget {

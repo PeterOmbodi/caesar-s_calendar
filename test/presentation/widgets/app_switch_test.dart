@@ -5,7 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 Widget _app(final Widget child) => MaterialApp(
   theme: ThemeData(platform: TargetPlatform.android),
-  home: Scaffold(body: InsetSection(children: [InsetRow(title: 'Show my name', trailing: child)])),
+  home: Scaffold(
+    body: InsetSection(
+      children: [InsetRow(title: 'Show my name', trailing: child)],
+    ),
+  ),
 );
 
 void main() {
