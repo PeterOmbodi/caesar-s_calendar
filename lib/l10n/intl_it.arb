@@ -52,7 +52,7 @@
   "appTitle": "Calendario di Cesare",
   "auto": "Auto",
   "assistNoRecordsContinue": "Continua",
-  "assistNoRecordsMessage": "Con un suggerimento o le soluzioni, questo rompicapo non conterà per i record di oggi. Il tuo livello resta lo stesso.",
+  "assistNoRecordsMessage": "Dopo un aiuto, le nuove soluzioni di questo rompicapo non contano per i record. Ciò che conta già resta.",
   "assistNoRecordsTitle": "Usare un aiuto?",
   "borderConfig": "Evidenzia suggerimenti",
   "borderConfigDescription": "Usa un colore bordo contrastato per le mosse dell'app",

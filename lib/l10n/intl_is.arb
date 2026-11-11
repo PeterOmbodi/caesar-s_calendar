@@ -52,7 +52,7 @@
   "appTitle": "Dagatal Sesars",
   "auto": "Auto",
   "assistNoRecordsContinue": "Halda áfram",
-  "assistNoRecordsMessage": "Með vísbendingu eða lausnum telst þessi þraut ekki með í metum dagsins. Stigið þitt helst óbreytt.",
+  "assistNoRecordsMessage": "Eftir hjálp teljast nýjar lausnir á þessari þraut ekki með í metum. Það sem þegar telst helst.",
   "assistNoRecordsTitle": "Nota hjálp?",
   "borderConfig": "Auðkenna vísbendingar",
   "borderConfigDescription": "Nota andstæða jaðralit fyrir hreyfingar appsins",

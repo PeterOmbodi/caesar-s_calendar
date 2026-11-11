@@ -149,10 +149,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     final today = DateTime.now();
     final date = state.selectedDate;
     final isToday = date.year == today.year && date.month == today.month && date.day == today.day;
-    if (!isToday ||
-        state.isSolved ||
-        state.isCustomConfig ||
-        currentSessionDifficulty == PuzzleSessionDifficulty.easy) {
+    if (!isToday || state.isCustomConfig || currentSessionDifficulty == PuzzleSessionDifficulty.easy) {
       return false;
     }
     return !await _historyUseCase.isPuzzleAssisted(puzzleDate: date, configPlacements: state.configPlacements);

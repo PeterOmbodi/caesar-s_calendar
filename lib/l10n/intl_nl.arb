@@ -52,7 +52,7 @@
   "appTitle": "Caesars kalender",
   "auto": "Auto",
   "assistNoRecordsContinue": "Doorgaan",
-  "assistNoRecordsMessage": "Met een hint of de oplossingen telt deze puzzel niet mee voor de records van vandaag. Je niveau blijft hetzelfde.",
+  "assistNoRecordsMessage": "Na hulp tellen nieuwe oplossingen van deze puzzel niet meer mee voor de records. Wat al meetelt, blijft.",
   "assistNoRecordsTitle": "Hulp gebruiken?",
   "borderConfig": "Hints markeren",
   "borderConfigDescription": "Gebruik een contrasterende randkleur voor app-zetten",

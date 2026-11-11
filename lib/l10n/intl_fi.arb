@@ -52,7 +52,7 @@
   "appTitle": "Caesarin kalenteri",
   "auto": "Auto",
   "assistNoRecordsContinue": "Jatka",
-  "assistNoRecordsMessage": "Vihjeen tai ratkaisujen kanssa tämä tehtävä ei näy tämän päivän ennätyksissä. Tasosi pysyy samana.",
+  "assistNoRecordsMessage": "Avun jälkeen tämän tehtävän uudet ratkaisut eivät näy ennätyksissä. Jo lasketut säilyvät.",
   "assistNoRecordsTitle": "Käytetäänkö apua?",
   "borderConfig": "Korosta vihjeet",
   "borderConfigDescription": "Käytä sovelluksen siirroille erottuvaa reunaväriä",

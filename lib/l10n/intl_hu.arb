@@ -52,7 +52,7 @@
   "appTitle": "Caesar naptára",
   "auto": "Auto",
   "assistNoRecordsContinue": "Tovább",
-  "assistNoRecordsMessage": "Tippel vagy a megoldásokkal ez a feladvány nem számít bele a mai rekordokba. A szinted nem változik.",
+  "assistNoRecordsMessage": "Segítség után a feladvány új megoldásai nem számítanak bele a rekordokba. A már beszámított megmarad.",
   "assistNoRecordsTitle": "Segítséget kérsz?",
   "borderConfig": "Tippek kiemelése",
   "borderConfigDescription": "Kontrasztos szegélyszín az app lépéseihez",

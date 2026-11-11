@@ -52,7 +52,7 @@
   "appTitle": "Cēzara kalendārs",
   "auto": "Auto",
   "assistNoRecordsContinue": "Turpināt",
-  "assistNoRecordsMessage": "Ar padomu vai risinājumiem šī mīkla netiks ieskaitīta šodienas rekordos. Tavs līmenis paliek tas pats.",
+  "assistNoRecordsMessage": "Pēc palīdzības jaunie šīs mīklas risinājumi netiks ieskaitīti rekordos. Jau ieskaitītais paliek.",
   "assistNoRecordsTitle": "Izmantot palīdzību?",
   "borderConfig": "Izcelt padomus",
   "borderConfigDescription": "Lietotnes gājieniem izmantot kontrastējošu apmales krāsu",

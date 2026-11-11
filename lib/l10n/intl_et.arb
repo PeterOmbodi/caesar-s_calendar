@@ -52,7 +52,7 @@
   "appTitle": "Caesari kalender",
   "auto": "Auto",
   "assistNoRecordsContinue": "Jätka",
-  "assistNoRecordsMessage": "Vihje või lahendustega ei lähe see mõistatus tänastesse rekorditesse. Sinu tase jääb samaks.",
+  "assistNoRecordsMessage": "Pärast abi ei lähe selle mõistatuse uued lahendused rekorditesse. Juba arvestatu jääb alles.",
   "assistNoRecordsTitle": "Kas kasutada abi?",
   "borderConfig": "Tõsta vihjed esile",
   "borderConfigDescription": "Kasuta rakenduse käikude jaoks kontrastset äärisevärvi",

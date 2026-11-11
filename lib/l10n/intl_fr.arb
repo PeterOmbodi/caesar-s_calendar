@@ -52,7 +52,7 @@
   "appTitle": "Calendrier de César",
   "auto": "Auto",
   "assistNoRecordsContinue": "Continuer",
-  "assistNoRecordsMessage": "Avec un indice ou les solutions, ce puzzle ne comptera pas pour les records du jour. Votre niveau reste le même.",
+  "assistNoRecordsMessage": "Après une aide, les nouvelles solutions de ce puzzle ne comptent plus pour les records. Ce qui compte déjà reste.",
   "assistNoRecordsTitle": "Utiliser l’aide ?",
   "borderConfig": "Surligner les indices",
   "borderConfigDescription": "Utiliser une couleur de bordure contrastée pour les coups de l'app",

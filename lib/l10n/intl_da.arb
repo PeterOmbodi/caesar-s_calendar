@@ -52,7 +52,7 @@
   "appTitle": "Cæsars kalender",
   "auto": "Auto",
   "assistNoRecordsContinue": "Fortsæt",
-  "assistNoRecordsMessage": "Med et hint eller løsningerne tæller dette puslespil ikke med i dagens rekorder. Dit niveau forbliver det samme.",
+  "assistNoRecordsMessage": "Efter hjælp tæller nye løsninger på dette puslespil ikke med i rekorderne. Det, der allerede tæller, bliver.",
   "assistNoRecordsTitle": "Brug hjælp?",
   "borderConfig": "Fremhæv hints",
   "borderConfigDescription": "Brug en kontrastfarve til appens træk",

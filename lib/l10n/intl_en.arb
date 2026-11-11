@@ -52,7 +52,7 @@
   "appTitle": "Caesar's calendar",
   "auto": "Auto",
   "assistNoRecordsContinue": "Continue",
-  "assistNoRecordsMessage": "With a hint or the solutions, this puzzle won't count for today's records. Your level stays the same.",
+  "assistNoRecordsMessage": "After help, new solutions of this puzzle won't count for records. What already counts stays.",
   "assistNoRecordsTitle": "Use help?",
   "borderConfig": "Highlight hints",
   "borderConfigDescription": "Use a contrasting border color for app moves",

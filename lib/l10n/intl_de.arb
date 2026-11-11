@@ -52,7 +52,7 @@
   "appTitle": "Caesars Kalender",
   "auto": "Auto",
   "assistNoRecordsContinue": "Weiter",
-  "assistNoRecordsMessage": "Mit einem Hinweis oder den Lösungen zählt dieses Rätsel nicht für die heutigen Rekorde. Dein Level bleibt gleich.",
+  "assistNoRecordsMessage": "Nach einer Hilfe zählen neue Lösungen dieses Rätsels nicht mehr für die Rekorde. Bereits Gewertetes bleibt.",
   "assistNoRecordsTitle": "Hilfe nutzen?",
   "borderConfig": "Hinweise hervorheben",
   "borderConfigDescription": "Kontrastreiche Rahmenfarbe für App-Züge verwenden",

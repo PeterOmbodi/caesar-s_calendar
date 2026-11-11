@@ -52,7 +52,7 @@
   "appTitle": "Cezarjev koledar",
   "auto": "Auto",
   "assistNoRecordsContinue": "Nadaljuj",
-  "assistNoRecordsMessage": "Z namigom ali rešitvami se ta uganka ne bo štela v današnje rekorde. Raven ostane enaka.",
+  "assistNoRecordsMessage": "Po pomoči se nove rešitve te uganke ne bodo štele v rekorde. Kar že šteje, ostane.",
   "assistNoRecordsTitle": "Uporabim pomoč?",
   "borderConfig": "Poudari namige",
   "borderConfigDescription": "Uporabi kontrastno barvo roba za poteze aplikacije",

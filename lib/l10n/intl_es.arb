@@ -52,7 +52,7 @@
   "appTitle": "Calendario de César",
   "auto": "Auto",
   "assistNoRecordsContinue": "Continuar",
-  "assistNoRecordsMessage": "Con una pista o las soluciones, este rompecabezas no contará para los récords de hoy. Tu nivel no cambia.",
+  "assistNoRecordsMessage": "Tras usar ayuda, las nuevas soluciones de este rompecabezas no contarán para los récords. Lo ya contado se mantiene.",
   "assistNoRecordsTitle": "¿Usar ayuda?",
   "borderConfig": "Resaltar pistas",
   "borderConfigDescription": "Usar un color de borde contrastado para las jugadas de la app",

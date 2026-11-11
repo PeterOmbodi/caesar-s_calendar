@@ -52,7 +52,7 @@
   "appTitle": "Cezario kalendorius",
   "auto": "Auto",
   "assistNoRecordsContinue": "Tęsti",
-  "assistNoRecordsMessage": "Su užuomina ar sprendimais šis galvosūkis nebus įskaitytas į šiandienos rekordus. Jūsų lygis nesikeičia.",
+  "assistNoRecordsMessage": "Pasinaudojus pagalba, naujieji šio galvosūkio sprendimai nebus įskaityti į rekordus. Jau įskaityta lieka.",
   "assistNoRecordsTitle": "Naudoti pagalbą?",
   "borderConfig": "Paryškinti užuominas",
   "borderConfigDescription": "Programos ėjimams naudoti kontrastingą rėmelio spalvą",

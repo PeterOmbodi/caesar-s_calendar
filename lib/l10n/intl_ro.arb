@@ -52,7 +52,7 @@
   "appTitle": "Calendarul lui Caesar",
   "auto": "Auto",
   "assistNoRecordsContinue": "Continuă",
-  "assistNoRecordsMessage": "Cu un indiciu sau cu soluțiile, acest puzzle nu va conta pentru recordurile de azi. Nivelul rămâne același.",
+  "assistNoRecordsMessage": "După ajutor, soluțiile noi ale acestui puzzle nu mai contează pentru recorduri. Ce contează deja rămâne.",
   "assistNoRecordsTitle": "Folosești ajutor?",
   "borderConfig": "Evidențiază indiciile",
   "borderConfigDescription": "Folosește o culoare de margine contrastantă pentru mutările aplicației",

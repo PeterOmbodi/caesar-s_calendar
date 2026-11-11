@@ -52,7 +52,7 @@
   "appTitle": "Caesars kalender",
   "auto": "Auto",
   "assistNoRecordsContinue": "Fortsätt",
-  "assistNoRecordsMessage": "Med en ledtråd eller lösningarna räknas inte pusslet i dagens rekord. Din nivå förblir densamma.",
+  "assistNoRecordsMessage": "Efter hjälp räknas nya lösningar på pusslet inte i rekorden. Det som redan räknas står kvar.",
   "assistNoRecordsTitle": "Använda hjälp?",
   "borderConfig": "Markera tips",
   "borderConfigDescription": "Använd en tydlig ramfärg för appens drag",

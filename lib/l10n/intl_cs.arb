@@ -52,7 +52,7 @@
   "appTitle": "Caesarův kalendář",
   "auto": "Auto",
   "assistNoRecordsContinue": "Pokračovat",
-  "assistNoRecordsMessage": "S nápovědou nebo řešením se tento hlavolam nezapočítá do dnešních rekordů. Úroveň zůstává stejná.",
+  "assistNoRecordsMessage": "Po použití pomoci se nová řešení tohoto hlavolamu nezapočítají do rekordů. Co už je započítáno, zůstane.",
   "assistNoRecordsTitle": "Použít pomoc?",
   "borderConfig": "Zvýraznit nápovědy",
   "borderConfigDescription": "Použít kontrastní barvu okraje pro tahy aplikace",

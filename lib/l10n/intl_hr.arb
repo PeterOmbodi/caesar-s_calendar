@@ -52,7 +52,7 @@
   "appTitle": "Cezarov kalendar",
   "auto": "Auto",
   "assistNoRecordsContinue": "Nastavi",
-  "assistNoRecordsMessage": "Uz savjet ili rješenja ova se zagonetka neće računati u današnje rekorde. Razina ostaje ista.",
+  "assistNoRecordsMessage": "Nakon pomoći nova rješenja ove zagonetke neće se računati u rekorde. Ono što se već računa ostaje.",
   "assistNoRecordsTitle": "Koristiti pomoć?",
   "borderConfig": "Istakni savjete",
   "borderConfigDescription": "Koristi kontrastnu boju obruba za poteze aplikacije",

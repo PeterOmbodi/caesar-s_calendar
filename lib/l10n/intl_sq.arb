@@ -52,7 +52,7 @@
   "appTitle": "Kalendari i Cezarit",
   "auto": "Auto",
   "assistNoRecordsContinue": "Vazhdo",
-  "assistNoRecordsMessage": "Me një ndihmë ose zgjidhjet, kjo enigmë nuk do të llogaritet në rekordet e sotme. Niveli yt mbetet i njëjtë.",
+  "assistNoRecordsMessage": "Pas ndihmës, zgjidhjet e reja të kësaj enigme nuk do të llogariten në rekorde. Ajo që llogaritet tashmë mbetet.",
   "assistNoRecordsTitle": "Të përdorësh ndihmë?",
   "borderConfig": "Thekso sugjerimet",
   "borderConfigDescription": "Përdor ngjyrë kufiri me kontrast për lëvizjet e aplikacionit",

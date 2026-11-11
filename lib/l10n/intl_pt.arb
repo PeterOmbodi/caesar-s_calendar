@@ -52,7 +52,7 @@
   "appTitle": "Calendário de César",
   "auto": "Auto",
   "assistNoRecordsContinue": "Continuar",
-  "assistNoRecordsMessage": "Com uma dica ou as soluções, este quebra-cabeça não contará para os recordes de hoje. Seu nível continua o mesmo.",
+  "assistNoRecordsMessage": "Depois da ajuda, novas soluções deste quebra-cabeça não contam para os recordes. O que já conta permanece.",
   "assistNoRecordsTitle": "Usar ajuda?",
   "borderConfig": "Destacar dicas",
   "borderConfigDescription": "Usar uma cor de borda contrastante para movimentos do app",

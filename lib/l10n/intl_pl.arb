@@ -52,7 +52,7 @@
   "appTitle": "Kalendarz Cezara",
   "auto": "Auto",
   "assistNoRecordsContinue": "Kontynuuj",
-  "assistNoRecordsMessage": "Z podpowiedzią lub rozwiązaniami ta łamigłówka nie będzie się liczyć do dzisiejszych rekordów. Poziom się nie zmienia.",
+  "assistNoRecordsMessage": "Po użyciu pomocy nowe rozwiązania tej łamigłówki nie będą liczyć się do rekordów. To, co już zaliczone, zostaje.",
   "assistNoRecordsTitle": "Użyć pomocy?",
   "borderConfig": "Wyróżniaj podpowiedzi",
   "borderConfigDescription": "Użyj kontrastowego koloru obramowania dla ruchów aplikacji",
