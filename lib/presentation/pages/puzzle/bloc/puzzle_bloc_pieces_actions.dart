@@ -81,7 +81,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         : _combineSolutions(state.solutions, pieces);
     final nextState = state.copyWith(
       pieces: pieces,
-      moveHistory: [...state.moveHistory, move],
+      moveHistory: [...state.moveHistory.take(state.moveIndex), move],
       moveIndex: state.moveIndex + 1,
       status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
       applicableSolutions: applicableSolutions,
@@ -242,7 +242,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         : _combineSolutions(state.solutions, pieces);
     final nextState = state.copyWith(
       pieces: pieces,
-      moveHistory: [...state.moveHistory, move],
+      moveHistory: [...state.moveHistory.take(state.moveIndex), move],
       moveIndex: state.moveIndex + 1,
       status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
       applicableSolutions: applicableSolutions,

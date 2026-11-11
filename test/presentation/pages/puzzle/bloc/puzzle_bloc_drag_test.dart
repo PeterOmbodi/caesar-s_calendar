@@ -792,6 +792,34 @@ void main() {
       expect(bloc!.state.moveHistory, hasLength(2));
     });
 
+    for (final (name, event) in [
+      ('rotate', const PuzzleEvent.rotateSelected()),
+      ('flip', const PuzzleEvent.flipSelected()),
+    ]) {
+      test('$name after undo replaces the undone moves', () async {
+        await ready();
+        bloc!.add(const PuzzleEvent.selectPiece('Square'));
+        await _drain();
+        bloc!.add(const PuzzleEvent.rotateSelected());
+        await _drain();
+        bloc!.add(const PuzzleEvent.rotateSelected());
+        await _drain();
+        bloc!.add(const PuzzleEvent.undo());
+        await _drain();
+        bloc!.add(const PuzzleEvent.undo());
+        await _drain();
+        bloc!.add(const PuzzleEvent.selectPiece('Square'));
+        await _drain();
+
+        bloc!.add(event);
+        await _drain();
+
+        expect(bloc!.state.moveHistory, hasLength(1));
+        expect(bloc!.state.moveIndex, 1);
+        expect(bloc!.state.isRedoEnabled, isFalse);
+      });
+    }
+
     test('rotate and flip in the tray keep the piece inside the tray, undo restores it', () async {
       await ready();
       final tray = bloc!.state.boardConfig.getBounds.inflate(0.01);
