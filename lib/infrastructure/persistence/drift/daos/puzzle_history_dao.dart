@@ -1,5 +1,6 @@
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/app_database.dart';
+import 'package:caesar_puzzle/infrastructure/persistence/drift/tables/puzzle_assists.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/tables/puzzle_configs.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/tables/puzzle_sessions.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/tables/puzzle_solution_counts.dart';
@@ -22,7 +23,9 @@ class CalendarStatsRow {
   final int unsolvedStarted;
 }
 
-@DriftAccessor(tables: [PuzzleConfigs, PuzzleSolutionCounts, PuzzleSessions, PuzzleSolvedSolutions])
+typedef SessionWithAssist = ({PuzzleSession session, int? assistedAt});
+
+@DriftAccessor(tables: [PuzzleConfigs, PuzzleSolutionCounts, PuzzleSessions, PuzzleSolvedSolutions, PuzzleAssists])
 class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase> with _$PuzzleHistoryDaoMixin {
   PuzzleHistoryDao(super.db);
 
@@ -121,6 +124,7 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase> with _$PuzzleHistor
   Future<void> clearAllData() async {
     await batch((final batch) {
       batch.deleteAll(puzzleSolvedSolutions);
+      batch.deleteAll(puzzleAssists);
       batch.deleteAll(puzzleSolutionCounts);
       batch.deleteAll(puzzleSessions);
       batch.deleteAll(puzzleConfigs);
@@ -148,45 +152,81 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase> with _$PuzzleHistor
           ))
           .get();
 
-  Future<PuzzleSession?> getLatestUnsolvedSession({
+  Future<void> markAssisted({
+    required final String puzzleDate,
+    required final String configId,
+    required final int assistedAt,
+  }) => into(puzzleAssists).insert(
+    PuzzleAssistsCompanion.insert(
+      puzzleDate: puzzleDate,
+      configId: configId,
+      assistedAt: assistedAt,
+      updatedAt: assistedAt,
+      syncState: const Value(1),
+    ),
+    mode: InsertMode.insertOrIgnore,
+  );
+
+  Future<bool> isAssisted({required final String puzzleDate, required final String configId}) async =>
+      await (select(
+        puzzleAssists,
+      )..where((final row) => row.puzzleDate.equals(puzzleDate) & row.configId.equals(configId))).getSingleOrNull() !=
+      null;
+
+  JoinedSelectStatement<HasResultSet, dynamic> _sessionsWithAssist() => select(puzzleSessions).join([
+    leftOuterJoin(
+      puzzleAssists,
+      puzzleAssists.puzzleDate.equalsExp(puzzleSessions.puzzleDate) &
+          puzzleAssists.configId.equalsExp(puzzleSessions.configId),
+    ),
+  ]);
+
+  SessionWithAssist _read(final TypedResult row) =>
+      (session: row.readTable(puzzleSessions), assistedAt: row.readTableOrNull(puzzleAssists)?.assistedAt);
+
+  Future<SessionWithAssist?> getLatestUnsolvedSession({
     required final String puzzleDate,
     required final PuzzleSessionStatus status,
-  }) =>
-      (select(puzzleSessions)
-            ..where(
-              (final row) =>
-                  row.puzzleDate.equals(puzzleDate) & row.status.equalsValue(status) & row.completedAt.isNull(),
-            )
-            ..orderBy([(final row) => OrderingTerm.desc(row.updatedAt)])
-            ..limit(1))
-          .getSingleOrNull();
+  }) async {
+    final row =
+        await (_sessionsWithAssist()
+              ..where(
+                puzzleSessions.puzzleDate.equals(puzzleDate) &
+                    puzzleSessions.status.equalsValue(status) &
+                    puzzleSessions.completedAt.isNull(),
+              )
+              ..orderBy([OrderingTerm.desc(puzzleSessions.updatedAt)])
+              ..limit(1))
+            .getSingleOrNull();
+    return row == null ? null : _read(row);
+  }
 
-  Stream<List<PuzzleSession>> watchSessionsByDate({required final String puzzleDate}) =>
-      (select(puzzleSessions)
-            ..where((final row) => row.puzzleDate.equals(puzzleDate))
-            ..orderBy([(final row) => OrderingTerm.desc(row.updatedAt)]))
-          .watch();
+  Stream<List<SessionWithAssist>> watchSessionsByDate({required final String puzzleDate}) =>
+      (_sessionsWithAssist()
+            ..where(puzzleSessions.puzzleDate.equals(puzzleDate))
+            ..orderBy([OrderingTerm.desc(puzzleSessions.updatedAt)]))
+          .watch()
+          .map((final rows) => rows.map(_read).toList());
 
-  Stream<List<PuzzleSession>> watchSessionsByMonthDay({required final String monthDay}) =>
-      (select(puzzleSessions)
-            ..where((final row) => row.puzzleDate.substr(6, 5).equals(monthDay))
-            ..orderBy([
-              (final row) => OrderingTerm.desc(row.puzzleDate),
-              (final row) => OrderingTerm.desc(row.updatedAt),
-            ]))
-          .watch();
+  Stream<List<SessionWithAssist>> watchSessionsByMonthDay({required final String monthDay}) =>
+      (_sessionsWithAssist()
+            ..where(puzzleSessions.puzzleDate.substr(6, 5).equals(monthDay))
+            ..orderBy([OrderingTerm.desc(puzzleSessions.puzzleDate), OrderingTerm.desc(puzzleSessions.updatedAt)]))
+          .watch()
+          .map((final rows) => rows.map(_read).toList());
 
-  Stream<List<PuzzleSession>> watchSessionsInPuzzleDateRange({
+  Stream<List<SessionWithAssist>> watchSessionsInPuzzleDateRange({
     required final String fromDate,
     required final String toDate,
   }) =>
-      (select(puzzleSessions)
+      (_sessionsWithAssist()
             ..where(
-              (final row) =>
-                  row.puzzleDate.isBiggerOrEqualValue(fromDate) & row.puzzleDate.isSmallerOrEqualValue(toDate),
+              puzzleSessions.puzzleDate.isBiggerOrEqualValue(fromDate) &
+                  puzzleSessions.puzzleDate.isSmallerOrEqualValue(toDate),
             )
-            ..orderBy([(final row) => OrderingTerm.desc(row.puzzleDate)]))
-          .watch();
+            ..orderBy([OrderingTerm.desc(puzzleSessions.puzzleDate)]))
+          .watch()
+          .map((final rows) => rows.map(_read).toList());
 
   Stream<List<CalendarStatsRow>> watchCalendarStats({
     required final String fromDate,

@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/infrastructure/debug/debug_tools.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/locale_labels.dart';
@@ -12,6 +13,7 @@ import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dar
 import 'package:caesar_puzzle/presentation/widgets/app_segmented_control.dart';
 import 'package:caesar_puzzle/presentation/widgets/app_switch.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -149,6 +151,17 @@ class CupertinoSettingsPanel extends StatelessWidget {
                               trailing: link.url == null ? null : const CupertinoListTileChevron(),
                               onTap: link.url == null ? null : () => openStoreLink(link),
                             ),
+                        ],
+                      ),
+                    if (kDebugMode)
+                      CupertinoListSection.insetGrouped(
+                        header: const Text('Debug'),
+                        children: [
+                          CupertinoListTile(
+                            leading: const Icon(CupertinoIcons.arrow_counterclockwise),
+                            title: const Text('Reset help for today'),
+                            onTap: () => _resetTodayHelp(context),
+                          ),
                         ],
                       ),
                     FutureBuilder(
@@ -304,4 +317,10 @@ class _LanguagePicker extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _resetTodayHelp(final BuildContext context) async {
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  await DebugTools.resetTodayHelp();
+  messenger?.showSnackBar(const SnackBar(content: Text('Help for today reset')));
 }

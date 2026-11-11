@@ -194,6 +194,18 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
   }
 
   @override
+  Future<void> markPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) =>
+      _dao.markAssisted(
+        puzzleDate: _dateKey(puzzleDate),
+        configId: configId,
+        assistedAt: DateTime.now().millisecondsSinceEpoch,
+      );
+
+  @override
+  Future<bool> isPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) =>
+      _dao.isAssisted(puzzleDate: _dateKey(puzzleDate), configId: configId);
+
+  @override
   Future<bool> hasAnyLocalSessions() => _dao.hasAnySessions();
 
   @override
@@ -226,23 +238,28 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
     return stats;
   }
 
-  PuzzleSessionData _sessionFromRow(final PuzzleSession row) => PuzzleSessionData(
-    id: row.id,
-    puzzleDate: _dateFromKey(row.puzzleDate),
-    configId: row.configId,
-    difficulty: row.difficulty,
-    status: row.status,
-    startedAt: row.startedAt,
-    firstMoveAt: row.firstMoveAt,
-    lastResumedAt: row.lastResumedAt,
-    activeElapsedMs: row.activeElapsedMs,
-    updatedAt: row.updatedAt,
-    completedAt: row.completedAt,
-    moveIndex: row.moveIndex,
-    moveHistoryVersion: row.moveHistoryVersion,
-    pieces: _decodePieces(row.piecesSnapshotJson),
-    moveHistory: _decodeMoves(row.moveHistoryJson),
-  );
+  PuzzleSessionData _sessionFromRow(final SessionWithAssist joined) {
+    final SessionWithAssist(session: row, :assistedAt) = joined;
+    final completedAt = row.completedAt;
+    return PuzzleSessionData(
+      id: row.id,
+      puzzleDate: _dateFromKey(row.puzzleDate),
+      configId: row.configId,
+      difficulty: row.difficulty,
+      status: row.status,
+      startedAt: row.startedAt,
+      firstMoveAt: row.firstMoveAt,
+      lastResumedAt: row.lastResumedAt,
+      activeElapsedMs: row.activeElapsedMs,
+      updatedAt: row.updatedAt,
+      completedAt: row.completedAt,
+      moveIndex: row.moveIndex,
+      moveHistoryVersion: row.moveHistoryVersion,
+      pieces: _decodePieces(row.piecesSnapshotJson),
+      moveHistory: _decodeMoves(row.moveHistoryJson),
+      assisted: assistedAt != null && (completedAt == null || assistedAt <= completedAt),
+    );
+  }
 
   String _dateKey(final DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';

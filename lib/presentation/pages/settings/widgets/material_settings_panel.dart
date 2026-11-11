@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/infrastructure/debug/debug_tools.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/locale_labels.dart';
@@ -8,6 +9,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summar
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -137,6 +139,12 @@ class MaterialSettingsPanel extends StatelessWidget {
                     onTap: () => openStoreLink(link),
                   ),
               ],
+              if (kDebugMode)
+                ListTile(
+                  leading: const Icon(Icons.restart_alt),
+                  title: const Text('Reset help for today'),
+                  onTap: () => _resetTodayHelp(context),
+                ),
               FutureBuilder(
                 future: PackageInfo.fromPlatform(),
                 builder: (final context, final snapshot) => snapshot.hasData
@@ -229,4 +237,10 @@ class _LanguageDialog extends StatelessWidget {
       ],
     );
   }
+}
+
+Future<void> _resetTodayHelp(final BuildContext context) async {
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  await DebugTools.resetTodayHelp();
+  messenger?.showSnackBar(const SnackBar(content: Text('Help for today reset')));
 }

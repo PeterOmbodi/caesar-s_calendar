@@ -12,14 +12,15 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_sheet.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/assist_prompt.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
+import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 enum _BottomControlIntro { history, allSolutions, hint }
 
@@ -90,7 +91,7 @@ class PuzzleToolbar extends StatelessWidget {
             sessionDifficulty: session.difficulty,
             currentDifficulty: currentDifficulty,
           );
-          if (shouldContinue != true || !context.mounted) {
+          if (!shouldContinue || !context.mounted) {
             return;
           }
           settingsCubit.setSolutionIndicator(session.difficulty.solutionIndicator);
@@ -104,98 +105,23 @@ class PuzzleToolbar extends StatelessWidget {
     }
   }
 
-  Future<bool?> _showDifficultyMismatchDialog(
+  Future<bool> _showDifficultyMismatchDialog(
     final BuildContext context, {
     required final PuzzleSessionDifficulty sessionDifficulty,
     required final PuzzleSessionDifficulty currentDifficulty,
-  }) => showAdaptiveDialog<bool>(
-    context: context,
-    builder: (final dialogContext) => PlatformAlertDialog(
-      title: Text(S.current.historyDifficultyMismatchTitle),
-      content: Text(S.current.historyDifficultyMismatchContent(sessionDifficulty.label, currentDifficulty.label)),
-      actions: [
-        PlatformDialogAction(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(S.current.historySessionDialogCancel),
-        ),
-        PlatformDialogAction(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text(S.current.historyDifficultyMismatchContinue),
-        ),
-      ],
-    ),
+  }) => ConfirmDialog.show(
+    context,
+    title: S.current.historyDifficultyMismatchTitle,
+    message: S.current.historyDifficultyMismatchContent(sessionDifficulty.label, currentDifficulty.label),
+    cancelLabel: S.current.historySessionDialogCancel,
+    confirmLabel: S.current.historyDifficultyMismatchContinue,
   );
 
-  Future<void> _runAssist(
-    final BuildContext context,
-    final PuzzleState state,
-    final AssistGate gate,
-    final VoidCallback allowedEvent,
-  ) async {
-    switch (gate) {
-      case AssistGate.open:
-        allowedEvent();
-      case AssistGate.noSolutions:
-        await showAdaptiveDialog(
-          context: context,
-          builder: (final context) => PlatformAlertDialog(
-            title: Text(S.of(context).searchCompletedDialogTitle),
-            content: Text(S.of(context).solutionsNotFoundDialogMessage),
-            actions: [
-              PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok)),
-            ],
-          ),
-        );
-      case AssistGate.confirmEasy:
-        final result = await showAdaptiveDialog<bool>(
-          context: context,
-          builder: (final context) => PlatformAlertDialog(
-            title: Text(S.of(context).searchCompletedDialogTitle),
-            content: Text(S.of(context).solutionsFoundDialogMessage(state.applicableSolutions.length)),
-            actions: [
-              PlatformDialogAction(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(S.of(context).solutionsFoundDialogCancel),
-              ),
-              PlatformDialogAction(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(S.of(context).solutionsFoundDialogOk),
-              ),
-            ],
-          ),
-        );
-        if (result == true && context.mounted) {
-          context.read<PuzzleBloc>().markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
-          allowedEvent();
-        }
-      case AssistGate.warnEasy:
-        final bloc = context.read<PuzzleBloc>();
-        if (bloc.currentSessionDifficulty == PuzzleSessionDifficulty.easy) {
-          allowedEvent();
-          return;
-        }
-        final result = await showAdaptiveDialog<bool>(
-          context: context,
-          builder: (final context) => PlatformAlertDialog(
-            title: Text(S.of(context).assistToEasyDialogTitle),
-            content: Text(S.of(context).assistToEasyDialogMessage),
-            actions: [
-              PlatformDialogAction(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(S.of(context).solutionsFoundDialogCancel),
-              ),
-              PlatformDialogAction(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(S.of(context).assistToEasyDialogContinue),
-              ),
-            ],
-          ),
-        );
-        if (result == true && context.mounted) {
-          bloc.markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
-          allowedEvent();
-        }
-    }
+  Future<void> _runAssist(final BuildContext context, final AssistGate gate, final VoidCallback allowedEvent) async {
+    final bloc = context.read<PuzzleBloc>();
+    final allowed = await confirmAssist(context, gate: gate, countsForRecords: bloc.countsForRecords);
+    if (gate == AssistGate.noSolutions) bloc.markAssisted();
+    if (allowed && context.mounted) allowedEvent();
   }
 
   Future<void> _invoke(
@@ -213,7 +139,7 @@ class PuzzleToolbar extends StatelessWidget {
           context,
           _BottomControlIntro.hint,
           anchor,
-          () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showHint())),
+          () => _runAssist(context, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showHint())),
         );
       case GameActionId.undo:
         puzzleBloc.add(PuzzleEvent.undo());
@@ -237,7 +163,7 @@ class PuzzleToolbar extends StatelessWidget {
           context,
           _BottomControlIntro.allSolutions,
           anchor,
-          () => _runAssist(context, state, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showSolution(0))),
+          () => _runAssist(context, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showSolution(0))),
         );
       case GameActionId.howToPlay:
         await showHowToPlaySheet(context);
@@ -273,27 +199,13 @@ class PuzzleToolbar extends StatelessWidget {
     bloc.add(PuzzleEvent.applyLayout(placements));
   }
 
-  Future<bool> _confirmPlayExisting(final BuildContext context, final BoardLayout layout) async =>
-      await showAdaptiveDialog<bool>(
-        context: context,
-        builder: (final dialogContext) => PlatformAlertDialog(
-          title: Text(S.current.layoutsDuplicateTitle),
-          content: Text(
-            S.current.layoutsDuplicateMessage(layout.isStandard ? S.current.historyConfigStandard : layout.name),
-          ),
-          actions: [
-            PlatformDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(S.current.layoutsCancel),
-            ),
-            PlatformDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(S.current.layoutsDuplicatePlay),
-            ),
-          ],
-        ),
-      ) ??
-      false;
+  Future<bool> _confirmPlayExisting(final BuildContext context, final BoardLayout layout) => ConfirmDialog.show(
+    context,
+    title: S.current.layoutsDuplicateTitle,
+    message: S.current.layoutsDuplicateMessage(layout.isStandard ? S.current.historyConfigStandard : layout.name),
+    cancelLabel: S.current.layoutsCancel,
+    confirmLabel: S.current.layoutsDuplicatePlay,
+  );
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(

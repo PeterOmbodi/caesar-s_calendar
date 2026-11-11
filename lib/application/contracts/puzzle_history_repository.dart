@@ -39,6 +39,11 @@ abstract class PuzzleHistoryRepository {
 
   Future<bool> hasAnyLocalSessions();
 
+  /// Keeps the first time: later help does not change it.
+  Future<void> markPuzzleAssisted({required final DateTime puzzleDate, required final String configId});
+
+  Future<bool> isPuzzleAssisted({required final DateTime puzzleDate, required final String configId});
+
   Stream<int> watchSolvedSolutionCount();
 
   Future<List<SolvedSolutionRecord>> getSolvedSolutions({required final DateTime from, required final DateTime to});

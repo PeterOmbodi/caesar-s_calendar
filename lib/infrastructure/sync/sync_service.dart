@@ -39,6 +39,7 @@ class SyncService {
     if (await _collectionHasDocs(FirestorePaths.userConfigs(uid))) return true;
     if (await _collectionHasDocs(FirestorePaths.userSolvedSolutions(uid))) return true;
     if (await _collectionHasDocs('${FirestorePaths.userDoc(uid)}/solutionCounts')) return true;
+    if (await _collectionHasDocs(FirestorePaths.userAssists(uid))) return true;
     return false;
   }
 
@@ -67,6 +68,7 @@ class SyncService {
     await _uploadDirtySessions(uid);
     await _uploadDirtySolvedSolutions(uid);
     await _uploadDirtySolutionCounts(uid);
+    await _uploadDirtyAssists(uid);
   }
 
   Future<void> _uploadDirtyConfigs(final String uid) async {
@@ -213,11 +215,34 @@ class SyncService {
     }
   }
 
+  Future<void> _uploadDirtyAssists(final String uid) async {
+    final rows = await (_db.select(
+      _db.puzzleAssists,
+    )..where((final t) => t.syncState.equals(SyncState.dirty.code))).get();
+    if (rows.isEmpty) return;
+
+    final col = _firestore.collection(FirestorePaths.userAssists(uid));
+    for (final row in rows) {
+      final doc = col.doc('${row.puzzleDate}__${row.configId}');
+      await doc.set({
+        'puzzleDate': row.puzzleDate,
+        'configId': row.configId,
+        'assistedAt': row.assistedAt,
+        'updatedAt': row.updatedAt,
+        'serverUpdatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      await (_db.update(_db.puzzleAssists)
+            ..where((final t) => t.puzzleDate.equals(row.puzzleDate) & t.configId.equals(row.configId)))
+          .write(PuzzleAssistsCompanion(remoteId: Value(doc.id), syncState: Value(SyncState.clean.code)));
+    }
+  }
+
   Future<void> _downloadUpdates(final String uid) async {
     await _downloadSessions(uid);
     await _downloadConfigs(uid);
     await _downloadSolvedSolutions(uid);
     await _downloadSolutionCounts(uid);
+    await _downloadAssists(uid);
   }
 
   /// Downloads what reached the server after the collection's checkpoint (server time: uploads can be late
@@ -358,6 +383,32 @@ class SyncService {
                 totalSolutions: (data['totalSolutions'] as int?) ?? 0,
                 computedAt: (data['computedAt'] as int?) ?? remoteUpdatedAt,
                 updatedAt: remoteUpdatedAt,
+                remoteId: Value(doc.id),
+                syncState: Value(SyncState.clean.code),
+              ),
+            );
+      });
+
+  Future<void> _downloadAssists(final String uid) =>
+      _download(uid, FirestorePaths.userAssists(uid), 'assists', (final doc) async {
+        final data = doc.data();
+        final puzzleDate = (data['puzzleDate'] as String?) ?? '';
+        final configId = (data['configId'] as String?) ?? '';
+        final remoteAssistedAt = data['assistedAt'] as int?;
+        if (remoteAssistedAt == null) return;
+        final local = await (_db.select(
+          _db.puzzleAssists,
+        )..where((final t) => t.puzzleDate.equals(puzzleDate) & t.configId.equals(configId))).getSingleOrNull();
+        if (local != null && local.assistedAt <= remoteAssistedAt) return;
+
+        await _db
+            .into(_db.puzzleAssists)
+            .insertOnConflictUpdate(
+              PuzzleAssistsCompanion.insert(
+                puzzleDate: puzzleDate,
+                configId: configId,
+                assistedAt: remoteAssistedAt,
+                updatedAt: (data['updatedAt'] as int?) ?? remoteAssistedAt,
                 remoteId: Value(doc.id),
                 syncState: Value(SyncState.clean.code),
               ),

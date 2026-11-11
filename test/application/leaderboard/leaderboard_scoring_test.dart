@@ -22,6 +22,7 @@ PuzzleSessionData _solved(
   final int timeMs = 60000,
   final String configId = StandardPuzzleConfig.id,
   final bool hint = false,
+  final bool assisted = false,
   final String? id,
 }) {
   final completed = completedAt ?? DateTime(date.year, date.month, date.day, 12);
@@ -52,6 +53,7 @@ PuzzleSessionData _solved(
           flippedTo: false,
         ),
     ],
+    assisted: assisted,
   );
 }
 
@@ -102,11 +104,12 @@ void main() {
       expect(result.pointsReachedAt, DateTime(2026, 10, 8, 8, 10));
     });
 
-    test('archive, custom layout and hints do not count', () {
+    test('archive, custom layout, hints and viewed solutions do not count', () {
       final results = LeaderboardScoring.dayResults([
         _solved(oct8, completedAt: DateTime(2026, 10, 9, 9)),
         _solved(oct8, configId: 'custom'),
         _solved(oct8, hint: true),
+        _solved(oct8, assisted: true),
       ], const []);
 
       expect(results, isEmpty);
@@ -184,16 +187,18 @@ void main() {
       expect(result[_medium]!.lastDay, DateTime(2026, 10, 29));
     });
 
-    test('hint solve breaks the streak', () {
-      final result = streaks([
-        _solved(DateTime(2026, 10, 28)),
-        _solved(DateTime(2026, 10, 29), level: _medium, hint: true),
-        _solved(DateTime(2026, 10, 30)),
-      ]);
+    for (final (name, help) in [('hint', (hint: true, assisted: false)), ('help', (hint: false, assisted: true))]) {
+      test('$name solve breaks the streak', () {
+        final result = streaks([
+          _solved(DateTime(2026, 10, 28)),
+          _solved(DateTime(2026, 10, 29), level: _medium, hint: help.hint, assisted: help.assisted),
+          _solved(DateTime(2026, 10, 30)),
+        ]);
 
-      expect(result[_hard]!.best, 1);
-      expect(result[_medium]!.best, 1);
-    });
+        expect(result[_hard]!.best, 1);
+        expect(result[_medium]!.best, 1);
+      });
+    }
 
     test('only Standard solved on its own date', () {
       final result = streaks([

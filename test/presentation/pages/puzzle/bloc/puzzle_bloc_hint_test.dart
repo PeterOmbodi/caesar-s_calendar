@@ -65,6 +65,15 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   @override
   Future<bool> hasAnyLocalSessions() async => false;
 
+  final assistedDates = <DateTime>[];
+
+  @override
+  Future<void> markPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) async =>
+      assistedDates.add(puzzleDate);
+
+  @override
+  Future<bool> isPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) async => false;
+
   @override
   Stream<int> watchSolvedSolutionCount() => Stream.value(0);
 
@@ -199,10 +208,11 @@ void main() {
   test(
     'showHint marks state solved when hint places final board piece to valid grid position',
     () async {
+      final repository = _FakePuzzleHistoryRepository();
       final bloc = _TestPuzzleBloc(
         settings: _FakeSettingsQuery(),
         solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
-        historyUseCase: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
+        historyUseCase: PuzzleHistoryUseCase(repository),
       );
 
       const grid = PuzzleGridEntity(
@@ -260,6 +270,7 @@ void main() {
       expect(bloc.state.status, GameStatus.solvedByUser);
       expect(bloc.state.lastResumedAt, isNull);
       expect(bloc.state.gridPieces.any((final p) => p.id == 'Square'), isTrue);
+      expect(repository.assistedDates, [bloc.state.selectedDate]);
 
       await bloc.close();
     },

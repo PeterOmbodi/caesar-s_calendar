@@ -6,7 +6,6 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
 import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
-import 'package:caesar_puzzle/core/models/move.dart';
 
 class DayResult {
   const DayResult({
@@ -58,7 +57,7 @@ class LeaderboardScoring {
   ) {
     final groups = <(DateTime, PuzzleSessionDifficulty), List<PuzzleSessionData>>{};
     for (final session in sessions) {
-      if (_isClean(session) && levels.contains(session.difficulty)) {
+      if (_isRecord(session) && levels.contains(session.difficulty)) {
         groups.putIfAbsent((_day(session.puzzleDate), session.difficulty), () => []).add(session);
       }
     }
@@ -120,7 +119,7 @@ class LeaderboardScoring {
     final bestRankByDay = <DateTime, int>{};
     for (final session in sessions) {
       if (!_countsForLeaderboard(session)) continue;
-      final rank = _usedHint(session) ? PuzzleSessionDifficulty.easy.assistRank : session.difficulty.assistRank;
+      final rank = session.isClean ? session.difficulty.assistRank : PuzzleSessionDifficulty.easy.assistRank;
       final day = _day(session.puzzleDate);
       bestRankByDay[day] = math.min(bestRankByDay[day] ?? rank, rank);
     }
@@ -153,9 +152,7 @@ class LeaderboardScoring {
       session.completedAt != null &&
       _sameDay(session.completedAt!, session.puzzleDate);
 
-  static bool _isClean(final PuzzleSessionData session) => _countsForLeaderboard(session) && !_usedHint(session);
-
-  static bool _usedHint(final PuzzleSessionData session) => session.moveHistory.any((final move) => move is HintMove);
+  static bool _isRecord(final PuzzleSessionData session) => _countsForLeaderboard(session) && session.isClean;
 
   static bool _sameDay(final int timestampMs, final DateTime date) {
     final local = DateTime.fromMillisecondsSinceEpoch(timestampMs);

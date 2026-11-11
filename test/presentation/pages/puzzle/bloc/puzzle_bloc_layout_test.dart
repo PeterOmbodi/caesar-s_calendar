@@ -80,6 +80,12 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Future<bool> hasAnyLocalSessions() async => false;
 
   @override
+  Future<void> markPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) async {}
+
+  @override
+  Future<bool> isPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) async => false;
+
+  @override
   Stream<int> watchSolvedSolutionCount() => Stream.value(0);
 
   @override

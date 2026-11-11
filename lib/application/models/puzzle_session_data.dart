@@ -45,6 +45,7 @@ class PuzzleSessionData {
     required this.moveHistoryVersion,
     required this.pieces,
     required this.moveHistory,
+    this.assisted = false,
   });
 
   final String id;
@@ -62,4 +63,9 @@ class PuzzleSessionData {
   final int moveHistoryVersion;
   final List<PuzzlePieceSnapshot> pieces;
   final List<Move> moveHistory;
+
+  /// Help with this puzzle (date and layout) came before the session ended, in this or another session.
+  final bool assisted;
+
+  bool get isClean => !assisted && !moveHistory.any((final move) => move is HintMove);
 }

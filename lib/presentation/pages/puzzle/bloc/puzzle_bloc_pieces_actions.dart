@@ -305,6 +305,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     final timedState = _resumeTimerAfterUserAction(prevState: prevState, nextState: nextState);
     emit(timedState);
     _persistHistoryChange(prevState: prevState, nextState: timedState);
+    markAssisted();
   }
 
   // Back in the tray: the next move usually takes another piece.

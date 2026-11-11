@@ -52,9 +52,24 @@ class PuzzleHistoryUseCase {
     _currentSessionDifficulty = _coalesceDifficulty(_currentSessionDifficulty, difficulty);
   }
 
-  void markCurrentSessionEasy() {
-    markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
-  }
+  Future<void> markPuzzleAssisted({
+    required final DateTime puzzleDate,
+    required final List<PlacementParams> configPlacements,
+  }) async => _historyRepository.markPuzzleAssisted(
+    puzzleDate: puzzleDate,
+    configId: await _configId(configPlacements),
+  );
+
+  Future<bool> isPuzzleAssisted({
+    required final DateTime puzzleDate,
+    required final List<PlacementParams> configPlacements,
+  }) async => _historyRepository.isPuzzleAssisted(
+    puzzleDate: puzzleDate,
+    configId: await _configId(configPlacements),
+  );
+
+  Future<String> _configId(final List<PlacementParams> configPlacements) =>
+      _historyRepository.upsertConfig(configJson: PuzzleConfigJson.encode(configPlacements));
 
   Stream<List<CalendarDayStats>> watchCalendarStats(final DateTime from, final DateTime to) =>
       _historyRepository.watchCalendarStats(from: from, to: to);
