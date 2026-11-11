@@ -1,3 +1,5 @@
+import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
+
 class AchievementStats {
   const AchievementStats({
     required this.solvedDates,
@@ -13,14 +15,14 @@ class AchievementStats {
   /// Every month-day, Feb 29 included.
   static const int calendarDates = 366;
 
-  /// Solved calendar dates as (month, day), whatever the year.
-  final Set<(int, int)> solvedDates;
+  /// Solved calendar dates as (month, day), whatever the year, with the hardest level solved without help;
+  /// a date solved only with help counts as Easy.
+  final Map<(int, int), PuzzleSessionDifficulty> solvedDates;
   final int solvedHard;
   final int bestStreakDays;
   final int solutionsFound;
   final int? fastestSolveMs;
 
-  /// Solved without hints.
   final int cleanSolves;
   final int customLayoutSolves;
   final DateTime? firstSolvedAt;

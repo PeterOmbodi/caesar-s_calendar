@@ -37,7 +37,7 @@
   "accountSyncedAt": "Synced {time}",
   "accountTapToSignInAndSync": "Tap to sign in and sync",
   "achievementsBestStreak": "Best streak, days",
-  "achievementsClean": "Solved without hints",
+  "achievementsClean": "Solved without help",
   "achievementsCustom": "Custom layouts solved",
   "achievementsDatesSolved": "calendar dates solved",
   "achievementsEmpty": "Solve today's puzzle to fill in the first date.",

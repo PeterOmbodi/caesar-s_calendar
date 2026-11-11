@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:caesar_puzzle/application/models/achievement_stats.dart';
+import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
@@ -12,6 +13,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visu
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -264,6 +266,7 @@ class _CalendarCard extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             ExcludeSemantics(child: _YearGrid(solved: stats.solvedDates)),
+            if (solved > 0) ...[const SizedBox(height: 10), const _LevelLegend()],
             if (solved == 0) ...[
               const SizedBox(height: 12),
               Text(
@@ -284,7 +287,17 @@ class _YearGrid extends StatelessWidget {
 
   static const double _labelWidth = 30;
 
-  final Set<(int, int)> solved;
+  final Map<(int, int), PuzzleSessionDifficulty> solved;
+
+  static Color tone(final PuzzleSessionDifficulty level, final GameColors colors) => Color.lerp(
+    colors.gridLine,
+    colors.active,
+    switch (level) {
+      PuzzleSessionDifficulty.easy => 0.4,
+      PuzzleSessionDifficulty.medium => 0.7,
+      PuzzleSessionDifficulty.hard => 1.0,
+    },
+  )!;
 
   @override
   Widget build(final BuildContext context) => LayoutBuilder(
@@ -301,13 +314,15 @@ class _YearGrid extends StatelessWidget {
 class _YearGridPainter extends CustomPainter {
   _YearGridPainter({required this.solved, required this.cell, required this.colors});
 
-  final Set<(int, int)> solved;
+  final Map<(int, int), PuzzleSessionDifficulty> solved;
   final double cell;
   final GameColors colors;
 
   @override
   void paint(final Canvas canvas, final Size size) {
-    final done = Paint()..color = colors.active;
+    final done = {
+      for (final level in PuzzleSessionDifficulty.values) level: Paint()..color = _YearGrid.tone(level, colors),
+    };
     final open = Paint()..color = colors.gridLine;
     final gap = math.max(1.5, cell * 0.18);
     for (var month = 1; month <= 12; month++) {
@@ -326,7 +341,10 @@ class _YearGridPainter extends CustomPainter {
         final rect = Rect.fromLTWH(_YearGrid._labelWidth + (day - 1) * cell, top, cell - gap, cell - gap);
         canvas.drawRRect(
           RRect.fromRectAndRadius(rect, Radius.circular(cell * 0.2)),
-          solved.contains((month, day)) ? done : open,
+          switch (solved[(month, day)]) {
+            final level? => done[level]!,
+            null => open,
+          },
         );
       }
     }
@@ -335,6 +353,35 @@ class _YearGridPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant final _YearGridPainter oldDelegate) =>
       oldDelegate.solved != solved || oldDelegate.cell != cell || oldDelegate.colors != colors;
+}
+
+class _LevelLegend extends StatelessWidget {
+  const _LevelLegend();
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    return Row(
+      children: [
+        for (final level in const [
+          PuzzleSessionDifficulty.easy,
+          PuzzleSessionDifficulty.medium,
+          PuzzleSessionDifficulty.hard,
+        ]) ...[
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: _YearGrid.tone(level, colors),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: const SizedBox.square(dimension: 10),
+          ),
+          const SizedBox(width: 4),
+          Text(level.label, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+          const SizedBox(width: 12),
+        ],
+      ],
+    );
+  }
 }
 
 class _Tiles extends StatelessWidget {
