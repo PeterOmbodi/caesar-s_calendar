@@ -14,10 +14,10 @@ class _History implements PuzzleHistoryRepository {
   final List<PuzzleSessionData> sessions;
 
   @override
-  Stream<List<PuzzleSessionData>> watchSessionsInPuzzleDateRange({
+  Future<List<PuzzleSessionData>> getSolvedStandardSessions({
     required final DateTime from,
     required final DateTime to,
-  }) => Stream.value(sessions);
+  }) async => sessions;
 
   @override
   Future<List<SolvedSolutionRecord>> getSolvedSolutions({

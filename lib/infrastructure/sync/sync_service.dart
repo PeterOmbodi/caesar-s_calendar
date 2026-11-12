@@ -33,6 +33,10 @@ class SyncService {
   /// Per-collection checkpoint: the latest server time already downloaded, in microseconds.
   static const _checkpointPrefix = 'sync_server_us_';
 
+  /// Offline, a default get answers from the cache. It can miss newer server documents yet hold this device's later
+  /// writes, so the checkpoint would skip the missing ones; an empty cache would also read as no cloud data.
+  static const _fromServer = GetOptions(source: Source.server);
+
   Future<bool> hasCloudData(final String uid) async {
     if (!_auth.isAvailable) return false;
     if (await _collectionHasDocs(FirestorePaths.userSessions(uid))) return true;
@@ -261,7 +265,7 @@ class SyncService {
         await (checkpoint == null
                 ? all
                 : all.where('serverUpdatedAt', isGreaterThan: Timestamp.fromMicrosecondsSinceEpoch(checkpoint)))
-            .get();
+            .get(_fromServer);
     var latest = checkpoint ?? 0;
     for (final doc in snap.docs) {
       await apply(doc);
@@ -416,7 +420,7 @@ class SyncService {
       });
 
   Future<bool> _collectionHasDocs(final String path) async {
-    final snap = await _firestore.collection(path).limit(1).get();
+    final snap = await _firestore.collection(path).limit(1).get(_fromServer);
     return snap.docs.isNotEmpty;
   }
 

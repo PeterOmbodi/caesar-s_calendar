@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:caesar_puzzle/infrastructure/achievements/public_profile_service.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
@@ -21,6 +22,16 @@ class SyncRunner {
   bool _suspended = false;
   bool _pendingSync = false;
   bool _pendingProfilePublish = false;
+  Timer? _retryTimer;
+  int _failures = 0;
+
+  @visibleForTesting
+  static List<Duration> retryDelays = const [
+    Duration(seconds: 10),
+    Duration(seconds: 30),
+    Duration(minutes: 1),
+    Duration(minutes: 5),
+  ];
 
   void start({final bool requestImmediateSync = true}) {
     _lifecycleListener ??= AppLifecycleListener(onStateChange: _onLifecycleChanged);
@@ -32,6 +43,7 @@ class SyncRunner {
   void stop() {
     _lifecycleListener?.dispose();
     _lifecycleListener = null;
+    _cancelRetry();
   }
 
   void requestSync() {
@@ -48,6 +60,7 @@ class SyncRunner {
 
   Future<void> pause() async {
     _suspended = true;
+    _cancelRetry();
     _pendingSync = false;
     _pendingProfilePublish = false;
     while (_running) {
@@ -97,13 +110,27 @@ class SyncRunner {
           await _publicProfile.publishNow();
         }
         _status.setSuccess();
+        _cancelRetry();
       }
     } catch (e) {
       debugPrint('Sync failed: $e');
       _status.setError(e);
+      _scheduleRetry();
     } finally {
       _running = false;
     }
+  }
+
+  void _scheduleRetry() {
+    _retryTimer?.cancel();
+    _retryTimer = Timer(retryDelays[math.min(_failures, retryDelays.length - 1)], requestSync);
+    _failures++;
+  }
+
+  void _cancelRetry() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    _failures = 0;
   }
 
   void _onLifecycleChanged(final AppLifecycleState state) {

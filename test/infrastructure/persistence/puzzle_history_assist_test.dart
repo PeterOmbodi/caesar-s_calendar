@@ -1,5 +1,6 @@
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
+import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/app_database.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/daos/puzzle_history_dao.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/puzzle_history_repository_impl.dart';
@@ -66,6 +67,20 @@ void main() {
     await repository.markPuzzleAssisted(puzzleDate: date, configId: 'standard');
 
     expect((await db.select(db.puzzleAssists).getSingle()).assistedAt, first);
+  });
+
+  test('solved Standard sessions in range come with the help mark and without the board', () async {
+    final solved = await session(configId: StandardPuzzleConfig.id, completedAt: now + 60000);
+    await session(configId: StandardPuzzleConfig.id);
+    await session(configId: 'custom', completedAt: now);
+    await repository.markPuzzleAssisted(puzzleDate: date, configId: StandardPuzzleConfig.id);
+
+    final sessions = await repository.getSolvedStandardSessions(from: date, to: date);
+
+    expect(sessions.map((final s) => s.id), [solved]);
+    expect(sessions.single.assisted, isTrue);
+    expect(sessions.single.pieces, isEmpty);
+    expect(await repository.getSolvedStandardSessions(from: date.add(const Duration(days: 1)), to: date), isEmpty);
   });
 
   test('clearing local data drops the help marks', () async {

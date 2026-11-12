@@ -46,7 +46,7 @@ class LeaderboardPublisher {
   }) async {
     final today = DateTime(now.year, now.month, now.day);
     final yearStart = DateTime(today.year);
-    final sessions = await _history.watchSessionsInPuzzleDateRange(from: DateTime(2000), to: today).first;
+    final sessions = await _history.getSolvedStandardSessions(from: DateTime(2000), to: today);
     final solutions = await _history.getSolvedSolutions(from: yearStart, to: today);
     final days = LeaderboardScoring.dayResults(
       sessions.where((final s) => !s.puzzleDate.isBefore(yearStart)),

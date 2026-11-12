@@ -201,6 +201,22 @@ class PuzzleHistoryDao extends DatabaseAccessor<AppDatabase> with _$PuzzleHistor
     return row == null ? null : _read(row);
   }
 
+  Future<List<SessionWithAssist>> getSolvedSessionsOfConfig({
+    required final String configId,
+    required final String fromDate,
+    required final String toDate,
+  }) async {
+    final rows =
+        await (_sessionsWithAssist()..where(
+              puzzleSessions.status.equalsValue(PuzzleSessionStatus.solved) &
+                  puzzleSessions.configId.equals(configId) &
+                  puzzleSessions.puzzleDate.isBiggerOrEqualValue(fromDate) &
+                  puzzleSessions.puzzleDate.isSmallerOrEqualValue(toDate),
+            ))
+            .get();
+    return rows.map(_read).toList();
+  }
+
   Stream<List<SessionWithAssist>> watchSessionsByDate({required final String puzzleDate}) =>
       (_sessionsWithAssist()
             ..where(puzzleSessions.puzzleDate.equals(puzzleDate))
