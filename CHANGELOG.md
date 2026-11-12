@@ -1,3 +1,16 @@
+## 1.13.1+47
+- hints and showing solutions no longer change your level: a game with help stays on its level but does not count for records
+- the help mark covers the whole puzzle of the day, also after Restart and on your other devices; games solved before it still count
+- before the first help on a puzzle that counts for records, a warning explains what it changes; Hard no longer shows the number of solutions first
+- History marks sessions that count for records with a flame
+- My achievements: Solved on Hard, fastest solve, best streak and solved without help count only games without help; calendar dates are coloured by level
+- History statistics: Solved (hard), Hard rate and best streak count only games without help
+- rules for records and achievements: an info button on both screens and new sections in How to play
+- leaderboard rows are read as one label by VoiceOver and TalkBack
+- no ripple on buttons on iOS
+- fix redo after rotating or flipping a piece following an undo
+- fix sync skipping documents after working offline; sync now retries by itself after a failure
+
 ## 1.13.0+46
 - add leaderboards for the daily puzzle on the Medium and Hard levels: time today, points for the week, month and year, and streaks
 - taking part is optional and turned on in the account; the nickname is anonymous unless you choose to show your name

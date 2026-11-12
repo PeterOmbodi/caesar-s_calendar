@@ -143,6 +143,15 @@ Recommended tone:
 - Clear local data before sync when switching between different cloud accounts.
 - Upload local guest data only on the first sign-in of a new cloud account.
 
+## Sync Mechanics
+
+- Collections under `users/{uid}/`: `sessions`, `configs`, `solvedSolutions`, `solutionCounts`, `assists`.
+- `assists` holds one document per puzzle (date and layout) with the time of the first help (a hint, the solutions or a dead-end notice). On download the earlier time wins. A session counts as assisted when that time is before its completion.
+- Upload: rows marked dirty locally are written with `serverUpdatedAt` set by the server.
+- Download: each collection keeps a checkpoint, the latest downloaded `serverUpdatedAt`, and fetches only newer documents. Without a checkpoint (first run, sign-in to another account) it downloads everything.
+- Downloads and the cloud-data check read from the server only. Offline, the cache could miss newer documents while holding this device's own later writes, which would move the checkpoint past documents never downloaded, and an empty cache would read as no cloud data. Offline, sync fails instead.
+- After a failure the sync runner retries by itself after 10 s, 30 s, 1 min, then every 5 min until it succeeds; returning to the app also syncs.
+
 ## Summary
 
 The intended mental model is:
