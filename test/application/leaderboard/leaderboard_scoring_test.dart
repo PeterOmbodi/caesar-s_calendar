@@ -69,6 +69,16 @@ SolvedSolutionRecord _found(final PuzzleSessionData session, final String signat
 void main() {
   final oct8 = DateTime(2026, 10, 8);
 
+  test('countsForRecords: Medium and Hard daily puzzle on its day, Standard, without help', () {
+    expect(LeaderboardScoring.countsForRecords(_solved(oct8)), isTrue);
+    expect(LeaderboardScoring.countsForRecords(_solved(oct8, level: _medium)), isTrue);
+    expect(LeaderboardScoring.countsForRecords(_solved(oct8, level: _easy)), isFalse);
+    expect(LeaderboardScoring.countsForRecords(_solved(oct8, hint: true)), isFalse);
+    expect(LeaderboardScoring.countsForRecords(_solved(oct8, assisted: true)), isFalse);
+    expect(LeaderboardScoring.countsForRecords(_solved(oct8, configId: 'custom')), isFalse);
+    expect(LeaderboardScoring.countsForRecords(_solved(oct8, completedAt: DateTime(2026, 10, 9, 9))), isFalse);
+  });
+
   group('dayResults', () {
     test('first clean solve gives the time; tier 4 day gives 17 points', () {
       final first = _solved(oct8, completedAt: DateTime(2026, 10, 8, 9), timeMs: 90000);

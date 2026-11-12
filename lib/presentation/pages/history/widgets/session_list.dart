@@ -107,6 +107,23 @@ class _EmptySessions extends StatelessWidget {
   }
 }
 
+class _RecordMark extends StatelessWidget {
+  const _RecordMark();
+
+  @override
+  Widget build(final BuildContext context) {
+    final color = CupertinoColors.systemOrange.resolveFrom(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(CupertinoIcons.flame_fill, size: 15, color: color),
+        const SizedBox(width: 4),
+        Text(S.current.historyCountsForRecords, style: TextStyle(fontSize: 13, color: color)),
+      ],
+    );
+  }
+}
+
 class _ConfigBadge extends StatelessWidget {
   const _ConfigBadge({required this.summary, this.style});
 
@@ -156,6 +173,13 @@ class _MaterialSessionCard extends StatelessWidget {
         title: Row(
           children: [
             Expanded(child: Text('${summary.statusLabel} • ${summary.difficultyLabel}')),
+            if (summary.countsForRecords) ...[
+              const SizedBox(width: 8),
+              Tooltip(
+                message: S.current.historyCountsForRecords,
+                child: const Icon(Icons.local_fire_department, size: 18, color: Colors.deepOrange),
+              ),
+            ],
             const SizedBox(width: 8),
             Flexible(child: _ConfigBadge(summary: summary)),
           ],
@@ -235,6 +259,7 @@ class _CupertinoSessionRow extends StatelessWidget {
                   children: [
                     Text(summary.difficultyLabel, style: secondary),
                     _ConfigBadge(summary: summary, style: const TextStyle(fontSize: 13)),
+                    if (summary.countsForRecords) const _RecordMark(),
                   ],
                 ),
                 const SizedBox(height: 6),

@@ -57,7 +57,7 @@ class LeaderboardScoring {
   ) {
     final groups = <(DateTime, PuzzleSessionDifficulty), List<PuzzleSessionData>>{};
     for (final session in sessions) {
-      if (_isRecord(session) && levels.contains(session.difficulty)) {
+      if (countsForRecords(session)) {
         groups.putIfAbsent((_day(session.puzzleDate), session.difficulty), () => []).add(session);
       }
     }
@@ -152,7 +152,8 @@ class LeaderboardScoring {
       session.completedAt != null &&
       _sameDay(session.completedAt!, session.puzzleDate);
 
-  static bool _isRecord(final PuzzleSessionData session) => _countsForLeaderboard(session) && session.isClean;
+  static bool countsForRecords(final PuzzleSessionData session) =>
+      _countsForLeaderboard(session) && session.isClean && levels.contains(session.difficulty);
 
   static bool _sameDay(final int timestampMs, final DateTime date) {
     final local = DateTime.fromMillisecondsSinceEpoch(timestampMs);

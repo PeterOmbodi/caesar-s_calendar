@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/leaderboard/leaderboard_scoring.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
@@ -16,6 +17,8 @@ class SessionSummary {
   final bool solved;
   final bool isCustomConfig;
   final String timeLabel;
+
+  bool get countsForRecords => LeaderboardScoring.countsForRecords(session);
 
   String get statusLabel => solved ? S.current.historySolved : S.current.historyInProgress;
 
