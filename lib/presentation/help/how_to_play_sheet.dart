@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/help/gesture_demo.dart';
 import 'package:caesar_puzzle/presentation/help/how_to_play_content.dart';
+import 'package:caesar_puzzle/presentation/help/records_rules_content.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/services/keyboard_presence.dart';
 import 'package:caesar_puzzle/presentation/widgets/game_sheet.dart';
@@ -11,6 +12,18 @@ import 'package:flutter/material.dart';
 Future<void> showHowToPlaySheet(final BuildContext context) =>
     showGameSheet(context, title: S.current.howToPlayTitle, builder: (_) => const _HowToPlayBody());
 
+Future<void> showRecordsRulesSheet(final BuildContext context) => showGameSheet(
+  context,
+  title: S.current.helpRecordsTitle,
+  builder: (_) => HelpSectionsView(sections: [recordsRulesSection(titled: false)]),
+);
+
+Future<void> showAchievementsRulesSheet(final BuildContext context) => showGameSheet(
+  context,
+  title: S.current.achievementsTitle,
+  builder: (_) => HelpSectionsView(sections: [achievementsRulesSection(titled: false)]),
+);
+
 class _HowToPlayBody extends StatelessWidget {
   const _HowToPlayBody();
 
@@ -19,28 +32,43 @@ class _HowToPlayBody extends StatelessWidget {
     final apple = hostIsApple;
     return ValueListenableBuilder(
       valueListenable: KeyboardPresence.instance.connected,
-      builder: (final context, final hasKeyboard, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final (index, section) in howToPlaySections(apple: apple, hasKeyboard: hasKeyboard).indexed) ...[
-            if (index > 0) const SizedBox(height: 28),
-            InsetSection(
-              header: section.title,
-              footer: section.footer,
-              children: [
-                for (final item in section.items)
-                  InsetRow(
-                    icon: item.icon,
-                    title: item.title,
-                    subtitle: item.body,
-                    trailing: item.shortcut == null ? null : KeyCap(item.shortcut!),
-                    illustration: item.demo == null ? null : GestureDemo(item.demo!),
-                  ),
-              ],
-            ),
-          ],
+      builder: (final context, final hasKeyboard, _) => HelpSectionsView(
+        sections: [
+          ...howToPlaySections(apple: apple, hasKeyboard: hasKeyboard),
+          recordsRulesSection(),
+          achievementsRulesSection(),
         ],
       ),
     );
   }
+}
+
+class HelpSectionsView extends StatelessWidget {
+  const HelpSectionsView({super.key, required this.sections});
+
+  final List<HelpSection> sections;
+
+  @override
+  Widget build(final BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      for (final (index, section) in sections.indexed) ...[
+        if (index > 0) const SizedBox(height: 28),
+        InsetSection(
+          header: section.title,
+          footer: section.footer,
+          children: [
+            for (final item in section.items)
+              InsetRow(
+                icon: item.icon,
+                title: item.title,
+                subtitle: item.body,
+                trailing: item.shortcut == null ? null : KeyCap(item.shortcut!),
+                illustration: item.demo == null ? null : GestureDemo(item.demo!),
+              ),
+          ],
+        ),
+      ],
+    ],
+  );
 }

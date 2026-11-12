@@ -7,6 +7,7 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
+import 'package:caesar_puzzle/presentation/help/how_to_play_sheet.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/bloc/leaderboard_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/widgets/leaderboard_row_view.dart';
@@ -165,7 +166,17 @@ class _LeaderboardAppBar extends StatelessWidget implements PreferredSizeWidget 
   Widget build(final BuildContext context) {
     final title = Text(S.current.leaderboardTitle);
     if (ScreenSpec.of(context).family != ChromeFamily.glass) {
-      return AppBar(leading: const BackButton(), title: title);
+      return AppBar(
+        leading: const BackButton(),
+        title: title,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: S.current.helpRecordsTitle,
+            onPressed: () => unawaited(showRecordsRulesSheet(context)),
+          ),
+        ],
+      );
     }
     return CupertinoNavigationBar(
       backgroundColor: GameColors.of(context).background,
@@ -178,6 +189,12 @@ class _LeaderboardAppBar extends StatelessWidget implements PreferredSizeWidget 
         child: Icon(CupertinoIcons.back, semanticLabel: MaterialLocalizations.of(context).backButtonTooltip),
       ),
       middle: title,
+      trailing: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
+        onPressed: () => unawaited(showRecordsRulesSheet(context)),
+        child: Icon(CupertinoIcons.info_circle, semanticLabel: S.current.helpRecordsTitle),
+      ),
     );
   }
 }

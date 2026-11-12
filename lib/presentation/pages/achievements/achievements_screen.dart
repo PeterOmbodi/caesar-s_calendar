@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -7,6 +8,7 @@ import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
+import 'package:caesar_puzzle/presentation/help/how_to_play_sheet.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visuals.dart';
@@ -139,38 +141,51 @@ class _AppBar extends StatelessWidget {
     final title = Text(S.current.achievementsTitle);
     final onShare = this.onShare;
     final isGlass = ScreenSpec.of(context).family == ChromeFamily.glass;
-    final share = onShare == null ? null : _ShareButton(onShare: onShare, isGlass: isGlass);
+    final actions = [
+      _BarButton(
+        icon: isGlass ? CupertinoIcons.info_circle : Icons.info_outline,
+        label: S.current.achievementsTitle,
+        isGlass: isGlass,
+        onPressed: (final context) => unawaited(showAchievementsRulesSheet(context)),
+      ),
+      if (onShare != null)
+        _BarButton(
+          icon: Icons.adaptive.share,
+          label: S.current.achievementsShare,
+          isGlass: isGlass,
+          onPressed: onShare,
+        ),
+    ];
     if (isGlass) {
       return CupertinoSliverNavigationBar(
         largeTitle: title,
-        trailing: share,
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: actions),
         backgroundColor: colors.background,
         border: null,
         transitionBetweenRoutes: false,
       );
     }
-    return SliverAppBar.large(title: title, backgroundColor: colors.background, actions: [?share]);
+    return SliverAppBar.large(title: title, backgroundColor: colors.background, actions: actions);
   }
 }
 
-class _ShareButton extends StatelessWidget {
-  const _ShareButton({required this.onShare, required this.isGlass});
+class _BarButton extends StatelessWidget {
+  const _BarButton({required this.icon, required this.label, required this.isGlass, required this.onPressed});
 
-  final ValueChanged<BuildContext> onShare;
+  final IconData icon;
+  final String label;
   final bool isGlass;
+  final ValueChanged<BuildContext> onPressed;
 
   @override
   Widget build(final BuildContext context) => isGlass
       ? CupertinoButton(
           padding: EdgeInsets.zero,
-          onPressed: () => onShare(context),
-          child: Icon(Icons.adaptive.share, semanticLabel: S.current.achievementsShare),
+          minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
+          onPressed: () => onPressed(context),
+          child: Icon(icon, semanticLabel: label),
         )
-      : IconButton(
-          tooltip: S.current.achievementsShare,
-          icon: Icon(Icons.adaptive.share),
-          onPressed: () => onShare(context),
-        );
+      : IconButton(tooltip: label, icon: Icon(icon), onPressed: () => onPressed(context));
 }
 
 class _Header extends StatelessWidget {
