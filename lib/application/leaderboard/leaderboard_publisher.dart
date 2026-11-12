@@ -85,6 +85,13 @@ class LeaderboardPublisher {
       }
     }
 
-    return LeaderboardSnapshot(profile: profile, entries: entries);
+    return LeaderboardSnapshot(
+      profile: profile,
+      entries: entries,
+      boards: {
+        for (final level in LeaderboardScoring.levels)
+          for (final period in LeaderboardPeriod.values) LeaderboardKeys.board(period, today, level),
+      },
+    );
   }
 }

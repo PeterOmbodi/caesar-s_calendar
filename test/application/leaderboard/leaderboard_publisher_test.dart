@@ -105,6 +105,22 @@ void main() {
     expect(year.expireAt, isNull);
   });
 
+  test('lists every current board, so an entry that lost its result is removed', () async {
+    final snapshot = await build([]);
+
+    expect(snapshot.entries, isEmpty);
+    expect(snapshot.boards, {
+      'd2026-10-30_medium',
+      'w2026-44_medium',
+      'm2026-10_medium',
+      'y2026_medium',
+      'd2026-10-30_hard',
+      'w2026-44_hard',
+      'm2026-10_hard',
+      'y2026_hard',
+    });
+  });
+
   test('profile carries the nickname and streaks', () async {
     final snapshot = await build([
       _solved(DateTime(2026, 10, 29)),

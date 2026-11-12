@@ -87,7 +87,7 @@ class SyncRunner {
       _status.setSuccess();
     } catch (e) {
       _status.setError(e);
-      rethrow;
+      _scheduleRetry();
     }
   }
 

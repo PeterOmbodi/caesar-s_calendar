@@ -263,6 +263,7 @@ class AuthService {
     await _deleteCollection(FirestorePaths.userConfigs(uid));
     await _deleteCollection(FirestorePaths.userSolvedSolutions(uid));
     await _deleteCollection('${FirestorePaths.userDoc(uid)}/solutionCounts');
+    await _deleteCollection(FirestorePaths.userAssists(uid));
     await _leaderboards.deleteAll(uid);
     await _firestore.doc(FirestorePaths.userDoc(uid)).delete().catchError((_) {});
   }

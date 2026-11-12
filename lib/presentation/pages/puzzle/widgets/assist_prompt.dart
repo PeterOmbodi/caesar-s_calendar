@@ -9,27 +9,22 @@ Future<bool> confirmAssist(
   required final AssistGate gate,
   required final Future<bool> Function() countsForRecords,
 }) async {
-  switch (gate) {
-    case AssistGate.open:
-      return true;
-    case AssistGate.noSolutions:
-      await showAdaptiveDialog<void>(
-        context: context,
-        builder: (final context) => PlatformAlertDialog(
-          title: Text(S.current.searchCompletedDialogTitle),
-          content: Text(S.current.solutionsNotFoundDialogMessage),
-          actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
-        ),
-      );
-      return false;
-    case AssistGate.warnRecords:
-      if (!await countsForRecords() || !context.mounted) return true;
-      return ConfirmDialog.show(
-        context,
-        title: S.current.assistNoRecordsTitle,
-        message: S.current.assistNoRecordsMessage,
-        cancelLabel: S.current.solutionsFoundDialogCancel,
-        confirmLabel: S.current.assistNoRecordsContinue,
-      );
-  }
+  if (gate == AssistGate.open || !await countsForRecords()) return true;
+  if (!context.mounted) return false;
+  return ConfirmDialog.show(
+    context,
+    title: S.current.assistNoRecordsTitle,
+    message: S.current.assistNoRecordsMessage,
+    cancelLabel: S.current.solutionsFoundDialogCancel,
+    confirmLabel: S.current.assistNoRecordsContinue,
+  );
 }
+
+Future<void> showDeadEndNotice(final BuildContext context) => showAdaptiveDialog<void>(
+  context: context,
+  builder: (final context) => PlatformAlertDialog(
+    title: Text(S.current.searchCompletedDialogTitle),
+    content: Text(S.current.solutionsNotFoundDialogMessage),
+    actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
+  ),
+);

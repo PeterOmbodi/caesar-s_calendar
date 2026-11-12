@@ -228,16 +228,27 @@ class SyncService {
     final col = _firestore.collection(FirestorePaths.userAssists(uid));
     for (final row in rows) {
       final doc = col.doc('${row.puzzleDate}__${row.configId}');
-      await doc.set({
-        'puzzleDate': row.puzzleDate,
-        'configId': row.configId,
-        'assistedAt': row.assistedAt,
-        'updatedAt': row.updatedAt,
-        'serverUpdatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      await (_db.update(_db.puzzleAssists)
-            ..where((final t) => t.puzzleDate.equals(row.puzzleDate) & t.configId.equals(row.configId)))
-          .write(PuzzleAssistsCompanion(remoteId: Value(doc.id), syncState: Value(SyncState.clean.code)));
+      final assistedAt = await _firestore.runTransaction((final transaction) async {
+        final remote = (await transaction.get(doc)).data()?['assistedAt'] as int?;
+        if (remote != null && remote <= row.assistedAt) return remote;
+        transaction.set(doc, {
+          'puzzleDate': row.puzzleDate,
+          'configId': row.configId,
+          'assistedAt': row.assistedAt,
+          'updatedAt': row.updatedAt,
+          'serverUpdatedAt': FieldValue.serverTimestamp(),
+        });
+        return row.assistedAt;
+      });
+      await (_db.update(
+        _db.puzzleAssists,
+      )..where((final t) => t.puzzleDate.equals(row.puzzleDate) & t.configId.equals(row.configId))).write(
+        PuzzleAssistsCompanion(
+          assistedAt: Value(assistedAt),
+          remoteId: Value(doc.id),
+          syncState: Value(SyncState.clean.code),
+        ),
+      );
     }
   }
 

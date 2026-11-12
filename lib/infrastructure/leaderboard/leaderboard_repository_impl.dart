@@ -31,6 +31,9 @@ class LeaderboardRepositoryImpl implements LeaderboardRepository {
     for (final MapEntry(key: boardId, value: entry) in snapshot.entries.entries) {
       batch.set(_entries(boardId).doc(uid), _toMap(entry));
     }
+    for (final boardId in snapshot.boards.difference(snapshot.entries.keys.toSet())) {
+      batch.delete(_entries(boardId).doc(uid));
+    }
     try {
       await batch.commit();
       return true;

@@ -119,9 +119,13 @@ class PuzzleToolbar extends StatelessWidget {
 
   Future<void> _runAssist(final BuildContext context, final AssistGate gate, final VoidCallback allowedEvent) async {
     final bloc = context.read<PuzzleBloc>();
-    final allowed = await confirmAssist(context, gate: gate, countsForRecords: bloc.countsForRecords);
-    if (gate == AssistGate.noSolutions) bloc.markAssisted();
-    if (allowed && context.mounted) allowedEvent();
+    if (!await confirmAssist(context, gate: gate, countsForRecords: bloc.countsForRecords) || !context.mounted) return;
+    if (gate == AssistGate.noSolutions) {
+      bloc.markAssisted();
+      await showDeadEndNotice(context);
+      return;
+    }
+    allowedEvent();
   }
 
   Future<void> _invoke(

@@ -45,29 +45,25 @@ void main() {
     expect(await allowed, isTrue);
   });
 
-  testWidgets('no solutions shows a notice and does not run', (final tester) async {
-    final allowed = await ask(tester, AssistGate.noSolutions);
-    expect(find.text(S.current.solutionsNotFoundDialogMessage), findsOneWidget);
-    await tapText(tester, S.current.ok);
-    expect(await allowed, isFalse);
-  });
+  for (final gate in [AssistGate.warnRecords, AssistGate.noSolutions]) {
+    testWidgets('$gate on a game that counts for records warns first; continue allows it', (final tester) async {
+      final allowed = await ask(tester, gate);
+      expect(find.text(S.current.assistNoRecordsMessage), findsOneWidget);
+      expect(find.text(S.current.solutionsNotFoundDialogMessage), findsNothing);
+      await tapText(tester, S.current.assistNoRecordsContinue);
+      expect(await allowed, isTrue);
+    });
 
-  testWidgets('a game that counts for records warns, and continue runs the assist', (final tester) async {
-    final allowed = await ask(tester, AssistGate.warnRecords);
-    expect(find.text(S.current.assistNoRecordsMessage), findsOneWidget);
-    await tapText(tester, S.current.assistNoRecordsContinue);
-    expect(await allowed, isTrue);
-  });
+    testWidgets('$gate: cancel keeps the game in records', (final tester) async {
+      final allowed = await ask(tester, gate);
+      await tapText(tester, S.current.solutionsFoundDialogCancel);
+      expect(await allowed, isFalse);
+    });
 
-  testWidgets('cancel keeps the game in records', (final tester) async {
-    final allowed = await ask(tester, AssistGate.warnRecords);
-    await tapText(tester, S.current.solutionsFoundDialogCancel);
-    expect(await allowed, isFalse);
-  });
-
-  testWidgets('a game that already does not count runs without a warning', (final tester) async {
-    final allowed = await ask(tester, AssistGate.warnRecords, countsForRecords: false);
-    expect(find.byType(AlertDialog), findsNothing);
-    expect(await allowed, isTrue);
-  });
+    testWidgets('$gate on a game that already does not count goes on without a warning', (final tester) async {
+      final allowed = await ask(tester, gate, countsForRecords: false);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(await allowed, isTrue);
+    });
+  }
 }
