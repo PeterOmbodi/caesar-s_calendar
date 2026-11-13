@@ -31,7 +31,7 @@ abstract class RaceRoomRepository {
   /// Also brings a player back into a room they are already in.
   Future<void> join(final String code, final RaceProfile profile);
 
-  /// In the lobby the host closes the room and a guest frees the place; in a race it counts as giving up.
+  /// In the lobby the host closes the room and a guest frees the place; in a race the player goes offline.
   Future<void> leave(final String code);
 
   /// Null once the room is gone.

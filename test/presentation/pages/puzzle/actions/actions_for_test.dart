@@ -62,6 +62,7 @@ void main() {
       ]);
       expect(_ids(actions, ActionSlot.overflow), [
         GameActionId.showSolutions,
+        GameActionId.layouts,
         GameActionId.howToPlay,
         GameActionId.restart,
       ]);

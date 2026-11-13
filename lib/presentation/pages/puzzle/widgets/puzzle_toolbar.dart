@@ -170,6 +170,8 @@ class PuzzleToolbar extends StatelessWidget {
           anchor,
           () => _runAssist(context, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showSolution(0))),
         );
+      case GameActionId.layouts:
+        await showBoardLayoutsSheet(context);
       case GameActionId.howToPlay:
         await showHowToPlaySheet(context);
       case GameActionId.cancelEdit:

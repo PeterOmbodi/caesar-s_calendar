@@ -18,6 +18,7 @@ enum GameActionId {
   resetLayout,
   saveLayout,
   giveUp,
+  layouts,
 }
 
 enum ActionSlot { primary, overflow }

@@ -5,6 +5,12 @@ abstract final class RaceRoomCode {
   static const String alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   static const int length = 5;
 
+  static final Uri _webVersion = Uri.parse('https://peterombodi.github.io/caesar-s_calendar/');
+  static const String linkParameter = 'race';
+
+  /// Opens the web version with the room's code filled in.
+  static Uri link(final String code) => _webVersion.replace(queryParameters: {linkParameter: code});
+
   static String generate([final Random? random]) {
     final source = random ?? Random.secure();
     return String.fromCharCodes([

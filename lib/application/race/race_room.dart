@@ -59,7 +59,7 @@ class RaceRoom {
 
   bool get isFull => players.length >= maxPlayers;
 
-  bool get canStart => players.length >= 2 && players.every((final p) => p.ready && p.nonce != null);
+  bool get canStart => players.length >= 2 && players.every((final p) => p.online && p.ready && p.nonce != null);
 
   @override
   bool operator ==(final Object other) =>

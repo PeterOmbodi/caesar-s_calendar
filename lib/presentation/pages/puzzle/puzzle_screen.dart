@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:caesar_puzzle/application/contracts/board_layout_repository.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
+import 'package:caesar_puzzle/application/race/race_room_code.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/services/timer_service.dart';
 import 'package:caesar_puzzle/domain/services/calendar_cells.dart';
@@ -11,7 +12,6 @@ import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cubit.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_haptics.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_sounds.dart';
@@ -20,6 +20,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.da
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_toolbar.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
+import 'package:caesar_puzzle/presentation/pages/race/race_lobby_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
@@ -33,6 +34,7 @@ import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dar
 import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
 import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart' show kDoubleTapTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -60,10 +62,12 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   late final StreamSubscription<PuzzleState> _feedbackSubscription;
   PuzzleSettingsPanelController _settingsPanelController = const PuzzleSettingsPanelController();
   final _boardKey = GlobalKey();
+  final _raceButtonKey = GlobalKey();
   final _sounds = PuzzleSounds();
   var _isInitialized = false;
   var _isStartCardOpen = false;
   var _isPieceTipRequested = false;
+  var _hasGreeted = false;
   double _headerHeight = 0;
 
   @override
@@ -130,7 +134,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                 BlocListener<PuzzleBloc, PuzzleState>(
                   listenWhen: (final ps, final cs) =>
                       ps.status == GameStatus.initializing && cs.status != GameStatus.initializing,
-                  listener: (final context, final state) => _maybeShowStartCard(),
+                  listener: (final context, final state) => _greet(),
                 ),
                 BlocListener<PuzzleBloc, PuzzleState>(
                   listenWhen: (final ps, final cs) =>
@@ -197,9 +201,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                             builder: (final headerContext) => MediaQuery.withClampedTextScaling(
                               maxScaleFactor: _maxChromeTextScale,
                               child: PuzzleHeader(
-                                onLayoutsPressed: () {
+                                raceButtonKey: _raceButtonKey,
+                                onRacePressed: () {
                                   if (!_puzzleBloc.state.isEditingLayout) {
-                                    showBoardLayoutsSheet(headerContext);
+                                    unawaited(_openRace());
                                   }
                                 },
                                 onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
@@ -318,6 +323,48 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       state.isCustomConfig ? S.of(context).historyConfigCustom : S.of(context).historyConfigStandard;
 
   RenderBox? get _boardBox => _boardKey.currentContext?.findRenderObject() as RenderBox?;
+
+  Future<void> _openRace({final String? code}) async {
+    // The daily game's clock must not run while its player is racing.
+    _puzzleBloc.add(const PuzzleEvent.setTimer(running: false));
+    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => RaceLobbyScreen(initialCode: code)));
+    _puzzleBloc.add(const PuzzleEvent.setTimer(running: true));
+  }
+
+  // Once per launch: the first-run card, then a room link's lobby or the note about the new button.
+  Future<void> _greet() async {
+    if (_hasGreeted) {
+      return;
+    }
+    _hasGreeted = true;
+    final isFirstRun = context.read<SettingsCubit>().state.completedOnboardingVersion == 0;
+    await _maybeShowStartCard();
+    if (!mounted) {
+      return;
+    }
+    final linkCode = kIsWeb ? RaceRoomCode.normalize(Uri.base.queryParameters[RaceRoomCode.linkParameter] ?? '') : null;
+    if (linkCode != null) {
+      await _openRace(code: linkCode);
+    } else if (!isFirstRun) {
+      await _showRaceIntro();
+    }
+  }
+
+  Future<void> _showRaceIntro() async {
+    final button = _raceButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    if (button == null || !button.hasSize) {
+      return;
+    }
+    await CoachMark.showOnce(
+      context: context,
+      storageKey: 'tip_seen_race_button',
+      anchor: button.localToGlobal(Offset.zero) & button.size,
+      title: S.current.raceIntroTitle,
+      message: S.current.raceIntroMessage,
+      actionLabel: S.current.ok,
+      canCancel: false,
+    );
+  }
 
   Future<void> _maybeShowStartCard() async {
     final settings = context.read<SettingsCubit>();

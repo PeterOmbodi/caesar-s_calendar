@@ -92,6 +92,7 @@ List<GameAction> actionsFor(
       assistGate: assistGate,
       count: indicator == SolutionIndicator.countSolutions ? solutionsCount : null,
     ),
+    const GameAction(GameActionId.layouts, slot: ActionSlot.overflow),
     const GameAction(GameActionId.howToPlay, slot: ActionSlot.overflow),
     GameAction(GameActionId.restart, slot: ActionSlot.overflow, enabled: !state.isSolving, busy: state.isSolving),
   ];

@@ -18,10 +18,13 @@ import 'package:intl/intl.dart' as intl;
 typedef _HeaderType = ({TextStyle title, TextStyle subtitle, TextStyle goal, double goalGap});
 
 class PuzzleHeader extends StatelessWidget {
-  const PuzzleHeader({super.key, required this.onLayoutsPressed, required this.onSettingsPressed});
+  const PuzzleHeader({super.key, required this.onRacePressed, required this.onSettingsPressed, this.raceButtonKey});
 
-  final VoidCallback onLayoutsPressed;
+  final VoidCallback onRacePressed;
   final VoidCallback onSettingsPressed;
+
+  /// Lets the screen point a coach mark at the button.
+  final Key? raceButtonKey;
 
   static _HeaderType _typeFor(final ScreenSpec spec) => switch (spec.window) {
     WindowClass.compact when spec.isLandscape => (
@@ -59,7 +62,7 @@ class PuzzleHeader extends StatelessWidget {
     final layoutName = context.select<BoardLayoutsCubit, String?>(
       (final cubit) => customKey == null ? null : cubit.state.entryWithKey(customKey)?.layout.name,
     );
-    final layouts = _LayoutsButton(isCustomConfig: isCustomConfig, onPressed: onLayoutsPressed);
+    final race = _RaceButton(key: raceButtonKey, onPressed: onRacePressed);
     const buttonGap = 12.0;
     final month = shortMonthName(date.month);
     final day = '${date.day}';
@@ -69,7 +72,7 @@ class PuzzleHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (buttonsRight) const SizedBox(width: GlassCircleButton.defaultSize * 2 + buttonGap) else layouts,
+          if (buttonsRight) const SizedBox(width: GlassCircleButton.defaultSize * 2 + buttonGap) else race,
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -116,7 +119,7 @@ class PuzzleHeader extends StatelessWidget {
               ),
             ),
           ),
-          if (buttonsRight) ...[layouts, const SizedBox(width: buttonGap)],
+          if (buttonsRight) ...[race, const SizedBox(width: buttonGap)],
           _SettingsButton(onPressed: onSettingsPressed),
         ],
       ),
@@ -154,40 +157,30 @@ class PuzzleHeader extends StatelessWidget {
   }
 }
 
-class _LayoutsButton extends StatelessWidget {
-  const _LayoutsButton({required this.isCustomConfig, required this.onPressed});
+class _RaceButton extends StatelessWidget {
+  const _RaceButton({super.key, required this.onPressed});
 
-  final bool isCustomConfig;
   final VoidCallback onPressed;
 
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        GlassCircleButton(
-          tooltip: S.current.headerLayoutsTooltip,
-          onPressed: onPressed,
-          child: Icon(Icons.grid_view, size: 22, color: colors.icon),
-        ),
-        if (isCustomConfig)
-          Positioned(
-            right: 6,
-            top: 6,
-            child: IgnorePointer(
-              child: Container(
-                width: 9,
-                height: 9,
-                decoration: BoxDecoration(
-                  color: colors.customConfig,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: colors.background, width: 2),
-                ),
-              ),
-            ),
+    return Tooltip(
+      message: S.current.raceTitle,
+      child: Material(
+        color: colors.active,
+        shape: const CircleBorder(),
+        elevation: 4,
+        shadowColor: colors.shadow,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: SizedBox.square(
+            dimension: GlassCircleButton.defaultSize,
+            child: Icon(Icons.sports_score, size: 22, color: colors.onActive, semanticLabel: S.current.raceTitle),
           ),
-      ],
+        ),
+      ),
     );
   }
 }

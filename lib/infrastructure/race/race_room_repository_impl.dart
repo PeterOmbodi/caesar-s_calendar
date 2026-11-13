@@ -3,12 +3,14 @@ import 'dart:math';
 
 import 'package:caesar_puzzle/application/contracts/race_room_repository.dart';
 import 'package:caesar_puzzle/application/race/race_entitlements.dart';
+import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 import 'package:caesar_puzzle/application/race/race_room_code.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:caesar_puzzle/infrastructure/race/race_room_mapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton(as: RaceRoomRepository)
@@ -17,6 +19,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
 
   // Offline writes queue up instead of failing, so every call needs its own deadline.
   static const _timeout = Duration(seconds: 10);
+  static const _connectWait = Duration(seconds: 3);
   static const _staleAfter = Duration(hours: 2);
   static const _createAttempts = 5;
   static const _graceSec = 60;
@@ -26,12 +29,18 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
   final Random _random = Random.secure();
 
   int _serverOffsetMs = 0;
-  StreamSubscription<DatabaseEvent>? _offsetSubscription;
-  StreamSubscription<bool>? _connectionSubscription;
+  // Both listeners live as long as the repository: re-listening to the same `.info` path after a cancel proved
+  // unreliable.
+  bool _isListeningToServer = false;
+  final StreamController<bool> _connectionChanges = StreamController<bool>.broadcast();
+  bool _isConnected = false;
+  Future<void>? _leaving;
 
   // The server forgets onDisconnect handlers once they fire, so they are set again after every reconnect.
   String? _presenceCode;
-  bool _closesRoomOnDisconnect = false;
+  bool _isHost = false;
+  // In the lobby a lost connection frees the place (and closes the host's room); in a race the player stays.
+  bool _inLobby = true;
 
   @override
   String? get uid => _auth.currentUser?.uid;
@@ -52,7 +61,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
         await _guard(_room(code).remove());
       }
       if (await _guard(_claim(code, uid, profile))) {
-        await _keepPresence(code, closesRoom: true);
+        await _keepPresence(code, isHost: true, inLobby: true);
         return code;
       }
     }
@@ -88,35 +97,36 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
         throw const RaceRoomException(RaceRoomFailure.full);
       }
     }
-    await _keepPresence(code, closesRoom: room.hostUid == uid && room.status == RaceRoomStatus.lobby);
+    await _keepPresence(code, isHost: room.hostUid == uid, inLobby: room.status == RaceRoomStatus.lobby);
   });
 
   @override
   Future<void> leave(final String code) async {
+    final leaving = _leave(code);
+    _leaving = leaving;
+    try {
+      await leaving;
+    } finally {
+      if (identical(_leaving, leaving)) {
+        _leaving = null;
+      }
+    }
+  }
+
+  // Nothing here waits for a read: the write goes first, and going offline fires the onDisconnect handlers, which
+  // do the same if the write did not get through.
+  Future<void> _leave(final String code) async {
     final uid = this.uid;
     try {
-      final room = uid == null ? null : await _read(code);
-      final me = uid == null ? null : room?.player(uid);
-      if (uid == null || room == null || me == null) {
+      if (uid == null || _presenceCode != code) {
         return;
       }
-      final isHost = room.hostUid == uid;
-      final player = _player(code, uid);
       _presenceCode = null;
-      await _guard(player.onDisconnect().cancel());
-      if (isHost) {
-        await _guard(_room(code).onDisconnect().cancel());
-      }
-      if (room.status == RaceRoomStatus.lobby) {
-        await _guard(isHost ? _room(code).remove() : player.remove());
+      final player = _player(code, uid);
+      if (_inLobby) {
+        await _guard(_isHost ? _room(code).remove() : player.remove());
       } else {
-        await _guard(
-          player.update({
-            'online': false,
-            'lastSeen': ServerValue.timestamp,
-            if (room.status == RaceRoomStatus.playing && !me.hasFinished) 'gaveUp': true,
-          }),
-        );
+        await _guard(player.update({'online': false, 'lastSeen': ServerValue.timestamp}));
       }
     } finally {
       await _disconnect();
@@ -125,7 +135,11 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
 
   @override
   Stream<RaceRoom?> watchRoom(final String code) => _room(code).onValue
-      .map((final event) => RaceRoomMapper.fromValue(code, event.snapshot.value))
+      .map((final event) {
+        final room = RaceRoomMapper.fromValue(code, event.snapshot.value);
+        _followStatus(code, room);
+        return room;
+      })
       .transform(
         StreamTransformer<RaceRoom?, RaceRoom?>.fromHandlers(
           handleError: (final error, final stackTrace, final sink) => sink.addError(
@@ -156,7 +170,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
   }) async {
     final room = _room(code);
     // From here a dropped connection must not close the room.
-    _closesRoomOnDisconnect = false;
+    _inLobby = false;
     try {
       await _guard(room.onDisconnect().cancel());
       await _registerDisconnect();
@@ -169,7 +183,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
         }),
       );
     } on RaceRoomException {
-      _closesRoomOnDisconnect = true;
+      _inLobby = true;
       unawaited(_restorePresence());
       rethrow;
     }
@@ -208,8 +222,15 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
         'firstFinishAt': null,
       }),
     );
-    _closesRoomOnDisconnect = true;
+    _inLobby = true;
     await _registerDisconnect();
+    // Whoever left during the race must not hold a place in the new lobby.
+    final room = await _read(code);
+    for (final player in room?.players ?? const <RacePlayer>[]) {
+      if (!player.online && player.uid != uid) {
+        await _guard(_player(code, player.uid).remove());
+      }
+    }
   }
 
   DatabaseReference _room(final String code) => _database.ref('rooms/$code');
@@ -256,47 +277,69 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
 
   Future<T> _entering<T>(final Future<T> Function() enter) async {
     try {
+      // A leave still in flight would disconnect this entry halfway.
+      await _leaving?.catchError((final Object _) {});
       await _connect();
       return await enter();
-    } on Object {
+    } on RaceRoomException {
       await _disconnect();
       rethrow;
+    } on Exception catch (e) {
+      await _disconnect();
+      throw RaceRoomException(RaceRoomFailure.unknown, e);
     }
   }
 
   Future<void> _connect() async {
     await _database.goOnline();
-    _offsetSubscription ??= _database.ref('.info/serverTimeOffset').onValue.listen((final event) {
+    _listenToServer();
+    if (!_isConnected) {
+      // Best effort: if the signal does not come, the first read decides whether there is a connection.
+      await _connectionChanges.stream
+          .firstWhere((final isConnected) => isConnected)
+          .timeout(_connectWait, onTimeout: () => false);
+    }
+  }
+
+  void _listenToServer() {
+    if (_isListeningToServer) {
+      return;
+    }
+    _isListeningToServer = true;
+    _database.ref('.info/serverTimeOffset').onValue.listen((final event) {
       final offset = event.snapshot.value;
       if (offset is num) {
         _serverOffsetMs = offset.toInt();
       }
     });
-    await _guard(_connected.firstWhere((final isConnected) => isConnected));
-  }
-
-  Future<void> _disconnect() async {
-    _presenceCode = null;
-    _closesRoomOnDisconnect = false;
-    await _connectionSubscription?.cancel();
-    await _offsetSubscription?.cancel();
-    _connectionSubscription = null;
-    _offsetSubscription = null;
-    await _database.goOffline();
-  }
-
-  Stream<bool> get _connected =>
-      _database.ref('.info/connected').onValue.map((final event) => event.snapshot.value == true);
-
-  Future<void> _keepPresence(final String code, {required final bool closesRoom}) async {
-    _presenceCode = code;
-    _closesRoomOnDisconnect = closesRoom;
-    await _registerDisconnect();
-    _connectionSubscription ??= _connected.listen((final isConnected) {
+    _database.ref('.info/connected').onValue.listen((final event) {
+      final isConnected = event.snapshot.value == true;
+      if (isConnected == _isConnected) {
+        return;
+      }
+      _isConnected = isConnected;
+      _connectionChanges.add(isConnected);
       if (isConnected) {
         unawaited(_restorePresence());
       }
     });
+  }
+
+  Future<void> _disconnect() async {
+    _presenceCode = null;
+    _isConnected = false;
+    try {
+      await _database.goOffline();
+    } on Exception {
+      // Nothing to close if the plugin never connected.
+    }
+  }
+
+  Future<void> _keepPresence(final String code, {required final bool isHost, required final bool inLobby}) async {
+    _presenceCode = code;
+    _isHost = isHost;
+    _inLobby = inLobby;
+    await _registerDisconnect();
   }
 
   Future<void> _registerDisconnect() async {
@@ -305,11 +348,26 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
     if (code == null || uid == null) {
       return;
     }
+    final player = _player(code, uid);
+    await _guard(player.onDisconnect().cancel());
     await _guard(
-      _player(code, uid).onDisconnect().update({'online': false, 'lastSeen': ServerValue.timestamp}),
+      _inLobby
+          ? player.onDisconnect().remove()
+          : player.onDisconnect().update({'online': false, 'lastSeen': ServerValue.timestamp}),
     );
-    if (_closesRoomOnDisconnect) {
+    if (_inLobby && _isHost) {
       await _guard(_room(code).onDisconnect().remove());
+    }
+  }
+
+  void _followStatus(final String code, final RaceRoom? room) {
+    if (room == null || code != _presenceCode) {
+      return;
+    }
+    final inLobby = room.status == RaceRoomStatus.lobby;
+    if (inLobby != _inLobby) {
+      _inLobby = inLobby;
+      unawaited(_restorePresence());
     }
   }
 
@@ -331,10 +389,19 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
     try {
       return await operation.timeout(_timeout);
     } on TimeoutException catch (e) {
-      throw RaceRoomException(RaceRoomFailure.offline, e);
+      throw _failed(RaceRoomFailure.offline, e);
     } on FirebaseException catch (e) {
-      throw RaceRoomException(e.code == 'permission-denied' && denied != null ? denied : _failureOf(e), e);
+      throw _failed(e.code == 'permission-denied' && denied != null ? denied : _failureOf(e), e);
+    } on RaceRoomException {
+      rethrow;
+    } on Exception catch (e) {
+      throw _failed(RaceRoomFailure.unknown, e);
     }
+  }
+
+  static RaceRoomException _failed(final RaceRoomFailure failure, final Object cause) {
+    debugPrint('Race room: $failure, $cause\n${StackTrace.current}');
+    return RaceRoomException(failure, cause);
   }
 
   static RaceRoomFailure _failureOf(final FirebaseException error) => switch (error.code) {
