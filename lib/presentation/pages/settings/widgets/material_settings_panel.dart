@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/locale_labels.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summary_button.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/app_check_status.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
@@ -139,20 +140,28 @@ class MaterialSettingsPanel extends StatelessWidget {
                     onTap: () => openStoreLink(link),
                   ),
               ],
-              if (kDebugMode)
+              if (kDebugMode) ...[
                 ListTile(
                   leading: const Icon(Icons.restart_alt),
                   title: const Text('Reset help for today'),
                   onTap: () => _resetTodayHelp(context),
                 ),
+                ListTile(
+                  leading: const Icon(Icons.verified_user_outlined),
+                  title: const Text('App Check'),
+                  onTap: () => showAppCheckStatus(context),
+                ),
+              ],
               FutureBuilder(
                 future: PackageInfo.fromPlatform(),
                 builder: (final context, final snapshot) => snapshot.hasData
-                    ? Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                        child: Text(
-                          'Version ${snapshot.data!.version}+${snapshot.data!.buildNumber}',
-                          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ? AppCheckSecretTap(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                          child: Text(
+                            'Version ${snapshot.data!.version}+${snapshot.data!.buildNumber}',
+                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          ),
                         ),
                       )
                     : const SizedBox.shrink(),

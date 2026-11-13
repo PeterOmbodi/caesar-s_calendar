@@ -49,6 +49,18 @@ class FirebaseBootstrap {
     return targetPlatform == TargetPlatform.iOS ? null : DefaultFirebaseOptions.currentPlatform;
   }
 
+  /// Forces a fresh attestation, so the answer reflects the provider and not a cached token.
+  static Future<String> appCheckStatus() async {
+    if (!(_result?.enabled ?? false)) return 'Firebase is off: ${_result?.error}';
+    try {
+      final token = await FirebaseAppCheck.instance.getToken(true);
+      final provider = kDebugMode && !kIsWeb ? 'debug provider' : 'production provider';
+      return token == null || token.isEmpty ? 'No token ($provider)' : 'OK ($provider)';
+    } catch (e) {
+      return '$e';
+    }
+  }
+
   static Future<void> _activateAppCheck() async {
     if (kIsWeb) {
       if (_webAppCheckSiteKey.isEmpty) {
@@ -61,11 +73,17 @@ class FirebaseBootstrap {
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        await FirebaseAppCheck.instance.activate();
+        await FirebaseAppCheck.instance.activate(
+          providerAndroid: kDebugMode ? const AndroidDebugProvider() : const AndroidPlayIntegrityProvider(),
+        );
         return;
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
-        await FirebaseAppCheck.instance.activate(providerApple: const AppleAppAttestWithDeviceCheckFallbackProvider());
+        await FirebaseAppCheck.instance.activate(
+          providerApple: kDebugMode
+              ? const AppleDebugProvider()
+              : const AppleAppAttestWithDeviceCheckFallbackProvider(),
+        );
         return;
       case TargetPlatform.windows:
       case TargetPlatform.linux:
