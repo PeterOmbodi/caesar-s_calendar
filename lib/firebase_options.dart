@@ -45,6 +45,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '991187302399',
     projectId: 'caesar-puzzle-673a2',
     authDomain: 'caesar-puzzle-673a2.firebaseapp.com',
+    databaseURL: 'https://caesar-puzzle-673a2-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'caesar-puzzle-673a2.firebasestorage.app',
     measurementId: 'G-SFSLY07FNX',
   );
@@ -54,24 +55,29 @@ class DefaultFirebaseOptions {
     appId: '1:991187302399:android:e4bff8f133fd0e07f7d9ca',
     messagingSenderId: '991187302399',
     projectId: 'caesar-puzzle-673a2',
+    databaseURL: 'https://caesar-puzzle-673a2-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'caesar-puzzle-673a2.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDa9y9Cp5Ud_qgy7OUh1HrAAIP4Ec3u1ng',
+    apiKey: 'AIzaSyCG0a7dOaM7U0CP3azfw_3q5WIIYGECp4Q',
     appId: '1:991187302399:ios:71efe756d7b7385af7d9ca',
     messagingSenderId: '991187302399',
     projectId: 'caesar-puzzle-673a2',
+    databaseURL: 'https://caesar-puzzle-673a2-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'caesar-puzzle-673a2.firebasestorage.app',
+    androidClientId: '991187302399-8vdnieg3478kc686cuolojdip1c4ilkj.apps.googleusercontent.com',
+    iosClientId: '991187302399-edq0109kdpona4kspi0t4d5uv95ragjt.apps.googleusercontent.com',
     iosBundleId: 'com.peter.ombodi.caesarPuzzle',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDa9y9Cp5Ud_qgy7OUh1HrAAIP4Ec3u1ng',
-    appId: '1:991187302399:ios:49442449fc98abb6f7d9ca',
+    apiKey: 'AIzaSyCG0a7dOaM7U0CP3azfw_3q5WIIYGECp4Q',
+    appId: '1:991187302399:ios:9eafaa2bcca163f0f7d9ca',
     messagingSenderId: '991187302399',
     projectId: 'caesar-puzzle-673a2',
+    databaseURL: 'https://caesar-puzzle-673a2-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'caesar-puzzle-673a2.firebasestorage.app',
+    androidClientId: '991187302399-8vdnieg3478kc686cuolojdip1c4ilkj.apps.googleusercontent.com',
+    iosClientId: '991187302399-eog16l2d8gjmfijaucoiu9ukamldtuu6.apps.googleusercontent.com',
     iosBundleId: 'com.peter.ombodi.caesarcalendar.caesarPuzzle',
   );
 
@@ -81,6 +87,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '991187302399',
     projectId: 'caesar-puzzle-673a2',
     authDomain: 'caesar-puzzle-673a2.firebaseapp.com',
+    databaseURL: 'https://caesar-puzzle-673a2-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'caesar-puzzle-673a2.firebasestorage.app',
     measurementId: 'G-NNK01W1Z7N',
   );
