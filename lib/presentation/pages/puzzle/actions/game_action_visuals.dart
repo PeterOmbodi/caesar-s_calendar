@@ -21,6 +21,7 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.cancelEdit => Icons.close,
     GameActionId.resetLayout => Icons.restart_alt,
     GameActionId.saveLayout => Icons.check,
+    GameActionId.giveUp => Icons.flag_outlined,
   };
 
   /// Short label under the icon in the toolbar, or the item text in a menu.
@@ -41,6 +42,7 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.cancelEdit => S.current.layoutsCancel,
     GameActionId.resetLayout => S.current.reset,
     GameActionId.saveLayout => S.current.layoutsSave,
+    GameActionId.giveUp => S.current.raceGiveUp,
   };
 
   String get tooltip => switch (this) {
@@ -66,7 +68,7 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.resetLayout => SingleActivator(LogicalKeyboardKey.backspace, meta: apple, control: !apple),
     GameActionId.cancelEdit => const SingleActivator(LogicalKeyboardKey.escape),
     GameActionId.saveLayout => SingleActivator(LogicalKeyboardKey.keyS, meta: apple, control: !apple),
-    GameActionId.solutionCounter || GameActionId.howToPlay => null,
+    GameActionId.solutionCounter || GameActionId.howToPlay || GameActionId.giveUp => null,
   };
 
   String? shortcutLabel({required final bool apple}) => switch (this) {
@@ -83,6 +85,6 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.restart || GameActionId.resetLayout => apple ? '⌘⌫' : 'Ctrl+⌫',
     GameActionId.cancelEdit => 'Esc',
     GameActionId.saveLayout => apple ? '⌘S' : 'Ctrl+S',
-    GameActionId.solutionCounter || GameActionId.howToPlay => null,
+    GameActionId.solutionCounter || GameActionId.howToPlay || GameActionId.giveUp => null,
   };
 }

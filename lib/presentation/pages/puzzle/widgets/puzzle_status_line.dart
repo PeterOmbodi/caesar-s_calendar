@@ -11,18 +11,25 @@ import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
 
 class PuzzleStatusLine extends StatelessWidget {
-  const PuzzleStatusLine({super.key, required this.state, required this.indicator, required this.showTimer});
+  const PuzzleStatusLine({
+    super.key,
+    required this.state,
+    required this.indicator,
+    required this.showTimer,
+    this.mode = PuzzleMode.daily,
+  });
 
   static const double height = LayoutService.statusLineHeight;
 
   final PuzzleState state;
   final SolutionIndicator indicator;
   final bool showTimer;
+  final PuzzleMode mode;
 
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final status = statusFor(state, indicator);
+    final status = statusFor(state, indicator, mode: mode);
     final toneColor = switch (status.tone) {
       StatusTone.neutral => colors.textSecondary,
       StatusTone.ok => colors.ok,
@@ -79,7 +86,8 @@ class PuzzleStatusLine extends StatelessWidget {
     StatusMessage.solutionsCount => S.current.statusSolutionsCount(status.count!),
     StatusMessage.oneSolutionLeft => S.current.statusOneSolutionLeft,
     StatusMessage.solvable => S.current.statusSolvable,
-    StatusMessage.piecesPlaced => S.current.statusPiecesPlaced(status.count!, status.total!),
+    StatusMessage.piecesPlaced ||
+    StatusMessage.racePlaced => S.current.statusPiecesPlaced(status.count!, status.total!),
     StatusMessage.noSolutions => S.current.statusNoSolutions,
     StatusMessage.deadEnd => S.current.statusDeadEnd,
     StatusMessage.releaseToPlace => S.current.statusReleaseToPlace,

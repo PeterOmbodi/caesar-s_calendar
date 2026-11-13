@@ -234,6 +234,7 @@
   "preventOverlapping": "Väldi kattumist",
   "preventOverlappingDescription": "Luba lohistada ainult tühjadele ruudustiku lahtritele",
   "prevSolution": "Eelmine lahendus",
+  "raceGiveUp": "Loobu",
   "railSectionGame": "Mäng",
   "railSectionLayout": "Paigutus",
   "railSectionPiece": "Tükk",

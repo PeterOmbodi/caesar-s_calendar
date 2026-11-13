@@ -531,11 +531,11 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         ? _difficultyFromSettings()
         : _currentSessionDifficulty ?? _difficultyFromSettings();
     if (isFirstSessionMove) {
-      _historyUseCase.resetSession();
+      _sessionRecorder.resetSession();
     }
     _currentSessionDifficulty = difficulty;
-    _historyUseCase.setCurrentSessionDifficulty(difficulty);
-    _historyUseCase.persistAfterChange(
+    _sessionRecorder.setCurrentSessionDifficulty(difficulty);
+    _sessionRecorder.persistAfterChange(
       nextState.toHistoryInput(prevState: prevState, rotationStep: PuzzleBloc.rotationStep, difficulty: difficulty),
     );
   }

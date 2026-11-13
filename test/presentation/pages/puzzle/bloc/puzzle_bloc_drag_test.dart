@@ -181,7 +181,11 @@ void main() {
   setUp(() {
     final solveUseCase = SolvePuzzleUseCase(_FakeSolverService());
     final historyUseCase = PuzzleHistoryUseCase(_FakePuzzleHistoryRepository());
-    bloc = PuzzleBloc(settings: _FakeSettingsQuery(), solvePuzzleUseCase: solveUseCase, historyUseCase: historyUseCase);
+    bloc = PuzzleBloc(
+      settings: _FakeSettingsQuery(),
+      solvePuzzleUseCase: solveUseCase,
+      sessionRecorder: historyUseCase,
+    );
   });
 
   tearDown(() async {

@@ -2,7 +2,7 @@ part of 'puzzle_bloc.dart';
 
 extension PuzzleBlocSessionPart on PuzzleBloc {
   FutureOr<void> _reset(final _Reset event, final Emitter<PuzzleState> emit) {
-    _historyUseCase.resetSession();
+    _sessionRecorder.resetSession();
     _currentSessionDifficulty = null;
     add(
       PuzzleEvent.configure(
@@ -53,10 +53,10 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
 
   Future<void> _restoreSession(final _RestoreSession event, final Emitter<PuzzleState> emit) async {
     final session = event.session;
-    final layout = await _historyUseCase.sessionLayout(session);
+    final layout = await _sessionRecorder.sessionLayout(session);
     final isSolvedSession = session.status == PuzzleSessionStatus.solved || session.completedAt != null;
     final nowMs = DateTime.now().millisecondsSinceEpoch;
-    _historyUseCase.activateSession(session);
+    _sessionRecorder.activateSession(session);
     _currentSessionDifficulty = session.difficulty;
     final restoredPieces = _restoreSessionPieces(session, layout == null ? state.pieces : _withLayout(layout));
     final restoredElapsedMs = _restoredSessionElapsedMs(session);
@@ -104,6 +104,12 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
   void _applyLayout(final _ApplyLayout event, final Emitter<PuzzleState> emit) => _startNewGame(
     emit,
     date: DateTime.now(),
+    configurationPieces: _withLayout(event.placements).where((final p) => p.isConfigItem),
+  );
+
+  void _startRace(final _StartRace event, final Emitter<PuzzleState> emit) => _startNewGame(
+    emit,
+    date: event.date,
     configurationPieces: _withLayout(event.placements).where((final p) => p.isConfigItem),
   );
 
@@ -183,7 +189,7 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
     required final Iterable<PuzzlePieceUI> configurationPieces,
   }) {
     final nextDate = DateTime(date.year, date.month, date.day);
-    _historyUseCase.resetSession();
+    _sessionRecorder.resetSession();
     _currentSessionDifficulty = null;
     emit(
       state.copyWith(

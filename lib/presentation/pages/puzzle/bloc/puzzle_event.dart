@@ -65,6 +65,12 @@ sealed class PuzzleEvent with _$PuzzleEvent {
 
   const factory PuzzleEvent.applyLayout(final List<PlacementParams> placements) = _ApplyLayout;
 
+  /// Handled only by a bloc in [PuzzleMode.race].
+  const factory PuzzleEvent.startRace({
+    required final DateTime date,
+    @Default(<PlacementParams>[]) final List<PlacementParams> placements,
+  }) = _StartRace;
+
   const factory PuzzleEvent.startLayoutEdit({final String? layoutId, final String? name}) = _StartLayoutEdit;
 
   const factory PuzzleEvent.resetLayoutEdit() = _ResetLayoutEdit;

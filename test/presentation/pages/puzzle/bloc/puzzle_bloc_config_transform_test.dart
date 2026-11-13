@@ -162,7 +162,7 @@ class _TestPuzzleBloc extends PuzzleBloc {
   _TestPuzzleBloc({
     required super.settings,
     required super.solvePuzzleUseCase,
-    required super.historyUseCase,
+    required super.sessionRecorder,
   });
 
   void emitForTest(final PuzzleState state) => emit(state);
@@ -177,7 +177,7 @@ void main() {
     bloc = _TestPuzzleBloc(
       settings: _FakeSettingsQuery(),
       solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
-      historyUseCase: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
+      sessionRecorder: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
     );
   });
 

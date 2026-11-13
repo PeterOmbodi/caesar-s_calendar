@@ -158,6 +158,7 @@ class PuzzleToolbar extends StatelessWidget {
       case GameActionId.nextSolution:
         puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx + 1));
       case GameActionId.solutionCounter:
+      case GameActionId.giveUp:
         break;
       case GameActionId.closeSolutions:
       case GameActionId.restart:
@@ -214,7 +215,11 @@ class PuzzleToolbar extends StatelessWidget {
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
     builder: (final context, final state) {
-      final actions = actionsFor(state, context.watch<SettingsCubit>().state.solutionIndicator);
+      final actions = actionsFor(
+        state,
+        context.watch<SettingsCubit>().state.solutionIndicator,
+        mode: context.read<PuzzleBloc>().mode,
+      );
       final apple = hostIsApple;
       return CallbackShortcuts(
         bindings: {

@@ -234,6 +234,7 @@
   "preventOverlapping": "Evitar solapamientos",
   "preventOverlappingDescription": "Permitir arrastrar y soltar solo en celdas vacías de la cuadrícula",
   "prevSolution": "Solución anterior",
+  "raceGiveUp": "Rendirse",
   "railSectionGame": "Juego",
   "railSectionLayout": "Diseño",
   "railSectionPiece": "Pieza",

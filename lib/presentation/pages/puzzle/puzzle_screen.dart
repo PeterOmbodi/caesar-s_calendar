@@ -76,7 +76,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     _puzzleBloc = PuzzleBloc(
       settings: CubitSettingsQuery(context.read<SettingsCubit>()),
       solvePuzzleUseCase: getIt<SolvePuzzleUseCase>(),
-      historyUseCase: getIt<PuzzleHistoryUseCase>(),
+      sessionRecorder: getIt<PuzzleHistoryUseCase>(),
     );
     _layoutsCubit = BoardLayoutsCubit(getIt<BoardLayoutRepository>());
     final settings = context.read<SettingsCubit>();

@@ -131,7 +131,8 @@ class PuzzleView extends StatelessWidget {
                         child: PuzzleStatusLine(
                           state: state,
                           indicator: settings.solutionIndicator,
-                          showTimer: settings.showTimer,
+                          showTimer: settings.showTimer && bloc.mode == PuzzleMode.daily,
+                          mode: bloc.mode,
                         ),
                       ),
                     ),

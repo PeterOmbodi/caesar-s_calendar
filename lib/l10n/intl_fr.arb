@@ -234,6 +234,7 @@
   "preventOverlapping": "Empêcher le chevauchement",
   "preventOverlappingDescription": "Autoriser le glisser-déposer uniquement sur des cases de grille vides",
   "prevSolution": "Solution précédente",
+  "raceGiveUp": "Abandonner",
   "railSectionGame": "Jeu",
   "railSectionLayout": "Disposition",
   "railSectionPiece": "Pièce",

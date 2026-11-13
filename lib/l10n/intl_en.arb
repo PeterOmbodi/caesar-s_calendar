@@ -234,6 +234,7 @@
   "preventOverlapping": "Prevent overlapping",
   "preventOverlappingDescription": "Allow drag-and-drop only onto empty grid cells",
   "prevSolution": "Previous solution",
+  "raceGiveUp": "Give up",
   "railSectionGame": "Game",
   "railSectionLayout": "Layout",
   "railSectionPiece": "Piece",

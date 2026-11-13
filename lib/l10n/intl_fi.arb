@@ -234,6 +234,7 @@
   "preventOverlapping": "Estä päällekkäisyys",
   "preventOverlappingDescription": "Salli raahaus vain tyhjiin ruudukon soluihin",
   "prevSolution": "Edellinen ratkaisu",
+  "raceGiveUp": "Luovuta",
   "railSectionGame": "Peli",
   "railSectionLayout": "Asettelu",
   "railSectionPiece": "Pala",

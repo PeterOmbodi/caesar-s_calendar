@@ -234,6 +234,7 @@
   "preventOverlapping": "Átfedés tiltása",
   "preventOverlappingDescription": "Csak üres rácsmezőkre engedje a húzás-elengedést",
   "prevSolution": "Előző megoldás",
+  "raceGiveUp": "Feladom",
   "railSectionGame": "Játék",
   "railSectionLayout": "Elrendezés",
   "railSectionPiece": "Elem",

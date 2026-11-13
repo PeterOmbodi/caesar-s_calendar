@@ -234,6 +234,7 @@
   "preventOverlapping": "Запобігати перекриттю",
   "preventOverlappingDescription": "Дозволити розташування тільки на вільних клітинах сітки",
   "prevSolution": "Попереднє рішення",
+  "raceGiveUp": "Здатися",
   "railSectionGame": "Гра",
   "railSectionLayout": "Розкладка",
   "railSectionPiece": "Фігура",

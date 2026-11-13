@@ -2,7 +2,22 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 
-List<GameAction> actionsFor(final PuzzleState state, final SolutionIndicator indicator) {
+List<GameAction> actionsFor(
+  final PuzzleState state,
+  final SolutionIndicator indicator, {
+  final PuzzleMode mode = PuzzleMode.daily,
+}) {
+  if (mode == PuzzleMode.race) {
+    final canTransform = state.selectedPiece != null && !state.isSolving;
+    return [
+      GameAction(GameActionId.rotate, slot: ActionSlot.primary, enabled: canTransform),
+      GameAction(GameActionId.undo, slot: ActionSlot.primary, enabled: state.isUndoEnabled),
+      GameAction(GameActionId.redo, slot: ActionSlot.primary, enabled: state.isRedoEnabled),
+      GameAction(GameActionId.flip, slot: ActionSlot.primary, enabled: canTransform),
+      const GameAction(GameActionId.giveUp, slot: ActionSlot.primary),
+    ];
+  }
+
   const history = GameAction(GameActionId.history, slot: ActionSlot.primary);
 
   if (state.isEditingLayout) {
