@@ -10,6 +10,8 @@ import 'package:injectable/injectable.dart';
 
 enum LeaderboardTab { today, week, month, year, streaks }
 
+typedef _TopRows = ({List<LeaderboardRow> top, Future<LeaderboardRow?> Function()? loadOwnRowIfMissing});
+
 /// What a row ranks by; rows with an equal [rankKey] share a place.
 sealed class RowValue {
   const RowValue();
@@ -121,79 +123,95 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
 
   Future<void> selectTab(final LeaderboardTab tab) {
     if (tab == state.tab) return Future.value();
-    emit(state.copyWith(tab: tab));
+    emit(state.copyWith(tab: tab, rows: const [], me: () => null, dayTier: () => null));
     return load();
   }
 
   Future<void> load({final DateTime? now}) async {
     if (isClosed) return;
     final request = ++_request;
+    bool isStale() => isClosed || request != _request;
     final tab = state.tab;
-    emit(state.copyWith(isLoading: true, error: () => null));
+    final today = now ?? DateTime.now();
     final uid = _auth.isAvailable ? _auth.currentUser?.uid : null;
+    emit(state.copyWith(isLoading: true, error: () => null));
+
+    final _TopRows result;
     try {
-      final today = now ?? DateTime.now();
-      final (rows, me) = tab == LeaderboardTab.streaks
+      result = tab == LeaderboardTab.streaks
           ? await _loadStreaks(uid, today)
           : await _loadBoard(LeaderboardKeys.board(_period(tab), today, _level), uid);
-      if (isClosed || request != _request) return;
-      final hasOwnResult = me != null || rows.any((final row) => row.isMe);
-      final showTier = tab == LeaderboardTab.today && (_level == PuzzleSessionDifficulty.medium || hasOwnResult);
-      emit(
-        state.copyWith(
-          isLoading: false,
-          rows: rows,
-          me: () => me,
-          dayTier: () => showTier ? DayDifficulty.tier(today.month, today.day) : null,
-        ),
-      );
     } catch (e) {
       debugPrint('Leaderboard load failed: $e');
-      if (isClosed || request != _request) return;
+      if (isStale()) return;
       emit(state.copyWith(isLoading: false, rows: const [], me: () => null, error: () => e));
+      return;
     }
+    if (isStale()) return;
+    final (top: rows, loadOwnRowIfMissing: loadOwn) = result;
+    final hasOwnRow = rows.any((final row) => row.isMe);
+    emit(
+      state.copyWith(
+        isLoading: false,
+        rows: rows,
+        me: () => null,
+        dayTier: () => _dayTier(tab, today, hasOwnResult: hasOwnRow),
+      ),
+    );
+
+    if (loadOwn == null) return;
+    final LeaderboardRow? me;
+    try {
+      me = await loadOwn();
+    } catch (e) {
+      debugPrint('Leaderboard own row failed: $e');
+      return;
+    }
+    if (me == null || isStale()) return;
+    emit(state.copyWith(me: () => me, dayTier: () => _dayTier(tab, today, hasOwnResult: true)));
   }
 
-  Future<(List<LeaderboardRow>, LeaderboardRow?)> _loadBoard(final String boardId, final String? uid) async {
+  int? _dayTier(final LeaderboardTab tab, final DateTime today, {required final bool hasOwnResult}) =>
+      tab == LeaderboardTab.today && (_level == PuzzleSessionDifficulty.medium || hasOwnResult)
+      ? DayDifficulty.tier(today.month, today.day)
+      : null;
+
+  Future<_TopRows> _loadBoard(
+    final String boardId,
+    final String? uid,
+  ) async {
     final top = await _repository.top(boardId);
     final rows = _ranked([for (final e in top) (e.uid, e.nickname, e.colorIndex, _entryValue(e))], uid);
-    if (uid == null || rows.any((final row) => row.isMe)) return (rows, null);
+    if (uid == null || rows.any((final row) => row.isMe)) return (top: rows, loadOwnRowIfMissing: null);
     return (
-      rows,
-      await _ownRow(() async {
+      top: rows,
+      loadOwnRowIfMissing: () async {
         final own = await _repository.entry(boardId, uid);
         if (own == null) return null;
         final rank = await _repository.rank(boardId, own);
         return _row(rank, own.nickname, own.colorIndex, _entryValue(own));
-      }),
+      },
     );
   }
 
-  Future<(List<LeaderboardRow>, LeaderboardRow?)> _loadStreaks(final String? uid, final DateTime today) async {
+  Future<_TopRows> _loadStreaks(
+    final String? uid,
+    final DateTime today,
+  ) async {
     StreakValue value(final StreakEntry e) =>
         StreakValue(best: e.best, current: _isAlive(e.lastDay, today) ? e.current : 0);
     final top = await _repository.topStreaks(_level);
     final rows = _ranked([for (final e in top) (e.uid, e.nickname, e.colorIndex, value(e))], uid);
-    if (uid == null || rows.any((final row) => row.isMe)) return (rows, null);
+    if (uid == null || rows.any((final row) => row.isMe)) return (top: rows, loadOwnRowIfMissing: null);
     return (
-      rows,
-      await _ownRow(() async {
+      top: rows,
+      loadOwnRowIfMissing: () async {
         final own = await _repository.streakEntry(_level, uid);
         if (own == null || own.best == 0) return null;
         final rank = await _repository.streakRank(_level, own);
         return _row(rank, own.nickname, own.colorIndex, value(own));
-      }),
+      },
     );
-  }
-
-  /// The own row needs the server (a document read and a count); without it the table is still shown.
-  static Future<LeaderboardRow?> _ownRow(final Future<LeaderboardRow?> Function() load) async {
-    try {
-      return await load();
-    } catch (e) {
-      debugPrint('Leaderboard own row failed: $e');
-      return null;
-    }
   }
 
   static RowValue _entryValue(final LeaderboardEntry entry) => switch (entry) {
@@ -201,7 +219,6 @@ class LeaderboardCubit extends Cubit<LeaderboardState> {
     PeriodEntry(:final points, :final days) => PointsValue(points: points, days: days),
   };
 
-  /// Equal values share a place: 1, 2, 2, 4.
   static List<LeaderboardRow> _ranked(
     final List<(String uid, String nickname, int colorIndex, RowValue value)> entries,
     final String? uid,

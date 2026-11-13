@@ -37,7 +37,15 @@ abstract class PuzzleHistoryRepository {
 
   Future<PuzzleSessionData?> getLatestUnsolvedSession({required final DateTime puzzleDate});
 
+  /// [PuzzleSessionData.pieces] stays empty.
+  Future<List<PuzzleSessionData>> getSolvedStandardSessions({required final DateTime from, required final DateTime to});
+
   Future<bool> hasAnyLocalSessions();
+
+  /// Keeps the first time: later help does not change it.
+  Future<void> markPuzzleAssisted({required final DateTime puzzleDate, required final String configId});
+
+  Future<bool> isPuzzleAssisted({required final DateTime puzzleDate, required final String configId});
 
   Stream<int> watchSolvedSolutionCount();
 

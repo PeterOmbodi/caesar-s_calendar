@@ -86,12 +86,14 @@ class LeaderboardProfile {
   final Map<PuzzleSessionDifficulty, LevelStreak> streaks;
 }
 
-/// Everything one player publishes, keyed by board id.
 class LeaderboardSnapshot {
-  const LeaderboardSnapshot({required this.profile, required this.entries});
+  const LeaderboardSnapshot({required this.profile, required this.entries, this.boards = const {}});
 
   final LeaderboardProfile profile;
   final Map<String, LeaderboardEntry> entries;
+
+  /// Current boards; the player's entry on one of them without a result in [entries] is deleted.
+  final Set<String> boards;
 
   /// Changes whenever the published data would change.
   String get key {

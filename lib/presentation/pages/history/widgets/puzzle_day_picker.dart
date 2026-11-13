@@ -97,19 +97,7 @@ class _PuzzleDayPickerState extends State<PuzzleDayPicker> {
     final colors = GameColors.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final material = MaterialLocalizations.of(context);
-    final glass = ScreenSpec.of(context).family == ChromeFamily.glass;
     final gridWidth = math.max(240.0, MediaQuery.sizeOf(context).height - 220);
-
-    Widget action(final String label, final VoidCallback onPressed, {final bool primary = false}) => glass
-        ? CupertinoButton(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            onPressed: onPressed,
-            child: Text(
-              label,
-              style: TextStyle(color: colors.accent, fontWeight: primary ? FontWeight.w600 : FontWeight.w400),
-            ),
-          )
-        : TextButton(onPressed: onPressed, child: Text(label));
 
     return Material(
       color: colors.background,
@@ -124,7 +112,7 @@ class _PuzzleDayPickerState extends State<PuzzleDayPicker> {
             children: [
               Row(
                 children: [
-                  action(material.cancelButtonLabel, () => Navigator.of(context).pop()),
+                  _Action(label: material.cancelButtonLabel, onPressed: () => Navigator.of(context).pop()),
                   Expanded(
                     child: Text(
                       S.current.historyPickDate,
@@ -132,9 +120,9 @@ class _PuzzleDayPickerState extends State<PuzzleDayPicker> {
                       style: TextStyle(fontSize: 15, color: colors.textSecondary),
                     ),
                   ),
-                  action(
-                    material.okButtonLabel,
-                    () => Navigator.of(context).pop(DateTime(2024, _month, _day)),
+                  _Action(
+                    label: material.okButtonLabel,
+                    onPressed: () => Navigator.of(context).pop(DateTime(2024, _month, _day)),
                     primary: true,
                   ),
                 ],
@@ -165,7 +153,18 @@ class _PuzzleDayPickerState extends State<PuzzleDayPicker> {
                               child: Row(
                                 children: [
                                   for (var col = 0; col < PuzzleBloc.gridColumns; col++)
-                                    Expanded(child: _cell(colors, locale, Cell(row, col))),
+                                    Expanded(
+                                      child: switch (_labels[Cell(row, col)]) {
+                                        final label? => _DateCell(
+                                          label: label,
+                                          month: _month,
+                                          day: _day,
+                                          locale: locale,
+                                          onSelect: _select,
+                                        ),
+                                        null => ColoredBox(color: colors.blockedCell),
+                                      },
+                                    ),
                                 ],
                               ),
                             ),
@@ -181,14 +180,54 @@ class _PuzzleDayPickerState extends State<PuzzleDayPicker> {
       ),
     );
   }
+}
 
-  Widget _cell(final GameColors colors, final String locale, final Cell cell) {
-    final label = _labels[cell];
-    if (label == null) {
-      return ColoredBox(color: colors.blockedCell);
+class _Action extends StatelessWidget {
+  const _Action({required this.label, required this.onPressed, this.primary = false});
+
+  final String label;
+  final VoidCallback onPressed;
+  final bool primary;
+
+  @override
+  Widget build(final BuildContext context) {
+    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
+      return TextButton(onPressed: onPressed, child: Text(label));
     }
-    final available = label.isMonth || label.value <= _daysIn(_month);
-    final selected = label.isMonth ? label.value == _month : label.value == _day;
+    return CupertinoButton(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      onPressed: onPressed,
+      child: Text(
+        label,
+        style: TextStyle(
+          color: GameColors.of(context).accent,
+          fontWeight: primary ? FontWeight.w600 : FontWeight.w400,
+        ),
+      ),
+    );
+  }
+}
+
+class _DateCell extends StatelessWidget {
+  const _DateCell({
+    required this.label,
+    required this.month,
+    required this.day,
+    required this.locale,
+    required this.onSelect,
+  });
+
+  final _Label label;
+  final int month;
+  final int day;
+  final String locale;
+  final ValueChanged<_Label> onSelect;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final available = label.isMonth || label.value <= _PuzzleDayPickerState._daysIn(month);
+    final selected = label.isMonth ? label.value == month : label.value == day;
     return Semantics(
       button: true,
       selected: selected,
@@ -196,11 +235,11 @@ class _PuzzleDayPickerState extends State<PuzzleDayPicker> {
       excludeSemantics: true,
       label: label.isMonth
           ? DateFormat.MMMM(locale).format(DateTime(2024, label.value))
-          : DateFormat.MMMMd(locale).format(DateTime(2024, _month, label.value)),
+          : DateFormat.MMMMd(locale).format(DateTime(2024, month, label.value)),
       child: GestureDetector(
         key: ValueKey('${label.isMonth ? 'month' : 'day'}-${label.value}'),
         behavior: HitTestBehavior.opaque,
-        onTap: available ? () => _select(label) : null,
+        onTap: available ? () => onSelect(label) : null,
         child: DecoratedBox(
           decoration: BoxDecoration(border: Border.all(color: colors.gridLine, width: 0.5)),
           child: Padding(

@@ -68,6 +68,18 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Future<bool> hasAnyLocalSessions() async => false;
 
   @override
+  Future<List<PuzzleSessionData>> getSolvedStandardSessions({
+    required final DateTime from,
+    required final DateTime to,
+  }) async => const [];
+
+  @override
+  Future<void> markPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) async {}
+
+  @override
+  Future<bool> isPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) async => false;
+
+  @override
   Stream<int> watchSolvedSolutionCount() => Stream.value(0);
 
   @override
@@ -785,6 +797,34 @@ void main() {
       expect(_piece(bloc!, 'Square').isFlipped, isTrue);
       expect(bloc!.state.moveHistory, hasLength(2));
     });
+
+    for (final (name, event) in [
+      ('rotate', const PuzzleEvent.rotateSelected()),
+      ('flip', const PuzzleEvent.flipSelected()),
+    ]) {
+      test('$name after undo replaces the undone moves', () async {
+        await ready();
+        bloc!.add(const PuzzleEvent.selectPiece('Square'));
+        await _drain();
+        bloc!.add(const PuzzleEvent.rotateSelected());
+        await _drain();
+        bloc!.add(const PuzzleEvent.rotateSelected());
+        await _drain();
+        bloc!.add(const PuzzleEvent.undo());
+        await _drain();
+        bloc!.add(const PuzzleEvent.undo());
+        await _drain();
+        bloc!.add(const PuzzleEvent.selectPiece('Square'));
+        await _drain();
+
+        bloc!.add(event);
+        await _drain();
+
+        expect(bloc!.state.moveHistory, hasLength(1));
+        expect(bloc!.state.moveIndex, 1);
+        expect(bloc!.state.isRedoEnabled, isFalse);
+      });
+    }
 
     test('rotate and flip in the tray keep the piece inside the tray, undo restores it', () async {
       await ready();

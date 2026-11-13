@@ -370,55 +370,42 @@ class _LabeledRail extends StatelessWidget {
 
     return ValueListenableBuilder(
       valueListenable: KeyboardPresence.instance.connected,
-      builder: (final context, final hasKeyboard, _) => _rail(
-        colors,
-        primary,
-        overflow,
-        (final action) => Builder(
-          builder: (final rowContext) => _RailRow(
-            action: action,
-            shortcut: hasKeyboard ? action.id.shortcutLabel(apple: apple) : null,
-            onPressed: () => onInvoke(action, _globalRect(rowContext)),
+      builder: (final context, final hasKeyboard, _) {
+        String? shortcut(final GameAction action) => hasKeyboard ? action.id.shortcutLabel(apple: apple) : null;
+        return SizedBox(
+          width: GlassChrome.sideRailWidth,
+          child: GlassSurface(
+            borderRadius: const BorderRadius.all(Radius.circular(24)),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 2,
+                  children: [
+                    _RailHeader(_title),
+                    for (final action in primary)
+                      _RailRow(action: action, shortcut: shortcut(action), onInvoke: onInvoke),
+                    if (overflow.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        child: Divider(height: 1, thickness: 1, color: colors.gridLine),
+                      ),
+                      _RailHeader(S.current.railSectionPuzzle),
+                      for (final action in overflow)
+                        _RailRow(action: action, shortcut: shortcut(action), onInvoke: onInvoke),
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
-
-  Widget _rail(
-    final GameColors colors,
-    final Iterable<GameAction> primary,
-    final Iterable<GameAction> overflow,
-    final Widget Function(GameAction action) row,
-  ) => SizedBox(
-    width: GlassChrome.sideRailWidth,
-    child: GlassSurface(
-      borderRadius: const BorderRadius.all(Radius.circular(24)),
-      child: Material(
-        type: MaterialType.transparency,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 2,
-            children: [
-              _RailHeader(_title),
-              for (final action in primary) row(action),
-              if (overflow.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  child: Divider(height: 1, thickness: 1, color: colors.gridLine),
-                ),
-                _RailHeader(S.current.railSectionPuzzle),
-                for (final action in overflow) row(action),
-              ],
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
 }
 
 class _RailHeader extends StatelessWidget {
@@ -443,16 +430,17 @@ class _RailHeader extends StatelessWidget {
 }
 
 class _RailRow extends StatelessWidget {
-  const _RailRow({required this.action, required this.shortcut, required this.onPressed});
+  const _RailRow({required this.action, required this.shortcut, required this.onInvoke});
 
   final GameAction action;
   final String? shortcut;
-  final VoidCallback onPressed;
+  final GameActionCallback onInvoke;
 
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     final isCounter = action.id == GameActionId.solutionCounter;
+    void onPressed() => onInvoke(action, _globalRect(context));
     final foreground = !action.enabled
         ? colors.iconDisabled
         : action.active

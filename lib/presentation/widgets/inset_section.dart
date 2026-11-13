@@ -13,7 +13,9 @@ class InsetSection extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-    if (ScreenSpec.of(context).family != ChromeFamily.glass) return _material(context);
+    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
+      return _MaterialInsetSection(header: this.header, footer: this.footer, children: children);
+    }
     final colors = GameColors.of(context);
     final header = this.header;
     final footer = this.footer;
@@ -57,8 +59,17 @@ class InsetSection extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _material(final BuildContext context) {
+class _MaterialInsetSection extends StatelessWidget {
+  const _MaterialInsetSection({required this.header, required this.footer, required this.children});
+
+  final String? header;
+  final String? footer;
+  final List<Widget> children;
+
+  @override
+  Widget build(final BuildContext context) {
     final theme = Theme.of(context);
     final header = this.header;
     final footer = this.footer;
@@ -128,7 +139,18 @@ class InsetRow extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-    if (ScreenSpec.of(context).family != ChromeFamily.glass) return _material();
+    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
+      return _MaterialInsetRow(
+        title: title,
+        icon: icon,
+        leading: leading,
+        subtitle: this.subtitle,
+        trailing: this.trailing,
+        onTap: this.onTap,
+        titleColor: titleColor,
+        illustration: this.illustration,
+      );
+    }
     final colors = GameColors.of(context);
     final subtitle = this.subtitle;
     final trailing = this.trailing;
@@ -179,8 +201,31 @@ class InsetRow extends StatelessWidget {
             ),
     );
   }
+}
 
-  Widget _material() {
+class _MaterialInsetRow extends StatelessWidget {
+  const _MaterialInsetRow({
+    required this.title,
+    required this.icon,
+    required this.leading,
+    required this.subtitle,
+    required this.trailing,
+    required this.onTap,
+    required this.titleColor,
+    required this.illustration,
+  });
+
+  final String title;
+  final IconData? icon;
+  final Widget? leading;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final Color? titleColor;
+  final Widget? illustration;
+
+  @override
+  Widget build(final BuildContext context) {
     final subtitle = this.subtitle;
     final illustration = this.illustration;
     final icon = this.icon;

@@ -33,12 +33,17 @@ class SyncService {
   /// Per-collection checkpoint: the latest server time already downloaded, in microseconds.
   static const _checkpointPrefix = 'sync_server_us_';
 
+  /// Offline, a default get answers from the cache. It can miss newer server documents yet hold this device's later
+  /// writes, so the checkpoint would skip the missing ones; an empty cache would also read as no cloud data.
+  static const _fromServer = GetOptions(source: Source.server);
+
   Future<bool> hasCloudData(final String uid) async {
     if (!_auth.isAvailable) return false;
     if (await _collectionHasDocs(FirestorePaths.userSessions(uid))) return true;
     if (await _collectionHasDocs(FirestorePaths.userConfigs(uid))) return true;
     if (await _collectionHasDocs(FirestorePaths.userSolvedSolutions(uid))) return true;
     if (await _collectionHasDocs('${FirestorePaths.userDoc(uid)}/solutionCounts')) return true;
+    if (await _collectionHasDocs(FirestorePaths.userAssists(uid))) return true;
     return false;
   }
 
@@ -67,6 +72,7 @@ class SyncService {
     await _uploadDirtySessions(uid);
     await _uploadDirtySolvedSolutions(uid);
     await _uploadDirtySolutionCounts(uid);
+    await _uploadDirtyAssists(uid);
   }
 
   Future<void> _uploadDirtyConfigs(final String uid) async {
@@ -213,11 +219,45 @@ class SyncService {
     }
   }
 
+  Future<void> _uploadDirtyAssists(final String uid) async {
+    final rows = await (_db.select(
+      _db.puzzleAssists,
+    )..where((final t) => t.syncState.equals(SyncState.dirty.code))).get();
+    if (rows.isEmpty) return;
+
+    final col = _firestore.collection(FirestorePaths.userAssists(uid));
+    for (final row in rows) {
+      final doc = col.doc('${row.puzzleDate}__${row.configId}');
+      final assistedAt = await _firestore.runTransaction((final transaction) async {
+        final remote = (await transaction.get(doc)).data()?['assistedAt'] as int?;
+        if (remote != null && remote <= row.assistedAt) return remote;
+        transaction.set(doc, {
+          'puzzleDate': row.puzzleDate,
+          'configId': row.configId,
+          'assistedAt': row.assistedAt,
+          'updatedAt': row.updatedAt,
+          'serverUpdatedAt': FieldValue.serverTimestamp(),
+        });
+        return row.assistedAt;
+      });
+      await (_db.update(
+        _db.puzzleAssists,
+      )..where((final t) => t.puzzleDate.equals(row.puzzleDate) & t.configId.equals(row.configId))).write(
+        PuzzleAssistsCompanion(
+          assistedAt: Value(assistedAt),
+          remoteId: Value(doc.id),
+          syncState: Value(SyncState.clean.code),
+        ),
+      );
+    }
+  }
+
   Future<void> _downloadUpdates(final String uid) async {
     await _downloadSessions(uid);
     await _downloadConfigs(uid);
     await _downloadSolvedSolutions(uid);
     await _downloadSolutionCounts(uid);
+    await _downloadAssists(uid);
   }
 
   /// Downloads what reached the server after the collection's checkpoint (server time: uploads can be late
@@ -236,7 +276,7 @@ class SyncService {
         await (checkpoint == null
                 ? all
                 : all.where('serverUpdatedAt', isGreaterThan: Timestamp.fromMicrosecondsSinceEpoch(checkpoint)))
-            .get();
+            .get(_fromServer);
     var latest = checkpoint ?? 0;
     for (final doc in snap.docs) {
       await apply(doc);
@@ -364,8 +404,34 @@ class SyncService {
             );
       });
 
+  Future<void> _downloadAssists(final String uid) =>
+      _download(uid, FirestorePaths.userAssists(uid), 'assists', (final doc) async {
+        final data = doc.data();
+        final puzzleDate = (data['puzzleDate'] as String?) ?? '';
+        final configId = (data['configId'] as String?) ?? '';
+        final remoteAssistedAt = data['assistedAt'] as int?;
+        if (remoteAssistedAt == null) return;
+        final local = await (_db.select(
+          _db.puzzleAssists,
+        )..where((final t) => t.puzzleDate.equals(puzzleDate) & t.configId.equals(configId))).getSingleOrNull();
+        if (local != null && local.assistedAt <= remoteAssistedAt) return;
+
+        await _db
+            .into(_db.puzzleAssists)
+            .insertOnConflictUpdate(
+              PuzzleAssistsCompanion.insert(
+                puzzleDate: puzzleDate,
+                configId: configId,
+                assistedAt: remoteAssistedAt,
+                updatedAt: (data['updatedAt'] as int?) ?? remoteAssistedAt,
+                remoteId: Value(doc.id),
+                syncState: Value(SyncState.clean.code),
+              ),
+            );
+      });
+
   Future<bool> _collectionHasDocs(final String path) async {
-    final snap = await _firestore.collection(path).limit(1).get();
+    final snap = await _firestore.collection(path).limit(1).get(_fromServer);
     return snap.docs.isNotEmpty;
   }
 

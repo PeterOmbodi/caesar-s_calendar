@@ -8,6 +8,7 @@ class FirestorePaths {
   static String userSessions(final String uid) => '${userDoc(uid)}/sessions';
   static String userConfigs(final String uid) => '${userDoc(uid)}/configs';
   static String userSolvedSolutions(final String uid) => '${userDoc(uid)}/solvedSolutions';
+  static String userAssists(final String uid) => '${userDoc(uid)}/assists';
 
   static String publicUserDoc(final String uid) => '$publicUsers/$uid';
   static String leaderboardEntriesOf(final String boardId) => '$leaderboards/$boardId/$leaderboardEntries';

@@ -3,6 +3,7 @@ import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_runner.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_service.dart';
 import 'package:caesar_puzzle/infrastructure/sync/sync_status_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -24,6 +25,25 @@ void main() {
 
     expect(runner.requestCount, 1);
     await runner.dispose();
+  });
+
+  test('a failed sync is retried and clears the error once it succeeds', () async {
+    final delays = SyncRunner.retryDelays;
+    addTearDown(() => SyncRunner.retryDelays = delays);
+    SyncRunner.retryDelays = const [Duration(milliseconds: 5)];
+    final sync = _FakeSyncService()..failures = 1;
+    final status = SyncStatusService();
+    final runner = SyncRunner(_SignedInAuthService(), sync, _FakePublicProfileService(), status);
+
+    runner.requestSync();
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+    expect(status.state.lastError, isNotNull);
+
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(sync.syncCount, 2);
+    expect(status.state.lastError, isNull);
+    await runner.dispose();
+    await status.dispose();
   });
 
   test('exclusive sync updates status after completing sync and profile publish', () async {
@@ -61,12 +81,33 @@ class _FakeAuthService implements AuthService {
   dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _SignedInAuthService implements AuthService {
+  @override
+  bool get isAvailable => true;
+
+  @override
+  User? get currentUser => _FakeUser();
+
+  @override
+  dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeUser implements User {
+  @override
+  dynamic noSuchMethod(final Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _FakeSyncService implements SyncService {
   int syncCount = 0;
+  int failures = 0;
 
   @override
   Future<void> syncOnce() async {
     syncCount++;
+    if (failures > 0) {
+      failures--;
+      throw StateError('offline');
+    }
   }
 
   @override

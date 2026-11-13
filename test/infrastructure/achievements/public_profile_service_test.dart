@@ -18,14 +18,12 @@ class _Repository implements LeaderboardRepository {
   int publishes = 0;
   int deletions = 0;
 
-  /// Holds the next deletion until the test completes it.
   Completer<void>? deleteGate;
 
   /// Thrown once by the next call.
   Object? deleteFailure;
   Object? renameFailure;
 
-  /// Holds the next profile read until the test completes it.
   Completer<void>? readGate;
 
   @override

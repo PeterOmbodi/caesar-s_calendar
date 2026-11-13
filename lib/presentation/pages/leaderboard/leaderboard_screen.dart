@@ -7,8 +7,8 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
+import 'package:caesar_puzzle/presentation/help/how_to_play_sheet.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
-import 'package:caesar_puzzle/presentation/pages/history/models/session_summary.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/bloc/leaderboard_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/widgets/leaderboard_row_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
@@ -166,7 +166,17 @@ class _LeaderboardAppBar extends StatelessWidget implements PreferredSizeWidget 
   Widget build(final BuildContext context) {
     final title = Text(S.current.leaderboardTitle);
     if (ScreenSpec.of(context).family != ChromeFamily.glass) {
-      return AppBar(leading: const BackButton(), title: title);
+      return AppBar(
+        leading: const BackButton(),
+        title: title,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: S.current.helpRecordsTitle,
+            onPressed: () => unawaited(showRecordsRulesSheet(context)),
+          ),
+        ],
+      );
     }
     return CupertinoNavigationBar(
       backgroundColor: GameColors.of(context).background,
@@ -179,6 +189,12 @@ class _LeaderboardAppBar extends StatelessWidget implements PreferredSizeWidget 
         child: Icon(CupertinoIcons.back, semanticLabel: MaterialLocalizations.of(context).backButtonTooltip),
       ),
       middle: title,
+      trailing: CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
+        onPressed: () => unawaited(showRecordsRulesSheet(context)),
+        child: Icon(CupertinoIcons.info_circle, semanticLabel: S.current.helpRecordsTitle),
+      ),
     );
   }
 }
@@ -357,12 +373,12 @@ class _Body extends StatelessWidget {
       children: [
         InsetSection(
           header: _header(state.tab),
-          children: [for (final row in state.rows) LeaderboardRowView(row: row, values: _values(row))],
+          children: [for (final row in state.rows) LeaderboardRowView(row: row)],
         ),
         if (me != null) ...[
           const SizedBox(height: 16),
           InsetSection(
-            children: [LeaderboardRowView(row: me, values: _values(me))],
+            children: [LeaderboardRowView(row: me)],
           ),
         ],
       ],
@@ -373,14 +389,5 @@ class _Body extends StatelessWidget {
     LeaderboardTab.today => S.current.leaderboardTimeHeader,
     LeaderboardTab.week || LeaderboardTab.month || LeaderboardTab.year => S.current.leaderboardPointsHeader,
     LeaderboardTab.streaks => S.current.leaderboardStreaksHeader,
-  };
-
-  static (String, String?) _values(final LeaderboardRow row) => switch (row.value) {
-    TimeValue(:final timeMs, :final extraSolutions) => (
-      SessionSummary.formatDuration(timeMs),
-      extraSolutions > 0 ? '+$extraSolutions' : null,
-    ),
-    PointsValue(:final points, :final days) => ('$points', '$days'),
-    StreakValue(:final best, :final current) => ('$best', current > 0 ? '$current' : null),
   };
 }

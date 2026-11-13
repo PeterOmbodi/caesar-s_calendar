@@ -1,17 +1,21 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:caesar_puzzle/application/models/achievement_stats.dart';
+import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
+import 'package:caesar_puzzle/presentation/help/how_to_play_sheet.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action_visuals.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -68,45 +72,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     }
   }
 
-  Widget _appBar(final BuildContext context, {required final bool canShare}) {
-    final colors = GameColors.of(context);
-    final title = Text(S.current.achievementsTitle);
-    Widget shareButton(final Widget Function(VoidCallback onPressed) builder) => Builder(
-      builder: (final buttonContext) => builder(() => _share(buttonContext)),
-    );
-    if (ScreenSpec.of(context).family == ChromeFamily.glass) {
-      return CupertinoSliverNavigationBar(
-        largeTitle: title,
-        trailing: canShare
-            ? shareButton(
-                (final onPressed) => CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: onPressed,
-                  child: Icon(Icons.adaptive.share, semanticLabel: S.current.achievementsShare),
-                ),
-              )
-            : null,
-        backgroundColor: colors.background,
-        border: null,
-        transitionBetweenRoutes: false,
-      );
-    }
-    return SliverAppBar.large(
-      title: title,
-      backgroundColor: colors.background,
-      actions: [
-        if (canShare)
-          shareButton(
-            (final onPressed) => IconButton(
-              tooltip: S.current.achievementsShare,
-              icon: Icon(Icons.adaptive.share),
-              onPressed: onPressed,
-            ),
-          ),
-      ],
-    );
-  }
-
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
@@ -120,7 +85,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           final stats = snapshot.data;
           return CustomScrollView(
             slivers: [
-              _appBar(context, canShare: stats != null && stats.solvedDates.isNotEmpty),
+              _AppBar(onShare: stats != null && stats.solvedDates.isNotEmpty ? _share : null),
               if (stats == null)
                 const SliverFillRemaining(child: Center(child: CircularProgressIndicator.adaptive()))
               else
@@ -163,6 +128,64 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       ),
     );
   }
+}
+
+class _AppBar extends StatelessWidget {
+  const _AppBar({required this.onShare});
+
+  final ValueChanged<BuildContext>? onShare;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final title = Text(S.current.achievementsTitle);
+    final onShare = this.onShare;
+    final isGlass = ScreenSpec.of(context).family == ChromeFamily.glass;
+    final actions = [
+      _BarButton(
+        icon: isGlass ? CupertinoIcons.info_circle : Icons.info_outline,
+        label: S.current.achievementsTitle,
+        isGlass: isGlass,
+        onPressed: (final context) => unawaited(showAchievementsRulesSheet(context)),
+      ),
+      if (onShare != null)
+        _BarButton(
+          icon: Icons.adaptive.share,
+          label: S.current.achievementsShare,
+          isGlass: isGlass,
+          onPressed: onShare,
+        ),
+    ];
+    if (isGlass) {
+      return CupertinoSliverNavigationBar(
+        largeTitle: title,
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: actions),
+        backgroundColor: colors.background,
+        border: null,
+        transitionBetweenRoutes: false,
+      );
+    }
+    return SliverAppBar.large(title: title, backgroundColor: colors.background, actions: actions);
+  }
+}
+
+class _BarButton extends StatelessWidget {
+  const _BarButton({required this.icon, required this.label, required this.isGlass, required this.onPressed});
+
+  final IconData icon;
+  final String label;
+  final bool isGlass;
+  final ValueChanged<BuildContext> onPressed;
+
+  @override
+  Widget build(final BuildContext context) => isGlass
+      ? CupertinoButton(
+          padding: EdgeInsets.zero,
+          minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
+          onPressed: () => onPressed(context),
+          child: Icon(icon, semanticLabel: label),
+        )
+      : IconButton(tooltip: label, icon: Icon(icon), onPressed: () => onPressed(context));
 }
 
 class _Header extends StatelessWidget {
@@ -258,6 +281,7 @@ class _CalendarCard extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             ExcludeSemantics(child: _YearGrid(solved: stats.solvedDates)),
+            if (solved > 0) ...[const SizedBox(height: 10), const _LevelLegend()],
             if (solved == 0) ...[
               const SizedBox(height: 12),
               Text(
@@ -278,7 +302,17 @@ class _YearGrid extends StatelessWidget {
 
   static const double _labelWidth = 30;
 
-  final Set<(int, int)> solved;
+  final Map<(int, int), PuzzleSessionDifficulty> solved;
+
+  static Color tone(final PuzzleSessionDifficulty level, final GameColors colors) => Color.lerp(
+    colors.gridLine,
+    colors.active,
+    switch (level) {
+      PuzzleSessionDifficulty.easy => 0.4,
+      PuzzleSessionDifficulty.medium => 0.7,
+      PuzzleSessionDifficulty.hard => 1.0,
+    },
+  )!;
 
   @override
   Widget build(final BuildContext context) => LayoutBuilder(
@@ -295,13 +329,15 @@ class _YearGrid extends StatelessWidget {
 class _YearGridPainter extends CustomPainter {
   _YearGridPainter({required this.solved, required this.cell, required this.colors});
 
-  final Set<(int, int)> solved;
+  final Map<(int, int), PuzzleSessionDifficulty> solved;
   final double cell;
   final GameColors colors;
 
   @override
   void paint(final Canvas canvas, final Size size) {
-    final done = Paint()..color = colors.active;
+    final done = {
+      for (final level in PuzzleSessionDifficulty.values) level: Paint()..color = _YearGrid.tone(level, colors),
+    };
     final open = Paint()..color = colors.gridLine;
     final gap = math.max(1.5, cell * 0.18);
     for (var month = 1; month <= 12; month++) {
@@ -320,7 +356,10 @@ class _YearGridPainter extends CustomPainter {
         final rect = Rect.fromLTWH(_YearGrid._labelWidth + (day - 1) * cell, top, cell - gap, cell - gap);
         canvas.drawRRect(
           RRect.fromRectAndRadius(rect, Radius.circular(cell * 0.2)),
-          solved.contains((month, day)) ? done : open,
+          switch (solved[(month, day)]) {
+            final level? => done[level]!,
+            null => open,
+          },
         );
       }
     }
@@ -329,6 +368,35 @@ class _YearGridPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant final _YearGridPainter oldDelegate) =>
       oldDelegate.solved != solved || oldDelegate.cell != cell || oldDelegate.colors != colors;
+}
+
+class _LevelLegend extends StatelessWidget {
+  const _LevelLegend();
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    return Row(
+      children: [
+        for (final level in const [
+          PuzzleSessionDifficulty.easy,
+          PuzzleSessionDifficulty.medium,
+          PuzzleSessionDifficulty.hard,
+        ]) ...[
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: _YearGrid.tone(level, colors),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: const SizedBox.square(dimension: 10),
+          ),
+          const SizedBox(width: 4),
+          Text(level.label, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+          const SizedBox(width: 12),
+        ],
+      ],
+    );
+  }
 }
 
 class _Tiles extends StatelessWidget {

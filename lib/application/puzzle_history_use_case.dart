@@ -52,9 +52,24 @@ class PuzzleHistoryUseCase {
     _currentSessionDifficulty = _coalesceDifficulty(_currentSessionDifficulty, difficulty);
   }
 
-  void markCurrentSessionEasy() {
-    markCurrentSessionDifficulty(PuzzleSessionDifficulty.easy);
-  }
+  Future<void> markPuzzleAssisted({
+    required final DateTime puzzleDate,
+    required final List<PlacementParams> configPlacements,
+  }) async => _historyRepository.markPuzzleAssisted(
+    puzzleDate: puzzleDate,
+    configId: await _configId(configPlacements),
+  );
+
+  Future<bool> isPuzzleAssisted({
+    required final DateTime puzzleDate,
+    required final List<PlacementParams> configPlacements,
+  }) async => _historyRepository.isPuzzleAssisted(
+    puzzleDate: puzzleDate,
+    configId: await _configId(configPlacements),
+  );
+
+  Future<String> _configId(final List<PlacementParams> configPlacements) =>
+      _historyRepository.upsertConfig(configJson: PuzzleConfigJson.encode(configPlacements));
 
   Stream<List<CalendarDayStats>> watchCalendarStats(final DateTime from, final DateTime to) =>
       _historyRepository.watchCalendarStats(from: from, to: to);
@@ -96,12 +111,19 @@ class PuzzleHistoryUseCase {
 
   AchievementStats _aggregateAchievements(final List<PuzzleSessionData> sessions, final int solutionsFound) {
     final solved = sessions.where((final s) => s.status == PuzzleSessionStatus.solved).toList();
-    final solvedDays = {for (final session in solved) session.puzzleDate};
+    final clean = solved.where((final s) => s.isClean).toList();
+    final levelByDate = <(int, int), PuzzleSessionDifficulty>{};
     int? fastestMs;
     int? firstSolvedAt;
     for (final session in solved) {
+      final date = (session.puzzleDate.month, session.puzzleDate.day);
+      final level = session.isClean ? session.difficulty : PuzzleSessionDifficulty.easy;
+      final best = levelByDate[date];
+      if (best == null || level.assistRank < best.assistRank) {
+        levelByDate[date] = level;
+      }
       final elapsed = session.activeElapsedMs;
-      if (elapsed > 0 && (fastestMs == null || elapsed < fastestMs)) {
+      if (session.isClean && elapsed > 0 && (fastestMs == null || elapsed < fastestMs)) {
         fastestMs = elapsed;
       }
       final completedAt = session.completedAt;
@@ -110,12 +132,12 @@ class PuzzleHistoryUseCase {
       }
     }
     return AchievementStats(
-      solvedDates: {for (final day in solvedDays) (day.month, day.day)},
-      solvedHard: solved.where((final s) => s.difficulty == PuzzleSessionDifficulty.hard).length,
-      bestStreakDays: _longestRunInRangeByMonthDay(_streakDays(solved), PeriodRangeResolver.gridTemplateYearRange),
+      solvedDates: levelByDate,
+      solvedHard: clean.where((final s) => s.difficulty == PuzzleSessionDifficulty.hard).length,
+      bestStreakDays: _longestRunInRangeByMonthDay(_streakDays(clean), PeriodRangeResolver.gridTemplateYearRange),
       solutionsFound: solutionsFound,
       fastestSolveMs: fastestMs,
-      cleanSolves: solved.where((final s) => !s.moveHistory.any((final move) => move is HintMove)).length,
+      cleanSolves: clean.length,
       customLayoutSolves: solved.where((final s) => s.configId != StandardPuzzleConfig.id).length,
       firstSolvedAt: firstSolvedAt == null ? null : DateTime.fromMillisecondsSinceEpoch(firstSolvedAt),
     );
@@ -159,11 +181,11 @@ class PuzzleHistoryUseCase {
       if (session.status == PuzzleSessionStatus.solved) {
         solved += 1;
         totalMovesSolved += session.moveIndex;
-        if (session.difficulty == PuzzleSessionDifficulty.hard) {
+        if (session.isClean && session.difficulty == PuzzleSessionDifficulty.hard) {
           solvedHard += 1;
         }
         solvedDays.add(session.puzzleDate);
-        if (_solvedOnItsDay(session)) {
+        if (session.isClean && _solvedOnItsDay(session)) {
           streakDays.add(session.puzzleDate);
         }
       }
@@ -186,7 +208,6 @@ class PuzzleHistoryUseCase {
       if (_solvedOnItsDay(session)) session.puzzleDate,
   };
 
-  /// Streaks count only puzzles solved on their own date.
   static bool _solvedOnItsDay(final PuzzleSessionData session) {
     final completedAt = session.completedAt;
     if (completedAt == null) return false;

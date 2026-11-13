@@ -38,6 +38,18 @@ class _FakePuzzleHistoryRepository implements PuzzleHistoryRepository {
   Future<bool> hasAnyLocalSessions() async => false;
 
   @override
+  Future<List<PuzzleSessionData>> getSolvedStandardSessions({
+    required final DateTime from,
+    required final DateTime to,
+  }) async => const [];
+
+  @override
+  Future<void> markPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) async {}
+
+  @override
+  Future<bool> isPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) async => false;
+
+  @override
   Stream<int> watchSolvedSolutionCount() => solutionCount;
 
   @override
@@ -97,6 +109,7 @@ PuzzleSessionData _session({
   final DateTime? completedAt,
   final int activeElapsedMs = 0,
   final int moveIndex = 0,
+  final bool assisted = false,
 }) {
   _sessionCounter += 1;
   final effectiveStartedAt = startedAt ?? _defaultRealTimestamp;
@@ -119,6 +132,7 @@ PuzzleSessionData _session({
     moveHistoryVersion: 1,
     pieces: const [],
     moveHistory: List.generate(hints, (_) => _hintMove()),
+    assisted: assisted,
   );
 }
 
@@ -141,11 +155,10 @@ void main() {
           puzzleDate: DateTime(2025, 8, 6),
           solved: true,
           difficulty: PuzzleSessionDifficulty.hard,
-          hints: 2,
           activeElapsedMs: 60000,
           moveIndex: 20,
         ),
-        _session(puzzleDate: DateTime(2025, 8, 7), hints: 1, activeElapsedMs: 30000, moveIndex: 5),
+        _session(puzzleDate: DateTime(2025, 8, 7), hints: 3, activeElapsedMs: 30000, moveIndex: 5),
         _session(
           puzzleDate: DateTime(2025, 8, 7),
           solved: true,
@@ -174,6 +187,34 @@ void main() {
       expect(stats.hardRate, 0.5);
       expect(stats.totalTimePlayedMs, 180000);
       expect(stats.avgMovesPerSolve, 15.0);
+    });
+
+    test('Hard solves and streak days count only games without help', () async {
+      final sessions = [
+        _session(puzzleDate: DateTime(2025, 8, 6), solved: true, difficulty: PuzzleSessionDifficulty.hard),
+        _session(puzzleDate: DateTime(2025, 8, 7), solved: true, difficulty: PuzzleSessionDifficulty.hard, hints: 1),
+        _session(
+          puzzleDate: DateTime(2025, 8, 8),
+          solved: true,
+          difficulty: PuzzleSessionDifficulty.hard,
+          assisted: true,
+        ),
+        _session(puzzleDate: DateTime(2025, 8, 9), solved: true),
+      ];
+      final useCase = PuzzleHistoryUseCase(_FakePuzzleHistoryRepository(sessions));
+
+      final stats = await useCase
+          .watchPeriodStats(
+            period: StatsPeriod.week,
+            yearScope: StatsYearScope.currentYear,
+            referenceDate: DateTime(2025, 8, 6),
+          )
+          .first;
+
+      expect(stats.solved, 4);
+      expect(stats.solvedDays, 4);
+      expect(stats.solvedHard, 1);
+      expect(stats.bestStreakDays, 1);
     });
 
     test('uses puzzleDate as the reference, ignoring real startedAt/completedAt entirely', () async {
@@ -350,6 +391,39 @@ void main() {
     final achievements = await useCase.watchAchievements().first;
 
     expect(achievements.bestStreakDays, 2);
+  });
+
+  test('achievements count only games without help, and colour a date by its hardest clean level', () async {
+    const hard = PuzzleSessionDifficulty.hard;
+    const medium = PuzzleSessionDifficulty.medium;
+    final useCase = PuzzleHistoryUseCase(
+      _FakePuzzleHistoryRepository([
+        _session(puzzleDate: DateTime(2026, 3, 1), solved: true, difficulty: hard, activeElapsedMs: 90000),
+        _session(puzzleDate: DateTime(2026, 3, 1), solved: true, difficulty: medium, activeElapsedMs: 80000),
+        _session(puzzleDate: DateTime(2026, 3, 2), solved: true, difficulty: hard, hints: 1, activeElapsedMs: 10000),
+        _session(
+          puzzleDate: DateTime(2026, 3, 3),
+          solved: true,
+          difficulty: hard,
+          assisted: true,
+          activeElapsedMs: 5000,
+        ),
+        _session(puzzleDate: DateTime(2026, 3, 4), solved: true, difficulty: medium, activeElapsedMs: 70000),
+      ]),
+    );
+
+    final achievements = await useCase.watchAchievements().first;
+
+    expect(achievements.solvedDates, {
+      (3, 1): hard,
+      (3, 2): PuzzleSessionDifficulty.easy,
+      (3, 3): PuzzleSessionDifficulty.easy,
+      (3, 4): medium,
+    });
+    expect(achievements.solvedHard, 1);
+    expect(achievements.cleanSolves, 3);
+    expect(achievements.fastestSolveMs, 70000);
+    expect(achievements.bestStreakDays, 1);
   });
 
   test('watchAchievements updates the solution count when solutions arrive after sessions', () async {

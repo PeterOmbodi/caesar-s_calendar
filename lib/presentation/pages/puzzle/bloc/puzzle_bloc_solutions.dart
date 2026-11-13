@@ -96,5 +96,6 @@ extension PuzzleBlocSolutionsPart on PuzzleBloc {
         status: GameStatus.showingSolution,
       ),
     );
+    markAssisted();
   }
 }

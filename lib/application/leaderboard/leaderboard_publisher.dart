@@ -6,7 +6,6 @@ import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:injectable/injectable.dart';
 
-/// Builds what a player publishes for the current day, week, month and year.
 @lazySingleton
 class LeaderboardPublisher {
   LeaderboardPublisher(this._history);
@@ -47,7 +46,7 @@ class LeaderboardPublisher {
   }) async {
     final today = DateTime(now.year, now.month, now.day);
     final yearStart = DateTime(today.year);
-    final sessions = await _history.watchSessionsInPuzzleDateRange(from: DateTime(2000), to: today).first;
+    final sessions = await _history.getSolvedStandardSessions(from: DateTime(2000), to: today);
     final solutions = await _history.getSolvedSolutions(from: yearStart, to: today);
     final days = LeaderboardScoring.dayResults(
       sessions.where((final s) => !s.puzzleDate.isBefore(yearStart)),
@@ -86,6 +85,13 @@ class LeaderboardPublisher {
       }
     }
 
-    return LeaderboardSnapshot(profile: profile, entries: entries);
+    return LeaderboardSnapshot(
+      profile: profile,
+      entries: entries,
+      boards: {
+        for (final level in LeaderboardScoring.levels)
+          for (final period in LeaderboardPeriod.values) LeaderboardKeys.board(period, today, level),
+      },
+    );
   }
 }

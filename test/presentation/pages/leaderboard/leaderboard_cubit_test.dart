@@ -43,9 +43,11 @@ class _Repository implements LeaderboardRepository {
       boards[boardId]?.where((final e) => e.uid == uid).firstOrNull;
 
   bool offline = false;
+  Completer<void>? rankGate;
 
   @override
   Future<int> rank(final String boardId, final LeaderboardEntry entry) async {
+    await rankGate?.future;
     if (offline) throw StateError('unavailable');
     return 42;
   }
@@ -192,5 +194,43 @@ void main() {
 
     repository.gate!.completeError(StateError('unavailable'));
     await expectLater(load, completes);
+  });
+
+  test('switching the tab drops the previous rows at once', () async {
+    repository.boards['d2026-11-01_hard'] = [_time('a', 60000)];
+    final c = cubit();
+    await c.open(PuzzleSessionDifficulty.hard);
+    await c.load(now: _now);
+    expect(c.state.rows, hasLength(1));
+
+    final gate = repository.gate = Completer<void>();
+    final load = c.selectTab(LeaderboardTab.week);
+
+    expect(c.state.tab, LeaderboardTab.week);
+    expect(c.state.rows, isEmpty);
+    expect(c.state.me, isNull);
+    expect(c.state.dayTier, isNull);
+    expect(c.state.isLoading, isTrue);
+    gate.complete();
+    await load;
+  });
+
+  test('the top is shown before the own row arrives', () async {
+    repository.boards['w2026-44_medium'] = [_points('a', 100), _points('me', 30)];
+    repository.outsideTop.add('me');
+    final c = cubit();
+    await c.open(PuzzleSessionDifficulty.medium);
+    await c.selectTab(LeaderboardTab.week);
+    final gate = repository.rankGate = Completer<void>();
+
+    final load = c.load(now: _now);
+    await pumpEventQueue();
+    expect(c.state.isLoading, isFalse);
+    expect(c.state.rows, hasLength(1));
+    expect(c.state.me, isNull);
+
+    gate.complete();
+    await load;
+    expect(c.state.me?.rank, 42);
   });
 }

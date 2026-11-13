@@ -2,6 +2,7 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/daos/puzzle_history_dao.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/database_connection.dart';
+import 'package:caesar_puzzle/infrastructure/persistence/drift/tables/puzzle_assists.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/tables/puzzle_configs.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/tables/puzzle_sessions.dart';
 import 'package:caesar_puzzle/infrastructure/persistence/drift/tables/puzzle_solution_counts.dart';
@@ -11,7 +12,7 @@ import 'package:drift/drift.dart';
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [PuzzleConfigs, PuzzleSolutionCounts, PuzzleSessions, PuzzleSolvedSolutions],
+  tables: [PuzzleConfigs, PuzzleSolutionCounts, PuzzleSessions, PuzzleSolvedSolutions, PuzzleAssists],
   daos: [PuzzleHistoryDao],
 )
 class AppDatabase extends _$AppDatabase {
@@ -20,7 +21,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -39,6 +40,9 @@ class AppDatabase extends _$AppDatabase {
       if (from < 3) {
         await migrator.addColumn(puzzleConfigs, puzzleConfigs.layoutName);
         await migrator.addColumn(puzzleConfigs, puzzleConfigs.pieceSetId);
+      }
+      if (from < 4) {
+        await migrator.createTable(puzzleAssists);
       }
     },
   );

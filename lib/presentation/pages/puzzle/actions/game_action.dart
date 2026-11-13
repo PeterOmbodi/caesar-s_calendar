@@ -22,14 +22,7 @@ enum GameActionId {
 enum ActionSlot { primary, overflow }
 
 // What has to happen before an assist action (hint, all solutions) may run.
-enum AssistGate {
-  open,
-  noSolutions,
-  // Hard level: the player confirms first, and the session then counts as Easy.
-  confirmEasy,
-  // Medium level: the player is warned once that the session will count as Easy.
-  warnEasy,
-}
+enum AssistGate { open, noSolutions, warnRecords }
 
 @immutable
 class GameAction {

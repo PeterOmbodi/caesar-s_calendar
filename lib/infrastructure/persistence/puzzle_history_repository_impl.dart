@@ -7,6 +7,7 @@ import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
 import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
+import 'package:caesar_puzzle/core/constants/standard_puzzle_config.dart';
 import 'package:caesar_puzzle/core/models/move.dart';
 import 'package:caesar_puzzle/infrastructure/dto/move_history_dto.dart';
 import 'package:caesar_puzzle/infrastructure/dto/puzzle_piece_snapshot_dto.dart';
@@ -184,6 +185,19 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
       .map((final rows) => rows.map(_sessionFromRow).toList());
 
   @override
+  Future<List<PuzzleSessionData>> getSolvedStandardSessions({
+    required final DateTime from,
+    required final DateTime to,
+  }) async {
+    final rows = await _dao.getSolvedSessionsOfConfig(
+      configId: StandardPuzzleConfig.id,
+      fromDate: _dateKey(from),
+      toDate: _dateKey(to),
+    );
+    return [for (final row in rows) _sessionFromRow(row, withPieces: false)];
+  }
+
+  @override
   Future<PuzzleSessionData?> getLatestUnsolvedSession({required final DateTime puzzleDate}) async {
     final row = await _dao.getLatestUnsolvedSession(
       puzzleDate: _dateKey(puzzleDate),
@@ -192,6 +206,18 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
     if (row == null) return null;
     return _sessionFromRow(row);
   }
+
+  @override
+  Future<void> markPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) =>
+      _dao.markAssisted(
+        puzzleDate: _dateKey(puzzleDate),
+        configId: configId,
+        assistedAt: DateTime.now().millisecondsSinceEpoch,
+      );
+
+  @override
+  Future<bool> isPuzzleAssisted({required final DateTime puzzleDate, required final String configId}) =>
+      _dao.isAssisted(puzzleDate: _dateKey(puzzleDate), configId: configId);
 
   @override
   Future<bool> hasAnyLocalSessions() => _dao.hasAnySessions();
@@ -226,23 +252,28 @@ class PuzzleHistoryRepositoryImpl implements PuzzleHistoryRepository {
     return stats;
   }
 
-  PuzzleSessionData _sessionFromRow(final PuzzleSession row) => PuzzleSessionData(
-    id: row.id,
-    puzzleDate: _dateFromKey(row.puzzleDate),
-    configId: row.configId,
-    difficulty: row.difficulty,
-    status: row.status,
-    startedAt: row.startedAt,
-    firstMoveAt: row.firstMoveAt,
-    lastResumedAt: row.lastResumedAt,
-    activeElapsedMs: row.activeElapsedMs,
-    updatedAt: row.updatedAt,
-    completedAt: row.completedAt,
-    moveIndex: row.moveIndex,
-    moveHistoryVersion: row.moveHistoryVersion,
-    pieces: _decodePieces(row.piecesSnapshotJson),
-    moveHistory: _decodeMoves(row.moveHistoryJson),
-  );
+  PuzzleSessionData _sessionFromRow(final SessionWithAssist joined, {final bool withPieces = true}) {
+    final SessionWithAssist(session: row, :assistedAt) = joined;
+    final completedAt = row.completedAt;
+    return PuzzleSessionData(
+      id: row.id,
+      puzzleDate: _dateFromKey(row.puzzleDate),
+      configId: row.configId,
+      difficulty: row.difficulty,
+      status: row.status,
+      startedAt: row.startedAt,
+      firstMoveAt: row.firstMoveAt,
+      lastResumedAt: row.lastResumedAt,
+      activeElapsedMs: row.activeElapsedMs,
+      updatedAt: row.updatedAt,
+      completedAt: row.completedAt,
+      moveIndex: row.moveIndex,
+      moveHistoryVersion: row.moveHistoryVersion,
+      pieces: withPieces ? _decodePieces(row.piecesSnapshotJson) : const [],
+      moveHistory: _decodeMoves(row.moveHistoryJson),
+      assisted: assistedAt != null && (completedAt == null || assistedAt <= completedAt),
+    );
+  }
 
   String _dateKey(final DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';

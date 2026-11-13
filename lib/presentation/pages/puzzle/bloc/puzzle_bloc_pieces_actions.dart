@@ -81,7 +81,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         : _combineSolutions(state.solutions, pieces);
     final nextState = state.copyWith(
       pieces: pieces,
-      moveHistory: [...state.moveHistory, move],
+      moveHistory: [...state.moveHistory.take(state.moveIndex), move],
       moveIndex: state.moveIndex + 1,
       status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
       applicableSolutions: applicableSolutions,
@@ -242,7 +242,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
         : _combineSolutions(state.solutions, pieces);
     final nextState = state.copyWith(
       pieces: pieces,
-      moveHistory: [...state.moveHistory, move],
+      moveHistory: [...state.moveHistory.take(state.moveIndex), move],
       moveIndex: state.moveIndex + 1,
       status: _getStatus(pieces: pieces, applicableSolutions: applicableSolutions),
       applicableSolutions: applicableSolutions,
@@ -305,6 +305,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     final timedState = _resumeTimerAfterUserAction(prevState: prevState, nextState: nextState);
     emit(timedState);
     _persistHistoryChange(prevState: prevState, nextState: timedState);
+    markAssisted();
   }
 
   // Back in the tray: the next move usually takes another piece.

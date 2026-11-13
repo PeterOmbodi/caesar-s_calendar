@@ -55,14 +55,9 @@ class AuthCubit extends Cubit<AuthState> {
 
     emit(state.copyWith(user: currentUser, isLoading: true, errorMessage: null));
     try {
-      await _runWithSyncPaused(() async {
-        await _prepareLocalDataForSignedInUser(currentUser.uid);
-        await _syncRunner.runExclusiveSync();
-      });
-      await _setLastCloudUid(currentUser.uid);
-      emit(state.copyWith(user: currentUser, isLoading: false, errorMessage: null));
+      await _runWithSyncPaused(() => _completeSignedInUserTransition(currentUser.uid));
     } catch (e) {
-      emit(state.copyWith(user: currentUser, isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
     }
   }
 
@@ -150,7 +145,9 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       await action();
     } finally {
-      _syncRunner.resume(requestImmediateSync: false);
+      if (state.pendingCloudReplace == null) {
+        _syncRunner.resume(requestImmediateSync: false);
+      }
     }
   }
 
@@ -169,7 +166,13 @@ class AuthCubit extends Cubit<AuthState> {
           emit(state.copyWith(isLoading: false, errorMessage: 'Signed-in user is missing.'));
           return;
         }
-        final hasCloudData = await _syncService.hasCloudData(uid);
+        final bool hasCloudData;
+        try {
+          hasCloudData = await _syncService.hasCloudData(uid);
+        } catch (_) {
+          await _auth.signOut();
+          rethrow;
+        }
         final hasLocalSessions = await _historyRepository.hasAnyLocalSessions();
         if (hasCloudData && hasLocalSessions) {
           emit(
@@ -186,15 +189,23 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  /// Until local data is prepared for [uid], a sync could upload another profile's data into it, so a failure there
+  /// signs out.
   Future<void> _completeSignedInUserTransition(final String uid) async {
-    await _prepareLocalDataForSignedInUser(uid);
-    await _syncRunner.runExclusiveSync();
+    try {
+      await _prepareLocalDataForSignedInUser(uid);
+    } catch (_) {
+      await _auth.signOut();
+      rethrow;
+    }
     await _setLastCloudUid(uid);
+    await _syncRunner.runExclusiveSync();
     emit(state.copyWith(isLoading: false, errorMessage: null, pendingCloudReplace: null));
   }
 
   Future<void> _prepareLocalDataForSignedInUser(final String uid) async {
     final lastCloudUid = await _getLastCloudUid();
+    if (lastCloudUid == uid) return;
     final hasCloudData = await _syncService.hasCloudData(uid);
 
     final shouldClearLocalData = lastCloudUid != uid && (lastCloudUid != null || hasCloudData);

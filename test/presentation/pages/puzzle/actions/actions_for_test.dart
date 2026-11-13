@@ -103,8 +103,8 @@ void main() {
   group('assist actions per level', () {
     for (final (name, indicator, gate) in [
       ('Easy', _easy, AssistGate.open),
-      ('Medium', _medium, AssistGate.warnEasy),
-      ('Hard', _hard, AssistGate.confirmEasy),
+      ('Medium', _medium, AssistGate.warnRecords),
+      ('Hard', _hard, AssistGate.warnRecords),
     ]) {
       test('$name, solvable', () {
         final actions = actionsFor(_state(), indicator);

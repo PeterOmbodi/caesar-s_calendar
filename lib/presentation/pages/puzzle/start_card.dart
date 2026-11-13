@@ -46,6 +46,8 @@ class _StartCardState extends State<_StartCard> with WidgetsBindingObserver {
   late var _cells = widget.dateCells();
   late final StreamSubscription<Object?> _boardSubscription;
 
+  void _select(final SolutionIndicator level) => setState(() => _level = level);
+
   @override
   void initState() {
     super.initState();
@@ -128,7 +130,10 @@ class _StartCardState extends State<_StartCard> with WidgetsBindingObserver {
                               ),
                             ),
                             SizedBox(height: isCompact ? 16 : 20),
-                            if (isCompact) _compactLevels(colors) else _levels(colors),
+                            if (isCompact)
+                              _CompactLevels(selected: _level, onSelect: _select)
+                            else
+                              _Levels(selected: _level, onSelect: _select),
                           ],
                         ),
                       ),
@@ -166,97 +171,119 @@ class _StartCardState extends State<_StartCard> with WidgetsBindingObserver {
       ],
     );
   }
+}
 
-  Widget _levels(final GameColors colors) => InsetSection(
-    header: S.current.onboardingDifficultyTitle,
-    footer: S.current.onboardingDifficultySettingsNote,
-    children: [
-      for (final level in SolutionIndicator.values)
-        Semantics(
-          selected: level == _level,
-          child: InsetRow(
-            icon: level.icon,
-            title: level.sessionDifficulty.label,
-            subtitle: level.description,
-            trailing: Icon(Icons.check, size: 20, color: level == _level ? colors.accent : Colors.transparent),
-            onTap: () => setState(() => _level = level),
-          ),
-        ),
-    ],
-  );
+class _Levels extends StatelessWidget {
+  const _Levels({required this.selected, required this.onSelect});
 
-  Widget _compactLevels(final GameColors colors) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 4),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  final SolutionIndicator selected;
+  final ValueChanged<SolutionIndicator> onSelect;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    return InsetSection(
+      header: S.current.onboardingDifficultyTitle,
+      footer: S.current.onboardingDifficultySettingsNote,
       children: [
-        Semantics(
-          header: true,
-          child: Text(
-            S.current.onboardingDifficultyTitle,
-            style: TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w600, color: colors.text),
+        for (final level in SolutionIndicator.values)
+          Semantics(
+            selected: level == selected,
+            child: InsetRow(
+              icon: level.icon,
+              title: level.sessionDifficulty.label,
+              subtitle: level.description,
+              trailing: Icon(Icons.check, size: 20, color: level == selected ? colors.accent : Colors.transparent),
+              onTap: () => onSelect(level),
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        DecoratedBox(
-          decoration: BoxDecoration(color: colors.board, borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(3),
-            child: Row(
-              children: [
-                for (final level in SolutionIndicator.values)
-                  Expanded(
-                    child: Semantics(
-                      button: true,
-                      selected: level == _level,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => setState(() => _level = level),
-                        child: AnimatedContainer(
-                          duration: MediaQuery.disableAnimationsOf(context)
-                              ? Duration.zero
-                              : const Duration(milliseconds: 180),
-                          height: 36,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: level == _level ? colors.active : Colors.transparent,
-                            borderRadius: BorderRadius.circular(9),
-                          ),
-                          child: Text(
-                            level.sessionDifficulty.label,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: level == _level ? colors.onActive : colors.text,
+      ],
+    );
+  }
+}
+
+class _CompactLevels extends StatelessWidget {
+  const _CompactLevels({required this.selected, required this.onSelect});
+
+  final SolutionIndicator selected;
+  final ValueChanged<SolutionIndicator> onSelect;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            header: true,
+            child: Text(
+              S.current.onboardingDifficultyTitle,
+              style: TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w600, color: colors.text),
+            ),
+          ),
+          const SizedBox(height: 8),
+          DecoratedBox(
+            decoration: BoxDecoration(color: colors.board, borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(3),
+              child: Row(
+                children: [
+                  for (final level in SolutionIndicator.values)
+                    Expanded(
+                      child: Semantics(
+                        button: true,
+                        selected: level == selected,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => onSelect(level),
+                          child: AnimatedContainer(
+                            duration: MediaQuery.disableAnimationsOf(context)
+                                ? Duration.zero
+                                : const Duration(milliseconds: 180),
+                            height: 36,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: level == selected ? colors.active : Colors.transparent,
+                              borderRadius: BorderRadius.circular(9),
+                            ),
+                            child: Text(
+                              level.sessionDifficulty.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: level == selected ? colors.onActive : colors.text,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        // The longest description sets the height.
-        Stack(
-          children: [
-            for (final level in SolutionIndicator.values)
-              Visibility.maintain(
-                visible: level == _level,
-                child: Text(
-                  level.description,
-                  style: TextStyle(fontSize: 14, height: 19 / 14, color: colors.textSecondary),
+          const SizedBox(height: 8),
+          // The longest description sets the height.
+          Stack(
+            children: [
+              for (final level in SolutionIndicator.values)
+                Visibility.maintain(
+                  visible: level == selected,
+                  child: Text(
+                    level.description,
+                    style: TextStyle(fontSize: 14, height: 19 / 14, color: colors.textSecondary),
+                  ),
                 ),
-              ),
-          ],
-        ),
-      ],
-    ),
-  );
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _CardLayout extends SingleChildLayoutDelegate {

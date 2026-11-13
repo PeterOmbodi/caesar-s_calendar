@@ -14,7 +14,6 @@ class DayDifficulty {
   /// Highest solution count of tiers 5, 4, 3 and 2; quintiles of the year.
   static const List<int> _tierBounds = [36, 51, 68, 88];
 
-  /// First-solve points of tiers 1..5.
   static const List<int> _firstSolvePoints = [10, 12, 14, 17, 20];
 
   static int get maxDayPoints => _firstSolvePoints.last + maxExtraSolutions;

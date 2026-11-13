@@ -98,32 +98,33 @@ class _DateSelectorState extends State<DateSelector> {
       0,
       (final max, final item) => item.solvedVariants > max ? item.solvedVariants : max,
     );
-    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.fitGridToWidth)
-          LayoutBuilder(
-            builder: (final context, final constraints) => _buildGrid(
-              columns: columns,
-              monthLabels: monthLabels,
-              statsByDate: statsByDate,
-              textTheme: Theme.of(context).textTheme,
-              colorScheme: colorScheme,
-              maxSolved: maxSolved,
-              cellSize: _fittedCellSize(constraints.maxWidth, columns.length),
-            ),
-          )
-        else
-          _buildGrid(
-            columns: columns,
-            monthLabels: monthLabels,
-            statsByDate: statsByDate,
-            textTheme: Theme.of(context).textTheme,
-            colorScheme: colorScheme,
-            maxSolved: maxSolved,
-            cellSize: widget.cellSize,
-          ),
+        LayoutBuilder(
+          builder: (final context, final constraints) {
+            final cellSize = widget.fitGridToWidth
+                ? _fittedCellSize(constraints.maxWidth, columns.length)
+                : widget.cellSize;
+            _centerSelection(constraints.maxWidth, cellSize);
+            return _HeatmapScroller(
+              controller: _horizontalController,
+              child: _HeatmapGrid(
+                columns: columns,
+                monthLabels: monthLabels,
+                showMonthLabels: widget.showMonthLabels,
+                statsByDate: statsByDate,
+                selectedDate: widget.selectedDate,
+                maxSolved: maxSolved,
+                cellSize: cellSize,
+                columnGap: widget.columnGap,
+                rowGap: widget.rowGap,
+                monthsToGridGap: widget.monthsToGridGap,
+                onDayTap: (final day) => widget.onDateTap(DateTime(_calendarYear, day.month, day.day)),
+              ),
+            );
+          },
+        ),
       ],
     );
   }
@@ -134,169 +135,6 @@ class _DateSelectorState extends State<DateSelector> {
     final available = maxWidth - 24 - (columns - 1) * widget.columnGap;
     final size = available / columns;
     return size.clamp(minCellSize, maxCellSize);
-  }
-
-  Widget _buildGrid({
-    required final List<List<DateTime?>> columns,
-    required final Map<int, String> monthLabels,
-    required final Map<String, CalendarDayStats> statsByDate,
-    required final TextTheme textTheme,
-    required final ColorScheme colorScheme,
-    required final int maxSolved,
-    required final double cellSize,
-  }) => LayoutBuilder(
-    builder: (final context, final constraints) {
-      _centerSelection(constraints.maxWidth, cellSize);
-      return ScrollConfiguration(
-        behavior: const MaterialScrollBehavior().copyWith(
-          dragDevices: const <PointerDeviceKind>{
-            PointerDeviceKind.touch,
-            PointerDeviceKind.mouse,
-            PointerDeviceKind.trackpad,
-            PointerDeviceKind.stylus,
-          },
-        ),
-        child: Scrollbar(
-          controller: _horizontalController,
-          thumbVisibility: kIsWeb || _isDesktop(),
-          interactive: true,
-          child: SingleChildScrollView(
-            controller: _horizontalController,
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(
-              children: _buildScrollableContent(
-                columns: columns,
-                monthLabels: monthLabels,
-                statsByDate: statsByDate,
-                textTheme: textTheme,
-                colorScheme: colorScheme,
-                maxSolved: maxSolved,
-                cellSize: cellSize,
-              ),
-            ),
-          ),
-        ),
-      );
-    },
-  );
-
-  bool _isDesktop() {
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.windows:
-      case TargetPlatform.macOS:
-      case TargetPlatform.linux:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  List<Widget> _buildScrollableContent({
-    required final List<List<DateTime?>> columns,
-    required final Map<int, String> monthLabels,
-    required final Map<String, CalendarDayStats> statsByDate,
-    required final TextTheme textTheme,
-    required final ColorScheme colorScheme,
-    required final int maxSolved,
-    required final double cellSize,
-  }) {
-    final children = <Widget>[];
-
-    if (widget.showMonthLabels) {
-      children.add(Row(children: _buildMonthLabelWidgets(columns, monthLabels, textTheme, cellSize)));
-      children.add(SizedBox(height: widget.monthsToGridGap));
-    }
-
-    children.add(
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: _buildGridColumns(columns, statsByDate, colorScheme, maxSolved, cellSize),
-      ),
-    );
-    return children;
-  }
-
-  List<Widget> _buildMonthLabelWidgets(
-    final List<List<DateTime?>> columns,
-    final Map<int, String> monthLabels,
-    final TextTheme textTheme,
-    final double cellSize,
-  ) {
-    final result = <Widget>[];
-    for (var columnIndex = 0; columnIndex < columns.length; columnIndex++) {
-      if (columnIndex > 0) {
-        result.add(SizedBox(width: widget.columnGap));
-      }
-      result.add(
-        SizedBox(
-          width: cellSize,
-          child: Text(
-            monthLabels[columnIndex] ?? '',
-            style: textTheme.labelSmall,
-            overflow: TextOverflow.visible,
-            softWrap: false,
-          ),
-        ),
-      );
-    }
-    return result;
-  }
-
-  List<Widget> _buildGridColumns(
-    final List<List<DateTime?>> columns,
-    final Map<String, CalendarDayStats> statsByDate,
-    final ColorScheme colorScheme,
-    final int maxSolved,
-    final double cellSize,
-  ) {
-    final result = <Widget>[];
-    for (var columnIndex = 0; columnIndex < columns.length; columnIndex++) {
-      if (columnIndex > 0) {
-        result.add(SizedBox(width: widget.columnGap));
-      }
-      result.add(
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: _buildDayCells(
-            column: columns[columnIndex],
-            statsByDate: statsByDate,
-            colorScheme: colorScheme,
-            maxSolved: maxSolved,
-            cellSize: cellSize,
-          ),
-        ),
-      );
-    }
-    return result;
-  }
-
-  List<Widget> _buildDayCells({
-    required final List<DateTime?> column,
-    required final Map<String, CalendarDayStats> statsByDate,
-    required final ColorScheme colorScheme,
-    required final int maxSolved,
-    required final double cellSize,
-  }) {
-    final result = <Widget>[];
-    for (var rowIndex = 0; rowIndex < column.length; rowIndex++) {
-      final day = column[rowIndex];
-      result.add(
-        _HeatmapDayCell(
-          day: day,
-          isSelected: day != null && _isSameMonthDay(day, widget.selectedDate),
-          stats: day == null ? null : statsByDate[_monthDayKey(day)],
-          maxSolved: maxSolved,
-          colorScheme: colorScheme,
-          onTap: (final tappedDay) => widget.onDateTap(DateTime(_calendarYear, tappedDay.month, tappedDay.day)),
-          size: cellSize,
-        ),
-      );
-      if (rowIndex < column.length - 1) {
-        result.add(SizedBox(height: widget.rowGap));
-      }
-    }
-    return result;
   }
 
   List<DateTime?> _buildHeatmapCells() {
@@ -353,11 +191,173 @@ class _DateSelectorState extends State<DateSelector> {
     if (a == null && b == null) return null;
     return (a ?? 0) + (b ?? 0);
   }
+}
 
-  bool _isSameMonthDay(final DateTime a, final DateTime b) => a.month == b.month && a.day == b.day;
+bool _isSameMonthDay(final DateTime a, final DateTime b) => a.month == b.month && a.day == b.day;
 
-  String _monthDayKey(final DateTime date) =>
-      '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+String _monthDayKey(final DateTime date) =>
+    '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+class _HeatmapScroller extends StatelessWidget {
+  const _HeatmapScroller({required this.controller, required this.child});
+
+  final ScrollController controller;
+  final Widget child;
+
+  static bool get _isDesktop => switch (defaultTargetPlatform) {
+    TargetPlatform.windows || TargetPlatform.macOS || TargetPlatform.linux => true,
+    _ => false,
+  };
+
+  @override
+  Widget build(final BuildContext context) => ScrollConfiguration(
+    behavior: const MaterialScrollBehavior().copyWith(
+      dragDevices: const <PointerDeviceKind>{
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      },
+    ),
+    child: Scrollbar(
+      controller: controller,
+      thumbVisibility: kIsWeb || _isDesktop,
+      interactive: true,
+      child: SingleChildScrollView(
+        controller: controller,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: child,
+      ),
+    ),
+  );
+}
+
+class _HeatmapGrid extends StatelessWidget {
+  const _HeatmapGrid({
+    required this.columns,
+    required this.monthLabels,
+    required this.showMonthLabels,
+    required this.statsByDate,
+    required this.selectedDate,
+    required this.maxSolved,
+    required this.cellSize,
+    required this.columnGap,
+    required this.rowGap,
+    required this.monthsToGridGap,
+    required this.onDayTap,
+  });
+
+  final List<List<DateTime?>> columns;
+  final Map<int, String> monthLabels;
+  final bool showMonthLabels;
+  final Map<String, CalendarDayStats> statsByDate;
+  final DateTime selectedDate;
+  final int maxSolved;
+  final double cellSize;
+  final double columnGap;
+  final double rowGap;
+  final double monthsToGridGap;
+  final ValueChanged<DateTime> onDayTap;
+
+  @override
+  Widget build(final BuildContext context) => Column(
+    children: [
+      if (showMonthLabels) ...[
+        _MonthLabels(columnCount: columns.length, labels: monthLabels, cellSize: cellSize, columnGap: columnGap),
+        SizedBox(height: monthsToGridGap),
+      ],
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < columns.length; i++) ...[
+            if (i > 0) SizedBox(width: columnGap),
+            _WeekColumn(
+              days: columns[i],
+              statsByDate: statsByDate,
+              selectedDate: selectedDate,
+              maxSolved: maxSolved,
+              cellSize: cellSize,
+              rowGap: rowGap,
+              onDayTap: onDayTap,
+            ),
+          ],
+        ],
+      ),
+    ],
+  );
+}
+
+class _MonthLabels extends StatelessWidget {
+  const _MonthLabels({
+    required this.columnCount,
+    required this.labels,
+    required this.cellSize,
+    required this.columnGap,
+  });
+
+  final int columnCount;
+  final Map<int, String> labels;
+  final double cellSize;
+  final double columnGap;
+
+  @override
+  Widget build(final BuildContext context) {
+    final style = Theme.of(context).textTheme.labelSmall;
+    return Row(
+      children: [
+        for (var i = 0; i < columnCount; i++) ...[
+          if (i > 0) SizedBox(width: columnGap),
+          SizedBox(
+            width: cellSize,
+            child: Text(labels[i] ?? '', style: style, overflow: TextOverflow.visible, softWrap: false),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _WeekColumn extends StatelessWidget {
+  const _WeekColumn({
+    required this.days,
+    required this.statsByDate,
+    required this.selectedDate,
+    required this.maxSolved,
+    required this.cellSize,
+    required this.rowGap,
+    required this.onDayTap,
+  });
+
+  final List<DateTime?> days;
+  final Map<String, CalendarDayStats> statsByDate;
+  final DateTime selectedDate;
+  final int maxSolved;
+  final double cellSize;
+  final double rowGap;
+  final ValueChanged<DateTime> onDayTap;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (i, day) in days.indexed) ...[
+          if (i > 0) SizedBox(height: rowGap),
+          _HeatmapDayCell(
+            day: day,
+            isSelected: day != null && _isSameMonthDay(day, selectedDate),
+            stats: day == null ? null : statsByDate[_monthDayKey(day)],
+            maxSolved: maxSolved,
+            colorScheme: colorScheme,
+            onTap: onDayTap,
+            size: cellSize,
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 class _HeatmapDayCell extends StatelessWidget {

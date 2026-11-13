@@ -309,7 +309,7 @@ class _StatTile extends StatelessWidget {
                   child: _ProgressStat(
                     value: stats.hardRate,
                     label: '${(stats.hardRate * 100).round()}%',
-                    caption: S.current.historyStatsHardRateCaption,
+                    caption: '${S.current.historyStatsHardRateCaption} *',
                   ),
                 ),
               ],
@@ -317,8 +317,8 @@ class _StatTile extends StatelessWidget {
             const SizedBox(height: 16),
             _StatRow(glass: glass, label: S.current.historyStatsStarted, value: '${stats.started}'),
             _StatRow(glass: glass, label: S.current.historyStatsSolved, value: '${stats.solved}'),
-            _StatRow(glass: glass, label: S.current.historyStatsSolvedHard, value: '${stats.solvedHard}'),
-            _StatRow(glass: glass, label: S.current.historyStatsBestStreak, value: '${stats.bestStreakDays}'),
+            _StatRow(glass: glass, label: '${S.current.historyStatsSolvedHard} *', value: '${stats.solvedHard}'),
+            _StatRow(glass: glass, label: '${S.current.historyStatsBestStreak} *', value: '${stats.bestStreakDays}'),
             _StatRow(glass: glass, label: S.current.historyStatsHintsUsed, value: '${stats.hintsUsed}'),
             _StatRow(
               glass: glass,
@@ -329,6 +329,11 @@ class _StatTile extends StatelessWidget {
               glass: glass,
               label: S.current.historyStatsAvgMovesPerSolve,
               value: stats.avgMovesPerSolve.toStringAsFixed(1),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '* ${S.current.historyStatsCleanNote}',
+              style: TextStyle(fontSize: 13, height: 18 / 13, color: GameColors.of(context).textSecondary),
             ),
           ],
         ),

@@ -141,6 +141,20 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
   PuzzleSessionDifficulty get currentSessionDifficulty => _currentSessionDifficulty ?? _difficultyFromSettings();
 
+  void markAssisted() => unawaited(
+    _historyUseCase.markPuzzleAssisted(puzzleDate: state.selectedDate, configPlacements: state.configPlacements),
+  );
+
+  Future<bool> countsForRecords() async {
+    final today = DateTime.now();
+    final date = state.selectedDate;
+    final isToday = date.year == today.year && date.month == today.month && date.day == today.day;
+    if (!isToday || state.isCustomConfig || currentSessionDifficulty == PuzzleSessionDifficulty.easy) {
+      return false;
+    }
+    return !await _historyUseCase.isPuzzleAssisted(puzzleDate: date, configPlacements: state.configPlacements);
+  }
+
   Future<int> countSolutionsFor(final List<PlacementParams> placements, final DateTime date) async {
     final pieces = _withLayout(placements).map((final p) => p.toDomain(state.gridConfig));
     final solutions = await _solvePuzzleUseCase(pieces: pieces, grid: state.gridConfig, date: date);
