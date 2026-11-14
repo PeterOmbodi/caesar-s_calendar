@@ -204,7 +204,7 @@ void main() {
   });
 
   group('race', () {
-    test('Rotate · Undo · Redo · Flip · Give up on every level, nothing in More', () {
+    test('Rotate · Undo · Redo · Flip on every level, nothing in More', () {
       for (final level in [_easy, _medium, _hard]) {
         for (final selected in [false, true]) {
           final actions = actionsFor(_state(selected: selected, solutions: 0), level, mode: PuzzleMode.race);
@@ -213,7 +213,6 @@ void main() {
             GameActionId.undo,
             GameActionId.redo,
             GameActionId.flip,
-            GameActionId.giveUp,
           ]);
           expect(_ids(actions, ActionSlot.overflow), isEmpty);
         }
@@ -232,6 +231,23 @@ void main() {
     test('no solutions view even when the state shows one', () {
       final ids = actionsFor(_state(solutionIdx: 0), _easy, mode: PuzzleMode.race).map((final a) => a.id);
       expect(ids, isNot(contains(GameActionId.closeSolutions)));
+    });
+
+    test('nothing works while waiting for the start or the others', () {
+      final actions = actionsFor(
+        _state(selected: true),
+        _hard,
+        mode: PuzzleMode.race,
+        racePhase: RacePhase.waiting,
+      );
+      expect(actions.every((final a) => !a.enabled), isTrue);
+    });
+
+    test('once the race is over the host gets a rematch, everybody can leave', () {
+      final host = actionsFor(_state(), _hard, mode: PuzzleMode.race, racePhase: RacePhase.over, isRaceHost: true);
+      final guest = actionsFor(_state(), _hard, mode: PuzzleMode.race, racePhase: RacePhase.over);
+      expect(_ids(host, ActionSlot.primary), [GameActionId.rematch, GameActionId.leaveRace]);
+      expect(_ids(guest, ActionSlot.primary), [GameActionId.leaveRace]);
     });
   });
 }

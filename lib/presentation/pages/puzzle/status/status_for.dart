@@ -24,7 +24,6 @@ enum StatusMessage {
   viewingSolution,
   layoutSolutions,
   layoutNoSolution,
-  racePlaced,
 }
 
 @immutable
@@ -51,19 +50,7 @@ class PuzzleStatus {
   String toString() => 'PuzzleStatus($message, $tone, count: $count, total: $total)';
 }
 
-PuzzleStatus statusFor(
-  final PuzzleState state,
-  final SolutionIndicator indicator, {
-  final PuzzleMode mode = PuzzleMode.daily,
-}) {
-  if (mode == PuzzleMode.race) {
-    final gamePieces = state.pieces.where((final p) => !p.isConfigItem);
-    return PuzzleStatus(
-      StatusMessage.racePlaced,
-      count: gamePieces.where((final p) => p.placeZone == PlaceZone.grid).length,
-      total: gamePieces.length,
-    );
-  }
+PuzzleStatus statusFor(final PuzzleState state, final SolutionIndicator indicator) {
   if (state.isShowSolutions) {
     return PuzzleStatus(
       StatusMessage.viewingSolution,

@@ -5,16 +5,24 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const withoutShortcut = {GameActionId.solutionCounter, GameActionId.howToPlay, GameActionId.giveUp};
+  const withoutShortcut = {
+    GameActionId.solutionCounter,
+    GameActionId.howToPlay,
+    GameActionId.rematch,
+    GameActionId.leaveRace,
+  };
 
   for (final apple in [true, false]) {
-    test('every action but the counter, How to play and Give up has a shortcut and a label (apple: $apple)', () {
-      for (final id in GameActionId.values) {
-        final hasShortcut = !withoutShortcut.contains(id);
-        expect(id.shortcut(apple: apple) != null, hasShortcut, reason: '$id');
-        expect(id.shortcutLabel(apple: apple) != null, hasShortcut, reason: '$id');
-      }
-    });
+    test(
+      'every action but the counter, How to play and the race end actions has a shortcut and a label (apple: $apple)',
+      () {
+        for (final id in GameActionId.values) {
+          final hasShortcut = !withoutShortcut.contains(id);
+          expect(id.shortcut(apple: apple) != null, hasShortcut, reason: '$id');
+          expect(id.shortcutLabel(apple: apple) != null, hasShortcut, reason: '$id');
+        }
+      },
+    );
   }
 
   test('undo and redo use the platform command key', () {

@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/application/race/race_player.dart';
+import 'package:caesar_puzzle/application/race/race_puzzle.dart';
 import 'package:collection/collection.dart';
 
 enum RaceRoomStatus { lobby, playing, finished }
@@ -52,12 +53,16 @@ class RaceRoom {
   /// Server time of the first solve, epoch milliseconds.
   final int? firstFinishAt;
 
-  /// Server time, epoch milliseconds.
+  /// Server time of the creation, the last start or the last rematch, epoch milliseconds. Two hours later the room
+  /// counts as abandoned and its code is free again.
   final int? createdAt;
 
   RacePlayer? player(final String uid) => players.firstWhereOrNull((final p) => p.uid == uid);
 
   bool get isFull => players.length >= maxPlayers;
+
+  /// Shared by every client of the room: it draws the date and the pause of the start lights.
+  int get seed => RacePuzzle.seedOf(players.map((final p) => p.nonce).nonNulls, round);
 
   bool get canStart => players.length >= 2 && players.every((final p) => p.online && p.ready && p.nonce != null);
 

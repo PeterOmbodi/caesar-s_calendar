@@ -21,7 +21,8 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.cancelEdit => Icons.close,
     GameActionId.resetLayout => Icons.restart_alt,
     GameActionId.saveLayout => Icons.check,
-    GameActionId.giveUp => Icons.flag_outlined,
+    GameActionId.rematch => Icons.replay,
+    GameActionId.leaveRace => Icons.logout,
     GameActionId.layouts => Icons.grid_view,
   };
 
@@ -43,7 +44,8 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.cancelEdit => S.current.layoutsCancel,
     GameActionId.resetLayout => S.current.reset,
     GameActionId.saveLayout => S.current.layoutsSave,
-    GameActionId.giveUp => S.current.raceGiveUp,
+    GameActionId.rematch => S.current.raceRematch,
+    GameActionId.leaveRace => S.current.raceLeave,
     GameActionId.layouts => S.current.headerLayoutsTooltip,
   };
 
@@ -71,7 +73,7 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.cancelEdit => const SingleActivator(LogicalKeyboardKey.escape),
     GameActionId.saveLayout => SingleActivator(LogicalKeyboardKey.keyS, meta: apple, control: !apple),
     GameActionId.layouts => const SingleActivator(LogicalKeyboardKey.keyL),
-    GameActionId.solutionCounter || GameActionId.howToPlay || GameActionId.giveUp => null,
+    GameActionId.solutionCounter || GameActionId.howToPlay || GameActionId.rematch || GameActionId.leaveRace => null,
   };
 
   String? shortcutLabel({required final bool apple}) => switch (this) {
@@ -89,6 +91,6 @@ extension GameActionIdVisuals on GameActionId {
     GameActionId.cancelEdit => 'Esc',
     GameActionId.saveLayout => apple ? '⌘S' : 'Ctrl+S',
     GameActionId.layouts => 'L',
-    GameActionId.solutionCounter || GameActionId.howToPlay || GameActionId.giveUp => null,
+    GameActionId.solutionCounter || GameActionId.howToPlay || GameActionId.rematch || GameActionId.leaveRace => null,
   };
 }

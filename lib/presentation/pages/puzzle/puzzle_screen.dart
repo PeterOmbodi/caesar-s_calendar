@@ -26,12 +26,12 @@ import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.d
 import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
-import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
+import 'package:caesar_puzzle/presentation/widgets/game_background.dart';
 import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -127,7 +127,6 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       ],
       child: Scaffold(
         body: _GameBackground(
-          colors: GameColors.of(context),
           child: SafeArea(
             child: MultiBlocListener(
               listeners: [
@@ -326,9 +325,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   Future<void> _openRace({final String? code}) async {
     // The daily game's clock must not run while its player is racing.
-    _puzzleBloc.add(const PuzzleEvent.setTimer(running: false));
+    _puzzleBloc.suspendTimer();
     await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => RaceLobbyScreen(initialCode: code)));
-    _puzzleBloc.add(const PuzzleEvent.setTimer(running: true));
+    _puzzleBloc.resumeTimer();
   }
 
   // Once per launch: the first-run card, then a room link's lobby or the note about the new button.
@@ -429,22 +428,13 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 }
 
 class _GameBackground extends StatelessWidget {
-  const _GameBackground({required this.colors, required this.child});
+  const _GameBackground({required this.child});
 
-  final GameColors colors;
   final Widget child;
 
+  // On wide monitors the game stays together in the middle; the background fills the window.
   @override
-  Widget build(final BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [colors.backgroundTop, colors.background],
-        stops: const [0, 0.45],
-      ),
-    ),
-    // On wide monitors the game stays together in the middle; the background fills the window.
+  Widget build(final BuildContext context) => GameBackground(
     child: MaxWidth(maxWidth: PuzzleScreen.maxGameWidth, child: child),
   );
 }

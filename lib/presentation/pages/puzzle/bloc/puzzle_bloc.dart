@@ -117,6 +117,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   double _lastTrayScale = PuzzlePieceUI.defaultTrayScale;
   EdgeInsets _lastContentInsets = EdgeInsets.zero;
   double _lastTrayTopInset = 0;
+  double _lastTrayStartInset = 0;
   // Piece that the current tap down selected; such a tap must not rotate or flip it.
   String? _selectedOnTapDownId;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
@@ -125,6 +126,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   ({int atMs, Offset position})? _lastDoubleTapFlip;
   // Only the latest solver run may deliver results.
   int _solveRun = 0;
+  bool _isTimerSuspended = false;
 
   void _onIn<E extends PuzzleEvent>(final PuzzleMode only, final EventHandler<E, PuzzleState> handler) =>
       on<E>((final event, final emit) => mode == only ? handler(event, emit) : null);
@@ -133,6 +135,17 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   Future<void> close() {
     _lifecycleService.dispose();
     return super.close();
+  }
+
+  /// Stops the game clock until [resumeTimer], whatever the app lifecycle does meanwhile.
+  void suspendTimer() {
+    _isTimerSuspended = true;
+    add(const PuzzleEvent.setTimer(running: false));
+  }
+
+  void resumeTimer() {
+    _isTimerSuspended = false;
+    add(const PuzzleEvent.setTimer(running: true));
   }
 
   void markCurrentSessionDifficulty(final PuzzleSessionDifficulty difficulty) {

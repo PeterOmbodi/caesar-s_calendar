@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/game_background.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_circle_button.dart';
 import 'package:flutter/material.dart';
 
@@ -16,15 +17,7 @@ class RaceScaffold extends StatelessWidget {
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [colors.backgroundTop, colors.background],
-            stops: const [0, 0.45],
-          ),
-        ),
+      body: GameBackground(
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(

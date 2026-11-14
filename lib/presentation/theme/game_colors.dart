@@ -137,6 +137,9 @@ class GameColors extends ThemeExtension<GameColors> {
 
   Color piece(final PieceType type) => pieces[type] ?? blockedCell;
 
+  /// A player's colour in leaderboards and races.
+  Color player(final int colorIndex) => pieces.isEmpty ? accent : pieces.values.elementAt(colorIndex % pieces.length);
+
   @override
   GameColors copyWith({
     final Color? background,

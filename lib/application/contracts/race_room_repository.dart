@@ -1,6 +1,16 @@
 import 'package:caesar_puzzle/application/race/race_room.dart';
 
-enum RaceRoomFailure { signInRequired, offline, noRoom, full, started, unknown }
+enum RaceRoomFailure {
+  signInRequired,
+  offline,
+  noRoom,
+  full,
+  started,
+
+  /// The date this client draws from the room differs from the host's.
+  date,
+  unknown,
+}
 
 class RaceRoomException implements Exception {
   const RaceRoomException(this.failure, [this.cause]);

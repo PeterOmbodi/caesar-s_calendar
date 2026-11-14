@@ -16,7 +16,6 @@ class PuzzleStatusLine extends StatelessWidget {
     required this.state,
     required this.indicator,
     required this.showTimer,
-    this.mode = PuzzleMode.daily,
   });
 
   static const double height = LayoutService.statusLineHeight;
@@ -24,12 +23,11 @@ class PuzzleStatusLine extends StatelessWidget {
   final PuzzleState state;
   final SolutionIndicator indicator;
   final bool showTimer;
-  final PuzzleMode mode;
 
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final status = statusFor(state, indicator, mode: mode);
+    final status = statusFor(state, indicator);
     final toneColor = switch (status.tone) {
       StatusTone.neutral => colors.textSecondary,
       StatusTone.ok => colors.ok,
@@ -86,9 +84,7 @@ class PuzzleStatusLine extends StatelessWidget {
     StatusMessage.solutionsCount => S.current.statusSolutionsCount(status.count!),
     StatusMessage.oneSolutionLeft => S.current.statusOneSolutionLeft,
     StatusMessage.solvable => S.current.statusSolvable,
-    StatusMessage.piecesPlaced ||
-    StatusMessage.racePlaced => S.current.statusPiecesPlaced(status.count!, status.total!),
-    StatusMessage.noSolutions => S.current.statusNoSolutions,
+    StatusMessage.piecesPlaced || StatusMessage.noSolutions => S.current.statusNoSolutions,
     StatusMessage.deadEnd => S.current.statusDeadEnd,
     StatusMessage.releaseToPlace => S.current.statusReleaseToPlace,
     StatusMessage.doesNotFit => S.current.statusDoesNotFit,

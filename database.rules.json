@@ -38,7 +38,7 @@
         },
         "createdAt": {
           ".write": "auth != null && newData.parent().child('hostUid').val() === auth.uid",
-          ".validate": "newData.isNumber() && (data.exists() ? newData.val() === data.val() : newData.val() === now)"
+          ".validate": "newData.isNumber() && (newData.val() === now || (data.exists() && newData.val() === data.val()))"
         },
         "puzzle": {
           ".write": "auth != null && newData.parent().child('hostUid').val() === auth.uid",

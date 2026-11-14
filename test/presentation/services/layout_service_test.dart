@@ -177,6 +177,47 @@ void main() {
       }
     });
 
+    test('in portrait a start inset keeps the tray and its pieces clear of chrome on the left', () {
+      const size = Size(393, 640);
+      const inset = 82.0;
+      final layout = service.buildInitialLayout(
+        Offset.zero & size,
+        maxCell: ScreenSpec.compactMaxCell,
+        trayScale: ScreenSpec.compactTrayScale,
+        trayStartInset: inset,
+      );
+      const start = LayoutService.horizontalContentPadding + inset;
+      expect(layout.gridConfig.cellSize, layoutFor(size).gridConfig.cellSize);
+      expect(layout.boardConfig.getBounds.left, greaterThanOrEqualTo(start - 0.01));
+      expect(layout.trayArea.left, greaterThanOrEqualTo(start - 0.01));
+      for (final piece in layout.pieces.where((final p) => p.placeZone == PlaceZone.board)) {
+        final bounds = piece.getTransformedPath().getBounds();
+        expect(bounds.left, greaterThanOrEqualTo(start - 0.01), reason: piece.id);
+        expect(bounds.right, lessThanOrEqualTo(size.width - LayoutService.horizontalContentPadding + 0.01));
+      }
+    });
+
+    test('in landscape a start inset leaves room between the board and the tray', () {
+      const size = Size(852, 360);
+      const inset = 82.0;
+      final layout = service.buildInitialLayout(
+        Offset.zero & size,
+        maxCell: ScreenSpec.compactMaxCell,
+        fillAvailableTray: true,
+        trayTopInset: 80,
+        trayStartInset: inset,
+      );
+      final board = layout.gridConfig.getBounds;
+      final start = board.right + LayoutService.defaultPadding + inset;
+      expect(layout.boardConfig.getBounds.left, greaterThanOrEqualTo(start - 0.01));
+      expect(layout.trayArea.left, greaterThanOrEqualTo(board.right + inset));
+      for (final piece in layout.pieces.where((final p) => p.placeZone == PlaceZone.board)) {
+        final bounds = piece.getTransformedPath().getBounds();
+        expect(bounds.left, greaterThanOrEqualTo(start - 0.01), reason: piece.id);
+        expect(bounds.right, lessThanOrEqualTo(size.width - LayoutService.horizontalContentPadding + 0.01));
+      }
+    });
+
     test('phone portrait gets the 52 pt board cell from the mockup', () {
       expect(layoutFor(const Size(393, 640)).gridConfig.cellSize, 52);
     });

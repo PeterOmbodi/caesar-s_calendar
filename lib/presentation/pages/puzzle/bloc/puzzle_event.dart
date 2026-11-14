@@ -11,6 +11,9 @@ sealed class PuzzleEvent with _$PuzzleEvent {
     @Default(PuzzlePieceUI.defaultTrayScale) final double trayScale,
     @Default(EdgeInsets.zero) final EdgeInsets contentInsets,
     @Default(0) final double trayTopInset,
+
+    /// Width the tray leaves free at its start for chrome beside it.
+    @Default(0) final double trayStartInset,
   }) = _SetViewSize;
 
   const factory PuzzleEvent.reset() = _Reset;

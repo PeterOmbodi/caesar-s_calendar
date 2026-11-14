@@ -2,14 +2,17 @@ import 'dart:async';
 
 import 'package:caesar_puzzle/application/contracts/race_room_repository.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
+import 'package:caesar_puzzle/application/race/race_puzzle.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/pages/race/bloc/race_room_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_failure_text.dart';
+import 'package:caesar_puzzle/presentation/pages/race/race_game_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_buttons.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_scaffold.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/room_code_card.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -67,6 +70,17 @@ class _RaceRoomScreenState extends State<RaceRoomScreen> {
       builder: (final context, final state) {
         final room = state.room;
         final me = room?.player(_cubit.uid ?? '');
+        final puzzle = room?.puzzle;
+        final startAt = room?.startAt;
+        if (room != null && me != null && room.status != RaceRoomStatus.lobby && puzzle != null && startAt != null) {
+          return RaceGameScreen(
+            key: ValueKey(room.round),
+            room: room,
+            myUid: me.uid,
+            startAtMs: startAt,
+            date: DateTime(RacePuzzle.year, puzzle.month, puzzle.day),
+          );
+        }
         return RaceScaffold(
           title: S.current.raceRoomTitle,
           child: room == null || me == null
@@ -110,10 +124,7 @@ class _RoomBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        if (room.status == RaceRoomStatus.lobby)
-          _LobbyFooter(room: room, me: me, isBusy: isBusy)
-        else
-          _StartedPlaceholder(room: room, isHost: room.hostUid == me.uid, isBusy: isBusy),
+        _LobbyFooter(room: room, me: me, isBusy: isBusy),
       ],
     );
   }
@@ -158,11 +169,6 @@ class _PlayerRow extends StatelessWidget {
   final bool isMe;
   final bool isHost;
 
-  String get _initials {
-    final words = player.nickname.split(RegExp(r'\s+')).where((final w) => w.isNotEmpty).take(2);
-    return words.map((final w) => String.fromCharCode(w.runes.first).toUpperCase()).join();
-  }
-
   // Offline is shown in place of readiness, so the subtitle does not repeat it.
   String? get _subtitle {
     final roles = [if (isMe) S.current.raceYou, if (isHost) S.current.raceHost];
@@ -182,7 +188,6 @@ class _PlayerRow extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final palette = colors.pieces.values.toList();
     final subtitle = _subtitle;
     final isReady = player.online && player.ready;
     final statusColor = !player.online
@@ -199,13 +204,12 @@ class _PlayerRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              CircleAvatar(
+              AccountAvatar(
+                photoUrl: null,
+                fallbackLabel: AccountDisplay.avatarInitials(player.nickname),
                 radius: 20,
-                backgroundColor: palette.isEmpty ? colors.accent : palette[player.colorIndex % palette.length],
-                child: Text(
-                  _initials,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
-                ),
+                backgroundColor: colors.player(player.colorIndex),
+                labelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -321,37 +325,6 @@ class _LobbyFooter extends StatelessWidget {
           RaceSecondaryButton(
             label: S.current.raceCancelReady,
             onPressed: isBusy ? null : () => cubit.setReady(ready: false),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-// Temporary, until the race screen exists: shows that the start reached both players.
-class _StartedPlaceholder extends StatelessWidget {
-  const _StartedPlaceholder({required this.room, required this.isHost, required this.isBusy});
-
-  final RaceRoom room;
-  final bool isHost;
-  final bool isBusy;
-
-  @override
-  Widget build(final BuildContext context) {
-    final puzzle = room.puzzle;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Race started. Date: ${puzzle?.month}/${puzzle?.day}, start at ${room.startAt}',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: GameColors.of(context).textSecondary),
-        ),
-        if (isHost) ...[
-          const SizedBox(height: 10),
-          RaceSecondaryButton(
-            label: 'Back to the room',
-            onPressed: isBusy ? null : context.read<RaceRoomCubit>().rematch,
           ),
         ],
       ],

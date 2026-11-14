@@ -51,7 +51,6 @@ class PuzzleHeader extends StatelessWidget {
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     final spec = ScreenSpec.of(context);
-    final type = _typeFor(spec);
     final buttonsRight = spec.toolbar == ToolbarPlacement.labeledRail;
     final indicator = context.select<SettingsCubit, SolutionIndicator>((final c) => c.state.solutionIndicator);
     final (date, customKey) = context.select<PuzzleBloc, (DateTime, String?)>(
@@ -64,8 +63,6 @@ class PuzzleHeader extends StatelessWidget {
     );
     final race = _RaceButton(key: raceButtonKey, onPressed: onRacePressed);
     const buttonGap = 12.0;
-    final month = shortMonthName(date.month);
-    final day = '${date.day}';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -76,46 +73,23 @@ class PuzzleHeader extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Column(
-                children: [
-                  Text(
-                    intl.DateFormat.MMMMd().format(date),
-                    style: type.title.copyWith(color: colors.text),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text.rich(
+              child: PuzzleHeaderTexts(
+                title: intl.DateFormat.MMMMd().format(date),
+                subtitle: [
+                  if (isEditing)
                     TextSpan(
-                      style: type.subtitle.copyWith(color: colors.textSecondary),
-                      children: [
-                        if (isEditing)
-                          TextSpan(
-                            text: S.current.headerEditingLayout,
-                            style: TextStyle(color: colors.customConfig),
-                          )
-                        else
-                          TextSpan(text: '${S.current.headerDailyPuzzle} · ${indicator.sessionDifficulty.label}'),
-                        if (isCustomConfig && !isEditing)
-                          TextSpan(
-                            text: ' · ${layoutName ?? S.current.historyConfigCustom}',
-                            style: TextStyle(color: colors.customConfig),
-                          ),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: type.goalGap),
-                  Text.rich(
+                      text: S.current.headerEditingLayout,
+                      style: TextStyle(color: colors.customConfig),
+                    )
+                  else
+                    TextSpan(text: '${S.current.headerDailyPuzzle} · ${indicator.sessionDifficulty.label}'),
+                  if (isCustomConfig && !isEditing)
                     TextSpan(
-                      style: type.goal.copyWith(color: colors.textSecondary),
-                      children: highlight(
-                        S.current.headerGoal(month, day),
-                        [month, day],
-                        TextStyle(color: colors.accent, fontWeight: FontWeight.w700),
-                      ),
+                      text: ' · ${layoutName ?? S.current.historyConfigCustom}',
+                      style: TextStyle(color: colors.customConfig),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
                 ],
+                goal: goalSpans(context, date),
               ),
             ),
           ),
@@ -123,6 +97,17 @@ class PuzzleHeader extends StatelessWidget {
           _SettingsButton(onPressed: onSettingsPressed),
         ],
       ),
+    );
+  }
+
+  /// "Leave Mar and 4 uncovered" with the month and the day highlighted.
+  static List<TextSpan> goalSpans(final BuildContext context, final DateTime date) {
+    final month = shortMonthName(date.month);
+    final day = '${date.day}';
+    return highlight(
+      S.current.headerGoal(month, day),
+      [month, day],
+      TextStyle(color: GameColors.of(context).accent, fontWeight: FontWeight.w700),
     );
   }
 
@@ -154,6 +139,45 @@ class PuzzleHeader extends StatelessWidget {
       spans.add(TextSpan(text: text.substring(position)));
     }
     return spans;
+  }
+}
+
+/// Title, subtitle and goal line of a game header, sized for the window.
+class PuzzleHeaderTexts extends StatelessWidget {
+  const PuzzleHeaderTexts({super.key, required this.title, required this.subtitle, required this.goal});
+
+  final String title;
+  final List<InlineSpan> subtitle;
+  final List<InlineSpan> goal;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final type = PuzzleHeader._typeFor(ScreenSpec.of(context));
+    return Column(
+      children: [
+        Text(
+          title,
+          style: type.title.copyWith(color: colors.text),
+          textAlign: TextAlign.center,
+        ),
+        Text.rich(
+          TextSpan(
+            style: type.subtitle.copyWith(color: colors.textSecondary),
+            children: subtitle,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: type.goalGap),
+        Text.rich(
+          TextSpan(
+            style: type.goal.copyWith(color: colors.textSecondary),
+            children: goal,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
   }
 }
 

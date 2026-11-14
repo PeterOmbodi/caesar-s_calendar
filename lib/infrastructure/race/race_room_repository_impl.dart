@@ -180,6 +180,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
           'puzzle': {'month': puzzle.month, 'day': puzzle.day},
           'startAt': startAt.millisecondsSinceEpoch,
           'firstFinishAt': null,
+          'createdAt': ServerValue.timestamp,
         }),
       );
     } on RaceRoomException {
@@ -220,6 +221,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
         'puzzle': null,
         'startAt': null,
         'firstFinishAt': null,
+        'createdAt': ServerValue.timestamp,
       }),
     );
     _inLobby = true;

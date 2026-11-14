@@ -17,6 +17,8 @@ RaceRoom _room({
   final List<RacePlayer>? players,
   final int round = 1,
   final RaceRoomStatus status = RaceRoomStatus.lobby,
+  final RaceRoomPuzzle? puzzle,
+  final int? startAt,
 }) => RaceRoom(
   code: 'K7M4P',
   hostUid: hostUid,
@@ -26,6 +28,8 @@ RaceRoom _room({
   hints: 0,
   round: round,
   players: players ?? [_player('me')],
+  puzzle: puzzle,
+  startAt: startAt,
 );
 
 final _readyPair = [_player('me', ready: true, nonce: 123456789), _player('guest', ready: true, nonce: 987654321)];
@@ -159,6 +163,68 @@ void main() {
       await open(_room(players: _readyPair, round: 2, status: RaceRoomStatus.playing));
       await cubit.rematch();
       expect(repository.calls.last, 'rematch round 3');
+    });
+  });
+
+  group('race', () {
+    final startAt = DateTime.utc(2026, 11, 13, 17, 0, 8);
+    final drawn = RacePuzzle.dateFor(RacePuzzle.seedOf([123456789, 987654321], 1), startAt);
+
+    RaceRoom racing({final RaceRoomPuzzle? puzzle}) => _room(
+      hostUid: 'guest',
+      players: _readyPair,
+      status: RaceRoomStatus.playing,
+      puzzle: puzzle ?? RaceRoomPuzzle(month: drawn.month, day: drawn.day),
+      startAt: startAt.millisecondsSinceEpoch,
+    );
+
+    test("a guest plays the host's date when it draws the same one", () async {
+      await open(racing(), code: 'K7M4P');
+      expect(cubit.state.phase, RaceRoomPhase.open);
+    });
+
+    test('a guest drawing another date leaves the race', () async {
+      final other = drawn.add(const Duration(days: 1));
+      await open(
+        racing(
+          puzzle: RaceRoomPuzzle(month: other.month, day: other.day),
+        ),
+        code: 'K7M4P',
+      );
+      await _settle();
+      expect((cubit.state.phase, cubit.state.failure), (RaceRoomPhase.failed, RaceRoomFailure.date));
+      expect(repository.calls.last, 'leave K7M4P');
+    });
+
+    test('progress goes out at once and only when it changes', () async {
+      await open(racing(), code: 'K7M4P');
+      cubit.reportProgress(1);
+      cubit.reportProgress(1);
+      await _settle();
+      expect(repository.calls.where((final c) => c.startsWith('progress')), ['progress 1']);
+    });
+
+    test('the finish time comes from the server clock', () async {
+      await open(racing(), code: 'K7M4P');
+      repository.now = startAt.add(const Duration(seconds: 42, milliseconds: 300));
+      await cubit.finish();
+      expect(repository.calls.last, 'finish 42300');
+    });
+
+    test('a failed finish is retried', () async {
+      await cubit.close();
+      cubit = RaceRoomCubit(repository, finishRetryDelay: Duration.zero);
+      await open(racing(), code: 'K7M4P');
+      repository.now = startAt.add(const Duration(seconds: 42));
+      repository.nextFailure = RaceRoomFailure.offline;
+      await cubit.finish();
+      expect(repository.calls.where((final c) => c.startsWith('finish')), ['finish 42000', 'finish 42000']);
+    });
+
+    test('giving up is sent', () async {
+      await open(racing(), code: 'K7M4P');
+      await cubit.giveUp();
+      expect(repository.calls.last, 'giveUp');
     });
   });
 

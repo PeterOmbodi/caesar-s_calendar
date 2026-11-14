@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/session_summary.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/bloc/leaderboard_cubit.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -12,7 +13,6 @@ class LeaderboardRowView extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final palette = colors.pieces.values.toList();
     final (primary, secondary) = switch (row.value) {
       TimeValue(:final timeMs, :final extraSolutions) => (
         SessionSummary.formatDuration(timeMs),
@@ -40,13 +40,12 @@ class LeaderboardRowView extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              CircleAvatar(
+              AccountAvatar(
+                photoUrl: null,
+                fallbackLabel: AccountDisplay.avatarInitials(row.nickname),
                 radius: 14,
-                backgroundColor: palette.isEmpty ? colors.accent : palette[row.colorIndex % palette.length],
-                child: Text(
-                  row.nickname.isEmpty ? '?' : String.fromCharCode(row.nickname.runes.first).toUpperCase(),
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
-                ),
+                backgroundColor: colors.player(row.colorIndex),
+                labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
               ),
               const SizedBox(width: 12),
               Expanded(

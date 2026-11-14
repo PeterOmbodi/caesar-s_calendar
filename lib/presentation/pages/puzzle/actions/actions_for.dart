@@ -6,15 +6,23 @@ List<GameAction> actionsFor(
   final PuzzleState state,
   final SolutionIndicator indicator, {
   final PuzzleMode mode = PuzzleMode.daily,
+  final RacePhase racePhase = RacePhase.racing,
+  final bool isRaceHost = false,
 }) {
   if (mode == PuzzleMode.race) {
-    final canTransform = state.selectedPiece != null && !state.isSolving;
+    if (racePhase == RacePhase.over) {
+      return [
+        if (isRaceHost) const GameAction(GameActionId.rematch, slot: ActionSlot.primary),
+        const GameAction(GameActionId.leaveRace, slot: ActionSlot.primary),
+      ];
+    }
+    final isRacing = racePhase == RacePhase.racing;
+    final canTransform = isRacing && state.selectedPiece != null && !state.isSolving;
     return [
       GameAction(GameActionId.rotate, slot: ActionSlot.primary, enabled: canTransform),
-      GameAction(GameActionId.undo, slot: ActionSlot.primary, enabled: state.isUndoEnabled),
-      GameAction(GameActionId.redo, slot: ActionSlot.primary, enabled: state.isRedoEnabled),
+      GameAction(GameActionId.undo, slot: ActionSlot.primary, enabled: isRacing && state.isUndoEnabled),
+      GameAction(GameActionId.redo, slot: ActionSlot.primary, enabled: isRacing && state.isRedoEnabled),
       GameAction(GameActionId.flip, slot: ActionSlot.primary, enabled: canTransform),
-      const GameAction(GameActionId.giveUp, slot: ActionSlot.primary),
     ];
   }
 

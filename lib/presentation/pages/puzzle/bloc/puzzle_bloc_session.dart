@@ -234,7 +234,9 @@ extension PuzzleBlocSessionPart on PuzzleBloc {
   void _onLifecycleChanged(final AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        add(const PuzzleEvent.setTimer(running: true));
+        if (!_isTimerSuspended) {
+          add(const PuzzleEvent.setTimer(running: true));
+        }
       case AppLifecycleState.hidden:
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:

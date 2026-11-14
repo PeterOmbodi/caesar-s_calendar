@@ -173,27 +173,4 @@ void main() {
       expect(statusFor(editing(status: GameStatus.searchingSolutions), _hard).message, StatusMessage.searching);
     });
   });
-
-  group('race', () {
-    test('only the number of placed pieces, on every level', () {
-      for (final level in [_easy, _medium, _hard]) {
-        expect(
-          statusFor(_state(placed: 5, solutions: 0), level, mode: PuzzleMode.race),
-          const PuzzleStatus(StatusMessage.racePlaced, count: 5, total: 8),
-        );
-        expect(statusFor(_state(), level, mode: PuzzleMode.race).count, 0);
-      }
-    });
-
-    test('no dead end, search or drop feedback', () {
-      final states = [
-        _state(status: GameStatus.searchingSolutions, placed: 2),
-        _state(placed: 2, isDragging: true, showPreview: true, previewCollision: true),
-      ];
-      for (final state in states) {
-        final status = statusFor(state, _easy, mode: PuzzleMode.race);
-        expect((status.message, status.tone), (StatusMessage.racePlaced, StatusTone.neutral));
-      }
-    });
-  });
 }
