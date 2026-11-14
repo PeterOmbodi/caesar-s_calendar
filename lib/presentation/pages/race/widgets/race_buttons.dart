@@ -1,9 +1,9 @@
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-const double _height = 56;
-const _shape = RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16)));
-const _textStyle = TextStyle(fontSize: 17, fontWeight: FontWeight.w600);
+const double _height = 50;
 
 class RacePrimaryButton extends StatelessWidget {
   const RacePrimaryButton({super.key, required this.label, required this.onPressed});
@@ -13,19 +13,21 @@ class RacePrimaryButton extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-    final colors = GameColors.of(context);
-    return FilledButton(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
+    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
+      return FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(_height)),
+        child: Text(label),
+      );
+    }
+    return SizedBox(
+      width: double.infinity,
+      child: CupertinoButton.filled(
+        onPressed: onPressed,
+        color: GameColors.of(context).active,
         minimumSize: const Size.fromHeight(_height),
-        backgroundColor: colors.active,
-        foregroundColor: colors.onActive,
-        disabledBackgroundColor: colors.gridLine,
-        disabledForegroundColor: colors.textSecondary,
-        shape: _shape,
-        textStyle: _textStyle,
+        child: Text(label),
       ),
-      child: Text(label),
     );
   }
 }
@@ -38,18 +40,21 @@ class RaceSecondaryButton extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-    final colors = GameColors.of(context);
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
+    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
+      return OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(_height)),
+        child: Text(label),
+      );
+    }
+    return SizedBox(
+      width: double.infinity,
+      child: CupertinoButton.tinted(
+        onPressed: onPressed,
+        color: GameColors.of(context).active,
         minimumSize: const Size.fromHeight(_height),
-        backgroundColor: colors.glass,
-        foregroundColor: colors.text,
-        side: BorderSide(color: colors.glassLine),
-        shape: _shape,
-        textStyle: _textStyle,
+        child: Text(label),
       ),
-      child: Text(label),
     );
   }
 }

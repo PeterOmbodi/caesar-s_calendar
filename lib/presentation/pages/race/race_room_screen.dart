@@ -14,6 +14,7 @@ import 'package:caesar_puzzle/presentation/pages/race/widgets/race_scaffold.dart
 import 'package:caesar_puzzle/presentation/pages/race/widgets/room_code_card.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -102,23 +103,35 @@ class _RoomBody extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final hint = TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.only(top: 20),
+            padding: const EdgeInsets.only(top: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 RoomCodeCard(code: room.code),
-                const SizedBox(height: 20),
-                Text(S.current.racePlayers, style: hint),
-                const SizedBox(height: 8),
-                _PlayersCard(room: room, myUid: me.uid),
-                const SizedBox(height: 16),
-                Text(S.current.raceRulesLine, textAlign: TextAlign.center, style: hint),
+                const SizedBox(height: 28),
+                InsetSection(
+                  header: S.current.racePlayers,
+                  footer: S.current.raceRulesLine,
+                  children: [
+                    for (final player in room.players)
+                      _PlayerRow(player: player, isMe: player.uid == me.uid, isHost: player.uid == room.hostUid),
+                    for (var i = room.players.length; i < room.maxPlayers; i++)
+                      InsetRow(
+                        leading: CircleAvatar(
+                          radius: 16,
+                          backgroundColor: colors.gridLine,
+                          child: Icon(Icons.person_outline, size: 18, color: colors.textSecondary),
+                        ),
+                        title: S.current.raceWaitingOpponent,
+                        titleColor: colors.textSecondary,
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -126,38 +139,6 @@ class _RoomBody extends StatelessWidget {
         const SizedBox(height: 12),
         _LobbyFooter(room: room, me: me, isBusy: isBusy),
       ],
-    );
-  }
-}
-
-class _PlayersCard extends StatelessWidget {
-  const _PlayersCard({required this.room, required this.myUid});
-
-  final RaceRoom room;
-  final String myUid;
-
-  @override
-  Widget build(final BuildContext context) {
-    final colors = GameColors.of(context);
-    final emptySeats = room.maxPlayers - room.players.length;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.board,
-        border: Border.all(color: colors.boardBorder),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          for (final (index, player) in room.players.indexed) ...[
-            if (index > 0) Divider(height: 1, color: colors.gridLine),
-            _PlayerRow(player: player, isMe: player.uid == myUid, isHost: player.uid == room.hostUid),
-          ],
-          for (var i = 0; i < emptySeats; i++) ...[
-            Divider(height: 1, color: colors.gridLine),
-            const _EmptySeat(),
-          ],
-        ],
-      ),
     );
   }
 }
@@ -198,79 +179,31 @@ class _PlayerRow extends StatelessWidget {
     return Semantics(
       label: [player.nickname, ?subtitle, _status].join(', '),
       excludeSemantics: true,
-      child: SizedBox(
-        height: 68,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              AccountAvatar(
-                photoUrl: null,
-                fallbackLabel: AccountDisplay.avatarInitials(player.nickname),
-                radius: 20,
-                backgroundColor: colors.player(player.colorIndex),
-                labelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      player.nickname,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 16, height: 21 / 16, fontWeight: FontWeight.w600, color: colors.text),
-                    ),
-                    if (subtitle != null)
-                      Text(
-                        subtitle,
-                        style: TextStyle(fontSize: 13, height: 17 / 13, color: colors.textSecondary),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              if (!player.online || isReady) ...[
-                Icon(player.online ? Icons.check : Icons.flag, size: 18, color: statusColor),
-                const SizedBox(width: 6),
-              ],
-              Text(
-                _status,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: !player.online || isReady ? FontWeight.w600 : FontWeight.w400,
-                  color: statusColor,
-                ),
-              ),
-            ],
-          ),
+      child: InsetRow(
+        leading: AccountAvatar(
+          photoUrl: null,
+          fallbackLabel: AccountDisplay.avatarInitials(player.nickname),
+          radius: 16,
+          backgroundColor: colors.player(player.colorIndex),
+          labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
         ),
-      ),
-    );
-  }
-}
-
-class _EmptySeat extends StatelessWidget {
-  const _EmptySeat();
-
-  @override
-  Widget build(final BuildContext context) {
-    final colors = GameColors.of(context);
-    return SizedBox(
-      height: 68,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
+        title: player.nickname,
+        subtitle: subtitle,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: colors.gridLine,
-              child: Icon(Icons.person_outline, size: 20, color: colors.textSecondary),
+            if (!player.online || isReady) ...[
+              Icon(player.online ? Icons.check : Icons.flag, size: 18, color: statusColor),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              _status,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: !player.online || isReady ? FontWeight.w600 : FontWeight.w400,
+                color: statusColor,
+              ),
             ),
-            const SizedBox(width: 12),
-            Text(S.current.raceWaitingOpponent, style: TextStyle(fontSize: 15, color: colors.textSecondary)),
           ],
         ),
       ),

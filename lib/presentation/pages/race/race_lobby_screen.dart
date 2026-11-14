@@ -5,6 +5,7 @@ import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
 import 'package:caesar_puzzle/application/race/race_room_code.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_room_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_buttons.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_scaffold.dart';
@@ -13,6 +14,8 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_displa
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -137,10 +140,6 @@ class _EntryForm extends StatelessWidget {
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     final hint = TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary);
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(color: colors.boardBorder),
-    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -160,31 +159,82 @@ class _EntryForm extends StatelessWidget {
             ],
           ),
         ),
-        TextField(
-          controller: code,
+        _CodeField(controller: code, error: error, onSubmitted: onJoin),
+        const SizedBox(height: 12),
+        RaceSecondaryButton(label: S.current.raceJoin, onPressed: onJoin),
+      ],
+    );
+  }
+}
+
+class _CodeField extends StatelessWidget {
+  const _CodeField({required this.controller, required this.error, required this.onSubmitted});
+
+  final TextEditingController controller;
+  final String? error;
+  final VoidCallback onSubmitted;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final error = this.error;
+    final style = TextStyle(fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: 12, color: colors.text);
+    final formatters = [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]'))];
+    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
+      return TextField(
+        controller: controller,
+        maxLength: RaceRoomCode.length,
+        textAlign: TextAlign.center,
+        textCapitalization: TextCapitalization.characters,
+        autocorrect: false,
+        enableSuggestions: false,
+        inputFormatters: formatters,
+        onSubmitted: (_) => onSubmitted(),
+        style: style,
+        decoration: InputDecoration(
+          labelText: S.current.raceJoinLabel,
+          floatingLabelBehavior: FloatingLabelBehavior.always,
+          counterText: '',
+          errorText: error,
+          errorMaxLines: 3,
+          border: const OutlineInputBorder(),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Text(
+            S.current.raceJoinLabel,
+            style: TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w600, color: colors.text),
+          ),
+        ),
+        CupertinoTextField(
+          controller: controller,
           maxLength: RaceRoomCode.length,
           textAlign: TextAlign.center,
           textCapitalization: TextCapitalization.characters,
           autocorrect: false,
           enableSuggestions: false,
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]'))],
-          onSubmitted: (_) => onJoin(),
-          style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: 12, color: colors.text),
-          decoration: InputDecoration(
-            labelText: S.current.raceJoinLabel,
-            floatingLabelBehavior: FloatingLabelBehavior.always,
-            counterText: '',
-            errorText: error,
-            errorMaxLines: 3,
-            filled: true,
-            fillColor: colors.board,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            border: border,
-            enabledBorder: border,
+          inputFormatters: formatters,
+          onSubmitted: (_) => onSubmitted(),
+          style: style,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: colors.board,
+            borderRadius: const BorderRadius.all(Radius.circular(InsetSection.radius)),
           ),
         ),
-        const SizedBox(height: 12),
-        RaceSecondaryButton(label: S.current.raceJoin, onPressed: onJoin),
+        if (error != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Text(
+              error,
+              style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.bad),
+            ),
+          ),
       ],
     );
   }
