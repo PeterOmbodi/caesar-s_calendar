@@ -187,26 +187,11 @@ class _RaceButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
-  Widget build(final BuildContext context) {
-    final colors = GameColors.of(context);
-    return Tooltip(
-      message: S.current.raceTitle,
-      child: Material(
-        color: colors.active,
-        shape: const CircleBorder(),
-        elevation: 4,
-        shadowColor: colors.shadow,
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPressed,
-          child: SizedBox.square(
-            dimension: GlassCircleButton.defaultSize,
-            child: Icon(Icons.sports_score, size: 22, color: colors.onActive, semanticLabel: S.current.raceTitle),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(final BuildContext context) => GlassCircleButton(
+    tooltip: S.current.raceTitle,
+    onPressed: onPressed,
+    child: Icon(Icons.sports_score, size: 22, color: GameColors.of(context).icon),
+  );
 }
 
 class _SettingsButton extends StatelessWidget {
