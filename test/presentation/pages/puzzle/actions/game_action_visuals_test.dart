@@ -8,7 +8,7 @@ void main() {
   const withoutShortcut = {
     GameActionId.solutionCounter,
     GameActionId.howToPlay,
-    GameActionId.rematch,
+    GameActionId.newRace,
     GameActionId.leaveRace,
   };
 

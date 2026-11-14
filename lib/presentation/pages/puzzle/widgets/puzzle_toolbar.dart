@@ -50,13 +50,13 @@ class RaceToolbarControls {
   const RaceToolbarControls({
     required this.phase,
     required this.isHost,
-    required this.onRematch,
+    required this.onNewRace,
     required this.onLeave,
   });
 
   final RacePhase phase;
   final bool isHost;
-  final VoidCallback onRematch;
+  final VoidCallback onNewRace;
   final VoidCallback onLeave;
 }
 
@@ -178,8 +178,8 @@ class PuzzleToolbar extends StatelessWidget {
         puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx + 1));
       case GameActionId.solutionCounter:
         break;
-      case GameActionId.rematch:
-        race?.onRematch();
+      case GameActionId.newRace:
+        race?.onNewRace();
       case GameActionId.leaveRace:
         race?.onLeave();
       case GameActionId.closeSolutions:

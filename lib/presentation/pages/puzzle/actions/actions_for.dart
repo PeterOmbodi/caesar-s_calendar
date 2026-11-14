@@ -12,7 +12,7 @@ List<GameAction> actionsFor(
   if (mode == PuzzleMode.race) {
     if (racePhase == RacePhase.over) {
       return [
-        if (isRaceHost) const GameAction(GameActionId.rematch, slot: ActionSlot.primary),
+        if (isRaceHost) const GameAction(GameActionId.newRace, slot: ActionSlot.primary),
         const GameAction(GameActionId.leaveRace, slot: ActionSlot.primary),
       ];
     }

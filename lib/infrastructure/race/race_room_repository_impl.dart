@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/application/race/race_entitlements.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 import 'package:caesar_puzzle/application/race/race_room_code.dart';
+import 'package:caesar_puzzle/application/race/race_rules.dart';
 import 'package:caesar_puzzle/infrastructure/auth/auth_service.dart';
 import 'package:caesar_puzzle/infrastructure/race/race_room_mapper.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -22,7 +23,6 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
   static const _connectWait = Duration(seconds: 3);
   static const _staleAfter = Duration(hours: 2);
   static const _createAttempts = 5;
-  static const _graceSec = 60;
 
   final FirebaseDatabase _database;
   final AuthService _auth;
@@ -77,7 +77,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
     }
     final player = _player(code, uid);
     if (room.player(uid) != null) {
-      await _guard(player.update({'online': true}));
+      await _comeBack(code, uid, room);
     } else {
       if (room.status != RaceRoomStatus.lobby) {
         throw const RaceRoomException(RaceRoomFailure.started);
@@ -263,7 +263,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
         'hostUid': uid,
         'status': RaceRoomStatus.lobby.name,
         'maxPlayers': RaceEntitlements.duel.maxPlayers,
-        'settings': {'graceSec': _graceSec, 'hints': 0},
+        'settings': {'graceSec': RaceRules.graceSec, 'hints': 0},
         'round': 1,
         'createdAt': ServerValue.timestamp,
         'players/$uid': _newPlayer(profile),
@@ -381,10 +381,20 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
     }
     try {
       await _registerDisconnect();
-      await _guard(_player(code, uid).update({'online': true}));
+      await _comeBack(code, uid, await _read(code));
     } on RaceRoomException {
       // The next reconnect tries again.
     }
+  }
+
+  Future<void> _comeBack(final String code, final String uid, final RaceRoom? room) async {
+    final me = room?.player(uid);
+    // The others already count a player away this long as out; coming back must not reopen the race for them.
+    final isOut =
+        room?.status == RaceRoomStatus.playing &&
+        me != null &&
+        RaceRules.isOut(me, nowMs: serverNow().millisecondsSinceEpoch);
+    await _guard(_player(code, uid).update({'online': true, if (isOut) 'gaveUp': true}));
   }
 
   Future<T> _guard<T>(final Future<T> operation, {final RaceRoomFailure? denied}) async {

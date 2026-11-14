@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/help/gesture_demo.dart';
 import 'package:caesar_puzzle/presentation/help/how_to_play_content.dart';
+import 'package:caesar_puzzle/presentation/help/race_rules_content.dart';
 import 'package:caesar_puzzle/presentation/help/records_rules_content.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/services/keyboard_presence.dart';
@@ -35,6 +36,7 @@ class _HowToPlayBody extends StatelessWidget {
       builder: (final context, final hasKeyboard, _) => HelpSectionsView(
         sections: [
           ...howToPlaySections(apple: apple, hasKeyboard: hasKeyboard),
+          raceRulesSection(),
           recordsRulesSection(),
           achievementsRulesSection(),
         ],

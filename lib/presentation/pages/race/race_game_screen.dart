@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:caesar_puzzle/application/race/noop_session_recorder.dart';
 import 'package:caesar_puzzle/application/race/race_lights.dart';
+import 'package:caesar_puzzle/application/race/race_result.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 import 'package:caesar_puzzle/application/race/race_rules.dart';
 import 'package:caesar_puzzle/application/race/race_settings_query.dart';
@@ -18,11 +19,13 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/glass_chrome.dart
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_haptics.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_sounds.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_toolbar.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
 import 'package:caesar_puzzle/presentation/pages/race/bloc/race_room_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/countdown_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_header.dart';
+import 'package:caesar_puzzle/presentation/pages/race/widgets/race_result_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_standings.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
@@ -118,8 +121,8 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
     } else if (_stoppedAtMs == null && ((me?.gaveUp ?? false) || _isOver)) {
       _stoppedAtMs = min(now, RaceRules.endsAtMs(room) ?? now);
     }
-    // No room update announces the start or the end of the time to finish.
-    final wakeAt = !_isStarted ? widget.startAtMs : (_isOver ? null : RaceRules.endsAtMs(room));
+    // No room update announces the start, the end of the time to finish or an offline player running out of time.
+    final wakeAt = !_isStarted ? widget.startAtMs : (_isOver ? null : RaceRules.nextDeadlineMs(room, nowMs: now));
     if (wakeAt != null) {
       _phaseTimer = Timer(Duration(milliseconds: max(0, wakeAt - now)), () {
         if (mounted) {
@@ -250,7 +253,7 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
                                 ? RacePhase.waiting
                                 : RacePhase.racing,
                             isHost: room.hostUid == widget.myUid,
-                            onRematch: () => unawaited(_cubit.rematch()),
+                            onNewRace: () => unawaited(_cubit.rematch()),
                             onLeave: () => Navigator.of(context).pop(),
                           ),
                           accessory: besideTray ? null : standings,
@@ -258,6 +261,7 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
                       ),
                     ),
                     if (besideTray) _StandingsSlot(child: standings),
+                    if (_isOver) _ResultSlot(room: room, myUid: widget.myUid, nowMs: _nowMs),
                     _HeaderSlot(
                       onHeight: (final height) {
                         if (mounted && height != _headerHeight) {
@@ -331,4 +335,41 @@ class _StandingsSlot extends StatelessWidget {
       );
     },
   );
+}
+
+class _ResultSlot extends StatelessWidget {
+  const _ResultSlot({required this.room, required this.myUid, required this.nowMs});
+
+  final RaceRoom room;
+  final String myUid;
+  final int nowMs;
+
+  @override
+  Widget build(final BuildContext context) {
+    final standings = RaceResult.of(room, nowMs: nowMs);
+    final isWinner = standings.any((final s) => s.player.uid == myUid && s.isWinner);
+    final hostCanStart = room.hostUid != myUid && (room.player(room.hostUid)?.online ?? false);
+    final reserved = GameChrome.reservedInsets(context);
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          Padding(
+            padding: reserved + const EdgeInsets.all(16),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: RaceResultSheet(
+                standings: standings,
+                myUid: myUid,
+                note: hostCanStart ? S.current.raceNewRaceByHost : null,
+              ),
+            ),
+          ),
+          if (isWinner && !MediaQuery.disableAnimationsOf(context))
+            const IgnorePointer(
+              child: Align(alignment: Alignment.topCenter, child: ConfettiView()),
+            ),
+        ],
+      ),
+    );
+  }
 }

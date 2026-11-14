@@ -5,11 +5,19 @@ import 'package:flutter_test/flutter_test.dart';
 
 const _startAt = 1000000;
 
-RacePlayer _player(final String uid, {final int? durationMs, final bool gaveUp = false}) => RacePlayer(
+RacePlayer _player(
+  final String uid, {
+  final int? durationMs,
+  final bool gaveUp = false,
+  final bool online = true,
+  final int? lastSeen,
+}) => RacePlayer(
   uid: uid,
   nickname: uid,
   colorIndex: 0,
   joinedAt: 0,
+  online: online,
+  lastSeen: lastSeen,
   ready: true,
   nonce: 1,
   durationMs: durationMs,
@@ -83,6 +91,35 @@ void main() {
       _player('d'),
       _player('e', durationMs: 90000),
     ];
-    expect(RaceRules.standings(players).map((final p) => p.uid), ['e', 'c', 'b', 'd', 'a']);
+    expect(RaceRules.standings(players, nowMs: _startAt).map((final p) => p.uid), ['e', 'c', 'b', 'd', 'a']);
+  });
+
+  group('connection', () {
+    final offline = _player('b', online: false, lastSeen: _startAt + 10000);
+
+    test('an offline player is out after the time to come back', () {
+      expect(RaceRules.isOut(offline, nowMs: _startAt + 39999), isFalse);
+      expect(RaceRules.isOut(offline, nowMs: _startAt + 40000), isTrue);
+    });
+
+    test('an opponent who stays offline loses the race', () {
+      final room = _room([_player('a'), offline]);
+      expect(RaceRules.isOver(room, nowMs: _startAt + 39999), isFalse);
+      expect(RaceRules.isOver(room, nowMs: _startAt + 40000), isTrue);
+    });
+
+    test('a finisher is never out', () {
+      expect(RaceRules.isOut(_player('b', durationMs: 5000, online: false, lastSeen: 0), nowMs: _startAt), isFalse);
+    });
+
+    test('the next deadline is the earliest of the time to come back and the end of the race', () {
+      expect(RaceRules.nextDeadlineMs(_room([_player('a'), offline]), nowMs: _startAt + 20000), _startAt + 40000);
+      expect(RaceRules.nextDeadlineMs(_room([_player('a'), _player('b')]), nowMs: _startAt), _startAt + 600000);
+    });
+
+    test('a player out of the race comes after those still racing', () {
+      final players = [offline, _player('a')];
+      expect(RaceRules.standings(players, nowMs: _startAt + 40000).map((final p) => p.uid), ['a', 'b']);
+    });
   });
 }

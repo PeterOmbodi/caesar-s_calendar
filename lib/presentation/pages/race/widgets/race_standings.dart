@@ -36,7 +36,7 @@ class RaceStandings extends StatelessWidget {
   Widget build(final BuildContext context) {
     final chrome = ChromeTheme.of(context);
     final colors = GameColors.of(context);
-    final standings = RaceRules.standings(players);
+    final standings = RaceRules.standings(players, nowMs: now().millisecondsSinceEpoch);
     // Information, like the race clock, so the same flat glass; the toolbar's Liquid Glass is for controls.
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -93,7 +93,7 @@ class _StandingsItem extends StatelessWidget {
       return S.current.raceGaveUp;
     }
     if (!player.online) {
-      return S.current.raceOffline;
+      return RaceRules.isOut(player, nowMs: now().millisecondsSinceEpoch) ? S.current.raceOut : S.current.raceOffline;
     }
     return isStarted ? S.current.raceProgress(player.placed, totalPieces) : S.current.raceReady;
   }
