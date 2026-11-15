@@ -23,4 +23,14 @@ void main() {
       expect(RaceRoomCode.normalize(input), isNull, reason: input);
     }
   });
+
+  test('fromLink reads the code from a room link', () {
+    expect(RaceRoomCode.fromLink(RaceRoomCode.link('K7M4P')), 'K7M4P');
+    expect(RaceRoomCode.fromLink(Uri.parse('https://peterombodi.github.io/caesar-s_calendar/?race=k7m4p')), 'K7M4P');
+  });
+
+  test('fromLink ignores links without a valid code', () {
+    expect(RaceRoomCode.fromLink(Uri.parse('https://peterombodi.github.io/caesar-s_calendar/')), isNull);
+    expect(RaceRoomCode.fromLink(Uri.parse('https://peterombodi.github.io/caesar-s_calendar/?race=K0M4P')), isNull);
+  });
 }

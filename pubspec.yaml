@@ -28,6 +28,7 @@ dependencies:
   flutter_platform_widgets: ^10.0.1
   shared_preferences: ^2.5.5
   url_launcher: ^6.3.2
+  app_links: ^6.4.1
   share_plus: ^13.3.1
   qr_flutter: ^4.1.0
   cross_file: ^0.3.4

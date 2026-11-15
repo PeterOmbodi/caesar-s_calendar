@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.peter_ombodi.caesar_puzzle",
+      "sha256_cert_fingerprints": [
+        "AF:4F:0F:F7:11:79:B7:82:7D:B7:98:B9:9C:A3:93:BC:D8:30:74:74:DC:7A:F8:28:AE:B5:39:28:88:2C:77:46",
+        "FB:99:ED:EF:6C:CC:01:C0:C4:0B:B8:90:A3:2B:E5:CD:88:29:77:E4:77:E1:4D:FF:A1:1F:4E:73:69:1A:77:31"
+      ]
+    }
+  }
+]

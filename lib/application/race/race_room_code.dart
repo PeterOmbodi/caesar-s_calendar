@@ -11,6 +11,12 @@ abstract final class RaceRoomCode {
   /// Opens the web version with the room's code filled in.
   static Uri link(final String code) => _webVersion.replace(queryParameters: {linkParameter: code});
 
+  /// The room's code from a [link] made by [link], or null when it carries none.
+  static String? fromLink(final Uri link) {
+    final value = link.queryParameters[linkParameter];
+    return value == null ? null : normalize(value);
+  }
+
   static String generate([final Random? random]) {
     final source = random ?? Random.secure();
     return String.fromCharCodes([
