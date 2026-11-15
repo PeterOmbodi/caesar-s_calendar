@@ -22,10 +22,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RaceLobbyScreen extends StatefulWidget {
-  const RaceLobbyScreen({super.key, this.initialCode});
+  const RaceLobbyScreen({super.key, this.initialCode, this.linkCodes});
 
   /// Code from a room link.
   final String? initialCode;
+
+  /// Codes of room links opened while the race is open; taken only while the lobby is on screen.
+  final Stream<String>? linkCodes;
 
   @override
   State<RaceLobbyScreen> createState() => _RaceLobbyScreenState();
@@ -33,12 +36,31 @@ class RaceLobbyScreen extends StatefulWidget {
 
 class _RaceLobbyScreenState extends State<RaceLobbyScreen> {
   late final TextEditingController _code = TextEditingController(text: widget.initialCode);
+  StreamSubscription<String>? _linkSubscription;
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    _linkSubscription = widget.linkCodes?.listen(_onLinkCode);
+  }
+
+  @override
   void dispose() {
+    unawaited(_linkSubscription?.cancel());
     _code.dispose();
     super.dispose();
+  }
+
+  // A link must not pull the player out of a room or a race.
+  void _onLinkCode(final String code) {
+    if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? false)) {
+      return;
+    }
+    setState(() {
+      _code.text = code;
+      _error = null;
+    });
   }
 
   Future<void> _join() async {

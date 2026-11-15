@@ -61,6 +61,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   late final StreamSubscription<PuzzleState> _feedbackSubscription;
   late final StreamSubscription<String> _roomLinkSubscription;
   final _roomLinks = RoomLinks();
+  final _lobbyLinkCodes = StreamController<String>.broadcast();
   PuzzleSettingsPanelController _settingsPanelController = const PuzzleSettingsPanelController();
   final _boardKey = GlobalKey();
   final _raceButtonKey = GlobalKey();
@@ -113,6 +114,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       _roomLinkSubscription.cancel();
       _layoutsCubit.close();
     }
+    unawaited(_lobbyLinkCodes.close());
     unawaited(_sounds.dispose());
     super.dispose();
   }
@@ -335,14 +337,23 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     _isRacing = true;
     // The daily game's clock must not run while its player is racing.
     _puzzleBloc.suspendTimer();
-    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => RaceLobbyScreen(initialCode: code)));
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RaceLobbyScreen(initialCode: code, linkCodes: _lobbyLinkCodes.stream),
+      ),
+    );
     _puzzleBloc.resumeTimer();
     _isRacing = false;
   }
 
-  // The launching link is taken by _greet; one that arrives while racing is dropped.
+  // The launching link is taken by _greet; one that arrives while racing goes to the lobby, which drops it in a room.
   void _onRoomLink(final String code) {
-    if (_isGreetingDone && mounted) {
+    if (!_isGreetingDone || !mounted) {
+      return;
+    }
+    if (_isRacing) {
+      _lobbyLinkCodes.add(code);
+    } else {
       unawaited(_openRace(code: code));
     }
   }
