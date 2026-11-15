@@ -101,6 +101,35 @@
             "gaveUp": {
               ".validate": "newData.isBoolean()"
             },
+            "board": {
+              ".validate": "newData.hasChildren(['at'])",
+              "at": {
+                ".validate": "newData.val() === now"
+              },
+              "pieces": {
+                "$pieceId": {
+                  ".validate": "$pieceId.matches(/^[A-Za-z]{1,12}(-Shape)?$/) && newData.hasChildren(['row', 'col', 'rot', 'flip'])",
+                  "row": {
+                    ".validate": "newData.isNumber() && newData.val() >= -3 && newData.val() <= 9"
+                  },
+                  "col": {
+                    ".validate": "newData.isNumber() && newData.val() >= -3 && newData.val() <= 9"
+                  },
+                  "rot": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3"
+                  },
+                  "flip": {
+                    ".validate": "newData.isBoolean()"
+                  },
+                  "$other": {
+                    ".validate": false
+                  }
+                }
+              },
+              "$other": {
+                ".validate": false
+              }
+            },
             "$other": {
               ".validate": false
             }

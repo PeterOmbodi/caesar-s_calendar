@@ -1,3 +1,5 @@
+import 'package:caesar_puzzle/application/race/race_board.dart';
+
 class RacePlayer {
   const RacePlayer({
     required this.uid,
@@ -11,6 +13,7 @@ class RacePlayer {
     this.placed = 0,
     this.durationMs,
     this.gaveUp = false,
+    this.board,
   });
 
   final String uid;
@@ -31,6 +34,8 @@ class RacePlayer {
   final int? durationMs;
   final bool gaveUp;
 
+  final RaceBoard? board;
+
   bool get hasFinished => durationMs != null;
 
   @override
@@ -47,9 +52,22 @@ class RacePlayer {
           other.nonce == nonce &&
           other.placed == placed &&
           other.durationMs == durationMs &&
-          other.gaveUp == gaveUp;
+          other.gaveUp == gaveUp &&
+          other.board == board;
 
   @override
-  int get hashCode =>
-      Object.hash(uid, nickname, colorIndex, joinedAt, online, lastSeen, ready, nonce, placed, durationMs, gaveUp);
+  int get hashCode => Object.hash(
+    uid,
+    nickname,
+    colorIndex,
+    joinedAt,
+    online,
+    lastSeen,
+    ready,
+    nonce,
+    placed,
+    durationMs,
+    gaveUp,
+    board,
+  );
 }

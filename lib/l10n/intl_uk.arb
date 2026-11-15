@@ -295,6 +295,7 @@
   "raceRulesLine": "Випадкова дата · стандартна розкладка · без підказок",
   "raceShare": "Поділитися",
   "raceShareText": "Позмагаймося в {app}! Код кімнати: {code}\n{link}",
+  "raceShowBoard": "Показати дошку",
   "raceSignInRequired": "Увійди, щоб змагатися з іншими гравцями.",
   "raceStart": "Старт",
   "raceTitle": "Гонка",

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:caesar_puzzle/application/contracts/race_room_repository.dart';
+import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 
 /// In-memory room repository: tests push room states with [emit] and read what was called from [calls].
@@ -75,6 +76,10 @@ class FakeRaceRoomRepository implements RaceRoomRepository {
 
   @override
   Future<void> giveUp(final String code) async => _record('giveUp');
+
+  @override
+  Future<void> publishBoard(final String code, final RaceBoard board) async =>
+      _record('board ${board.pieces.map((final p) => p.pieceId).join(',')}');
 
   @override
   Future<void> rematch(final String code, {required final int round}) async => _record('rematch round $round');

@@ -2,6 +2,7 @@ import 'package:caesar_puzzle/application/contracts/race_room_repository.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_puzzle.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
+import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/presentation/pages/race/bloc/race_room_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -219,6 +220,22 @@ void main() {
       repository.nextFailure = RaceRoomFailure.offline;
       await cubit.finish();
       expect(repository.calls.where((final c) => c.startsWith('finish')), ['finish 42000', 'finish 42000']);
+    });
+
+    test('the final board goes out once a round', () async {
+      await open(racing(), code: 'K7M4P');
+      await cubit.publishBoard([PlacementParams('Square', 0, 0, 0, false)]);
+      await cubit.publishBoard(const []);
+      expect(repository.calls.where((final c) => c.startsWith('board')), ['board Square']);
+    });
+
+    test('a failed board is retried', () async {
+      await cubit.close();
+      cubit = RaceRoomCubit(repository, finishRetryDelay: Duration.zero);
+      await open(racing(), code: 'K7M4P');
+      repository.nextFailure = RaceRoomFailure.offline;
+      await cubit.publishBoard(const []);
+      expect(repository.calls.where((final c) => c.startsWith('board')), ['board ', 'board ']);
     });
 
     test('giving up is sent', () async {

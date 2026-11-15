@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:caesar_puzzle/application/contracts/race_room_repository.dart';
+import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_puzzle.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
+import 'package:caesar_puzzle/core/models/placement.dart';
 
 enum RaceRoomPhase { entering, open, closed, failed }
 
@@ -47,6 +49,7 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
   StreamSubscription<RaceRoom?>? _subscription;
   bool _hasLeft = false;
   bool _isFinishing = false;
+  bool _isBoardPublished = false;
   Timer? _progressTimer;
   int? _sentPlaced;
   int? _pendingPlaced;
@@ -135,6 +138,23 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
     }
   }
 
+  Future<void> publishBoard(final Iterable<PlacementParams> pieces) async {
+    final code = state.code;
+    if (code == null || _isBoardPublished) {
+      return;
+    }
+    _isBoardPublished = true;
+    final board = RaceBoard(pieces);
+    for (var attempt = 0; attempt < _finishAttempts && !_hasLeft && !isClosed; attempt++) {
+      try {
+        await _repository.publishBoard(code, board);
+        return;
+      } on RaceRoomException {
+        await Future<void>.delayed(finishRetryDelay);
+      }
+    }
+  }
+
   Future<void> rematch() => _run((final code, final room) => _repository.rematch(code, round: room.round + 1));
 
   Future<void> leave() async {
@@ -162,6 +182,7 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
     }
     if (room?.status == RaceRoomStatus.lobby) {
       _isFinishing = false;
+      _isBoardPublished = false;
       _progressTimer?.cancel();
       _progressTimer = null;
       _sentPlaced = null;

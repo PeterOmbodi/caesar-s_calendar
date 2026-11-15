@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 
@@ -48,6 +49,7 @@ abstract final class RaceRoomMapper {
       placed: isCurrent ? _int(data['placed']) ?? 0 : 0,
       durationMs: isCurrent ? _int(data['durationMs']) : null,
       gaveUp: isCurrent && data['gaveUp'] == true,
+      board: isCurrent ? RaceBoard.fromValue(data['board']) : null,
     );
   }
 

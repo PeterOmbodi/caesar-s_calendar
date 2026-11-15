@@ -295,6 +295,7 @@
   "raceRulesLine": "Random date · standard layout · no hints",
   "raceShare": "Share",
   "raceShareText": "Race me in {app}! Room code: {code}\n{link}",
+  "raceShowBoard": "Show the board",
   "raceSignInRequired": "Sign in to race with other players.",
   "raceStart": "Start",
   "raceTitle": "Race",

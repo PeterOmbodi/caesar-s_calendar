@@ -41,6 +41,7 @@ part 'puzzle_bloc.freezed.dart';
 part 'puzzle_event.dart';
 part 'puzzle_history_input_extension.dart';
 part 'puzzle_state.dart';
+part 'puzzle_state_placements.dart';
 part 'puzzle_bloc_layout.dart';
 part 'puzzle_bloc_drag.dart';
 part 'puzzle_bloc_pieces_actions.dart';

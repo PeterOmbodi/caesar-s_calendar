@@ -1,6 +1,9 @@
+import 'package:caesar_puzzle/application/race/race_board.dart';
+import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_result.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_time_format.dart';
+import 'package:caesar_puzzle/presentation/pages/race/widgets/race_board_preview.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:collection/collection.dart';
@@ -8,12 +11,30 @@ import 'package:flutter/material.dart';
 
 /// Folds down to its title so that the final board can be seen.
 class RaceResultSheet extends StatefulWidget {
-  const RaceResultSheet({super.key, required this.standings, required this.myUid, this.note});
+  const RaceResultSheet({
+    super.key,
+    required this.standings,
+    required this.myUid,
+    required this.myBoard,
+    required this.totalPieces,
+    required this.shownUid,
+    required this.onShowBoard,
+    this.note,
+  });
 
   static const double maxWidth = 480;
+  static const double _boardMaxHeight = 280;
 
   final List<RaceStanding> standings;
   final String myUid;
+
+  /// From the game, not from the room.
+  final RaceBoard myBoard;
+  final int totalPieces;
+
+  /// Null shows the table.
+  final String? shownUid;
+  final ValueChanged<String?> onShowBoard;
 
   final String? note;
 
@@ -23,6 +44,19 @@ class RaceResultSheet extends StatefulWidget {
 
 class _RaceResultSheetState extends State<RaceResultSheet> {
   var _isExpanded = true;
+
+  var _isOpening = true;
+
+  @override
+  void didUpdateWidget(final RaceResultSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.shownUid != oldWidget.shownUid) {
+      _isOpening = widget.shownUid != null;
+    }
+  }
+
+  // An online player publishes the board in a moment.
+  bool _hasBoard(final RacePlayer player) => player.uid == widget.myUid || player.board != null || player.online;
 
   String get _title {
     final me = widget.standings.firstWhereOrNull((final s) => s.player.uid == widget.myUid);
@@ -43,6 +77,7 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
+    final shown = widget.standings.firstWhereOrNull((final s) => s.player.uid == widget.shownUid);
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: RaceResultSheet.maxWidth),
       child: DecoratedBox(
@@ -54,55 +89,68 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 12, child: CustomPaint(painter: _CheckeredPainter())),
-              Semantics(
-                button: true,
-                label: _isExpanded ? S.current.raceResultsHide : S.current.raceResultsShow,
-                child: InkWell(
-                  onTap: () => setState(() => _isExpanded = !_isExpanded),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _title,
-                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.text),
-                              ),
-                              if (widget.note case final note?)
-                                Text(note, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
-                            ],
+          // Ink is drawn on the nearest Material; it must lie above the sheet's colour.
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 12, child: CustomPaint(painter: _CheckeredPainter())),
+                Semantics(
+                  button: true,
+                  label: _isExpanded ? S.current.raceResultsHide : S.current.raceResultsShow,
+                  child: InkWell(
+                    onTap: () => setState(() => _isExpanded = !_isExpanded),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _title,
+                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.text),
+                                ),
+                                if (widget.note case final note?)
+                                  Text(note, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+                              ],
+                            ),
                           ),
-                        ),
-                        Icon(_isExpanded ? Icons.expand_more : Icons.expand_less, color: colors.icon),
-                      ],
+                          Icon(_isExpanded ? Icons.expand_more : Icons.expand_less, color: colors.icon),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              AnimatedSize(
-                duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 200),
-                alignment: Alignment.topCenter,
-                child: _isExpanded
-                    ? Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Column(
-                          children: [
-                            for (final standing in widget.standings)
-                              _ResultRow(standing: standing, isMe: standing.player.uid == widget.myUid),
-                          ],
-                        ),
-                      )
-                    : const SizedBox(width: double.infinity),
-              ),
-            ],
+                AnimatedSize(
+                  duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 200),
+                  alignment: Alignment.topCenter,
+                  child: _isExpanded
+                      ? _SlidingPages(
+                          isOpening: _isOpening,
+                          child: shown == null
+                              ? _ResultTable(
+                                  key: const ValueKey<String?>(null),
+                                  standings: widget.standings,
+                                  myUid: widget.myUid,
+                                  onShowBoard: (final player) =>
+                                      _hasBoard(player) ? () => widget.onShowBoard(player.uid) : null,
+                                )
+                              : _BoardPage(
+                                  key: ValueKey<String?>(shown.player.uid),
+                                  standing: shown,
+                                  board: shown.player.uid == widget.myUid ? widget.myBoard : shown.player.board,
+                                  totalPieces: widget.totalPieces,
+                                  onBack: () => widget.onShowBoard(null),
+                                ),
+                        )
+                      : const SizedBox(width: double.infinity),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -116,11 +164,179 @@ String _outcomeText(final RaceOutcome outcome) => switch (outcome) {
   RaceOutcome.finished || RaceOutcome.notFinished => S.current.raceResultNotFinished,
 };
 
+/// Slides the new page in from the right when opening a board, from the left when going back.
+class _SlidingPages extends StatelessWidget {
+  const _SlidingPages({required this.isOpening, required this.child});
+
+  final bool isOpening;
+  final Widget child;
+
+  @override
+  Widget build(final BuildContext context) => AnimatedSwitcher(
+    duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 200),
+    switchInCurve: Curves.easeOutCubic,
+    switchOutCurve: Curves.easeInCubic,
+    // Only the incoming page sizes the sheet, so its height follows the new page alone.
+    layoutBuilder: (final current, final previous) => Stack(
+      children: [
+        for (final page in previous) Positioned(left: 0, top: 0, right: 0, child: page),
+        ?current,
+      ],
+    ),
+    transitionBuilder: (final page, final animation) {
+      final isIncoming = page.key == child.key;
+      final dx = (isIncoming ? 1.0 : -1.0) * (isOpening ? 1 : -1);
+      return ClipRect(
+        child: SlideTransition(
+          position: Tween(begin: Offset(dx, 0), end: Offset.zero).animate(animation),
+          child: page,
+        ),
+      );
+    },
+    child: child,
+  );
+}
+
+class _ResultTable extends StatelessWidget {
+  const _ResultTable({super.key, required this.standings, required this.myUid, required this.onShowBoard});
+
+  final List<RaceStanding> standings;
+  final String myUid;
+
+  /// Null for a player without a board.
+  final VoidCallback? Function(RacePlayer player) onShowBoard;
+
+  @override
+  Widget build(final BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Column(
+      children: [
+        for (final standing in standings)
+          _ResultRow(
+            standing: standing,
+            isMe: standing.player.uid == myUid,
+            onTap: onShowBoard(standing.player),
+          ),
+      ],
+    ),
+  );
+}
+
+class _BoardPage extends StatelessWidget {
+  const _BoardPage({
+    super.key,
+    required this.standing,
+    required this.board,
+    required this.totalPieces,
+    required this.onBack,
+  });
+
+  static const double _backSwipeVelocity = 300;
+
+  final RaceStanding standing;
+
+  /// Null until the player's board arrives.
+  final RaceBoard? board;
+  final int totalPieces;
+  final VoidCallback onBack;
+
+  String get _result {
+    final time = standing.player.durationMs;
+    final board = this.board;
+    return [
+      if (time != null) formatRaceTime(time, tenths: true) else if (!standing.isWinner) _outcomeText(standing.outcome),
+      if (time == null && board != null) S.current.raceProgress(board.pieces.length, totalPieces),
+    ].join(' · ');
+  }
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    final player = standing.player;
+    final board = this.board;
+    return GestureDetector(
+      onHorizontalDragEnd: (final details) {
+        if ((details.primaryVelocity ?? 0) > _backSwipeVelocity) {
+          onBack();
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 0, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                  onPressed: onBack,
+                  icon: Icon(Icons.chevron_left, color: colors.icon),
+                ),
+                _PlayerAvatar(player: player),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        player.nickname,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.text),
+                      ),
+                      if (_result.isNotEmpty)
+                        Text(
+                          _result,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: colors.textSecondary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: RaceResultSheet._boardMaxHeight),
+              child: board == null
+                  ? const SizedBox(
+                      height: RaceResultSheet._boardMaxHeight,
+                      child: Center(child: CircularProgressIndicator.adaptive()),
+                    )
+                  : RaceBoardPreview(board: board),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlayerAvatar extends StatelessWidget {
+  const _PlayerAvatar({required this.player});
+
+  final RacePlayer player;
+
+  @override
+  Widget build(final BuildContext context) => AccountAvatar(
+    photoUrl: null,
+    fallbackLabel: AccountDisplay.avatarInitials(player.nickname),
+    radius: 15,
+    backgroundColor: GameColors.of(context).player(player.colorIndex),
+    labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+  );
+}
+
 class _ResultRow extends StatelessWidget {
-  const _ResultRow({required this.standing, required this.isMe});
+  const _ResultRow({required this.standing, required this.isMe, required this.onTap});
 
   final RaceStanding standing;
   final bool isMe;
+
+  final VoidCallback? onTap;
 
   @override
   Widget build(final BuildContext context) {
@@ -135,63 +351,72 @@ class _ResultRow extends StatelessWidget {
     final gapText = gap == null || gap == 0 ? null : formatRaceGap(gap);
     return Semantics(
       label: [?standing.place?.toString(), player.nickname, if (result.isNotEmpty) result, ?gapText].join(', '),
+      button: onTap != null,
+      hint: onTap == null ? null : S.current.raceShowBoard,
       excludeSemantics: true,
-      child: ColoredBox(
-        color: isMe ? colors.accent.withValues(alpha: 0.12) : Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24,
-                child: Text(
-                  standing.place?.toString() ?? '–',
-                  style: TextStyle(fontSize: 16, color: colors.textSecondary, fontFeatures: figures),
-                ),
-              ),
-              const SizedBox(width: 8),
-              AccountAvatar(
-                photoUrl: null,
-                fallbackLabel: AccountDisplay.avatarInitials(player.nickname),
-                radius: 15,
-                backgroundColor: colors.player(player.colorIndex),
-                labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  player.nickname,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isMe ? FontWeight.w600 : FontWeight.w400,
-                    color: colors.text,
+      child: InkWell(
+        onTap: onTap,
+        child: Ink(
+          color: isMe ? colors.accent.withValues(alpha: 0.12) : Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 12, 8),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  child: Text(
+                    standing.place?.toString() ?? '–',
+                    style: TextStyle(fontSize: 16, color: colors.textSecondary, fontFeatures: figures),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (result.isNotEmpty)
-                    Text(
-                      result,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: time == null ? FontWeight.w400 : FontWeight.w600,
-                        color: time == null ? colors.textSecondary : colors.text,
-                        fontFeatures: figures,
+                const SizedBox(width: 8),
+                _PlayerAvatar(player: player),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    player.nickname,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: isMe ? FontWeight.w600 : FontWeight.w400,
+                      color: colors.text,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (result.isNotEmpty)
+                      Text(
+                        result,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: time == null ? FontWeight.w400 : FontWeight.w600,
+                          color: time == null ? colors.textSecondary : colors.text,
+                          fontFeatures: figures,
+                        ),
                       ),
-                    ),
-                  if (gapText != null)
-                    Text(
-                      gapText,
-                      style: TextStyle(fontSize: 13, color: colors.textSecondary, fontFeatures: figures),
-                    ),
-                ],
-              ),
-            ],
+                    if (gapText != null)
+                      Text(
+                        gapText,
+                        style: TextStyle(fontSize: 13, color: colors.textSecondary, fontFeatures: figures),
+                      ),
+                  ],
+                ),
+                // The same width with or without the arrow keeps the times aligned.
+                SizedBox(
+                  width: 28,
+                  child: onTap == null
+                      ? null
+                      : Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: Icon(Icons.chevron_right, color: colors.textSecondary),
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

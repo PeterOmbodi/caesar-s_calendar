@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:caesar_puzzle/application/race/noop_session_recorder.dart';
+import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_lights.dart';
 import 'package:caesar_puzzle/application/race/race_result.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
@@ -76,6 +77,9 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
 
   /// Server time when this player solved, gave up or the board closed.
   int? _stoppedAtMs;
+
+  String? _shownBoardUid;
+  var _hasRacedHere = false;
   double _headerHeight = 0;
 
   int get _nowMs => _cubit.serverNow().millisecondsSinceEpoch;
@@ -120,6 +124,13 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
       _stoppedAtMs = widget.startAtMs + duration;
     } else if (_stoppedAtMs == null && ((me?.gaveUp ?? false) || _isOver)) {
       _stoppedAtMs = min(now, RaceRules.endsAtMs(room) ?? now);
+    }
+    // After a restart the board here is new and empty; it must not replace the published one.
+    if (_isStarted && !_isOver) {
+      _hasRacedHere = true;
+    }
+    if (_isOver && _hasRacedHere && me != null && me.board == null) {
+      unawaited(_cubit.publishBoard(_bloc.state.piecePlacements));
     }
     // No room update announces the start, the end of the time to finish or an offline player running out of time.
     final wakeAt = !_isStarted ? widget.startAtMs : (_isOver ? null : RaceRules.nextDeadlineMs(room, nowMs: now));
@@ -168,6 +179,10 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
       state.pieces.where((final p) => !p.isConfigItem && p.placeZone == PlaceZone.grid).length;
 
   Future<void> _onLeave() async {
+    if (_shownBoardUid != null) {
+      setState(() => _shownBoardUid = null);
+      return;
+    }
     if (_isMyRaceDone) {
       Navigator.of(context).pop();
       return;
@@ -261,7 +276,16 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
                       ),
                     ),
                     if (besideTray) _StandingsSlot(child: standings),
-                    if (_isOver) _ResultSlot(room: room, myUid: widget.myUid, nowMs: _nowMs),
+                    if (_isOver)
+                      _ResultSlot(
+                        room: room,
+                        myUid: widget.myUid,
+                        nowMs: _nowMs,
+                        myBoard: RaceBoard(_bloc.state.piecePlacements),
+                        totalPieces: _bloc.state.pieces.where((final p) => !p.isConfigItem).length,
+                        shownBoardUid: _shownBoardUid,
+                        onShowBoard: (final uid) => setState(() => _shownBoardUid = uid),
+                      ),
                     _HeaderSlot(
                       onHeight: (final height) {
                         if (mounted && height != _headerHeight) {
@@ -338,11 +362,23 @@ class _StandingsSlot extends StatelessWidget {
 }
 
 class _ResultSlot extends StatelessWidget {
-  const _ResultSlot({required this.room, required this.myUid, required this.nowMs});
+  const _ResultSlot({
+    required this.room,
+    required this.myUid,
+    required this.nowMs,
+    required this.myBoard,
+    required this.totalPieces,
+    required this.shownBoardUid,
+    required this.onShowBoard,
+  });
 
   final RaceRoom room;
   final String myUid;
   final int nowMs;
+  final RaceBoard myBoard;
+  final int totalPieces;
+  final String? shownBoardUid;
+  final ValueChanged<String?> onShowBoard;
 
   @override
   Widget build(final BuildContext context) {
@@ -361,6 +397,10 @@ class _ResultSlot extends StatelessWidget {
                 standings: standings,
                 myUid: myUid,
                 note: hostCanStart ? S.current.raceNewRaceByHost : null,
+                myBoard: myBoard,
+                totalPieces: totalPieces,
+                shownUid: shownBoardUid,
+                onShowBoard: onShowBoard,
               ),
             ),
           ),

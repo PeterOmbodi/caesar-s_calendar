@@ -458,21 +458,8 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     return result;
   }
 
-  PuzzlePieceUI _applyPlacementToPiece(final PuzzlePieceUI piece, final PlacementParams params) {
-    final cellSize = state.gridConfig.cellSize;
-    final origin = state.gridConfig.origin;
-    final dx = params.col * cellSize;
-    final dy = params.row * cellSize;
-    final targetOffset = Offset(origin.dx + dx, origin.dy + dy);
-
-    final updatedPiece = piece.copyWith(
-      isFlipped: params.isFlipped,
-      position: targetOffset,
-      rotation: params.rotationSteps * PuzzleBloc.rotationStep,
-      placeZone: PlaceZone.grid,
-    );
-    return updatedPiece;
-  }
+  PuzzlePieceUI _applyPlacementToPiece(final PuzzlePieceUI piece, final PlacementParams params) =>
+      state.placedAt(piece, params);
 
   double _stepRotation(final double value) => (value + PuzzleBloc.rotationStep) % PuzzleBloc.fullRotation;
 

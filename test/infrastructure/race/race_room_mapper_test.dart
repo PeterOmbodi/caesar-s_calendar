@@ -1,4 +1,6 @@
+import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
+import 'package:caesar_puzzle/core/models/placement.dart';
 import 'package:caesar_puzzle/infrastructure/race/race_room_mapper.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -61,7 +63,18 @@ void main() {
           'firstFinishAt': 9000.0,
         },
         players: {
-          'host': _player(extra: {'placed': 8.0, 'durationMs': 7000.0}),
+          'host': _player(
+            extra: {
+              'placed': 8.0,
+              'durationMs': 7000.0,
+              'board': {
+                'at': 9500,
+                'pieces': {
+                  'Square': {'row': 2.0, 'col': 3.0, 'rot': 0.0, 'flip': false},
+                },
+              },
+            },
+          ),
           'guest': _player(joinedAt: 1500, extra: {'placed': 5, 'online': false, 'lastSeen': 8000, 'gaveUp': true}),
         },
       ),
@@ -72,6 +85,8 @@ void main() {
     final host = room.player('host')!;
     final guest = room.player('guest')!;
     expect((host.placed, host.durationMs, host.hasFinished), (8, 7000, true));
+    expect(host.board, RaceBoard([PlacementParams('Square', 2, 3, 0, false)]));
+    expect(room.player('guest')!.board, isNull);
     expect(
       (guest.placed, guest.online, guest.lastSeen, guest.gaveUp, guest.hasFinished),
       (5, false, 8000, true, false),
@@ -94,12 +109,21 @@ void main() {
         extra: {'round': 2},
         players: {
           'host': _player(round: 2),
-          'guest': _player(joinedAt: 1500, extra: {'placed': 8, 'durationMs': 7000, 'gaveUp': true}),
+          'guest': _player(
+            joinedAt: 1500,
+            extra: {
+              'placed': 8,
+              'durationMs': 7000,
+              'gaveUp': true,
+              'board': {'at': 9500},
+            },
+          ),
         },
       ),
     )!;
     final guest = room.player('guest')!;
     expect((guest.ready, guest.nonce, guest.placed, guest.durationMs, guest.gaveUp), (false, null, 0, null, false));
+    expect(guest.board, isNull);
     expect(room.player('host')!.ready, isTrue);
     expect(room.canStart, isFalse);
   });

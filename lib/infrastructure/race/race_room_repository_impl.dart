@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:caesar_puzzle/application/contracts/race_room_repository.dart';
+import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_entitlements.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
@@ -159,6 +160,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
       'durationMs': null,
       'finishedAt': null,
       'gaveUp': null,
+      'board': null,
     }),
   );
 
@@ -211,6 +213,10 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
 
   @override
   Future<void> giveUp(final String code) => _guard(_player(code, _requireUid()).update({'gaveUp': true}));
+
+  @override
+  Future<void> publishBoard(final String code, final RaceBoard board) =>
+      _guard(_player(code, _requireUid()).update({'board': board.toValue(publishedAt: ServerValue.timestamp)}));
 
   @override
   Future<void> rematch(final String code, {required final int round}) async {

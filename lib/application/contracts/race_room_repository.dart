@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 
 enum RaceRoomFailure {
@@ -57,6 +58,9 @@ abstract class RaceRoomRepository {
   Future<void> finish(final String code, {required final int durationMs});
 
   Future<void> giveUp(final String code);
+
+  /// Only once the race is over for the player: earlier, the others could see it.
+  Future<void> publishBoard(final String code, final RaceBoard board);
 
   /// Host only: back to the lobby for the next round.
   Future<void> rematch(final String code, {required final int round});
