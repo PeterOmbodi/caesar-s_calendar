@@ -11,6 +11,7 @@ import 'package:caesar_puzzle/presentation/pages/race/race_failure_text.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_game_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_buttons.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_scaffold.dart';
+import 'package:caesar_puzzle/presentation/pages/race/widgets/race_store_links.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/room_code_card.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
@@ -132,6 +133,7 @@ class _RoomBody extends StatelessWidget {
                       ),
                   ],
                 ),
+                const RaceStoreLinks(),
               ],
             ),
           ),

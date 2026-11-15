@@ -9,10 +9,10 @@ import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_room_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_buttons.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_scaffold.dart';
+import 'package:caesar_puzzle/presentation/pages/race/widgets/race_store_links.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
-import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:flutter/cupertino.dart';
@@ -110,7 +110,7 @@ class _RaceLobbyScreenState extends State<RaceLobbyScreen> {
                     )
                   else
                     const _SignInGate(),
-                  const _StoreLinks(),
+                  const RaceStoreLinks(),
                   const Spacer(),
                   const SizedBox(height: 24),
                   Text(
@@ -259,28 +259,4 @@ class _SignInGate extends StatelessWidget {
       ),
     ],
   );
-}
-
-/// Web only: a phone visitor who came by a room link may prefer the app.
-class _StoreLinks extends StatelessWidget {
-  const _StoreLinks();
-
-  @override
-  Widget build(final BuildContext context) {
-    final links = webStoreLinks().where((final link) => link.url != null).toList();
-    if (links.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 8,
-        children: [
-          for (final link in links)
-            TextButton.icon(onPressed: () => openStoreLink(link), icon: Icon(link.icon), label: Text(link.title)),
-        ],
-      ),
-    );
-  }
 }

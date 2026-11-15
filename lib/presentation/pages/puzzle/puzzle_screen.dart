@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:caesar_puzzle/application/contracts/board_layout_repository.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
-import 'package:caesar_puzzle/application/race/race_room_code.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/services/timer_service.dart';
 import 'package:caesar_puzzle/domain/services/calendar_cells.dart';
@@ -21,6 +20,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.da
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_toolbar.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_lobby_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/race/room_links.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
@@ -34,7 +34,6 @@ import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
 import 'package:caesar_puzzle/presentation/widgets/game_background.dart';
 import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart' show kDoubleTapTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -60,6 +59,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   late final PuzzleBloc _puzzleBloc;
   late final BoardLayoutsCubit _layoutsCubit;
   late final StreamSubscription<PuzzleState> _feedbackSubscription;
+  late final StreamSubscription<String> _roomLinkSubscription;
+  final _roomLinks = RoomLinks();
   PuzzleSettingsPanelController _settingsPanelController = const PuzzleSettingsPanelController();
   final _boardKey = GlobalKey();
   final _raceButtonKey = GlobalKey();
@@ -68,6 +69,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   var _isStartCardOpen = false;
   var _isPieceTipRequested = false;
   var _hasGreeted = false;
+  var _isGreetingDone = false;
+  var _isRacing = false;
   double _headerHeight = 0;
 
   @override
@@ -98,6 +101,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         _sounds.playClick();
       }
     });
+    _roomLinkSubscription = _roomLinks.codes.listen(_onRoomLink);
     _isInitialized = true;
   }
 
@@ -106,6 +110,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     if (_isInitialized) {
       _puzzleBloc.close();
       _feedbackSubscription.cancel();
+      _roomLinkSubscription.cancel();
       _layoutsCubit.close();
     }
     unawaited(_sounds.dispose());
@@ -324,10 +329,22 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   RenderBox? get _boardBox => _boardKey.currentContext?.findRenderObject() as RenderBox?;
 
   Future<void> _openRace({final String? code}) async {
+    if (_isRacing) {
+      return;
+    }
+    _isRacing = true;
     // The daily game's clock must not run while its player is racing.
     _puzzleBloc.suspendTimer();
     await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => RaceLobbyScreen(initialCode: code)));
     _puzzleBloc.resumeTimer();
+    _isRacing = false;
+  }
+
+  // The launching link is taken by _greet; one that arrives while racing is dropped.
+  void _onRoomLink(final String code) {
+    if (_isGreetingDone && mounted) {
+      unawaited(_openRace(code: code));
+    }
   }
 
   // Once per launch: the first-run card, then a room link's lobby or the note about the new button.
@@ -341,7 +358,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     if (!mounted) {
       return;
     }
-    final linkCode = kIsWeb ? RaceRoomCode.normalize(Uri.base.queryParameters[RaceRoomCode.linkParameter] ?? '') : null;
+    final linkCode = await _roomLinks.initialCode();
+    _isGreetingDone = true;
+    if (!mounted) {
+      return;
+    }
     if (linkCode != null) {
       await _openRace(code: linkCode);
     } else if (!isFirstRun) {
