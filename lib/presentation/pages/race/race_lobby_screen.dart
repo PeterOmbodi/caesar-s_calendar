@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:caesar_puzzle/application/contracts/race_room_repository.dart';
 import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
 import 'package:caesar_puzzle/application/race/race_room_code.dart';
+import 'package:caesar_puzzle/application/race/solver_level.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
@@ -49,30 +50,45 @@ class _RaceLobbyScreenState extends State<RaceLobbyScreen> {
     await _openRoom(code);
   }
 
-  Future<void> _openRoom(final String? code) async {
+  // Without an account only the race against the solver is open.
+  RaceProfile _profile() {
     final user = context.read<AuthCubit>().state.user;
     if (user == null) {
-      return;
+      return RaceProfile(nickname: S.current.raceYou, colorIndex: 0);
     }
     final showName = context.read<PublicProfileCubit>().state.showName;
-    final profile = RaceProfile(
+    return RaceProfile(
       nickname: NicknameGenerator.nickname(
         uid: user.uid,
         displayName: showName ? AccountDisplay.bestDisplayName(user) : null,
       ),
       colorIndex: NicknameGenerator.colorIndex(user.uid),
     );
+  }
+
+  Future<void> _openRoom(final String? code, {final SolverLevel? solverLevel}) async {
+    if (solverLevel == null && context.read<AuthCubit>().state.user == null) {
+      return;
+    }
+    final profile = _profile();
     setState(() => _error = null);
     final error =
         await Navigator.of(
           context,
         ).push(
           MaterialPageRoute<String>(
-            builder: (_) => RaceRoomScreen(profile: profile, code: code),
+            builder: (_) => RaceRoomScreen(profile: profile, code: code, solverLevel: solverLevel),
           ),
         );
     if (mounted) {
       setState(() => _error = error);
+    }
+  }
+
+  Future<void> _raceSolver() async {
+    final level = await _pickSolverLevel(context);
+    if (level != null && mounted) {
+      await _openRoom(null, solverLevel: level);
     }
   }
 
@@ -110,6 +126,14 @@ class _RaceLobbyScreenState extends State<RaceLobbyScreen> {
                     )
                   else
                     const _SignInGate(),
+                  const _OrDivider(),
+                  RaceSecondaryButton(label: S.current.raceVsSolver, onPressed: () => unawaited(_raceSolver())),
+                  const SizedBox(height: 12),
+                  Text(
+                    S.current.raceVsSolverHint,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
+                  ),
                   const RaceStoreLinks(),
                   const Spacer(),
                   const SizedBox(height: 24),
@@ -146,23 +170,36 @@ class _EntryForm extends StatelessWidget {
         RacePrimaryButton(label: S.current.raceCreate, onPressed: onCreate),
         const SizedBox(height: 12),
         Text(S.current.raceCreateHint, textAlign: TextAlign.center, style: hint),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 32),
-          child: Row(
-            children: [
-              Expanded(child: Divider(height: 1, color: colors.gridLine)),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(S.current.raceOr, style: hint),
-              ),
-              Expanded(child: Divider(height: 1, color: colors.gridLine)),
-            ],
-          ),
-        ),
+        const _OrDivider(),
         _CodeField(controller: code, error: error, onSubmitted: onJoin),
         const SizedBox(height: 12),
         RaceSecondaryButton(label: S.current.raceJoin, onPressed: onJoin),
       ],
+    );
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Row(
+        children: [
+          Expanded(child: Divider(height: 1, color: colors.gridLine)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              S.current.raceOr,
+              style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
+            ),
+          ),
+          Expanded(child: Divider(height: 1, color: colors.gridLine)),
+        ],
+      ),
     );
   }
 }
@@ -258,5 +295,56 @@ class _SignInGate extends StatelessWidget {
         onPressed: () => unawaited(showAccountSectionSheet(context)),
       ),
     ],
+  );
+}
+
+String _levelName(final SolverLevel level) => switch (level) {
+  SolverLevel.novice => S.current.raceSolverNovice,
+  SolverLevel.confident => S.current.raceSolverConfident,
+  SolverLevel.master => S.current.raceSolverMaster,
+};
+
+Future<SolverLevel?> _pickSolverLevel(final BuildContext context) => ScreenSpec.of(context).family == ChromeFamily.glass
+    ? showCupertinoModalPopup<SolverLevel>(context: context, builder: (_) => const _SolverLevelActionSheet())
+    : showModalBottomSheet<SolverLevel>(
+        context: context,
+        showDragHandle: true,
+        builder: (_) => const _SolverLevelBottomSheet(),
+      );
+
+class _SolverLevelActionSheet extends StatelessWidget {
+  const _SolverLevelActionSheet();
+
+  @override
+  Widget build(final BuildContext context) => CupertinoActionSheet(
+    title: Text(S.current.raceSolverLevelTitle),
+    actions: [
+      for (final level in SolverLevel.values)
+        CupertinoActionSheetAction(
+          onPressed: () => Navigator.of(context).pop(level),
+          child: Text(_levelName(level)),
+        ),
+    ],
+    cancelButton: CupertinoActionSheetAction(
+      isDefaultAction: true,
+      onPressed: () => Navigator.of(context).pop(),
+      child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+    ),
+  );
+}
+
+class _SolverLevelBottomSheet extends StatelessWidget {
+  const _SolverLevelBottomSheet();
+
+  @override
+  Widget build(final BuildContext context) => SafeArea(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(title: Text(S.current.raceSolverLevelTitle, style: Theme.of(context).textTheme.titleMedium)),
+        for (final level in SolverLevel.values)
+          ListTile(title: Text(_levelName(level)), onTap: () => Navigator.of(context).pop(level)),
+      ],
+    ),
   );
 }

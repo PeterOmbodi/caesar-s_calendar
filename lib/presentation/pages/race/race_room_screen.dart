@@ -4,11 +4,15 @@ import 'package:caesar_puzzle/application/contracts/race_room_repository.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_puzzle.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
+import 'package:caesar_puzzle/application/race/solver_level.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/infrastructure/race/solver_race_repository.dart';
 import 'package:caesar_puzzle/injection.dart';
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/race/bloc/race_room_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_failure_text.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_game_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/race/solver_pieces.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_buttons.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_scaffold.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_store_links.dart';
@@ -21,19 +25,30 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Pops with a message when the room could not be entered or is gone.
 class RaceRoomScreen extends StatefulWidget {
-  const RaceRoomScreen({super.key, required this.profile, this.code});
+  const RaceRoomScreen({super.key, required this.profile, this.code, this.solverLevel});
 
   final RaceProfile profile;
 
   /// Null to create a room.
   final String? code;
 
+  /// A race against the solver on this device; it starts by itself, without the lobby.
+  final SolverLevel? solverLevel;
+
   @override
   State<RaceRoomScreen> createState() => _RaceRoomScreenState();
 }
 
 class _RaceRoomScreenState extends State<RaceRoomScreen> {
-  late final RaceRoomCubit _cubit = RaceRoomCubit(getIt<RaceRoomRepository>());
+  late final RaceRoomCubit _cubit = RaceRoomCubit(switch (widget.solverLevel) {
+    final level? => SolverRaceRepository(
+      pieces: standardSolverPieces(),
+      grid: solverGrid,
+      level: level,
+      solverNickname: S.current.raceSolverName,
+    ),
+    null => getIt<RaceRoomRepository>(),
+  });
 
   @override
   void initState() {
@@ -55,6 +70,10 @@ class _RaceRoomScreenState extends State<RaceRoomScreen> {
         Navigator.of(context).pop(S.current.raceRoomClosed);
       case RaceRoomPhase.entering:
       case RaceRoomPhase.open:
+        final room = state.room;
+        if (widget.solverLevel != null && room != null && room.status == RaceRoomStatus.lobby && room.canStart) {
+          unawaited(_cubit.start());
+        }
         final failure = state.failure;
         if (failure != null) {
           ScaffoldMessenger.of(context)
@@ -85,7 +104,7 @@ class _RaceRoomScreenState extends State<RaceRoomScreen> {
         }
         return RaceScaffold(
           title: S.current.raceRoomTitle,
-          child: room == null || me == null
+          child: room == null || me == null || widget.solverLevel != null
               ? const Center(child: CircularProgressIndicator.adaptive())
               : _RoomBody(room: room, me: me, isBusy: state.isBusy),
         );
@@ -104,6 +123,7 @@ class _RoomBody extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
+    final isMaterial = ScreenSpec.of(context).family != ChromeFamily.glass;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -125,7 +145,9 @@ class _RoomBody extends StatelessWidget {
                       InsetRow(
                         leading: CircleAvatar(
                           radius: 16,
-                          backgroundColor: colors.gridLine,
+                          backgroundColor: isMaterial
+                              ? Theme.of(context).colorScheme.surfaceContainerHighest
+                              : colors.gridLine,
                           child: Icon(Icons.person_outline, size: 18, color: colors.textSecondary),
                         ),
                         title: S.current.raceWaitingOpponent,
@@ -200,11 +222,13 @@ class _PlayerRow extends StatelessWidget {
             ],
             Text(
               _status,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: !player.online || isReady ? FontWeight.w600 : FontWeight.w400,
-                color: statusColor,
-              ),
+              style: ScreenSpec.of(context).family != ChromeFamily.glass
+                  ? Theme.of(context).textTheme.labelLarge?.copyWith(color: statusColor)
+                  : TextStyle(
+                      fontSize: 14,
+                      fontWeight: !player.online || isReady ? FontWeight.w600 : FontWeight.w400,
+                      color: statusColor,
+                    ),
             ),
           ],
         ),
@@ -237,6 +261,9 @@ class _LobbyFooter extends StatelessWidget {
   Widget build(final BuildContext context) {
     final cubit = context.read<RaceRoomCubit>();
     final colors = GameColors.of(context);
+    final theme = Theme.of(context);
+    final isMaterial = ScreenSpec.of(context).family != ChromeFamily.glass;
+    final gap = isMaterial ? 12.0 : 10.0;
     final isHost = room.hostUid == me.uid;
     final hint = _hint;
     return Column(
@@ -246,16 +273,18 @@ class _LobbyFooter extends StatelessWidget {
           Text(
             hint,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
+            style: isMaterial
+                ? theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)
+                : TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: gap),
         ],
         if (!me.ready)
           RacePrimaryButton(label: S.current.raceImReady, onPressed: isBusy ? null : () => cubit.setReady(ready: true))
         else ...[
           if (isHost) ...[
             RacePrimaryButton(label: S.current.raceStart, onPressed: room.canStart && !isBusy ? cubit.start : null),
-            const SizedBox(height: 10),
+            SizedBox(height: gap),
           ],
           RaceSecondaryButton(
             label: S.current.raceCancelReady,

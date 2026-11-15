@@ -28,6 +28,14 @@ class RoomCodeCard extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
+    final theme = Theme.of(context);
+    final isMaterial = ScreenSpec.of(context).family != ChromeFamily.glass;
+    final hintStyle = isMaterial
+        ? theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)
+        : TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary);
+    final codeStyle = isMaterial
+        ? theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 10)
+        : TextStyle(fontSize: 36, height: 42 / 36, fontWeight: FontWeight.w700, letterSpacing: 10, color: colors.text);
     return InsetSection(
       children: [
         Padding(
@@ -50,7 +58,7 @@ class RoomCodeCard extends StatelessWidget {
               Text(
                 S.current.raceRoomCodeHint,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
+                style: hintStyle,
               ),
               const SizedBox(height: 12),
               Semantics(
@@ -58,16 +66,7 @@ class RoomCodeCard extends StatelessWidget {
                 excludeSemantics: true,
                 child: Padding(
                   padding: const EdgeInsets.only(left: 10),
-                  child: SelectableText(
-                    code,
-                    style: TextStyle(
-                      fontSize: 36,
-                      height: 42 / 36,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 10,
-                      color: colors.text,
-                    ),
-                  ),
+                  child: SelectableText(code, style: codeStyle),
                 ),
               ),
               const SizedBox(height: 12),
@@ -89,7 +88,7 @@ class _ShareButton extends StatelessWidget {
   Widget build(final BuildContext context) {
     final label = Text(S.current.raceShare);
     if (ScreenSpec.of(context).family != ChromeFamily.glass) {
-      return OutlinedButton.icon(onPressed: onPressed, icon: const Icon(Icons.share), label: label);
+      return FilledButton.tonalIcon(onPressed: onPressed, icon: const Icon(Icons.share), label: label);
     }
     return CupertinoButton.tinted(
       onPressed: onPressed,

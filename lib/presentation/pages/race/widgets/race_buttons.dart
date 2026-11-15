@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 const double _height = 50;
+const double _materialHeight = 40;
 
 class RacePrimaryButton extends StatelessWidget {
   const RacePrimaryButton({super.key, required this.label, required this.onPressed});
@@ -16,7 +17,7 @@ class RacePrimaryButton extends StatelessWidget {
     if (ScreenSpec.of(context).family != ChromeFamily.glass) {
       return FilledButton(
         onPressed: onPressed,
-        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(_height)),
+        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(_materialHeight)),
         child: Text(label),
       );
     }
@@ -43,7 +44,7 @@ class RaceSecondaryButton extends StatelessWidget {
     if (ScreenSpec.of(context).family != ChromeFamily.glass) {
       return OutlinedButton(
         onPressed: onPressed,
-        style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(_height)),
+        style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(_materialHeight)),
         child: Text(label),
       );
     }
