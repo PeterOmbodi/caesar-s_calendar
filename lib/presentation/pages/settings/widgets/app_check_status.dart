@@ -21,9 +21,8 @@ class _AppCheckStatusDialogState extends State<_AppCheckStatusDialog> {
     title: const Text('App Check'),
     content: FutureBuilder(
       future: _status,
-      builder: (final context, final snapshot) => snapshot.hasData
-          ? SelectableText(snapshot.data!)
-          : const Center(child: CircularProgressIndicator.adaptive()),
+      builder: (final context, final snapshot) =>
+          snapshot.hasData ? SelectableText(snapshot.data!) : const Center(child: CircularProgressIndicator.adaptive()),
     ),
     actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
   );
