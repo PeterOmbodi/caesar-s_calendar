@@ -22,7 +22,7 @@ HelpSection raceRulesSection() => HelpSection(
     HelpItem(
       icon: Icons.sports_score,
       title: S.current.helpRaceFinishTitle,
-      body: S.current.helpRaceFinishBody(RaceRules.graceSec, RaceRules.timeLimit.inMinutes),
+      body: S.current.helpRaceFinishBody(RaceRules.timeLimit.inMinutes),
     ),
     HelpItem(icon: Icons.flag_outlined, title: S.current.raceGiveUp, body: S.current.helpRaceGiveUpBody),
     HelpItem(

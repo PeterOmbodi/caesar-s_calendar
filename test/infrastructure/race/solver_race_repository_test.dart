@@ -84,16 +84,29 @@ void main() {
     expect(room().firstFinishAt, room().startAt! + solver.durationMs!);
   });
 
-  test('when the player finishes first, the solver has the time to finish and then shows where it stopped', () async {
+  test('when the player finishes first, the race ends at once and the solver shows where it stopped', () async {
     await open(SolverLevel.confident);
     await start();
     await at(const Duration(seconds: 10));
     await repository.finish(code, durationMs: 10000);
-    await at(Duration(seconds: 11 + RaceRules.graceSec));
+    await Future<void>.delayed(Duration.zero);
+    expect(RaceRules.isOver(room(), nowMs: now.millisecondsSinceEpoch), isTrue);
+    await at(const Duration(seconds: 11));
     final solver = room().player(_solver)!;
     expect(solver.hasFinished, isFalse);
     expect(solver.board, isNotNull);
-    expect(RaceRules.isOver(room(), nowMs: now.millisecondsSinceEpoch), isTrue);
+  });
+
+  test('when the solver finishes first, the player has the time to finish', () async {
+    await open(SolverLevel.master);
+    await start();
+    await at(SolverLevel.master.maxTime + const Duration(seconds: 1));
+    final solved = room().firstFinishAt!;
+    expect(room().player(_solver)!.hasFinished, isTrue);
+    expect(RaceRules.isOver(room(), nowMs: solved + (RaceRules.graceSec - 1) * 1000), isFalse);
+    await repository.finish(code, durationMs: solved - room().startAt! + 5000);
+    await Future<void>.delayed(Duration.zero);
+    expect(room().graceSec, RaceRules.graceSec);
   });
 
   test('giving up ends the race and shows the solver board', () async {
@@ -115,5 +128,6 @@ void main() {
     expect((room().status, room().round, room().startAt, room().firstFinishAt), (RaceRoomStatus.lobby, 2, null, null));
     expect(room().players.every((final p) => !p.hasFinished && p.board == null), isTrue);
     expect(room().canStart, isTrue);
+    expect(room().graceSec, RaceRules.graceSec);
   });
 }

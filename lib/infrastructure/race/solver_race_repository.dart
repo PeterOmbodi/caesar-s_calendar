@@ -124,7 +124,13 @@ class SolverRaceRepository implements RaceRoomRepository {
   @override
   Future<void> finish(final String code, {required final int durationMs}) async {
     _updatePlayer(myUid, (final p) => _copyPlayer(p, durationMs: durationMs));
-    _markFirstFinish(_nowMs);
+    final room = _room;
+    if (room != null && room.player(solverUid)?.hasFinished == false) {
+      // Unlike a person, the solver does not need the time to finish: it would only delay the result.
+      _set(_copyRoom(room, firstFinishAt: room.firstFinishAt ?? _nowMs, graceSec: 0));
+    } else {
+      _markFirstFinish(_nowMs);
+    }
   }
 
   @override
@@ -147,7 +153,7 @@ class SolverRaceRepository implements RaceRoomRepository {
         hostUid: room.hostUid,
         status: RaceRoomStatus.lobby,
         maxPlayers: room.maxPlayers,
-        graceSec: room.graceSec,
+        graceSec: RaceRules.graceSec,
         hints: room.hints,
         round: round,
         players: [
@@ -294,12 +300,13 @@ class SolverRaceRepository implements RaceRoomRepository {
     final RaceRoomPuzzle? puzzle,
     final int? startAt,
     final int? firstFinishAt,
+    final int? graceSec,
   }) => RaceRoom(
     code: room.code,
     hostUid: room.hostUid,
     status: status ?? room.status,
     maxPlayers: room.maxPlayers,
-    graceSec: room.graceSec,
+    graceSec: graceSec ?? room.graceSec,
     hints: room.hints,
     round: room.round,
     players: players ?? room.players,
