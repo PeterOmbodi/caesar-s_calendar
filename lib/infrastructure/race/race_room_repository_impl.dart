@@ -160,6 +160,8 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
       'durationMs': null,
       'finishedAt': null,
       'gaveUp': null,
+      'gaveUpAt': null,
+      'outAt': null,
       'board': null,
     }),
   );
@@ -212,7 +214,9 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
   }
 
   @override
-  Future<void> giveUp(final String code) => _guard(_player(code, _requireUid()).update({'gaveUp': true}));
+  Future<void> giveUp(final String code) => _guard(
+    _player(code, _requireUid()).update({'gaveUp': true, 'gaveUpAt': ServerValue.timestamp}),
+  );
 
   @override
   Future<void> publishBoard(final String code, final RaceBoard board) => _guard(
@@ -400,9 +404,18 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
   Future<void> _comeBack(final String code, final String uid, final RaceRoom? room) async {
     final me = room?.player(uid);
     // The others already count a player away this long as out; coming back must not reopen the race for them.
+    final lastSeen = me?.lastSeen;
     final isOut =
-        room != null && me != null && RaceRules.wentOutDuringRace(room, me, nowMs: serverNow().millisecondsSinceEpoch);
-    await _guard(_player(code, uid).update({'online': true, if (isOut) 'gaveUp': true}));
+        room != null &&
+        me != null &&
+        lastSeen != null &&
+        RaceRules.wentOutDuringRace(room, me, nowMs: serverNow().millisecondsSinceEpoch);
+    await _guard(
+      _player(code, uid).update({
+        'online': true,
+        if (isOut) 'outAt': lastSeen + RaceRules.reconnectTime.inMilliseconds,
+      }),
+    );
   }
 
   Future<T> _guard<T>(final Future<T> operation, {final RaceRoomFailure? denied}) async {

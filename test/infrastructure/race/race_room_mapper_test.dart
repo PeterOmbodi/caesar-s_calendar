@@ -75,7 +75,17 @@ void main() {
               },
             },
           ),
-          'guest': _player(joinedAt: 1500, extra: {'placed': 5, 'online': false, 'lastSeen': 8000, 'gaveUp': true}),
+          'guest': _player(
+            joinedAt: 1500,
+            extra: {
+              'placed': 5,
+              'online': false,
+              'lastSeen': 8000,
+              'gaveUp': true,
+              'gaveUpAt': 8500.0,
+              'outAt': 38000.0,
+            },
+          ),
         },
       ),
     )!;
@@ -91,6 +101,7 @@ void main() {
       (guest.placed, guest.online, guest.lastSeen, guest.gaveUp, guest.hasFinished),
       (5, false, 8000, true, false),
     );
+    expect((guest.gaveUpAt, guest.outAt), (8500, 38000));
   });
 
   test('players come in joining order, the uid breaks a tie', () {
@@ -115,6 +126,8 @@ void main() {
               'placed': 8,
               'durationMs': 7000,
               'gaveUp': true,
+              'gaveUpAt': 8500,
+              'outAt': 38000,
               'board': {'at': 9500},
             },
           ),
@@ -123,7 +136,7 @@ void main() {
     )!;
     final guest = room.player('guest')!;
     expect((guest.ready, guest.nonce, guest.placed, guest.durationMs, guest.gaveUp), (false, null, 0, null, false));
-    expect(guest.board, isNull);
+    expect((guest.board, guest.gaveUpAt, guest.outAt), (null, null, null));
     expect(room.player('host')!.ready, isTrue);
     expect(room.canStart, isFalse);
   });

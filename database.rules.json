@@ -101,6 +101,12 @@
             "gaveUp": {
               ".validate": "newData.isBoolean()"
             },
+            "gaveUpAt": {
+              ".validate": "newData.val() === now"
+            },
+            "outAt": {
+              ".validate": "newData.isNumber() && newData.val() === newData.parent().child('lastSeen').val() + 30000 && newData.val() <= now"
+            },
             "board": {
               ".validate": "newData.hasChildren(['at'])",
               "at": {

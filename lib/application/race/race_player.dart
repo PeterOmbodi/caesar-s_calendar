@@ -13,6 +13,8 @@ class RacePlayer {
     this.placed = 0,
     this.durationMs,
     this.gaveUp = false,
+    this.gaveUpAt,
+    this.outAt,
     this.board,
   });
 
@@ -34,6 +36,13 @@ class RacePlayer {
   final int? durationMs;
   final bool gaveUp;
 
+  /// Server time of the give-up; null from a client that did not write it.
+  final int? gaveUpAt;
+
+  /// When the player dropped out of the race by staying away too long, written on coming back, since being
+  /// online again no longer shows it.
+  final int? outAt;
+
   final RaceBoard? board;
 
   bool get hasFinished => durationMs != null;
@@ -53,6 +62,8 @@ class RacePlayer {
           other.placed == placed &&
           other.durationMs == durationMs &&
           other.gaveUp == gaveUp &&
+          other.gaveUpAt == gaveUpAt &&
+          other.outAt == outAt &&
           other.board == board;
 
   @override
@@ -68,6 +79,8 @@ class RacePlayer {
     placed,
     durationMs,
     gaveUp,
+    gaveUpAt,
+    outAt,
     board,
   );
 }

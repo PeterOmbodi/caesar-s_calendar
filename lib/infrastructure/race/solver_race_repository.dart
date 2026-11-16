@@ -134,7 +134,8 @@ class SolverRaceRepository implements RaceRoomRepository {
   }
 
   @override
-  Future<void> giveUp(final String code) async => _updatePlayer(myUid, (final p) => _copyPlayer(p, gaveUp: true));
+  Future<void> giveUp(final String code) async =>
+      _updatePlayer(myUid, (final p) => _copyPlayer(p, gaveUp: true, gaveUpAt: _nowMs));
 
   @override
   Future<void> publishBoard(final String code, final RaceBoard board) async =>
@@ -286,6 +287,7 @@ class SolverRaceRepository implements RaceRoomRepository {
     final int? placed,
     final int? durationMs,
     final bool? gaveUp,
+    final int? gaveUpAt,
     final RaceBoard? board,
   }) => RacePlayer(
     uid: p.uid,
@@ -299,6 +301,8 @@ class SolverRaceRepository implements RaceRoomRepository {
     placed: placed ?? p.placed,
     durationMs: durationMs ?? p.durationMs,
     gaveUp: gaveUp ?? p.gaveUp,
+    gaveUpAt: gaveUpAt ?? p.gaveUpAt,
+    outAt: p.outAt,
     board: board ?? p.board,
   );
 

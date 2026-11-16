@@ -11,14 +11,23 @@ abstract final class RaceRules {
   static const int graceSec = 60;
   static const Duration reconnectTime = Duration(seconds: 30);
 
-  /// Offline for longer than [reconnectTime] in the middle of the race.
+  /// Offline for longer than [reconnectTime] in the middle of the race, by [nowMs].
   static bool isOut(final RacePlayer player, {required final int nowMs}) {
+    if (player.hasFinished || hasGivenUp(player, nowMs: nowMs)) {
+      return false;
+    }
+    final outAt = player.outAt;
+    if (outAt != null && outAt <= nowMs) {
+      return true;
+    }
     final lastSeen = player.lastSeen;
-    return !player.online &&
-        !player.hasFinished &&
-        !player.gaveUp &&
-        lastSeen != null &&
-        nowMs - lastSeen >= reconnectTime.inMilliseconds;
+    return !player.online && lastSeen != null && nowMs - lastSeen >= reconnectTime.inMilliseconds;
+  }
+
+  /// By [nowMs]; a give-up without its time, from an older client, counts at any moment.
+  static bool hasGivenUp(final RacePlayer player, {required final int nowMs}) {
+    final gaveUpAt = player.gaveUpAt;
+    return player.gaveUp && (gaveUpAt == null || gaveUpAt <= nowMs);
   }
 
   /// The player's board from the round that started at [startAtMs]: a retried write from the last round may land
@@ -33,7 +42,7 @@ abstract final class RaceRules {
   }
 
   static bool isRacing(final RacePlayer player, {required final int nowMs}) =>
-      !player.hasFinished && !player.gaveUp && !isOut(player, nowMs: nowMs);
+      !player.hasFinished && !hasGivenUp(player, nowMs: nowMs) && !isOut(player, nowMs: nowMs);
 
   /// Null before anybody solves.
   static int? graceEndsAtMs(final RaceRoom room) {
@@ -84,6 +93,8 @@ abstract final class RaceRules {
       for (final player in room.players) ...[
         if (player.durationMs case final duration?) startAt + duration,
         if (!player.online && player.lastSeen != null) player.lastSeen! + reconnectTime.inMilliseconds,
+        ?player.gaveUpAt,
+        ?player.outAt,
       ],
     }.where((final t) => t <= nowMs).toList()..sort();
     for (final moment in moments) {

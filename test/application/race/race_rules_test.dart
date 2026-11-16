@@ -163,4 +163,26 @@ void main() {
       expect(RaceRules.wentOutDuringRace(room, away, nowMs: _startAt + 200000), isTrue);
     });
   });
+
+  group('moments of leaving the race', () {
+    test('out from the stored moment, online or not', () {
+      final back = RacePlayer(uid: 'a', nickname: 'a', colorIndex: 0, joinedAt: 0, outAt: _startAt + 40000);
+      expect(RaceRules.isOut(back, nowMs: _startAt + 39999), isFalse);
+      expect(RaceRules.isOut(back, nowMs: _startAt + 40000), isTrue);
+    });
+
+    test('a give-up counts from its time, one without a time always', () {
+      final timed = RacePlayer(
+        uid: 'a',
+        nickname: 'a',
+        colorIndex: 0,
+        joinedAt: 0,
+        gaveUp: true,
+        gaveUpAt: _startAt + 5000,
+      );
+      expect(RaceRules.hasGivenUp(timed, nowMs: _startAt + 4999), isFalse);
+      expect(RaceRules.hasGivenUp(timed, nowMs: _startAt + 5000), isTrue);
+      expect(RaceRules.hasGivenUp(_player('a', gaveUp: true), nowMs: _startAt), isTrue);
+    });
+  });
 }

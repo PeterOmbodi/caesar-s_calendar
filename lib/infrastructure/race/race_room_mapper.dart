@@ -50,6 +50,8 @@ abstract final class RaceRoomMapper {
       placed: isCurrent ? _int(data['placed']) ?? 0 : 0,
       durationMs: isCurrent ? _int(data['durationMs']) : null,
       gaveUp: isCurrent && data['gaveUp'] == true,
+      gaveUpAt: isCurrent ? _int(data['gaveUpAt']) : null,
+      outAt: isCurrent ? _int(data['outAt']) : null,
       board: isCurrent ? boardFromValue(data['board']) : null,
     );
   }

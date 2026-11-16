@@ -128,6 +128,7 @@ void main() {
     await repository.giveUp(code);
     await at(const Duration(seconds: 6));
     expect(room().player(_you)!.gaveUp, isTrue);
+    expect(room().player(_you)!.gaveUpAt, isNotNull);
     expect(room().player(_solver)!.board, isNotNull);
   });
 

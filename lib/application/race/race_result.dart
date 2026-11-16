@@ -42,7 +42,10 @@ abstract final class RaceResult {
             place: 1 + times.where((final t) => t < time).length,
             gapMs: time - best!,
           ),
-          RacePlayer(gaveUp: true) => RaceStanding(player: player, outcome: RaceOutcome.gaveUp),
+          _ when RaceRules.hasGivenUp(player, nowMs: nowMs) => RaceStanding(
+            player: player,
+            outcome: RaceOutcome.gaveUp,
+          ),
           _ when RaceRules.isOut(player, nowMs: nowMs) => RaceStanding(player: player, outcome: RaceOutcome.out),
           _ => RaceStanding(player: player, outcome: RaceOutcome.notFinished, place: player == survivor ? 1 : null),
         },

@@ -90,6 +90,35 @@ void main() {
       ]);
     });
 
+    test("the loser's coming back does not take away the win", () {
+      final players = [
+        RacePlayer(
+          uid: 'a',
+          nickname: 'a',
+          colorIndex: 0,
+          joinedAt: 0,
+          lastSeen: _startAt + 10000,
+          outAt: _startAt + 40000,
+        ),
+        _player('b', online: false, lastSeen: _startAt + 100000),
+      ];
+      expect(_result(players, nowMs: _startAt + 200000), [
+        ('b', RaceOutcome.notFinished, 1, null),
+        ('a', RaceOutcome.out, null, null),
+      ]);
+    });
+
+    test('giving up after the opponent dropped out is too late to lose', () {
+      final players = [
+        RacePlayer(uid: 'a', nickname: 'a', colorIndex: 0, joinedAt: 0, gaveUp: true, gaveUpAt: _startAt + 300000),
+        _player('b', online: false, lastSeen: _startAt + 100000),
+      ];
+      expect(_result(players, nowMs: _startAt + 400000), [
+        ('a', RaceOutcome.notFinished, 1, null),
+        ('b', RaceOutcome.out, null, null),
+      ]);
+    });
+
     test('the one left in the race keeps the win after leaving too', () {
       final players = [
         _player('a', online: false, lastSeen: _startAt + 100000),
