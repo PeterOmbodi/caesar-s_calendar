@@ -1,5 +1,8 @@
 import 'dart:math';
 
+/// The solver's place in a room, whatever plays it back.
+const String solverPlayerUid = 'solver';
+
 /// How the solver opponent searches and how fast its search is played back.
 enum SolverLevel {
   novice(

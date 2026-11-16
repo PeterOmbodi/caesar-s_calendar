@@ -30,7 +30,7 @@ class SolverRaceRepository implements RaceRoomRepository {
        _clock = clock ?? DateTime.now;
 
   static const String myUid = 'you';
-  static const String solverUid = 'solver';
+  static const String solverUid = solverPlayerUid;
   static const String _code = 'SLVR2';
   static const int _solverColor = 7;
 

@@ -1,6 +1,5 @@
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/solver_level.dart';
-import 'package:caesar_puzzle/infrastructure/race/solver_race_repository.dart';
 import 'package:caesar_puzzle/presentation/pages/race/solver_level_name.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
@@ -21,7 +20,7 @@ class RacePlayerAvatar extends StatelessWidget {
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     final level = solverLevel;
-    if (level != null && player.uid == SolverRaceRepository.solverUid) {
+    if (level != null && player.uid == solverPlayerUid) {
       return RomanHeadAvatar(rank: level.rank, radius: radius);
     }
     return AccountAvatar(
