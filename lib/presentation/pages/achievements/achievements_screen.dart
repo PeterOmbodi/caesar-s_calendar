@@ -340,12 +340,17 @@ class _YearGridPainter extends CustomPainter {
     };
     final open = Paint()..color = colors.gridLine;
     final gap = math.max(1.5, cell * 0.18);
+    final labelSize = monthLabelFontSize(
+      maxFontSize: math.min(11, cell * 0.95),
+      maxWidth: _YearGrid._labelWidth - 4,
+      fontWeight: FontWeight.w400,
+    );
     for (var month = 1; month <= 12; month++) {
       final top = (month - 1) * cell;
       final label = TextPainter(
         text: TextSpan(
           text: shortMonthName(month),
-          style: TextStyle(fontSize: math.min(11, cell * 0.95), color: colors.textSecondary),
+          style: TextStyle(fontSize: labelSize, color: colors.textSecondary),
         ),
         textDirection: TextDirection.ltr,
         maxLines: 1,
