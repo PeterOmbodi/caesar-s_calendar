@@ -109,6 +109,18 @@ void main() {
     expect(room().graceSec, RaceRules.graceSec);
   });
 
+  test('after a long pause in the background the solver still finishes in its time', () async {
+    await open(SolverLevel.master);
+    await start();
+    await at(const Duration(minutes: 11));
+    final solver = room().player(_solver)!;
+    expect(
+      solver.durationMs,
+      inInclusiveRange(SolverLevel.master.minTime.inMilliseconds, SolverLevel.master.maxTime.inMilliseconds),
+    );
+    expect(solver.board!.pieces, hasLength(8));
+  });
+
   test('giving up ends the race and shows the solver board', () async {
     await open(SolverLevel.master);
     await start();

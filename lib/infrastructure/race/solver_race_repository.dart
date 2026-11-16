@@ -195,16 +195,25 @@ class SolverRaceRepository implements RaceRoomRepository {
     }
     final now = _nowMs;
     final solver = room.player(solverUid);
-    if (solver == null || RaceRules.isOver(room, nowMs: now)) {
+    if (solver == null) {
+      _timer?.cancel();
+      return;
+    }
+    if (!solver.hasFinished) {
+      _catchUp(room, startAt, min(now, RaceRules.endsAtMs(room) ?? now));
+    }
+    final current = _room;
+    if (current == null || RaceRules.isOver(current, nowMs: now)) {
       _timer?.cancel();
       _publishSolverBoard();
-      return;
     }
-    if (solver.hasFinished) {
-      return;
-    }
+  }
+
+  // Moves up to [untilMs], not up to now: after a long pause in the background the solver may have finished long
+  // ago, but not after the race ended.
+  void _catchUp(final RaceRoom room, final int startAt, final int untilMs) {
     final time = level.timeFor(_steps.length).inMilliseconds;
-    final due = now <= startAt ? 0 : min(_steps.length, (_steps.length * (now - startAt) / time).floor());
+    final due = untilMs <= startAt ? 0 : min(_steps.length, (_steps.length * (untilMs - startAt) / time).floor());
     while (_applied < due) {
       switch (_steps[_applied++]) {
         case PlaceStep(:final placement):
@@ -217,7 +226,7 @@ class SolverRaceRepository implements RaceRoomRepository {
       _updatePlayer(solverUid, (final p) => _copyPlayer(p, placed: _board.length, durationMs: time));
       _markFirstFinish(startAt + time);
       _publishSolverBoard();
-    } else if (solver.placed != _board.length) {
+    } else if (room.player(solverUid)?.placed != _board.length) {
       _updatePlayer(solverUid, (final p) => _copyPlayer(p, placed: _board.length));
     }
   }
