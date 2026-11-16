@@ -134,7 +134,7 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
     if (_isStarted && !_isOver) {
       _hasRacedHere = true;
     }
-    if (_isOver && _hasRacedHere && me != null && me.board == null) {
+    if (_isOver && _hasRacedHere && me != null && RaceRules.boardOf(me, startAtMs: room.startAt) == null) {
       unawaited(_cubit.publishBoard(_bloc.state.piecePlacements));
     }
     // No room update announces the start, the end of the time to finish or an offline player running out of time.
@@ -407,6 +407,7 @@ class _ResultSlot extends StatelessWidget {
                 myUid: myUid,
                 note: hostCanStart ? S.current.raceNewRaceByHost : null,
                 myBoard: myBoard,
+                startAtMs: room.startAt,
                 totalPieces: totalPieces,
                 shownUid: shownBoardUid,
                 onShowBoard: onShowBoard,

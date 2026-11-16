@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_result.dart';
+import 'package:caesar_puzzle/application/race/race_rules.dart';
 import 'package:caesar_puzzle/application/race/solver_level.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_time_format.dart';
@@ -18,6 +19,7 @@ class RaceResultSheet extends StatefulWidget {
     required this.standings,
     required this.myUid,
     required this.myBoard,
+    required this.startAtMs,
     required this.totalPieces,
     required this.shownUid,
     required this.onShowBoard,
@@ -31,8 +33,11 @@ class RaceResultSheet extends StatefulWidget {
   final List<RaceStanding> standings;
   final String myUid;
 
-  /// From the game, not from the room.
+  /// From the game; the published one wins when there is one, since the game's board is empty after a restart.
   final RaceBoard myBoard;
+
+  /// Start of this round, to leave out a board the last round wrote late.
+  final int? startAtMs;
   final int totalPieces;
 
   /// Null shows the table.
@@ -61,8 +66,11 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
     }
   }
 
+  RaceBoard? _publishedBoard(final RacePlayer player) => RaceRules.boardOf(player, startAtMs: widget.startAtMs);
+
   // An online player publishes the board in a moment.
-  bool _hasBoard(final RacePlayer player) => player.uid == widget.myUid || player.board != null || player.online;
+  bool _hasBoard(final RacePlayer player) =>
+      player.uid == widget.myUid || _publishedBoard(player) != null || player.online;
 
   RaceStanding? get _me => widget.standings.firstWhereOrNull((final s) => s.player.uid == widget.myUid);
 
@@ -152,7 +160,9 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
                               : _BoardPage(
                                   key: ValueKey<String?>(shown.player.uid),
                                   standing: shown,
-                                  board: shown.player.uid == widget.myUid ? widget.myBoard : shown.player.board,
+                                  board: shown.player.uid == widget.myUid
+                                      ? _publishedBoard(shown.player) ?? widget.myBoard
+                                      : _publishedBoard(shown.player),
                                   totalPieces: widget.totalPieces,
                                   solverLevel: widget.solverLevel,
                                   onBack: () => widget.onShowBoard(null),

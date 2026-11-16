@@ -238,6 +238,18 @@ void main() {
       expect(repository.calls.where((final c) => c.startsWith('board')), ['board ', 'board ']);
     });
 
+    test('retries stop once the room is back in the lobby for the next round', () async {
+      await cubit.close();
+      cubit = RaceRoomCubit(repository, finishRetryDelay: const Duration(milliseconds: 20));
+      await open(racing(), code: 'K7M4P');
+      repository.nextFailure = RaceRoomFailure.offline;
+      final board = cubit.publishBoard(const []);
+      repository.emit(_room(hostUid: 'guest', round: 2, players: _readyPair));
+      await _settle();
+      await board;
+      expect(repository.calls.where((final c) => c.startsWith('board')), ['board ']);
+    });
+
     test('giving up is sent', () async {
       await open(racing(), code: 'K7M4P');
       await cubit.giveUp();

@@ -2,10 +2,13 @@ import 'package:caesar_puzzle/core/models/placement.dart';
 
 /// A player's pieces on the board at the end of the race, without the blocked cells.
 class RaceBoard {
-  RaceBoard(final Iterable<PlacementParams> pieces)
+  RaceBoard(final Iterable<PlacementParams> pieces, {this.publishedAtMs})
     : pieces = List.unmodifiable(pieces.toList()..sort((final a, final b) => a.pieceId.compareTo(b.pieceId)));
 
   final List<PlacementParams> pieces;
+
+  /// Server time of the write; null for a board that has not been through the database.
+  final int? publishedAtMs;
 
   /// The database drops empty maps; [publishedAt] keeps a board without pieces.
   Map<String, Object?> toValue({required final Object publishedAt}) => {
@@ -38,7 +41,7 @@ class RaceBoard {
       }
       pieces.add(PlacementParams('$id', row.toInt(), col.toInt(), rot.toInt(), flip));
     }
-    return RaceBoard(pieces);
+    return RaceBoard(pieces, publishedAtMs: (value['at']! as num).toInt());
   }
 
   static String _key(final PlacementParams p) => '${p.pieceId}:${p.row}:${p.col}:${p.rotationSteps}:${p.isFlipped}';

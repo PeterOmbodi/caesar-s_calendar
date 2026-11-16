@@ -115,7 +115,8 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
       return;
     }
     _isFinishing = true;
-    for (var attempt = 0; attempt < _finishAttempts && !_hasLeft && !isClosed; attempt++) {
+    final round = state.room?.round;
+    for (var attempt = 0; attempt < _finishAttempts && _isStillRound(round); attempt++) {
       try {
         await _repository.finish(code, durationMs: serverNow().millisecondsSinceEpoch - startAt);
         return;
@@ -145,7 +146,8 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
     }
     _isBoardPublished = true;
     final board = RaceBoard(pieces);
-    for (var attempt = 0; attempt < _finishAttempts && !_hasLeft && !isClosed; attempt++) {
+    final round = state.room?.round;
+    for (var attempt = 0; attempt < _finishAttempts && _isStillRound(round); attempt++) {
       try {
         await _repository.publishBoard(code, board);
         return;
@@ -154,6 +156,10 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
       }
     }
   }
+
+  // A retry that outlives Race again would write the last round's result into the new one.
+  bool _isStillRound(final int? round) =>
+      !_hasLeft && !isClosed && state.room?.round == round && state.room?.status != RaceRoomStatus.lobby;
 
   Future<void> rematch() => _run((final code, final room) => _repository.rematch(code, round: room.round + 1));
 
