@@ -143,4 +143,24 @@ void main() {
       expect(RaceRules.boardOf(withBoard(board), startAtMs: _startAt), same(board));
     });
   });
+
+  group('went out during the race', () {
+    const limit = _startAt + 10 * 60 * 1000;
+
+    test('away mid-race for longer than the time to come back', () {
+      final away = _player('b', online: false, lastSeen: _startAt + 10000);
+      expect(RaceRules.wentOutDuringRace(_room([_player('a'), away]), away, nowMs: _startAt + 60000), isTrue);
+    });
+
+    test('left after the time limit and came back later', () {
+      final away = _player('b', online: false, lastSeen: limit + 5000);
+      expect(RaceRules.wentOutDuringRace(_room([_player('a'), away]), away, nowMs: limit + 60000), isFalse);
+    });
+
+    test('left during the time to finish and stayed away past it', () {
+      final away = _player('b', online: false, lastSeen: _startAt + 70000);
+      final room = _room([_player('a', durationMs: 60000), away], firstFinishAt: _startAt + 60000);
+      expect(RaceRules.wentOutDuringRace(room, away, nowMs: _startAt + 200000), isTrue);
+    });
+  });
 }

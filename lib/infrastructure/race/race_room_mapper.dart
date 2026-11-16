@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
+import 'package:caesar_puzzle/core/models/placement.dart';
 
 /// Reads a `rooms/{code}` node. Players' per-round fields left from an earlier round read as untouched.
 abstract final class RaceRoomMapper {
@@ -49,8 +50,40 @@ abstract final class RaceRoomMapper {
       placed: isCurrent ? _int(data['placed']) ?? 0 : 0,
       durationMs: isCurrent ? _int(data['durationMs']) : null,
       gaveUp: isCurrent && data['gaveUp'] == true,
-      board: isCurrent ? RaceBoard.fromValue(data['board']) : null,
+      board: isCurrent ? boardFromValue(data['board']) : null,
     );
+  }
+
+  /// The database drops empty maps; [publishedAt] keeps a board without pieces.
+  static Map<String, Object?> boardToValue(final RaceBoard board, {required final Object publishedAt}) => {
+    'at': publishedAt,
+    'pieces': {
+      for (final p in board.pieces)
+        p.pieceId: {'row': p.row, 'col': p.col, 'rot': p.rotationSteps, 'flip': p.isFlipped},
+    },
+  };
+
+  /// Null for a missing or malformed value.
+  static RaceBoard? boardFromValue(final Object? value) {
+    final data = _map(value);
+    final at = _int(data?['at']);
+    final entries = data?['pieces'] ?? const {};
+    if (data == null || at == null || entries is! Map) {
+      return null;
+    }
+    final pieces = <PlacementParams>[];
+    for (final MapEntry(key: id, value: piece) in entries.entries) {
+      final part = _map(piece);
+      final row = _int(part?['row']);
+      final col = _int(part?['col']);
+      final rot = _int(part?['rot']);
+      final flip = part?['flip'];
+      if (row == null || col == null || rot == null || flip is! bool) {
+        return null;
+      }
+      pieces.add(PlacementParams('$id', row, col, rot, flip));
+    }
+    return RaceBoard(pieces, publishedAtMs: at);
   }
 
   static int _byJoining(final RacePlayer a, final RacePlayer b) {

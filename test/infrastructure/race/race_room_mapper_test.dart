@@ -143,4 +143,47 @@ void main() {
       isNot(RaceRoomMapper.fromValue('K7M4P', _room(players: {'host': _player(ready: false)}))),
     );
   });
+
+  group('board', () {
+    final board = RaceBoard([PlacementParams('Z-Shape', 3, -1, 1, true), PlacementParams('L-Shape', 0, 4, 0, false)]);
+
+    Map<String, Object?> stored(final RaceBoard board) => {
+      ...RaceRoomMapper.boardToValue(board, publishedAt: 'timestamp'),
+      'at': 9000,
+    };
+
+    test('goes through the database value unchanged, with the time of the write', () {
+      final read = RaceRoomMapper.boardFromValue(stored(board));
+      expect(read, board);
+      expect(read!.publishedAtMs, 9000);
+    });
+
+    test('a board without pieces is still a board', () {
+      expect(RaceRoomMapper.boardFromValue({'at': 9000}), RaceBoard(const []));
+    });
+
+    test('the web hands numbers over as doubles', () {
+      final value = {
+        'at': 9000.0,
+        'pieces': {
+          'Square': {'row': 2.0, 'col': 3.0, 'rot': 0.0, 'flip': false},
+        },
+      };
+      expect(RaceRoomMapper.boardFromValue(value), RaceBoard([PlacementParams('Square', 2, 3, 0, false)]));
+    });
+
+    test('a missing or malformed value reads as no board', () {
+      expect(RaceRoomMapper.boardFromValue(null), isNull);
+      expect(RaceRoomMapper.boardFromValue({'pieces': {}}), isNull);
+      expect(
+        RaceRoomMapper.boardFromValue({
+          'at': 9000,
+          'pieces': {
+            'Square': {'row': 2},
+          },
+        }),
+        isNull,
+      );
+    });
+  });
 }

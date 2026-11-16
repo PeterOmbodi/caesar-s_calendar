@@ -215,8 +215,12 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
   Future<void> giveUp(final String code) => _guard(_player(code, _requireUid()).update({'gaveUp': true}));
 
   @override
-  Future<void> publishBoard(final String code, final RaceBoard board) =>
-      _guard(_player(code, _requireUid()).update({'board': board.toValue(publishedAt: ServerValue.timestamp)}));
+  Future<void> publishBoard(final String code, final RaceBoard board) => _guard(
+    _player(
+      code,
+      _requireUid(),
+    ).update({'board': RaceRoomMapper.boardToValue(board, publishedAt: ServerValue.timestamp)}),
+  );
 
   @override
   Future<void> rematch(final String code, {required final int round}) async {
@@ -397,9 +401,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
     final me = room?.player(uid);
     // The others already count a player away this long as out; coming back must not reopen the race for them.
     final isOut =
-        room?.status == RaceRoomStatus.playing &&
-        me != null &&
-        RaceRules.isOut(me, nowMs: serverNow().millisecondsSinceEpoch);
+        room != null && me != null && RaceRules.wentOutDuringRace(room, me, nowMs: serverNow().millisecondsSinceEpoch);
     await _guard(_player(code, uid).update({'online': true, if (isOut) 'gaveUp': true}));
   }
 

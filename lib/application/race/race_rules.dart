@@ -94,6 +94,16 @@ abstract final class RaceRules {
     return nowMs;
   }
 
+  /// Away long enough to be out, and out while the race was still on. A player who left after the end and comes
+  /// back is not, so that coming back does not change a result already decided.
+  static bool wentOutDuringRace(final RaceRoom room, final RacePlayer player, {required final int nowMs}) {
+    final lastSeen = player.lastSeen;
+    return room.status == RaceRoomStatus.playing &&
+        lastSeen != null &&
+        isOut(player, nowMs: nowMs) &&
+        overAtMs(room, nowMs: nowMs) > lastSeen;
+  }
+
   /// The next moment the race may end without anybody writing to the room: the end of the time to finish or of the
   /// time an offline player has to come back.
   static int? nextDeadlineMs(final RaceRoom room, {required final int nowMs}) {
