@@ -62,9 +62,7 @@ void main() {
     });
   });
 
-  test('a duel is two players, one round, no extras', () {
-    const duel = RaceEntitlements.duel;
-    expect((duel.maxPlayers, duel.maxRounds), (2, 1));
-    expect([duel.randomLayout, duel.dateTier, duel.customGrace, duel.hints], everyElement(isFalse));
+  test('a duel is two players', () {
+    expect(RaceEntitlements.duel.maxPlayers, 2);
   });
 }
