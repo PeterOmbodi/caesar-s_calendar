@@ -21,6 +21,12 @@ class RaceStanding {
 
 abstract final class RaceResult {
   static List<RaceStanding> of(final RaceRoom room, {required final int nowMs}) {
+    // Judged when the race ended: leaving afterwards does not make the one who stayed a winner.
+    final judgedAt = RaceRules.overAtMs(room, nowMs: nowMs);
+    return _at(room, nowMs: judgedAt);
+  }
+
+  static List<RaceStanding> _at(final RaceRoom room, {required final int nowMs}) {
     final players = RaceRules.standings(room.players, nowMs: nowMs);
     final times = [for (final p in players) ?p.durationMs];
     final best = times.isEmpty ? null : times.first;

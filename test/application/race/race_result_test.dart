@@ -78,4 +78,27 @@ void main() {
       ('b', RaceOutcome.out, null, null),
     ]);
   });
+
+  group('judged when the race ended', () {
+    const limit = _startAt + 10 * 60 * 1000;
+
+    test('leaving after the time limit makes nobody a winner', () {
+      final players = [_player('a'), _player('b', online: false, lastSeen: limit + 5000)];
+      expect(_result(players, nowMs: limit + 60000), [
+        ('a', RaceOutcome.notFinished, null, null),
+        ('b', RaceOutcome.notFinished, null, null),
+      ]);
+    });
+
+    test('the one left in the race keeps the win after leaving too', () {
+      final players = [
+        _player('a', online: false, lastSeen: _startAt + 100000),
+        _player('b', online: false, lastSeen: _startAt + 10000),
+      ];
+      expect(_result(players, nowMs: _startAt + 200000), [
+        ('a', RaceOutcome.notFinished, 1, null),
+        ('b', RaceOutcome.out, null, null),
+      ]);
+    });
+  });
 }

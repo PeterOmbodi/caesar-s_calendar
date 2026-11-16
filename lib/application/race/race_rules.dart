@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 
@@ -18,6 +19,17 @@ abstract final class RaceRules {
         !player.gaveUp &&
         lastSeen != null &&
         nowMs - lastSeen >= reconnectTime.inMilliseconds;
+  }
+
+  /// The player's board from the round that started at [startAtMs]: a retried write from the last round may land
+  /// after Race again.
+  static RaceBoard? boardOf(final RacePlayer player, {required final int? startAtMs}) {
+    final board = player.board;
+    final publishedAt = board?.publishedAtMs;
+    if (board == null || startAtMs == null || publishedAt == null) {
+      return board;
+    }
+    return publishedAt >= startAtMs ? board : null;
   }
 
   static bool isRacing(final RacePlayer player, {required final int nowMs}) =>
@@ -59,6 +71,27 @@ abstract final class RaceRules {
       return true;
     }
     return inRace.every((final p) => p.hasFinished);
+  }
+
+  /// The earliest moment the race was over; what players do after it, like leaving, must not change the result.
+  static int overAtMs(final RaceRoom room, {required final int nowMs}) {
+    final startAt = room.startAt;
+    if (startAt == null) {
+      return nowMs;
+    }
+    final moments = <int>{
+      ?endsAtMs(room),
+      for (final player in room.players) ...[
+        if (player.durationMs case final duration?) startAt + duration,
+        if (!player.online && player.lastSeen != null) player.lastSeen! + reconnectTime.inMilliseconds,
+      ],
+    }.where((final t) => t <= nowMs).toList()..sort();
+    for (final moment in moments) {
+      if (isOver(room, nowMs: moment)) {
+        return moment;
+      }
+    }
+    return nowMs;
   }
 
   /// The next moment the race may end without anybody writing to the room: the end of the time to finish or of the

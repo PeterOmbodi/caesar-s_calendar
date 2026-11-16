@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 import 'package:caesar_puzzle/application/race/race_rules.dart';
@@ -120,6 +121,26 @@ void main() {
     test('a player out of the race comes after those still racing', () {
       final players = [offline, _player('a')];
       expect(RaceRules.standings(players, nowMs: _startAt + 40000).map((final p) => p.uid), ['a', 'b']);
+    });
+  });
+
+  group('board of the round', () {
+    RacePlayer withBoard(final RaceBoard? board) =>
+        RacePlayer(uid: 'a', nickname: 'a', colorIndex: 0, joinedAt: 0, board: board);
+
+    test('a board written before this round started is left out', () {
+      final stale = RaceBoard(const [], publishedAtMs: _startAt - 1);
+      expect(RaceRules.boardOf(withBoard(stale), startAtMs: _startAt), isNull);
+    });
+
+    test('a board written in this round is kept', () {
+      final board = RaceBoard(const [], publishedAtMs: _startAt + 5000);
+      expect(RaceRules.boardOf(withBoard(board), startAtMs: _startAt), same(board));
+    });
+
+    test('a board that has not been through the database is kept', () {
+      final board = RaceBoard(const []);
+      expect(RaceRules.boardOf(withBoard(board), startAtMs: _startAt), same(board));
     });
   });
 }
