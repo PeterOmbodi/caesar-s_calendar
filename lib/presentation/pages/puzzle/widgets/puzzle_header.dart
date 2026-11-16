@@ -191,7 +191,10 @@ class _RaceButton extends StatelessWidget {
   Widget build(final BuildContext context) => GlassCircleButton(
     tooltip: S.current.raceTitle,
     onPressed: onPressed,
-    child: RomanHeadIcon(rank: RomanRank.centurion, color: GameColors.of(context).icon, size: 36),
+    child: Hero(
+      tag: raceHeadHeroTag,
+      child: RomanHeadIcon(rank: RomanRank.centurion, color: GameColors.of(context).icon, size: 36),
+    ),
   );
 }
 

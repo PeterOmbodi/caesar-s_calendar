@@ -17,6 +17,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_displa
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
+import 'package:caesar_puzzle/presentation/widgets/laurel_wreath.dart';
 import 'package:caesar_puzzle/presentation/widgets/roman_head_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -123,54 +124,89 @@ class _RaceLobbyScreenState extends State<RaceLobbyScreen> {
     return RaceScaffold(
       title: S.current.raceLobbyTitle,
       child: LayoutBuilder(
-        builder: (final context, final constraints) => SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 40),
-                  Text(
-                    S.current.raceLobbyHeadline,
-                    style: TextStyle(fontSize: 32, height: 38 / 32, fontWeight: FontWeight.w700, color: colors.text),
+        builder: (final context, final constraints) {
+          // A phone in landscape: a full-size emblem that does not scroll would take half the screen.
+          final emblem = constraints.maxHeight < 560 ? 96.0 : 140.0;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: emblem < 140 ? 8 : 16),
+              Center(
+                child: LaurelWreathHero(
+                  size: emblem,
+                  color: colors.laurel,
+                  child: Hero(
+                    tag: raceHeadHeroTag,
+                    // The colour of the race button's head: the same cached picture, so the first flight does not blink.
+                    child: RomanHeadIcon(rank: RomanRank.centurion, color: colors.icon, size: emblem * 0.62),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    S.current.raceLobbyBody,
-                    style: TextStyle(fontSize: 16, height: 23 / 16, color: colors.textSecondary),
-                  ),
-                  const SizedBox(height: 40),
-                  if (isSignedIn)
-                    _EntryForm(
-                      code: _code,
-                      error: _error,
-                      onCreate: () => _openRoom(null),
-                      onJoin: _join,
-                    )
-                  else
-                    const _SignInGate(),
-                  const _OrDivider(),
-                  RaceSecondaryButton(label: S.current.raceVsSolver, onPressed: () => unawaited(_raceSolver())),
-                  const SizedBox(height: 12),
-                  Text(
-                    S.current.raceVsSolverHint,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
-                  ),
-                  const RaceStoreLinks(),
-                  const Spacer(),
-                  const SizedBox(height: 24),
-                  Text(
-                    S.current.raceNoEffectNote,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
+              SizedBox(height: emblem < 140 ? 8 : 16),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (final context, final scroll) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: scroll.maxHeight),
+                      child: IntrinsicHeight(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              S.current.raceLobbyHeadline,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 32,
+                                height: 38 / 32,
+                                fontWeight: FontWeight.w700,
+                                color: colors.text,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              S.current.raceLobbyBody,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16, height: 23 / 16, color: colors.textSecondary),
+                            ),
+                            const SizedBox(height: 40),
+                            if (isSignedIn)
+                              _EntryForm(
+                                code: _code,
+                                error: _error,
+                                onCreate: () => _openRoom(null),
+                                onJoin: _join,
+                              )
+                            else
+                              const _SignInGate(),
+                            const _OrDivider(),
+                            RaceSecondaryButton(
+                              label: S.current.raceVsSolver,
+                              onPressed: () => unawaited(_raceSolver()),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              S.current.raceVsSolverHint,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
+                            ),
+                            const RaceStoreLinks(),
+                            const Spacer(),
+                            const SizedBox(height: 24),
+                            Text(
+                              S.current.raceNoEffectNote,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

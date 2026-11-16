@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 class LaurelBranch extends StatelessWidget {
@@ -79,6 +82,128 @@ class _LaurelBranchPainter extends CustomPainter {
   @override
   bool shouldRepaint(final _LaurelBranchPainter oldDelegate) =>
       oldDelegate.color != color || oldDelegate.mirrored != mirrored || oldDelegate.grow != grow;
+}
+
+/// Two branches around [child]: the emblem of the race. They grow once, after the page has slid in.
+class LaurelWreathHero extends StatefulWidget {
+  const LaurelWreathHero({super.key, required this.size, required this.color, required this.child});
+
+  final double size;
+  final Color color;
+  final Widget child;
+
+  @override
+  State<LaurelWreathHero> createState() => _LaurelWreathHeroState();
+}
+
+class _LaurelWreathHeroState extends State<LaurelWreathHero> with SingleTickerProviderStateMixin {
+  /// After the page and the head flying in from the race button have settled.
+  static const Duration _afterTransition = Duration(milliseconds: 150);
+
+  late final AnimationController _grow = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+  Timer? _start;
+  var _isScheduled = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _start?.cancel();
+      _grow.value = 1;
+      return;
+    }
+    if (_isScheduled) {
+      return;
+    }
+    _isScheduled = true;
+    final transition = ModalRoute.of(context)?.transitionDuration ?? Duration.zero;
+    if (transition == Duration.zero) {
+      unawaited(_grow.forward());
+    } else {
+      _start = Timer(transition + _afterTransition, () => unawaited(_grow.forward()));
+    }
+  }
+
+  @override
+  void dispose() {
+    _start?.cancel();
+    _grow.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(final BuildContext context) => AnimatedBuilder(
+    animation: _grow,
+    builder: (final context, final child) => CustomPaint(
+      painter: _WreathPainter(color: widget.color, grow: Curves.easeOutCubic.transform(_grow.value)),
+      child: child,
+    ),
+    child: SizedBox.square(
+      dimension: widget.size,
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.only(top: widget.size * 0.04),
+          child: widget.child,
+        ),
+      ),
+    ),
+  );
+}
+
+/// Angles are counted from the bottom of the circle, up both sides.
+class _WreathPainter extends CustomPainter {
+  const _WreathPainter({required this.color, required this.grow});
+
+  static const int _leaves = 7;
+  static const double _from = 20 * pi / 180;
+  static const double _to = 140 * pi / 180;
+
+  final Color color;
+  final double grow;
+
+  @override
+  void paint(final Canvas canvas, final Size size) {
+    if (grow <= 0) {
+      return;
+    }
+    final side = size.shortestSide;
+    final center = size.center(Offset.zero);
+    final radius = side * 0.4;
+    final length = side * 0.16;
+    final end = _from + (_to - _from) * grow;
+    final stem = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = side * 0.013
+      ..strokeCap = StrokeCap.round;
+    final leaf = Paint()..color = color;
+    for (final sign in const [-1.0, 1.0]) {
+      Offset point(final double angle) => center + Offset(sign * radius * sin(angle), radius * cos(angle));
+      double upwards(final double angle) => atan2(-sin(angle), sign * cos(angle));
+
+      final path = Path()..moveTo(point(_from).dx, point(_from).dy);
+      for (var i = 1; i <= 40; i++) {
+        final p = point(_from + (end - _from) * i / 40);
+        path.lineTo(p.dx, p.dy);
+      }
+      canvas.drawPath(path, stem);
+      for (var i = 0; i < _leaves; i++) {
+        final angle = _from + (_to - _from) * (i + 0.5) / _leaves;
+        if (angle > end) {
+          break;
+        }
+        final scale = 1 - 0.3 * i / _leaves;
+        _drawLeaf(canvas, leaf, point(angle), upwards(angle) - sign * 0.7, length * scale, 0.44);
+        _drawLeaf(canvas, leaf, point(angle), upwards(angle) + sign * 0.7, length * scale * 0.85, 0.44);
+      }
+      if (grow >= 1) {
+        _drawLeaf(canvas, leaf, point(_to), upwards(_to), length * 0.7, 0.44);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(final _WreathPainter oldDelegate) => oldDelegate.color != color || oldDelegate.grow != grow;
 }
 
 /// An oval leaf growing from [at] in the direction of [angle].

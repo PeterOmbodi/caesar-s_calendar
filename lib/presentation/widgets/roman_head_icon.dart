@@ -2,6 +2,9 @@ import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+/// The head that flies from the race button to the emblem of the race lobby.
+const Object raceHeadHeroTag = 'raceHead';
+
 enum RomanRank {
   recruit('assets/icons/head_recruit.svg'),
   legionary('assets/icons/head_legionary.svg'),

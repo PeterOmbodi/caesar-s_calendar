@@ -120,7 +120,7 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (_isSoleWinner)
-                                  _LaurelTitle(title: _title, style: titleStyle, color: colors.accent)
+                                  _LaurelTitle(title: _title, style: titleStyle, color: colors.laurel)
                                 else
                                   Text(_title, style: titleStyle),
                                 if (widget.note case final note?)
