@@ -171,7 +171,7 @@ class _TestPuzzleBloc extends PuzzleBloc {
   _TestPuzzleBloc({
     required super.settings,
     required super.solvePuzzleUseCase,
-    required super.historyUseCase,
+    required super.sessionRecorder,
   });
 
   void emitForTest(final PuzzleState state) => emit(state);
@@ -218,7 +218,7 @@ void main() {
       final bloc = _TestPuzzleBloc(
         settings: _FakeSettingsQuery(),
         solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
-        historyUseCase: PuzzleHistoryUseCase(repository),
+        sessionRecorder: PuzzleHistoryUseCase(repository),
       );
 
       const grid = PuzzleGridEntity(
@@ -286,7 +286,7 @@ void main() {
     final bloc = _TestPuzzleBloc(
       settings: _FakeSettingsQuery(),
       solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
-      historyUseCase: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
+      sessionRecorder: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
     );
     const grid = PuzzleGridEntity(cellSize: 10, rows: 7, columns: 7, origin: Position(dx: 0, dy: 0));
     const board = PuzzleBoardEntity(cellSize: 10, rows: 7, columns: 7, origin: Position(dx: 100, dy: 0));
@@ -341,7 +341,7 @@ void main() {
     final bloc = _TestPuzzleBloc(
       settings: _FakeSettingsQuery(),
       solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
-      historyUseCase: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
+      sessionRecorder: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
     );
     const grid = PuzzleGridEntity(cellSize: 10, rows: 7, columns: 7, origin: Position(dx: 0, dy: 0));
     const board = PuzzleBoardEntity(cellSize: 10, rows: 7, columns: 7, origin: Position(dx: 100, dy: 0));

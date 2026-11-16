@@ -1,0 +1,150 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && !newData.exists() && (data.child('hostUid').val() === auth.uid || data.child('createdAt').val() < now - 7200000)",
+        ".validate": "$code.matches(/^[A-HJ-NP-Z2-9]{5}$/) && newData.hasChildren(['hostUid', 'status', 'maxPlayers', 'settings', 'round', 'createdAt'])",
+        "hostUid": {
+          ".write": "auth != null && newData.exists() && (data.exists() ? data.val() === auth.uid : newData.val() === auth.uid)",
+          ".validate": "newData.val() === auth.uid"
+        },
+        "status": {
+          ".write": "auth != null && newData.parent().child('hostUid').val() === auth.uid",
+          ".validate": "newData.val() === 'lobby' || newData.val() === 'finished' || (newData.val() === 'playing' && newData.parent().child('startAt').exists() && newData.parent().child('puzzle').exists())"
+        },
+        "maxPlayers": {
+          ".write": "auth != null && newData.parent().child('hostUid').val() === auth.uid",
+          ".validate": "newData.val() === 2"
+        },
+        "settings": {
+          ".write": "auth != null && newData.parent().child('hostUid').val() === auth.uid",
+          ".validate": "newData.hasChildren(['graceSec', 'hints'])",
+          "graceSec": {
+            ".validate": "newData.val() === 60"
+          },
+          "hints": {
+            ".validate": "newData.val() === 0"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "round": {
+          ".write": "auth != null && newData.parent().child('hostUid').val() === auth.uid",
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000"
+        },
+        "createdAt": {
+          ".write": "auth != null && newData.parent().child('hostUid').val() === auth.uid",
+          ".validate": "newData.isNumber() && (newData.val() === now || (data.exists() && newData.val() === data.val()))"
+        },
+        "puzzle": {
+          ".write": "auth != null && newData.parent().child('hostUid').val() === auth.uid",
+          ".validate": "newData.hasChildren(['month', 'day'])",
+          "month": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 12"
+          },
+          "day": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 31"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "startAt": {
+          ".write": "auth != null && newData.parent().child('hostUid').val() === auth.uid",
+          ".validate": "newData.isNumber() && newData.val() > now && newData.val() < now + 30000"
+        },
+        "firstFinishAt": {
+          ".write": "auth != null && ((!data.exists() && data.parent().child('players').child(auth.uid).child('durationMs').exists()) || (!newData.exists() && data.parent().child('hostUid').val() === auth.uid))",
+          ".validate": "newData.val() === now"
+        },
+        "players": {
+          "$uid": {
+            ".write": "auth != null && ((auth.uid === $uid && (data.exists() || !newData.exists() || (newData.parent().parent().child('status').val() === 'lobby' && newData.parent().parent().child('hostUid').exists()))) || (!newData.exists() && root.child('rooms').child($code).child('hostUid').val() === auth.uid && root.child('rooms').child($code).child('status').val() === 'lobby'))",
+            ".validate": "newData.hasChildren(['nickname', 'colorIndex', 'joinedAt', 'online'])",
+            "nickname": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 24"
+            },
+            "colorIndex": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 7"
+            },
+            "joinedAt": {
+              ".validate": "newData.isNumber() && (data.exists() ? newData.val() === data.val() : newData.val() === now)"
+            },
+            "online": {
+              ".validate": "newData.isBoolean()"
+            },
+            "lastSeen": {
+              ".validate": "newData.isNumber() && newData.val() <= now"
+            },
+            "ready": {
+              ".validate": "newData.isBoolean()"
+            },
+            "nonce": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 4294967295"
+            },
+            "round": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000"
+            },
+            "placed": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 8"
+            },
+            "durationMs": {
+              ".validate": "newData.isNumber() && newData.val() > 0 && root.child('rooms').child($code).child('status').val() === 'playing' && newData.val() >= now - root.child('rooms').child($code).child('startAt').val() - 10000 && newData.val() <= now - root.child('rooms').child($code).child('startAt').val() + 2000"
+            },
+            "finishedAt": {
+              ".validate": "newData.val() === now"
+            },
+            "gaveUp": {
+              ".validate": "newData.isBoolean()"
+            },
+            "gaveUpAt": {
+              ".validate": "newData.val() === now"
+            },
+            "outAt": {
+              ".validate": "newData.isNumber() && newData.val() === newData.parent().child('lastSeen').val() + 30000 && newData.val() <= now"
+            },
+            "board": {
+              ".validate": "newData.hasChildren(['at'])",
+              "at": {
+                ".validate": "newData.val() === now"
+              },
+              "pieces": {
+                "$pieceId": {
+                  ".validate": "$pieceId.matches(/^[A-Za-z]{1,12}(-Shape)?$/) && newData.hasChildren(['row', 'col', 'rot', 'flip'])",
+                  "row": {
+                    ".validate": "newData.isNumber() && newData.val() >= -3 && newData.val() <= 9"
+                  },
+                  "col": {
+                    ".validate": "newData.isNumber() && newData.val() >= -3 && newData.val() <= 9"
+                  },
+                  "rot": {
+                    ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3"
+                  },
+                  "flip": {
+                    ".validate": "newData.isBoolean()"
+                  },
+                  "$other": {
+                    ".validate": false
+                  }
+                }
+              },
+              "$other": {
+                ".validate": false
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}

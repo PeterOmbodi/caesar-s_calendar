@@ -2,7 +2,30 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 
-List<GameAction> actionsFor(final PuzzleState state, final SolutionIndicator indicator) {
+List<GameAction> actionsFor(
+  final PuzzleState state,
+  final SolutionIndicator indicator, {
+  final PuzzleMode mode = PuzzleMode.daily,
+  final RacePhase racePhase = RacePhase.racing,
+  final bool isRaceHost = false,
+}) {
+  if (mode == PuzzleMode.race) {
+    if (racePhase == RacePhase.over) {
+      return [
+        if (isRaceHost) const GameAction(GameActionId.newRace, slot: ActionSlot.primary),
+        const GameAction(GameActionId.leaveRace, slot: ActionSlot.primary),
+      ];
+    }
+    final isRacing = racePhase == RacePhase.racing;
+    final canTransform = isRacing && state.selectedPiece != null && !state.isSolving;
+    return [
+      GameAction(GameActionId.rotate, slot: ActionSlot.primary, enabled: canTransform),
+      GameAction(GameActionId.undo, slot: ActionSlot.primary, enabled: isRacing && state.isUndoEnabled),
+      GameAction(GameActionId.redo, slot: ActionSlot.primary, enabled: isRacing && state.isRedoEnabled),
+      GameAction(GameActionId.flip, slot: ActionSlot.primary, enabled: canTransform),
+    ];
+  }
+
   const history = GameAction(GameActionId.history, slot: ActionSlot.primary);
 
   if (state.isEditingLayout) {
@@ -77,6 +100,7 @@ List<GameAction> actionsFor(final PuzzleState state, final SolutionIndicator ind
       assistGate: assistGate,
       count: indicator == SolutionIndicator.countSolutions ? solutionsCount : null,
     ),
+    const GameAction(GameActionId.layouts, slot: ActionSlot.overflow),
     const GameAction(GameActionId.howToPlay, slot: ActionSlot.overflow),
     GameAction(GameActionId.restart, slot: ActionSlot.overflow, enabled: !state.isSolving, busy: state.isSolving),
   ];

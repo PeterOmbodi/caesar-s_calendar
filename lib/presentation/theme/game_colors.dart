@@ -31,6 +31,7 @@ class GameColors extends ThemeExtension<GameColors> {
     required this.customConfig,
     required this.hintBadge,
     required this.selection,
+    required this.laurel,
     required this.pieces,
   });
 
@@ -74,6 +75,7 @@ class GameColors extends ThemeExtension<GameColors> {
     customConfig: Color(0xFFF2B544),
     hintBadge: Color(0xFFFFFFFF),
     selection: Color(0xFFFFFFFF),
+    laurel: Color(0xFF86B86A),
     pieces: _pieces,
   );
 
@@ -104,6 +106,7 @@ class GameColors extends ThemeExtension<GameColors> {
     customConfig: Color(0xFFB26A00),
     hintBadge: Color(0xFF1F1D26),
     selection: Color(0xFFFFFFFF),
+    laurel: Color(0xFFB06D07),
     pieces: _pieces,
   );
 
@@ -133,9 +136,15 @@ class GameColors extends ThemeExtension<GameColors> {
   final Color customConfig;
   final Color hintBadge;
   final Color selection;
+
+  /// The race's laurel wreaths: gold on the light board, laurel green on the dark one.
+  final Color laurel;
   final Map<PieceType, Color> pieces;
 
   Color piece(final PieceType type) => pieces[type] ?? blockedCell;
+
+  /// A player's colour in leaderboards and races.
+  Color player(final int colorIndex) => pieces.isEmpty ? accent : pieces.values.elementAt(colorIndex % pieces.length);
 
   @override
   GameColors copyWith({
@@ -165,6 +174,7 @@ class GameColors extends ThemeExtension<GameColors> {
     final Color? customConfig,
     final Color? hintBadge,
     final Color? selection,
+    final Color? laurel,
     final Map<PieceType, Color>? pieces,
   }) => GameColors(
     background: background ?? this.background,
@@ -193,6 +203,7 @@ class GameColors extends ThemeExtension<GameColors> {
     customConfig: customConfig ?? this.customConfig,
     hintBadge: hintBadge ?? this.hintBadge,
     selection: selection ?? this.selection,
+    laurel: laurel ?? this.laurel,
     pieces: pieces ?? this.pieces,
   );
 
@@ -229,6 +240,7 @@ class GameColors extends ThemeExtension<GameColors> {
       customConfig: c(customConfig, other.customConfig),
       hintBadge: c(hintBadge, other.hintBadge),
       selection: c(selection, other.selection),
+      laurel: c(laurel, other.laurel),
       pieces: {for (final type in pieces.keys) type: c(piece(type), other.piece(type))},
     );
   }

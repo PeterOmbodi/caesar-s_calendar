@@ -17,9 +17,15 @@ enum GameActionId {
   cancelEdit,
   resetLayout,
   saveLayout,
+  newRace,
+  leaveRace,
+  layouts,
 }
 
 enum ActionSlot { primary, overflow }
+
+/// Giving up is not a toolbar action: it is the leave button of the race header.
+enum RacePhase { racing, waiting, over }
 
 // What has to happen before an assist action (hint, all solutions) may run.
 enum AssistGate { open, noSolutions, warnRecords }

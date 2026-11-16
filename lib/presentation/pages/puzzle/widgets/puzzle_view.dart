@@ -17,11 +17,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PuzzleView extends StatelessWidget {
-  const PuzzleView({super.key, this.headerHeight = 0});
+  const PuzzleView({super.key, this.headerHeight = 0, this.trayStartInset = 0});
 
   static const double statusGap = LayoutService.statusLineGap;
 
   final double headerHeight;
+
+  /// See [PuzzleEvent.setViewSize].
+  final double trayStartInset;
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
@@ -43,6 +46,7 @@ class PuzzleView extends StatelessWidget {
             trayScale: spec.trayScale,
             contentInsets: contentInsets,
             trayTopInset: headerBesideBoard ? headerHeight : 0,
+            trayStartInset: trayStartInset,
           ),
         );
         final settings = context.watch<SettingsCubit>().state;
@@ -123,18 +127,20 @@ class PuzzleView extends StatelessWidget {
                         child: Semantics(container: true, label: _boardLabel(state), child: const SizedBox.expand()),
                       ),
                     ),
-                    Positioned(
-                      left: statusLeft,
-                      top: isPortrait ? tray.bottom + statusGap : grid.bottom - PuzzleStatusLine.height,
-                      width: statusWidth,
-                      child: IgnorePointer(
-                        child: PuzzleStatusLine(
-                          state: state,
-                          indicator: settings.solutionIndicator,
-                          showTimer: settings.showTimer,
+                    // A race shows everyone's progress, the player's own included, beside the board.
+                    if (bloc.mode == PuzzleMode.daily)
+                      Positioned(
+                        left: statusLeft,
+                        top: isPortrait ? tray.bottom + statusGap : grid.bottom - PuzzleStatusLine.height,
+                        width: statusWidth,
+                        child: IgnorePointer(
+                          child: PuzzleStatusLine(
+                            state: state,
+                            indicator: settings.solutionIndicator,
+                            showTimer: settings.showTimer,
+                          ),
                         ),
                       ),
-                    ),
                     if (state.isDragging && state.pointerPiece != null)
                       IgnorePointer(
                         child: CustomPaint(

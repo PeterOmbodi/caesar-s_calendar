@@ -7,7 +7,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -24,6 +24,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Room links open the app; app_links reads them, not Flutter's router. -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="peterombodi.github.io" />
+                <data android:pathPrefix="/caesar-s_calendar" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

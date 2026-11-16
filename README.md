@@ -117,7 +117,7 @@ dart pub get --directory packages/exact_cover_dlx
 ### Web
 
 ```bash
-flutter run -d chrome --web-port=5000         # fixed port keeps SharedPreferences between runs
+flutter run -d chrome --web-port=5050         # fixed port keeps SharedPreferences between runs
 flutter build web --release --wasm
 ```
 
@@ -161,4 +161,10 @@ Flutter · BLoC / Cubit · Hydrated BLoC · Drift · Freezed · Injectable / Get
 
 ## License
 
-[MIT](LICENSE) · Peter Ombodi
+[PolyForm Noncommercial 1.0.0](LICENSE) · © Peter Ombodi
+
+The code is source-available: you may read, run, and modify it for any noncommercial purpose. Commercial use needs the author's permission.
+
+The license does not cover the name "Caesar's Calendar", the app icon, or the store graphics. Forks must use their own name, icon, and Firebase project.
+
+`packages/exact_cover_dlx` keeps its own [MIT license](packages/exact_cover_dlx/LICENSE).

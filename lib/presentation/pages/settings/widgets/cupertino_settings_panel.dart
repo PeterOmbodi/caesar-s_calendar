@@ -7,6 +7,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_dif
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summary_button.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/app_check_status.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
@@ -162,16 +163,23 @@ class CupertinoSettingsPanel extends StatelessWidget {
                             title: const Text('Reset help for today'),
                             onTap: () => _resetTodayHelp(context),
                           ),
+                          CupertinoListTile(
+                            leading: const Icon(CupertinoIcons.checkmark_shield),
+                            title: const Text('App Check'),
+                            onTap: () => showAppCheckStatus(context),
+                          ),
                         ],
                       ),
                     FutureBuilder(
                       future: PackageInfo.fromPlatform(),
                       builder: (final context, final snapshot) => snapshot.hasData
-                          ? Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                              child: Text(
-                                'Version ${snapshot.data!.version}+${snapshot.data!.buildNumber}',
-                                style: TextStyle(fontSize: 13, color: secondary),
+                          ? AppCheckSecretTap(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                                child: Text(
+                                  'Version ${snapshot.data!.version}+${snapshot.data!.buildNumber}',
+                                  style: TextStyle(fontSize: 13, color: secondary),
+                                ),
                               ),
                             )
                           : const SizedBox.shrink(),

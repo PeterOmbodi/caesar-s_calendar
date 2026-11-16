@@ -11,7 +11,13 @@ import 'package:caesar_puzzle/presentation/widgets/key_cap.dart';
 import 'package:flutter/material.dart';
 
 class GlassChrome extends GameChrome {
-  const GlassChrome({super.key, required super.actions, required super.spec, required super.onInvoke});
+  const GlassChrome({
+    super.key,
+    required super.actions,
+    required super.spec,
+    required super.onInvoke,
+    super.accessory,
+  });
 
   static const double edgeMargin = 16;
   static const double barMaxWidth = 480;
@@ -34,12 +40,21 @@ class GlassChrome extends GameChrome {
 
   @override
   Widget build(final BuildContext context) {
+    final accessory = this.accessory;
     if (spec.toolbar == ToolbarPlacement.labeledRail) {
       return Align(
         alignment: Alignment.topLeft,
         child: Padding(
           padding: const EdgeInsets.all(sideRailMargin),
-          child: _LabeledRail(actions: actions, onInvoke: onInvoke),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: sideRailGap,
+            children: [
+              _LabeledRail(actions: actions, onInvoke: onInvoke),
+              if (accessory != null) Flexible(child: accessory),
+            ],
+          ),
         ),
       );
     }
@@ -56,20 +71,31 @@ class GlassChrome extends GameChrome {
     final radius = BorderRadius.circular(chrome.barRadius);
 
     if (_isRail) {
+      final rail = GlassSurface(
+        borderRadius: radius,
+        child: SizedBox(
+          width: chrome.barHeight,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(mainAxisSize: MainAxisSize.min, spacing: 2, children: slots),
+          ),
+        ),
+      );
       return Align(
         alignment: Alignment.centerRight,
         child: Padding(
-          padding: const EdgeInsets.only(right: edgeMargin),
-          child: GlassSurface(
-            borderRadius: radius,
-            child: SizedBox(
-              width: chrome.barHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(mainAxisSize: MainAxisSize.min, spacing: 2, children: slots),
-              ),
-            ),
-          ),
+          padding: accessory == null
+              ? const EdgeInsets.only(right: edgeMargin)
+              : const EdgeInsets.fromLTRB(0, 8, edgeMargin, edgeMargin),
+          child: accessory == null
+              ? rail
+              : Column(
+                  spacing: 12,
+                  children: [
+                    Expanded(child: accessory),
+                    rail,
+                  ],
+                ),
         ),
       );
     }
@@ -86,7 +112,12 @@ class GlassChrome extends GameChrome {
               height: chrome.barHeight,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: slots),
+                // A short set stays together in the middle.
+                child: Row(
+                  mainAxisAlignment: slots.length >= 4 ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
+                  spacing: 8,
+                  children: slots,
+                ),
               ),
             ),
           ),

@@ -11,6 +11,9 @@ sealed class PuzzleEvent with _$PuzzleEvent {
     @Default(PuzzlePieceUI.defaultTrayScale) final double trayScale,
     @Default(EdgeInsets.zero) final EdgeInsets contentInsets,
     @Default(0) final double trayTopInset,
+
+    /// Width the tray leaves free at its start for chrome beside it.
+    @Default(0) final double trayStartInset,
   }) = _SetViewSize;
 
   const factory PuzzleEvent.reset() = _Reset;
@@ -64,6 +67,12 @@ sealed class PuzzleEvent with _$PuzzleEvent {
   const factory PuzzleEvent.markSolvedDialogShown() = _MarkSolvedDialogShown;
 
   const factory PuzzleEvent.applyLayout(final List<PlacementParams> placements) = _ApplyLayout;
+
+  /// Handled only by a bloc in [PuzzleMode.race].
+  const factory PuzzleEvent.startRace({
+    required final DateTime date,
+    @Default(<PlacementParams>[]) final List<PlacementParams> placements,
+  }) = _StartRace;
 
   const factory PuzzleEvent.startLayoutEdit({final String? layoutId, final String? name}) = _StartLayoutEdit;
 

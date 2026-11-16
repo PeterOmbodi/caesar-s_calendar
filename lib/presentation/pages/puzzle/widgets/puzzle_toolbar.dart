@@ -46,8 +46,27 @@ extension _BottomControlIntroX on _BottomControlIntro {
   };
 }
 
+class RaceToolbarControls {
+  const RaceToolbarControls({
+    required this.phase,
+    required this.isHost,
+    required this.onNewRace,
+    required this.onLeave,
+  });
+
+  final RacePhase phase;
+  final bool isHost;
+  final VoidCallback onNewRace;
+  final VoidCallback onLeave;
+}
+
 class PuzzleToolbar extends StatelessWidget {
-  const PuzzleToolbar({super.key});
+  const PuzzleToolbar({super.key, this.race, this.accessory});
+
+  final RaceToolbarControls? race;
+
+  /// See [GameChrome.accessory].
+  final Widget? accessory;
 
   Future<bool> _showIntroIfNeeded(final BuildContext context, final _BottomControlIntro intro, final Rect? anchor) =>
       CoachMark.showOnce(
@@ -159,6 +178,10 @@ class PuzzleToolbar extends StatelessWidget {
         puzzleBloc.add(PuzzleEvent.showSolution(state.solutionIdx + 1));
       case GameActionId.solutionCounter:
         break;
+      case GameActionId.newRace:
+        race?.onNewRace();
+      case GameActionId.leaveRace:
+        race?.onLeave();
       case GameActionId.closeSolutions:
       case GameActionId.restart:
         puzzleBloc.add(PuzzleEvent.reset());
@@ -169,6 +192,8 @@ class PuzzleToolbar extends StatelessWidget {
           anchor,
           () => _runAssist(context, action.assistGate!, () => puzzleBloc.add(PuzzleEvent.showSolution(0))),
         );
+      case GameActionId.layouts:
+        await showBoardLayoutsSheet(context);
       case GameActionId.howToPlay:
         await showHowToPlaySheet(context);
       case GameActionId.cancelEdit:
@@ -214,7 +239,13 @@ class PuzzleToolbar extends StatelessWidget {
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
     builder: (final context, final state) {
-      final actions = actionsFor(state, context.watch<SettingsCubit>().state.solutionIndicator);
+      final actions = actionsFor(
+        state,
+        context.watch<SettingsCubit>().state.solutionIndicator,
+        mode: context.read<PuzzleBloc>().mode,
+        racePhase: race?.phase ?? RacePhase.racing,
+        isRaceHost: race?.isHost ?? false,
+      );
       final apple = hostIsApple;
       return CallbackShortcuts(
         bindings: {
@@ -228,6 +259,7 @@ class PuzzleToolbar extends StatelessWidget {
             actions: actions,
             spec: ScreenSpec.of(context),
             onInvoke: (final action, final anchor) => _invoke(context, state, action, anchor),
+            accessory: accessory,
           ),
         ),
       );

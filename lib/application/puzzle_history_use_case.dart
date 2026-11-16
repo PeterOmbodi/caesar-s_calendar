@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:caesar_puzzle/application/contracts/puzzle_history_repository.dart';
+import 'package:caesar_puzzle/application/contracts/session_recorder.dart';
 import 'package:caesar_puzzle/application/models/achievement_stats.dart';
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/models/period_range_resolver.dart';
@@ -20,7 +21,7 @@ import 'package:caesar_puzzle/injection.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton()
-class PuzzleHistoryUseCase {
+class PuzzleHistoryUseCase implements SessionRecorder {
   PuzzleHistoryUseCase(this._historyRepository);
 
   final PuzzleHistoryRepository _historyRepository;
@@ -30,6 +31,7 @@ class PuzzleHistoryUseCase {
   PuzzleSessionDifficulty? _currentSessionDifficulty;
   bool _currentSessionLockedAfterSolved = false;
 
+  @override
   void resetSession() {
     _currentSessionId = null;
     _currentSessionStartedAt = null;
@@ -37,6 +39,7 @@ class PuzzleHistoryUseCase {
     _currentSessionLockedAfterSolved = false;
   }
 
+  @override
   void activateSession(final PuzzleSessionData session) {
     _currentSessionId = session.id;
     _currentSessionStartedAt = session.startedAt;
@@ -44,14 +47,17 @@ class PuzzleHistoryUseCase {
     _currentSessionLockedAfterSolved = session.status == PuzzleSessionStatus.solved || session.completedAt != null;
   }
 
+  @override
   void setCurrentSessionDifficulty(final PuzzleSessionDifficulty difficulty) {
     _currentSessionDifficulty = _coalesceDifficulty(_currentSessionDifficulty, difficulty);
   }
 
+  @override
   void markCurrentSessionDifficulty(final PuzzleSessionDifficulty difficulty) {
     _currentSessionDifficulty = _coalesceDifficulty(_currentSessionDifficulty, difficulty);
   }
 
+  @override
   Future<void> markPuzzleAssisted({
     required final DateTime puzzleDate,
     required final List<PlacementParams> configPlacements,
@@ -60,6 +66,7 @@ class PuzzleHistoryUseCase {
     configId: await _configId(configPlacements),
   );
 
+  @override
   Future<bool> isPuzzleAssisted({
     required final DateTime puzzleDate,
     required final List<PlacementParams> configPlacements,
@@ -100,7 +107,7 @@ class PuzzleHistoryUseCase {
     _aggregateAchievements,
   );
 
-  /// Block placements the session was played with; null if its config is not stored locally.
+  @override
   Future<List<PlacementParams>?> sessionLayout(final PuzzleSessionData session) async {
     if (session.configId == StandardPuzzleConfig.id) {
       return PuzzleConfigJson.standardPlacements;
@@ -282,6 +289,7 @@ class PuzzleHistoryUseCase {
     return longest;
   }
 
+  @override
   void persistAfterChange(final PuzzleHistoryInput input) {
     if (_currentSessionLockedAfterSolved) {
       return;

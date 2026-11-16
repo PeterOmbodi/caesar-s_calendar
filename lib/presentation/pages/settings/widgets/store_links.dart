@@ -16,7 +16,13 @@ List<StoreLink> webStoreLinks() {
     icon: Icons.shop_outlined,
     url: Uri.parse('https://play.google.com/store/apps/details?id=com.peter_ombodi.caesar_puzzle'),
   );
-  final StoreLink appStore = (title: 'App Store', subtitle: S.current.storeComingSoon, icon: Icons.apple, url: null);
+  // Until the App Store release, iPhone players get the public TestFlight beta.
+  final StoreLink appStore = (
+    title: 'TestFlight',
+    subtitle: S.current.storeTestFlight,
+    icon: Icons.apple,
+    url: Uri.parse('https://testflight.apple.com/join/3vV19gea'),
+  );
   return switch (defaultTargetPlatform) {
     TargetPlatform.android => [play],
     TargetPlatform.iOS => [appStore],

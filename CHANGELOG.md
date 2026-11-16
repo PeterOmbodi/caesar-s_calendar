@@ -1,3 +1,13 @@
+## 1.14.0+48
+- add Race: a duel with a friend on a random date, joined by a room code, a link or a QR code; five start lights, live standings and a result with the final boards of all players
+- race the solver on your device without an account or network, at three levels: Recruit, Legionary and Centurion; solving first ends the race at once
+- the race button in the header shows a Roman head; board layouts moved to the More menu
+- the race lobby has a laurel emblem, and the winner of a race gets a laurel wreath
+- races do not count for records, streaks or achievements
+- a Race section in How to play
+- race texts in all 26 languages
+- month names on the board fit their cells in every language; Bulgarian and Lithuanian show month names instead of numbers, Estonian short names instead of full ones
+
 ## 1.13.1+47
 - hints and showing solutions no longer change your level: a game with help stays on its level but does not count for records
 - the help mark covers the whole puzzle of the day, also after Restart and on your other devices; games solved before it still count

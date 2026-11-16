@@ -62,6 +62,7 @@ void main() {
       ]);
       expect(_ids(actions, ActionSlot.overflow), [
         GameActionId.showSolutions,
+        GameActionId.layouts,
         GameActionId.howToPlay,
         GameActionId.restart,
       ]);
@@ -199,6 +200,54 @@ void main() {
       final actions = actionsFor(editing(), _easy);
       expect(_action(actions, GameActionId.resetLayout).enabled, isFalse);
       expect(_action(actions, GameActionId.saveLayout).enabled, isFalse);
+    });
+  });
+
+  group('race', () {
+    test('Rotate · Undo · Redo · Flip on every level, nothing in More', () {
+      for (final level in [_easy, _medium, _hard]) {
+        for (final selected in [false, true]) {
+          final actions = actionsFor(_state(selected: selected, solutions: 0), level, mode: PuzzleMode.race);
+          expect(_ids(actions, ActionSlot.primary), [
+            GameActionId.rotate,
+            GameActionId.undo,
+            GameActionId.redo,
+            GameActionId.flip,
+          ]);
+          expect(_ids(actions, ActionSlot.overflow), isEmpty);
+        }
+      }
+    });
+
+    test('rotate and flip need a selected piece', () {
+      final idle = actionsFor(_state(), _hard, mode: PuzzleMode.race);
+      final selected = actionsFor(_state(selected: true), _hard, mode: PuzzleMode.race);
+      expect(_action(idle, GameActionId.rotate).enabled, isFalse);
+      expect(_action(idle, GameActionId.flip).enabled, isFalse);
+      expect(_action(selected, GameActionId.rotate).enabled, isTrue);
+      expect(_action(selected, GameActionId.flip).enabled, isTrue);
+    });
+
+    test('no solutions view even when the state shows one', () {
+      final ids = actionsFor(_state(solutionIdx: 0), _easy, mode: PuzzleMode.race).map((final a) => a.id);
+      expect(ids, isNot(contains(GameActionId.closeSolutions)));
+    });
+
+    test('nothing works while waiting for the start or the others', () {
+      final actions = actionsFor(
+        _state(selected: true),
+        _hard,
+        mode: PuzzleMode.race,
+        racePhase: RacePhase.waiting,
+      );
+      expect(actions.every((final a) => !a.enabled), isTrue);
+    });
+
+    test('once the race is over the host can start a new race, everybody can leave', () {
+      final host = actionsFor(_state(), _hard, mode: PuzzleMode.race, racePhase: RacePhase.over, isRaceHost: true);
+      final guest = actionsFor(_state(), _hard, mode: PuzzleMode.race, racePhase: RacePhase.over);
+      expect(_ids(host, ActionSlot.primary), [GameActionId.newRace, GameActionId.leaveRace]);
+      expect(_ids(guest, ActionSlot.primary), [GameActionId.leaveRace]);
     });
   });
 }

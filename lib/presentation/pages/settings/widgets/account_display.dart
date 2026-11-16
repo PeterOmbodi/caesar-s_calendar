@@ -21,6 +21,13 @@ class AccountDisplay {
     return null;
   }
 
+  /// The first letters of the first two words: "Swift Otter 47" is "SO".
+  static String avatarInitials(final String name) {
+    final words = name.split(RegExp(r'\s+')).where((final w) => w.isNotEmpty).take(2);
+    final initials = words.map((final w) => w.characters.first.toUpperCase()).join();
+    return initials.isEmpty ? '?' : initials;
+  }
+
   static String avatarInitial(final String? displayName) {
     final normalized = displayName?.trim();
     if (normalized == null || normalized.isEmpty) return '?';
@@ -36,6 +43,8 @@ class AccountAvatar extends StatefulWidget {
     this.radius = 22,
     this.placeholderIcon,
     this.placeholderIconSize,
+    this.backgroundColor,
+    this.labelStyle,
   });
 
   final String? photoUrl;
@@ -43,6 +52,10 @@ class AccountAvatar extends StatefulWidget {
   final double radius;
   final IconData? placeholderIcon;
   final double? placeholderIconSize;
+
+  /// Behind the label when there is no photo.
+  final Color? backgroundColor;
+  final TextStyle? labelStyle;
 
   @override
   State<AccountAvatar> createState() => _AccountAvatarState();
@@ -58,8 +71,9 @@ class _AccountAvatarState extends State<AccountAvatar> {
     if (photoUrl == null || photoUrl.isEmpty || _failedUrls.contains(photoUrl)) {
       return CircleAvatar(
         radius: widget.radius,
+        backgroundColor: widget.backgroundColor,
         child: widget.placeholderIcon == null
-            ? Text(widget.fallbackLabel)
+            ? Text(widget.fallbackLabel, style: widget.labelStyle)
             : Icon(widget.placeholderIcon, size: widget.placeholderIconSize),
       );
     }
@@ -74,7 +88,7 @@ class _AccountAvatarState extends State<AccountAvatar> {
           fit: BoxFit.cover,
           errorBuilder: (final context, final error, final stackTrace) {
             _failedUrls.add(photoUrl);
-            return Center(child: Text(widget.fallbackLabel));
+            return Center(child: Text(widget.fallbackLabel, style: widget.labelStyle));
           },
         ),
       ),

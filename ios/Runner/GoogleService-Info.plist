@@ -32,5 +32,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:991187302399:ios:71efe756d7b7385af7d9ca</string>
+	<key>DATABASE_URL</key>
+	<string>https://caesar-puzzle-673a2-default-rtdb.europe-west1.firebasedatabase.app</string>
 </dict>
 </plist>

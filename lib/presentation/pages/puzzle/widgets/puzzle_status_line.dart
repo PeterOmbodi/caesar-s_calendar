@@ -1,17 +1,22 @@
 import 'dart:async';
 
 import 'package:caesar_puzzle/core/services/timer_service.dart';
-import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/status/status_for.dart';
+import 'package:caesar_puzzle/presentation/pages/puzzle/status/status_text.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
 
 class PuzzleStatusLine extends StatelessWidget {
-  const PuzzleStatusLine({super.key, required this.state, required this.indicator, required this.showTimer});
+  const PuzzleStatusLine({
+    super.key,
+    required this.state,
+    required this.indicator,
+    required this.showTimer,
+  });
 
   static const double height = LayoutService.statusLineHeight;
 
@@ -47,7 +52,7 @@ class PuzzleStatusLine extends StatelessWidget {
               child: Semantics(
                 liveRegion: true,
                 child: Text(
-                  _text(status),
+                  statusText(status),
                   style: textStyle.copyWith(color: toneColor),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -72,26 +77,6 @@ class PuzzleStatusLine extends StatelessWidget {
       ),
     );
   }
-
-  static String _text(final PuzzleStatus status) => switch (status.message) {
-    StatusMessage.readyToPlay => S.current.statusReadyToPlay,
-    StatusMessage.searching => S.current.statusSearching,
-    StatusMessage.solutionsCount => S.current.statusSolutionsCount(status.count!),
-    StatusMessage.oneSolutionLeft => S.current.statusOneSolutionLeft,
-    StatusMessage.solvable => S.current.statusSolvable,
-    StatusMessage.piecesPlaced => S.current.statusPiecesPlaced(status.count!, status.total!),
-    StatusMessage.noSolutions => S.current.statusNoSolutions,
-    StatusMessage.deadEnd => S.current.statusDeadEnd,
-    StatusMessage.releaseToPlace => S.current.statusReleaseToPlace,
-    StatusMessage.doesNotFit => S.current.statusDoesNotFit,
-    StatusMessage.keepDrawing => S.current.statusKeepDrawing(status.count!, status.total!),
-    StatusMessage.doubleTapToPlace => S.current.statusDoubleTapToPlace,
-    StatusMessage.noMatchingShape => S.current.statusNoMatchingShape,
-    StatusMessage.solved => S.current.statusSolved,
-    StatusMessage.viewingSolution => S.current.statusViewingSolution(status.count!, status.total!),
-    StatusMessage.layoutSolutions => S.current.layoutsSolutionsToday(status.count!),
-    StatusMessage.layoutNoSolution => S.current.layoutsNoSolutionToday,
-  };
 }
 
 class _ElapsedTime extends StatefulWidget {

@@ -11,7 +11,6 @@ import 'package:caesar_puzzle/injection.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cubit.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_haptics.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_sounds.dart';
@@ -20,17 +19,19 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/confetti_view.da
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_toolbar.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_view.dart';
+import 'package:caesar_puzzle/presentation/pages/race/race_lobby_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/race/room_links.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/cubit_settings_query.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/settings_view.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
-import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
+import 'package:caesar_puzzle/presentation/widgets/game_background.dart';
 import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
 import 'package:flutter/gestures.dart' show kDoubleTapTimeout;
@@ -58,12 +59,19 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   late final PuzzleBloc _puzzleBloc;
   late final BoardLayoutsCubit _layoutsCubit;
   late final StreamSubscription<PuzzleState> _feedbackSubscription;
+  late final StreamSubscription<String> _roomLinkSubscription;
+  final _roomLinks = RoomLinks();
+  final _lobbyLinkCodes = StreamController<String>.broadcast();
   PuzzleSettingsPanelController _settingsPanelController = const PuzzleSettingsPanelController();
   final _boardKey = GlobalKey();
+  final _raceButtonKey = GlobalKey();
   final _sounds = PuzzleSounds();
   var _isInitialized = false;
   var _isStartCardOpen = false;
   var _isPieceTipRequested = false;
+  var _hasGreeted = false;
+  var _isGreetingDone = false;
+  var _isRacing = false;
   double _headerHeight = 0;
 
   @override
@@ -76,7 +84,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     _puzzleBloc = PuzzleBloc(
       settings: CubitSettingsQuery(context.read<SettingsCubit>()),
       solvePuzzleUseCase: getIt<SolvePuzzleUseCase>(),
-      historyUseCase: getIt<PuzzleHistoryUseCase>(),
+      sessionRecorder: getIt<PuzzleHistoryUseCase>(),
     );
     _layoutsCubit = BoardLayoutsCubit(getIt<BoardLayoutRepository>());
     final settings = context.read<SettingsCubit>();
@@ -94,6 +102,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         _sounds.playClick();
       }
     });
+    _roomLinkSubscription = _roomLinks.codes.listen(_onRoomLink);
     _isInitialized = true;
   }
 
@@ -102,8 +111,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     if (_isInitialized) {
       _puzzleBloc.close();
       _feedbackSubscription.cancel();
+      _roomLinkSubscription.cancel();
       _layoutsCubit.close();
     }
+    unawaited(_lobbyLinkCodes.close());
     unawaited(_sounds.dispose());
     super.dispose();
   }
@@ -123,14 +134,13 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       ],
       child: Scaffold(
         body: _GameBackground(
-          colors: GameColors.of(context),
           child: SafeArea(
             child: MultiBlocListener(
               listeners: [
                 BlocListener<PuzzleBloc, PuzzleState>(
                   listenWhen: (final ps, final cs) =>
                       ps.status == GameStatus.initializing && cs.status != GameStatus.initializing,
-                  listener: (final context, final state) => _maybeShowStartCard(),
+                  listener: (final context, final state) => _greet(),
                 ),
                 BlocListener<PuzzleBloc, PuzzleState>(
                   listenWhen: (final ps, final cs) =>
@@ -197,9 +207,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                             builder: (final headerContext) => MediaQuery.withClampedTextScaling(
                               maxScaleFactor: _maxChromeTextScale,
                               child: PuzzleHeader(
-                                onLayoutsPressed: () {
+                                raceButtonKey: _raceButtonKey,
+                                onRacePressed: () {
                                   if (!_puzzleBloc.state.isEditingLayout) {
-                                    showBoardLayoutsSheet(headerContext);
+                                    unawaited(_openRace());
                                   }
                                 },
                                 onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
@@ -319,6 +330,73 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   RenderBox? get _boardBox => _boardKey.currentContext?.findRenderObject() as RenderBox?;
 
+  Future<void> _openRace({final String? code}) async {
+    if (_isRacing) {
+      return;
+    }
+    _isRacing = true;
+    // The daily game's clock must not run while its player is racing.
+    _puzzleBloc.suspendTimer();
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RaceLobbyScreen(initialCode: code, linkCodes: _lobbyLinkCodes.stream),
+      ),
+    );
+    _puzzleBloc.resumeTimer();
+    _isRacing = false;
+  }
+
+  // The launching link is taken by _greet; one that arrives while racing goes to the lobby, which drops it in a room.
+  void _onRoomLink(final String code) {
+    if (!_isGreetingDone || !mounted) {
+      return;
+    }
+    if (_isRacing) {
+      _lobbyLinkCodes.add(code);
+    } else {
+      unawaited(_openRace(code: code));
+    }
+  }
+
+  // Once per launch: the first-run card, then a room link's lobby or the note about the new button.
+  Future<void> _greet() async {
+    if (_hasGreeted) {
+      return;
+    }
+    _hasGreeted = true;
+    final isFirstRun = context.read<SettingsCubit>().state.completedOnboardingVersion == 0;
+    await _maybeShowStartCard();
+    if (!mounted) {
+      return;
+    }
+    final linkCode = await _roomLinks.initialCode();
+    _isGreetingDone = true;
+    if (!mounted) {
+      return;
+    }
+    if (linkCode != null) {
+      await _openRace(code: linkCode);
+    } else if (!isFirstRun) {
+      await _showRaceIntro();
+    }
+  }
+
+  Future<void> _showRaceIntro() async {
+    final button = _raceButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    if (button == null || !button.hasSize) {
+      return;
+    }
+    await CoachMark.showOnce(
+      context: context,
+      storageKey: 'tip_seen_race_button',
+      anchor: button.localToGlobal(Offset.zero) & button.size,
+      title: S.current.raceIntroTitle,
+      message: S.current.raceIntroMessage,
+      actionLabel: S.current.ok,
+      canCancel: false,
+    );
+  }
+
   Future<void> _maybeShowStartCard() async {
     final settings = context.read<SettingsCubit>();
     if (_isStartCardOpen || settings.state.completedOnboardingVersion > 0) {
@@ -382,22 +460,13 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 }
 
 class _GameBackground extends StatelessWidget {
-  const _GameBackground({required this.colors, required this.child});
+  const _GameBackground({required this.child});
 
-  final GameColors colors;
   final Widget child;
 
+  // On wide monitors the game stays together in the middle; the background fills the window.
   @override
-  Widget build(final BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [colors.backgroundTop, colors.background],
-        stops: const [0, 0.45],
-      ),
-    ),
-    // On wide monitors the game stays together in the middle; the background fills the window.
+  Widget build(final BuildContext context) => GameBackground(
     child: MaxWidth(maxWidth: PuzzleScreen.maxGameWidth, child: child),
   );
 }

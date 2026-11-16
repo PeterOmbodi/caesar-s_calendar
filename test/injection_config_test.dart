@@ -9,4 +9,11 @@ void main() {
     expect(config, contains('gh.factory<_i783.PublicProfileCubit>'));
     expect(config, isNot(contains('operationTimeout: gh<Duration>()')));
   });
+
+  test('the race room repository and its database are registered', () {
+    final config = File('lib/injection.config.dart').readAsStringSync();
+
+    expect(config, contains('.RaceRoomRepository>'));
+    expect(config, contains('.FirebaseDatabase>'));
+  });
 }

@@ -46,6 +46,7 @@ class PuzzleBoardPainter extends CustomPainter {
 
   static const double boardRadius = PiecePaintHelper.radius + PiecePaintHelper.inset;
   static const double labelScale = 0.33;
+  static const double _labelPadding = 4;
   static const double markFillAlpha = 0.2;
   static const double markStroke = 2;
   static const List<double> markDash = [5, 4];
@@ -137,7 +138,7 @@ class PuzzleBoardPainter extends CustomPainter {
         .expand((final e) => e.cells(grid.origin, grid.cellSize))
         .toSet();
 
-    final labels = <({Rect rect, String text, bool isTarget})>[];
+    final labels = <({Rect rect, String text, bool isTarget, bool isMonth})>[];
     var cellIndex = 0;
     for (var row = 0; row < grid.rows && cellIndex <= 42; row++) {
       for (var column = 0; column < grid.columns && cellIndex <= 42; column++) {
@@ -145,7 +146,12 @@ class PuzzleBoardPainter extends CustomPainter {
         if (forbiddenCells.contains(cell)) {
           continue;
         }
-        labels.add((rect: _cellRect(cell), text: _labelText(cellIndex), isTarget: _isTarget(cellIndex)));
+        labels.add((
+          rect: _cellRect(cell),
+          text: _labelText(cellIndex),
+          isTarget: _isTarget(cellIndex),
+          isMonth: cellIndex < 12,
+        ));
         cellIndex++;
       }
     }
@@ -166,17 +172,22 @@ class PuzzleBoardPainter extends CustomPainter {
     }
 
     final fontSize = cellLabelFontSize(grid.cellSize);
+    final monthFontSize = monthLabelFontSize(
+      maxFontSize: fontSize,
+      maxWidth: grid.cellSize - 2 * _labelPadding,
+    );
     for (final label in labels) {
       final textPainter = TextPainter(
         text: TextSpan(
           text: label.text,
           style: TextStyle(
             color: label.isTarget ? colors.accent : colors.cellLabel,
-            fontSize: fontSize,
+            fontSize: label.isMonth ? monthFontSize : fontSize,
             fontWeight: label.isTarget ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
         textDirection: TextDirection.ltr,
+        maxLines: 1,
       )..layout(maxWidth: grid.cellSize);
       textPainter.paint(
         canvas,

@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["4YB4K9WAB4.com.peter.ombodi.caesarPuzzle"],
+        "components": [
+          { "/": "/caesar-s_calendar/*", "?": { "race": "?*" }, "comment": "Race room links" }
+        ]
+      }
+    ]
+  }
+}
