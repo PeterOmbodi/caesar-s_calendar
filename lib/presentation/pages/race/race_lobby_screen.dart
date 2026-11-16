@@ -8,6 +8,7 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_room_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/race/solver_level_name.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_buttons.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_scaffold.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_store_links.dart';
@@ -119,7 +120,7 @@ class _RaceLobbyScreenState extends State<RaceLobbyScreen> {
     final colors = GameColors.of(context);
     final isSignedIn = context.select<AuthCubit, bool>((final cubit) => cubit.state.user != null);
     return RaceScaffold(
-      title: S.current.raceTitle,
+      title: S.current.raceLobbyTitle,
       child: LayoutBuilder(
         builder: (final context, final constraints) => SingleChildScrollView(
           child: ConstrainedBox(
@@ -320,12 +321,6 @@ class _SignInGate extends StatelessWidget {
   );
 }
 
-String _levelName(final SolverLevel level) => switch (level) {
-  SolverLevel.novice => S.current.raceSolverNovice,
-  SolverLevel.confident => S.current.raceSolverConfident,
-  SolverLevel.master => S.current.raceSolverMaster,
-};
-
 Future<SolverLevel?> _pickSolverLevel(final BuildContext context) => ScreenSpec.of(context).family == ChromeFamily.glass
     ? showCupertinoModalPopup<SolverLevel>(context: context, builder: (_) => const _SolverLevelActionSheet())
     : showModalBottomSheet<SolverLevel>(
@@ -344,7 +339,7 @@ class _SolverLevelActionSheet extends StatelessWidget {
       for (final level in SolverLevel.values)
         CupertinoActionSheetAction(
           onPressed: () => Navigator.of(context).pop(level),
-          child: Text(_levelName(level)),
+          child: Text(level.label),
         ),
     ],
     cancelButton: CupertinoActionSheetAction(
@@ -365,7 +360,7 @@ class _SolverLevelBottomSheet extends StatelessWidget {
       children: [
         ListTile(title: Text(S.current.raceSolverLevelTitle, style: Theme.of(context).textTheme.titleMedium)),
         for (final level in SolverLevel.values)
-          ListTile(title: Text(_levelName(level)), onTap: () => Navigator.of(context).pop(level)),
+          ListTile(title: Text(level.label), onTap: () => Navigator.of(context).pop(level)),
       ],
     ),
   );

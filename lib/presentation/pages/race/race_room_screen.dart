@@ -12,6 +12,7 @@ import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/race/bloc/race_room_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_failure_text.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_game_screen.dart';
+import 'package:caesar_puzzle/presentation/pages/race/solver_level_name.dart';
 import 'package:caesar_puzzle/presentation/pages/race/solver_pieces.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_buttons.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_scaffold.dart';
@@ -45,7 +46,7 @@ class _RaceRoomScreenState extends State<RaceRoomScreen> {
       pieces: standardSolverPieces(),
       grid: solverGrid,
       level: level,
-      solverNickname: S.current.raceSolverName,
+      solverNickname: level.label,
     ),
     null => getIt<RaceRoomRepository>(),
   });
