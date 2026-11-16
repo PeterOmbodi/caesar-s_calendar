@@ -27,7 +27,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class RaceLobbyScreen extends StatefulWidget {
   const RaceLobbyScreen({super.key, this.initialCode, this.linkCodes});
 
-  /// Code from a room link.
   final String? initialCode;
 
   /// Codes of room links opened while the race is open; taken only while the lobby is on screen.

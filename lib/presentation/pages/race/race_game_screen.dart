@@ -39,7 +39,6 @@ import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Shown by the room screen in place of the lobby; needs its [RaceRoomCubit].
 class RaceGameScreen extends StatefulWidget {
   const RaceGameScreen({
     super.key,

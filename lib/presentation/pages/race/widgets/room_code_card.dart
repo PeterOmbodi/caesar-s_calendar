@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// The room's QR code, its code in large type and a share button.
 class RoomCodeCard extends StatelessWidget {
   const RoomCodeCard({super.key, required this.code});
 

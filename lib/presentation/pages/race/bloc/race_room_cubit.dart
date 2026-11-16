@@ -6,31 +6,23 @@ import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_puzzle.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'race_room_cubit.freezed.dart';
 
 enum RaceRoomPhase { entering, open, closed, failed }
 
-class RaceRoomState {
-  const RaceRoomState({required this.phase, this.code, this.room, this.failure, this.isBusy = false});
+@freezed
+abstract class RaceRoomState with _$RaceRoomState {
+  const factory RaceRoomState({
+    required final RaceRoomPhase phase,
+    final String? code,
+    final RaceRoom? room,
 
-  final RaceRoomPhase phase;
-  final String? code;
-  final RaceRoom? room;
-
-  /// Why entering failed, or why the last action in the room did.
-  final RaceRoomFailure? failure;
-  final bool isBusy;
-
-  @override
-  bool operator ==(final Object other) =>
-      other is RaceRoomState &&
-      other.phase == phase &&
-      other.code == code &&
-      other.room == room &&
-      other.failure == failure &&
-      other.isBusy == isBusy;
-
-  @override
-  int get hashCode => Object.hash(phase, code, room, failure, isBusy);
+    /// Why entering failed, or why the last action in the room did.
+    final RaceRoomFailure? failure,
+    @Default(false) final bool isBusy,
+  }) = _RaceRoomState;
 }
 
 class RaceRoomCubit extends Cubit<RaceRoomState> {
@@ -59,7 +51,6 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
 
   DateTime serverNow() => _repository.serverNow();
 
-  /// Creates a room, or joins the one with [code].
   Future<void> enter({required final RaceProfile profile, final String? code}) async {
     try {
       final String entered;
@@ -73,11 +64,11 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
         unawaited(_leaveQuietly(entered));
         return;
       }
-      emit(RaceRoomState(phase: RaceRoomPhase.entering, code: entered));
+      emit(state.copyWith(code: entered));
       _subscription = _repository.watchRoom(entered).listen(_onRoom, onError: _onError);
     } on RaceRoomException catch (e) {
       if (!isClosed) {
-        emit(RaceRoomState(phase: RaceRoomPhase.failed, failure: e.failure));
+        emit(state.copyWith(phase: RaceRoomPhase.failed, failure: e.failure));
       }
     }
   }
@@ -204,7 +195,7 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
       emit(RaceRoomState(phase: RaceRoomPhase.failed, code: state.code, failure: RaceRoomFailure.date));
       unawaited(leave());
     } else {
-      emit(RaceRoomState(phase: RaceRoomPhase.open, code: state.code, room: room, isBusy: state.isBusy));
+      emit(state.copyWith(phase: RaceRoomPhase.open, room: room, failure: null));
     }
   }
 
@@ -227,7 +218,7 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
     if (code == null || room == null || state.isBusy) {
       return;
     }
-    emit(RaceRoomState(phase: state.phase, code: code, room: room, isBusy: true));
+    emit(state.copyWith(isBusy: true, failure: null));
     RaceRoomFailure? failure;
     try {
       await action(code, room);
@@ -235,7 +226,7 @@ class RaceRoomCubit extends Cubit<RaceRoomState> {
       failure = e.failure;
     }
     if (!isClosed && !_hasLeft && state.phase == RaceRoomPhase.open) {
-      emit(RaceRoomState(phase: state.phase, code: code, room: state.room, failure: failure));
+      emit(state.copyWith(isBusy: false, failure: failure));
     }
   }
 
