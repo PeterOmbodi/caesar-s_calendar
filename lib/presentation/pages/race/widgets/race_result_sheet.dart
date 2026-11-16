@@ -58,15 +58,17 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
   // An online player publishes the board in a moment.
   bool _hasBoard(final RacePlayer player) => player.uid == widget.myUid || player.board != null || player.online;
 
+  RaceStanding? get _me => widget.standings.firstWhereOrNull((final s) => s.player.uid == widget.myUid);
+
+  bool get _isSoleWinner => (_me?.isWinner ?? false) && widget.standings.where((final s) => s.isWinner).length == 1;
+
   String get _title {
-    final me = widget.standings.firstWhereOrNull((final s) => s.player.uid == widget.myUid);
+    final me = _me;
     if (me == null) {
       return S.current.raceResultNotFinished;
     }
     if (me.isWinner) {
-      return widget.standings.where((final s) => s.isWinner).length > 1
-          ? S.current.raceResultDraw
-          : S.current.raceResultWin;
+      return _isSoleWinner ? S.current.raceResultWin : S.current.raceResultDraw;
     }
     if (me.place case final place?) {
       return S.current.raceResultPlace(place);
@@ -78,6 +80,7 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     final shown = widget.standings.firstWhereOrNull((final s) => s.player.uid == widget.shownUid);
+    final titleStyle = TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.text);
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: RaceResultSheet.maxWidth),
       child: DecoratedBox(
@@ -110,10 +113,10 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  _title,
-                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.text),
-                                ),
+                                if (_isSoleWinner)
+                                  _LaurelTitle(title: _title, style: titleStyle, color: colors.accent)
+                                else
+                                  Text(_title, style: titleStyle),
                                 if (widget.note case final note?)
                                   Text(note, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
                               ],
@@ -422,6 +425,121 @@ class _ResultRow extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LaurelTitle extends StatelessWidget {
+  const _LaurelTitle({required this.title, required this.style, required this.color});
+
+  final String title;
+  final TextStyle style;
+  final Color color;
+
+  @override
+  Widget build(final BuildContext context) => TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: 1),
+    duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 450),
+    curve: Curves.easeOutBack,
+    builder: (final context, final value, final child) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _LaurelBranch(color: color, mirrored: false, grow: value),
+        const SizedBox(width: 6),
+        Flexible(child: child!),
+        const SizedBox(width: 6),
+        _LaurelBranch(color: color, mirrored: true, grow: value),
+      ],
+    ),
+    child: Text(title, style: style),
+  );
+}
+
+class _LaurelBranch extends StatelessWidget {
+  const _LaurelBranch({required this.color, required this.mirrored, required this.grow});
+
+  final Color color;
+  final bool mirrored;
+  final double grow;
+
+  @override
+  Widget build(final BuildContext context) => SizedBox(
+    width: 18,
+    height: 28,
+    child: CustomPaint(
+      painter: _LaurelBranchPainter(color: color, mirrored: mirrored, grow: grow),
+    ),
+  );
+}
+
+/// Drawn as the left branch; [mirrored] gives the right one.
+class _LaurelBranchPainter extends CustomPainter {
+  const _LaurelBranchPainter({required this.color, required this.mirrored, required this.grow});
+
+  static const int _leaves = 5;
+
+  final Color color;
+  final bool mirrored;
+  final double grow;
+
+  @override
+  void paint(final Canvas canvas, final Size size) {
+    if (grow <= 0) {
+      return;
+    }
+    if (mirrored) {
+      canvas
+        ..translate(size.width, 0)
+        ..scale(-1, 1);
+    }
+    final start = Offset(size.width * 0.9, size.height * 0.95);
+    final control = Offset(size.width * 0.05, size.height * 0.65);
+    final end = Offset(size.width * 0.6, size.height * 0.1);
+    Offset point(final double t) => start * ((1 - t) * (1 - t)) + control * (2 * (1 - t) * t) + end * (t * t);
+    Offset tangent(final double t) => (control - start) * (2 * (1 - t)) + (end - control) * (2 * t);
+
+    final stem = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..strokeCap = StrokeCap.round;
+    final tip = grow.clamp(0.0, 1.0);
+    final path = Path()..moveTo(start.dx, start.dy);
+    for (var i = 1; i <= 12; i++) {
+      final p = point(tip * i / 12);
+      path.lineTo(p.dx, p.dy);
+    }
+    canvas.drawPath(path, stem);
+
+    final leaf = Paint()..color = color;
+    final length = size.height * 0.22;
+    void drawLeaf(final Offset at, final double angle, final double scale) {
+      canvas
+        ..save()
+        ..translate(at.dx, at.dy)
+        ..rotate(angle)
+        ..scale(scale);
+      canvas.drawOval(Rect.fromLTWH(0, -length * 0.2, length, length * 0.4), leaf);
+      canvas.restore();
+    }
+
+    for (var i = 1; i <= _leaves; i++) {
+      final t = i / (_leaves + 1);
+      if (t > tip) {
+        break;
+      }
+      final at = point(t);
+      final direction = tangent(t).direction;
+      final scale = (1 - t * 0.35) * grow;
+      drawLeaf(at, direction - 0.7, scale);
+      drawLeaf(at, direction + 0.7, scale);
+    }
+    if (tip >= 1) {
+      drawLeaf(end, tangent(1).direction, 0.8 * grow);
+    }
+  }
+
+  @override
+  bool shouldRepaint(final _LaurelBranchPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.mirrored != mirrored || oldDelegate.grow != grow;
 }
 
 class _CheckeredPainter extends CustomPainter {
