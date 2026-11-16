@@ -1,4 +1,4 @@
-// Counts the solver's moves for every date and level, to tune SolverLevel.msPerStep.
+// Counts the solver's moves for every date and level, to set SolverLevel.fewSteps and manySteps (p10 and p90).
 // Run: fvm flutter test tool/race_solver/count_solver_steps_test.dart
 // ignore_for_file: avoid_print
 
@@ -34,11 +34,9 @@ void main() {
       }
       counts.sort();
       int percentile(final int p) => counts[((counts.length - 1) * p / 100).round()];
-      final target = (level.minTime.inMilliseconds + level.maxTime.inMilliseconds) / 2;
       print(
         '${level.name}: min ${counts.first}, p10 ${percentile(10)}, median ${percentile(50)}, '
         'p90 ${percentile(90)}, max ${counts.last}, unsolved $unsolved, '
-        'msPerStep for the median at mid range ≈ ${(target / percentile(50)).round()}, '
         'search ${watch.elapsedMilliseconds} ms for 366 dates',
       );
     }

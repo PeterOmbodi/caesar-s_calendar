@@ -5,21 +5,24 @@ enum SolverLevel {
   novice(
     mostConstrainedFirst: false,
     skipDeadEnds: false,
-    msPerStep: 20,
+    fewSteps: 142,
+    manySteps: 5772,
     minTime: Duration(minutes: 4),
     maxTime: Duration(minutes: 6),
   ),
   confident(
     mostConstrainedFirst: false,
     skipDeadEnds: true,
-    msPerStep: 300,
+    fewSteps: 64,
+    manySteps: 2384,
     minTime: Duration(minutes: 2),
     maxTime: Duration(minutes: 3),
   ),
   master(
     mostConstrainedFirst: true,
     skipDeadEnds: true,
-    msPerStep: 3000,
+    fewSteps: 30,
+    manySteps: 886,
     minTime: Duration(seconds: 60),
     maxTime: Duration(seconds: 90),
   );
@@ -27,7 +30,8 @@ enum SolverLevel {
   const SolverLevel({
     required this.mostConstrainedFirst,
     required this.skipDeadEnds,
-    required this.msPerStep,
+    required this.fewSteps,
+    required this.manySteps,
     required this.minTime,
     required this.maxTime,
   });
@@ -35,12 +39,21 @@ enum SolverLevel {
   final bool mostConstrainedFirst;
   final bool skipDeadEnds;
 
-  // To be tuned with tool/race_solver/count_solver_steps_test.dart.
-  final int msPerStep;
+  // p10 and p90 of the level's moves over all dates, from tool/race_solver/count_solver_steps_test.dart.
+  final int fewSteps;
+  final int manySteps;
   final Duration minTime;
   final Duration maxTime;
 
-  Duration timeFor(final int steps) => Duration(
-    milliseconds: min(max(steps * msPerStep, minTime.inMilliseconds), maxTime.inMilliseconds),
-  );
+  /// Moves vary a hundredfold between dates, so the time follows their logarithm: [fewSteps] or fewer take
+  /// [minTime], [manySteps] or more take [maxTime].
+  Duration timeFor(final int steps) {
+    final share = steps <= fewSteps
+        ? 0.0
+        : steps >= manySteps
+        ? 1.0
+        : log(steps / fewSteps) / log(manySteps / fewSteps);
+    final range = maxTime.inMilliseconds - minTime.inMilliseconds;
+    return Duration(milliseconds: minTime.inMilliseconds + (range * share).round());
+  }
 }

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:caesar_puzzle/application/race/solver_level.dart';
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/domain/algorithms/dancing_links/models/solver_placement.dart';
@@ -73,9 +75,15 @@ void main() {
     expect(confident, greaterThan(master));
   }, timeout: const Timeout(Duration(minutes: 5)));
 
-  test('the time follows the number of moves within the level range', () {
-    const level = SolverLevel.master;
-    expect(level.timeFor(0), level.minTime);
-    expect(level.timeFor(1 << 30), level.maxTime);
+  test('the time grows with the number of moves and stays within the level range', () {
+    for (final level in SolverLevel.values) {
+      expect(level.timeFor(1), level.minTime, reason: level.name);
+      expect(level.timeFor(level.fewSteps), level.minTime, reason: level.name);
+      expect(level.timeFor(level.manySteps), level.maxTime, reason: level.name);
+      expect(level.timeFor(1 << 30), level.maxTime, reason: level.name);
+      final middle = level.timeFor(sqrt(level.fewSteps * level.manySteps).round());
+      expect(middle, greaterThan(level.minTime), reason: level.name);
+      expect(middle, lessThan(level.maxTime), reason: level.name);
+    }
   });
 }
