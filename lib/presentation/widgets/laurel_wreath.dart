@@ -1,20 +1,4 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-
-/// Two branches along a circle, open at the top, as an icon.
-class LaurelWreath extends StatelessWidget {
-  const LaurelWreath({super.key, required this.color, this.size = 22});
-
-  final Color color;
-  final double size;
-
-  @override
-  Widget build(final BuildContext context) => SizedBox.square(
-    dimension: size,
-    child: CustomPaint(painter: _LaurelWreathPainter(color: color)),
-  );
-}
 
 class LaurelBranch extends StatelessWidget {
   const LaurelBranch({super.key, required this.color, required this.mirrored, this.grow = 1});
@@ -33,54 +17,6 @@ class LaurelBranch extends StatelessWidget {
       painter: _LaurelBranchPainter(color: color, mirrored: mirrored, grow: grow),
     ),
   );
-}
-
-class _LaurelWreathPainter extends CustomPainter {
-  const _LaurelWreathPainter({required this.color});
-
-  static const int _leaves = 5;
-  static const double _from = 25 * pi / 180;
-  static const double _to = 150 * pi / 180;
-
-  final Color color;
-
-  @override
-  void paint(final Canvas canvas, final Size size) {
-    final side = size.shortestSide;
-    final center = size.center(Offset.zero);
-    final radius = side * 0.37;
-    final length = side * 0.19;
-    final stem = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = side * 0.055
-      ..strokeCap = StrokeCap.round;
-    final leaf = Paint()..color = color;
-
-    // Angles are counted from the bottom of the circle, up both sides.
-    for (final sign in const [-1.0, 1.0]) {
-      Offset point(final double angle) => center + Offset(sign * radius * sin(angle), radius * cos(angle));
-      double upwards(final double angle) => atan2(-sin(angle), sign * cos(angle));
-
-      final path = Path()..moveTo(point(_from).dx, point(_from).dy);
-      for (var i = 1; i <= 24; i++) {
-        final p = point(_from + (_to - _from) * i / 24);
-        path.lineTo(p.dx, p.dy);
-      }
-      canvas.drawPath(path, stem);
-
-      for (var i = 0; i < _leaves; i++) {
-        final angle = _from + (_to - _from) * (i + 0.5) / _leaves;
-        final scale = 1 - 0.3 * i / _leaves;
-        _drawLeaf(canvas, leaf, point(angle), upwards(angle) - sign * 0.7, length * scale, 0.44);
-        _drawLeaf(canvas, leaf, point(angle), upwards(angle) + sign * 0.7, length * scale * 0.85, 0.44);
-      }
-      _drawLeaf(canvas, leaf, point(_to), upwards(_to), length * 0.7, 0.44);
-    }
-  }
-
-  @override
-  bool shouldRepaint(final _LaurelWreathPainter oldDelegate) => oldDelegate.color != color;
 }
 
 /// Drawn as the left branch; [mirrored] gives the right one.

@@ -101,6 +101,7 @@ class _RaceRoomScreenState extends State<RaceRoomScreen> {
             myUid: me.uid,
             startAtMs: startAt,
             date: DateTime(RacePuzzle.year, puzzle.month, puzzle.day),
+            solverLevel: widget.solverLevel,
           );
         }
         return RaceScaffold(

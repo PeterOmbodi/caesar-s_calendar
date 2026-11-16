@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_rules.dart';
+import 'package:caesar_puzzle/application/race/solver_level.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_time_format.dart';
-import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
+import 'package:caesar_puzzle/presentation/pages/race/widgets/race_player_avatar.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class RaceStandings extends StatelessWidget {
     required this.totalPieces,
     required this.graceEndsAtMs,
     required this.now,
+    required this.solverLevel,
   });
 
   final List<RacePlayer> players;
@@ -31,6 +33,9 @@ class RaceStandings extends StatelessWidget {
 
   /// Server clock.
   final DateTime Function() now;
+
+  /// Null in a race between people.
+  final SolverLevel? solverLevel;
 
   @override
   Widget build(final BuildContext context) {
@@ -59,6 +64,7 @@ class RaceStandings extends StatelessWidget {
               totalPieces: totalPieces,
               graceEndsAtMs: player.hasFinished ? graceEndsAtMs : null,
               now: now,
+              solverLevel: solverLevel,
             );
           },
         ),
@@ -75,6 +81,7 @@ class _StandingsItem extends StatelessWidget {
     required this.totalPieces,
     required this.graceEndsAtMs,
     required this.now,
+    required this.solverLevel,
   });
 
   final RacePlayer player;
@@ -83,6 +90,7 @@ class _StandingsItem extends StatelessWidget {
   final int totalPieces;
   final int? graceEndsAtMs;
   final DateTime Function() now;
+  final SolverLevel? solverLevel;
 
   String get _status {
     final duration = player.durationMs;
@@ -133,13 +141,7 @@ class _StandingsItem extends StatelessWidget {
                         border: Border.all(color: colors.accent, width: 2),
                       )
                     : null,
-                child: AccountAvatar(
-                  photoUrl: null,
-                  fallbackLabel: AccountDisplay.avatarInitials(player.nickname),
-                  radius: 13,
-                  backgroundColor: colors.player(player.colorIndex),
-                  labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
-                ),
+                child: RacePlayerAvatar(player: player, radius: 13, solverLevel: solverLevel),
               ),
               Flexible(
                 child: FittedBox(fit: BoxFit.scaleDown, alignment: AlignmentDirectional.centerStart, child: mark),

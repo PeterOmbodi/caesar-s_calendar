@@ -17,6 +17,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_displa
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
+import 'package:caesar_puzzle/presentation/widgets/roman_head_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -339,7 +340,16 @@ class _SolverLevelActionSheet extends StatelessWidget {
       for (final level in SolverLevel.values)
         CupertinoActionSheetAction(
           onPressed: () => Navigator.of(context).pop(level),
-          child: Text(level.label),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(start: 24),
+            child: Row(
+              spacing: 16,
+              children: [
+                RomanHeadAvatar(rank: level.rank, radius: 22),
+                Text(level.label),
+              ],
+            ),
+          ),
         ),
     ],
     cancelButton: CupertinoActionSheetAction(
@@ -360,7 +370,11 @@ class _SolverLevelBottomSheet extends StatelessWidget {
       children: [
         ListTile(title: Text(S.current.raceSolverLevelTitle, style: Theme.of(context).textTheme.titleMedium)),
         for (final level in SolverLevel.values)
-          ListTile(title: Text(level.label), onTap: () => Navigator.of(context).pop(level)),
+          ListTile(
+            leading: RomanHeadAvatar(rank: level.rank, radius: 22),
+            title: Text(level.label),
+            onTap: () => Navigator.of(context).pop(level),
+          ),
       ],
     ),
   );

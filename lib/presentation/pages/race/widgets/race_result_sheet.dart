@@ -1,10 +1,11 @@
 import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_result.dart';
+import 'package:caesar_puzzle/application/race/solver_level.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_time_format.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_board_preview.dart';
-import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
+import 'package:caesar_puzzle/presentation/pages/race/widgets/race_player_avatar.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/laurel_wreath.dart';
 import 'package:collection/collection.dart';
@@ -20,6 +21,7 @@ class RaceResultSheet extends StatefulWidget {
     required this.totalPieces,
     required this.shownUid,
     required this.onShowBoard,
+    required this.solverLevel,
     this.note,
   });
 
@@ -36,6 +38,9 @@ class RaceResultSheet extends StatefulWidget {
   /// Null shows the table.
   final String? shownUid;
   final ValueChanged<String?> onShowBoard;
+
+  /// Null in a race between people.
+  final SolverLevel? solverLevel;
 
   final String? note;
 
@@ -140,6 +145,7 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
                                   key: const ValueKey<String?>(null),
                                   standings: widget.standings,
                                   myUid: widget.myUid,
+                                  solverLevel: widget.solverLevel,
                                   onShowBoard: (final player) =>
                                       _hasBoard(player) ? () => widget.onShowBoard(player.uid) : null,
                                 )
@@ -148,6 +154,7 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
                                   standing: shown,
                                   board: shown.player.uid == widget.myUid ? widget.myBoard : shown.player.board,
                                   totalPieces: widget.totalPieces,
+                                  solverLevel: widget.solverLevel,
                                   onBack: () => widget.onShowBoard(null),
                                 ),
                         )
@@ -202,10 +209,17 @@ class _SlidingPages extends StatelessWidget {
 }
 
 class _ResultTable extends StatelessWidget {
-  const _ResultTable({super.key, required this.standings, required this.myUid, required this.onShowBoard});
+  const _ResultTable({
+    super.key,
+    required this.standings,
+    required this.myUid,
+    required this.solverLevel,
+    required this.onShowBoard,
+  });
 
   final List<RaceStanding> standings;
   final String myUid;
+  final SolverLevel? solverLevel;
 
   /// Null for a player without a board.
   final VoidCallback? Function(RacePlayer player) onShowBoard;
@@ -219,6 +233,7 @@ class _ResultTable extends StatelessWidget {
           _ResultRow(
             standing: standing,
             isMe: standing.player.uid == myUid,
+            solverLevel: solverLevel,
             onTap: onShowBoard(standing.player),
           ),
       ],
@@ -232,6 +247,7 @@ class _BoardPage extends StatelessWidget {
     required this.standing,
     required this.board,
     required this.totalPieces,
+    required this.solverLevel,
     required this.onBack,
   });
 
@@ -242,6 +258,7 @@ class _BoardPage extends StatelessWidget {
   /// Null until the player's board arrives.
   final RaceBoard? board;
   final int totalPieces;
+  final SolverLevel? solverLevel;
   final VoidCallback onBack;
 
   String get _result {
@@ -276,7 +293,7 @@ class _BoardPage extends StatelessWidget {
                   onPressed: onBack,
                   icon: Icon(Icons.chevron_left, color: colors.icon),
                 ),
-                _PlayerAvatar(player: player),
+                RacePlayerAvatar(player: player, radius: 15, solverLevel: solverLevel),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -319,26 +336,12 @@ class _BoardPage extends StatelessWidget {
   }
 }
 
-class _PlayerAvatar extends StatelessWidget {
-  const _PlayerAvatar({required this.player});
-
-  final RacePlayer player;
-
-  @override
-  Widget build(final BuildContext context) => AccountAvatar(
-    photoUrl: null,
-    fallbackLabel: AccountDisplay.avatarInitials(player.nickname),
-    radius: 15,
-    backgroundColor: GameColors.of(context).player(player.colorIndex),
-    labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
-  );
-}
-
 class _ResultRow extends StatelessWidget {
-  const _ResultRow({required this.standing, required this.isMe, required this.onTap});
+  const _ResultRow({required this.standing, required this.isMe, required this.solverLevel, required this.onTap});
 
   final RaceStanding standing;
   final bool isMe;
+  final SolverLevel? solverLevel;
 
   final VoidCallback? onTap;
 
@@ -374,7 +377,7 @@ class _ResultRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                _PlayerAvatar(player: player),
+                RacePlayerAvatar(player: player, radius: 15, solverLevel: solverLevel),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(

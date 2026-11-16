@@ -8,6 +8,7 @@ import 'package:caesar_puzzle/application/race/race_result.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
 import 'package:caesar_puzzle/application/race/race_rules.dart';
 import 'package:caesar_puzzle/application/race/race_settings_query.dart';
+import 'package:caesar_puzzle/application/race/solver_level.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
@@ -46,12 +47,16 @@ class RaceGameScreen extends StatefulWidget {
     required this.myUid,
     required this.startAtMs,
     required this.date,
+    required this.solverLevel,
   });
 
   final RaceRoom room;
   final String myUid;
   final int startAtMs;
   final DateTime date;
+
+  /// Null in a race between people.
+  final SolverLevel? solverLevel;
 
   @override
   State<RaceGameScreen> createState() => _RaceGameScreenState();
@@ -222,6 +227,7 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
       totalPieces: _bloc.state.pieces.where((final p) => !p.isConfigItem).length,
       graceEndsAtMs: _isMyRaceDone || _isOver ? null : RaceRules.graceEndsAtMs(room),
       now: _cubit.serverNow,
+      solverLevel: widget.solverLevel,
     );
     return PopScope(
       canPop: false,
@@ -285,6 +291,7 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
                         totalPieces: _bloc.state.pieces.where((final p) => !p.isConfigItem).length,
                         shownBoardUid: _shownBoardUid,
                         onShowBoard: (final uid) => setState(() => _shownBoardUid = uid),
+                        solverLevel: widget.solverLevel,
                       ),
                     _HeaderSlot(
                       onHeight: (final height) {
@@ -370,6 +377,7 @@ class _ResultSlot extends StatelessWidget {
     required this.totalPieces,
     required this.shownBoardUid,
     required this.onShowBoard,
+    required this.solverLevel,
   });
 
   final RaceRoom room;
@@ -379,6 +387,7 @@ class _ResultSlot extends StatelessWidget {
   final int totalPieces;
   final String? shownBoardUid;
   final ValueChanged<String?> onShowBoard;
+  final SolverLevel? solverLevel;
 
   @override
   Widget build(final BuildContext context) {
@@ -401,6 +410,7 @@ class _ResultSlot extends StatelessWidget {
                 totalPieces: totalPieces,
                 shownUid: shownBoardUid,
                 onShowBoard: onShowBoard,
+                solverLevel: solverLevel,
               ),
             ),
           ),
