@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/presentation/pages/race/race_time_format.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_board_preview.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/laurel_wreath.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
@@ -442,104 +443,15 @@ class _LaurelTitle extends StatelessWidget {
     builder: (final context, final value, final child) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _LaurelBranch(color: color, mirrored: false, grow: value),
+        LaurelBranch(color: color, mirrored: false, grow: value),
         const SizedBox(width: 6),
         Flexible(child: child!),
         const SizedBox(width: 6),
-        _LaurelBranch(color: color, mirrored: true, grow: value),
+        LaurelBranch(color: color, mirrored: true, grow: value),
       ],
     ),
     child: Text(title, style: style),
   );
-}
-
-class _LaurelBranch extends StatelessWidget {
-  const _LaurelBranch({required this.color, required this.mirrored, required this.grow});
-
-  final Color color;
-  final bool mirrored;
-  final double grow;
-
-  @override
-  Widget build(final BuildContext context) => SizedBox(
-    width: 18,
-    height: 28,
-    child: CustomPaint(
-      painter: _LaurelBranchPainter(color: color, mirrored: mirrored, grow: grow),
-    ),
-  );
-}
-
-/// Drawn as the left branch; [mirrored] gives the right one.
-class _LaurelBranchPainter extends CustomPainter {
-  const _LaurelBranchPainter({required this.color, required this.mirrored, required this.grow});
-
-  static const int _leaves = 5;
-
-  final Color color;
-  final bool mirrored;
-  final double grow;
-
-  @override
-  void paint(final Canvas canvas, final Size size) {
-    if (grow <= 0) {
-      return;
-    }
-    if (mirrored) {
-      canvas
-        ..translate(size.width, 0)
-        ..scale(-1, 1);
-    }
-    final start = Offset(size.width * 0.9, size.height * 0.95);
-    final control = Offset(size.width * 0.05, size.height * 0.65);
-    final end = Offset(size.width * 0.6, size.height * 0.1);
-    Offset point(final double t) => start * ((1 - t) * (1 - t)) + control * (2 * (1 - t) * t) + end * (t * t);
-    Offset tangent(final double t) => (control - start) * (2 * (1 - t)) + (end - control) * (2 * t);
-
-    final stem = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round;
-    final tip = grow.clamp(0.0, 1.0);
-    final path = Path()..moveTo(start.dx, start.dy);
-    for (var i = 1; i <= 12; i++) {
-      final p = point(tip * i / 12);
-      path.lineTo(p.dx, p.dy);
-    }
-    canvas.drawPath(path, stem);
-
-    final leaf = Paint()..color = color;
-    final length = size.height * 0.22;
-    void drawLeaf(final Offset at, final double angle, final double scale) {
-      canvas
-        ..save()
-        ..translate(at.dx, at.dy)
-        ..rotate(angle)
-        ..scale(scale);
-      canvas.drawOval(Rect.fromLTWH(0, -length * 0.2, length, length * 0.4), leaf);
-      canvas.restore();
-    }
-
-    for (var i = 1; i <= _leaves; i++) {
-      final t = i / (_leaves + 1);
-      if (t > tip) {
-        break;
-      }
-      final at = point(t);
-      final direction = tangent(t).direction;
-      final scale = (1 - t * 0.35) * grow;
-      drawLeaf(at, direction - 0.7, scale);
-      drawLeaf(at, direction + 0.7, scale);
-    }
-    if (tip >= 1) {
-      drawLeaf(end, tangent(1).direction, 0.8 * grow);
-    }
-  }
-
-  @override
-  bool shouldRepaint(final _LaurelBranchPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.mirrored != mirrored || oldDelegate.grow != grow;
 }
 
 class _CheckeredPainter extends CustomPainter {

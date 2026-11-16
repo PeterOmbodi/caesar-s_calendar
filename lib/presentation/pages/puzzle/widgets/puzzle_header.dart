@@ -11,6 +11,7 @@ import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_circle_button.dart';
+import 'package:caesar_puzzle/presentation/widgets/laurel_wreath.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
@@ -190,7 +191,10 @@ class _RaceButton extends StatelessWidget {
   Widget build(final BuildContext context) => GlassCircleButton(
     tooltip: S.current.raceTitle,
     onPressed: onPressed,
-    child: Icon(Icons.sports_score, size: 22, color: GameColors.of(context).icon),
+    child: LaurelWreath(
+      color: GameColors.of(context).icon,
+      size: 28,
+    ),
   );
 }
 
