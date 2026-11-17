@@ -13,8 +13,9 @@ class DrawnGroupService {
     required final Cell cell,
     required final PuzzleGridEntity grid,
     required final Iterable<PuzzlePieceUI> pieces,
+    final Set<Cell> reserved = const {},
   }) {
-    if (!_isFreeCell(cell: cell, grid: grid, pieces: pieces)) {
+    if (!isFreeCell(cell: cell, grid: grid, pieces: pieces, reserved: reserved)) {
       return null;
     }
     return DrawnGroup.start(cell);
@@ -25,11 +26,12 @@ class DrawnGroupService {
     required final Cell cell,
     required final PuzzleGridEntity grid,
     required final Iterable<PuzzlePieceUI> pieces,
+    final Set<Cell> reserved = const {},
   }) {
     if (group.contains(cell)) {
       return group;
     }
-    if (!_isFreeCell(cell: cell, grid: grid, pieces: pieces)) {
+    if (!isFreeCell(cell: cell, grid: grid, pieces: pieces, reserved: reserved)) {
       return group;
     }
     if (!_sharesSideWithAny(cell, group.cellSet)) {
@@ -68,11 +70,12 @@ class DrawnGroupService {
     return occupied.contains(cell);
   }
 
-  bool _isFreeCell({
+  bool isFreeCell({
     required final Cell cell,
     required final PuzzleGridEntity grid,
     required final Iterable<PuzzlePieceUI> pieces,
-  }) => grid.containsCell(cell) && !isOccupied(cell: cell, grid: grid, pieces: pieces);
+    final Set<Cell> reserved = const {},
+  }) => grid.containsCell(cell) && !reserved.contains(cell) && !isOccupied(cell: cell, grid: grid, pieces: pieces);
 
   bool _sharesSideWithAny(final Cell cell, final Set<Cell> cells) => _neighbors(cell).any(cells.contains);
 

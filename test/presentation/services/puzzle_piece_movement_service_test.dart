@@ -5,6 +5,7 @@ import 'package:caesar_puzzle/domain/entities/puzzle_board_entity.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/services/puzzle_piece_movement_service.dart';
+import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:flutter/material.dart';
@@ -152,6 +153,107 @@ void main() {
 
     expect(result.accepted, isTrue);
     expect(result.zone, PlaceZone.board);
+  });
+
+  test('drop over a blocked spot lands on the last free grid position', () {
+    final selected = piece(id: 'a', type: PieceType.square, position: const Offset(40, 40));
+    final other = piece(id: 'b', type: PieceType.square, position: const Offset(40, 40));
+
+    final result = service.computeDropResult(
+      selectedPiece: selected,
+      pieceStartPosition: const Offset(110, 10),
+      dragStartZone: PlaceZone.board,
+      gridConfig: grid,
+      boardConfig: board,
+      pieces: [selected, other],
+      preventOverlap: true,
+      fallbackGridPosition: const Offset(10, 10),
+    );
+
+    expect(result.accepted, isTrue);
+    expect(result.zone, PlaceZone.grid);
+    expect(result.snappedPosition, const Offset(10, 10));
+  });
+
+  test('drop is rejected when the last free grid position is taken too', () {
+    final selected = piece(id: 'a', type: PieceType.square, position: const Offset(10, 10));
+    final other = piece(id: 'b', type: PieceType.square, position: const Offset(10, 10));
+
+    final result = service.computeDropResult(
+      selectedPiece: selected,
+      pieceStartPosition: const Offset(110, 10),
+      dragStartZone: PlaceZone.board,
+      gridConfig: grid,
+      boardConfig: board,
+      pieces: [selected, other],
+      preventOverlap: true,
+      fallbackGridPosition: const Offset(20, 10),
+    );
+
+    expect(result.accepted, isFalse);
+  });
+
+  test('grid piece dropped outside grid and board goes to the tray', () {
+    final selected = piece(id: 'a', type: PieceType.square, position: const Offset(999, 999)).copyWith(isLifted: true);
+
+    final result = service.computeDropResult(
+      selectedPiece: selected,
+      pieceStartPosition: const Offset(10, 10),
+      dragStartZone: PlaceZone.grid,
+      gridConfig: grid,
+      boardConfig: board,
+      pieces: [selected],
+      preventOverlap: false,
+    );
+
+    expect(result.accepted, isTrue);
+    expect(result.zone, PlaceZone.board);
+    expect(board.getBounds.inflate(0.01).contains(result.snappedPosition!), isTrue);
+    expect(result.move!.from.zone, PlaceZone.grid);
+  });
+
+  group('nearestFreeGridPosition', () {
+    test('keeps a position that is already free', () {
+      final selected = piece(id: 'a', type: PieceType.square, position: const Offset(20, 20));
+
+      final free = service.nearestFreeGridPosition(
+        piece: selected,
+        pieces: [selected],
+        gridConfig: grid,
+        boardConfig: board,
+      );
+
+      expect(free, const Offset(20, 20));
+    });
+
+    test('moves the piece to the closest free cells', () {
+      final selected = piece(id: 'a', type: PieceType.square, position: Offset.zero);
+      final other = piece(id: 'b', type: PieceType.square, position: Offset.zero);
+
+      final free = service.nearestFreeGridPosition(
+        piece: selected,
+        pieces: [selected, other],
+        gridConfig: grid,
+        boardConfig: board,
+      );
+
+      expect(free, const Offset(20, 0));
+    });
+
+    test('returns null when nothing is free within reach', () {
+      final selected = piece(id: 'a', type: PieceType.square, position: Offset.zero);
+      final other = piece(id: 'b', type: PieceType.square, position: Offset.zero);
+
+      final free = service.nearestFreeGridPosition(
+        piece: selected,
+        pieces: [selected, other],
+        gridConfig: grid,
+        boardConfig: board,
+        maxShift: 1,
+      );
+
+      expect(free, isNull);
+    });
   });
 
   test('rescaledAround keeps the anchor over the same point of the piece', () {

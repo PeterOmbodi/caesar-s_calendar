@@ -64,8 +64,9 @@ class MoveHistoryService {
   (PuzzlePieceUI piece, MovePiece? snapMove) maybeSnap({
     required final PuzzlePieceUI selectedPiece,
     required final PuzzleGridEntity grid,
+    final Offset? to,
   }) {
-    final snappedPos = snappedPosition(selectedPiece, grid);
+    final snappedPos = to ?? snappedPosition(selectedPiece, grid);
     if (snappedPos == selectedPiece.position) {
       return (selectedPiece, null);
     }

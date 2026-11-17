@@ -101,7 +101,7 @@ abstract class PuzzleState with _$PuzzleState {
 
   bool get isRedoEnabled => !isSolving && moveHistory.length > moveIndex;
 
-  bool get isUndoEnabled => !isSolving && moveHistory.isNotEmpty && moveIndex > 0;
+  bool get isUndoEnabled => !isSolving && (drawnGroup != null || moveHistory.isNotEmpty && moveIndex > 0);
 
   bool get isCustomConfig => PuzzleConfigClassifier.isCustomConfig(pieces: pieces, gridConfig: gridConfig);
 

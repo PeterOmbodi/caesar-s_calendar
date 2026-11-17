@@ -28,6 +28,7 @@ import 'package:caesar_puzzle/presentation/services/move_history_service.dart';
 import 'package:caesar_puzzle/presentation/services/piece_shape_matcher.dart';
 import 'package:caesar_puzzle/presentation/services/puzzle_piece_movement_service.dart';
 import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
+import 'package:caesar_puzzle/presentation/utils/calendar_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
@@ -121,6 +122,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   double _lastTrayStartInset = 0;
   // Piece that the current tap down selected; such a tap must not rotate or flip it.
   String? _selectedOnTapDownId;
+  // Where the dragged piece last fitted on the grid; a drop over a blocked spot lands there.
+  Offset? _lastFreeGridPosition;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
   int? _suppressTapAfterDrawnCommitAtMs;
   // A late tap of the flipping double tap must not select the piece the flip uncovered.

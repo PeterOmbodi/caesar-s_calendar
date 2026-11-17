@@ -10,6 +10,9 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       _commitDrawnGroup(drawnGroup, emit);
       return;
     }
+    if (_cancelsDrawing(cell)) {
+      emit(_withoutDrawnGroup(state));
+    }
 
     final piece = _findPieceAtPosition(event.localPosition);
     final wasSelectedOnTapDown = piece != null && _selectedOnTapDownId == piece.id;
@@ -55,9 +58,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     );
     final shouldSnap =
         selectedPiece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
-    final (pieceToSave, snapMove) = shouldSnap
-        ? _moveHistoryService.maybeSnap(selectedPiece: flippedPiece, grid: state.gridConfig)
-        : _keepInTray(flippedPiece);
+    final (pieceToSave, snapMove) = shouldSnap ? _snapToFreeSpot(flippedPiece) : _keepInTray(flippedPiece);
     final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
     final tentativePieces = _updatePieceInList(_withHintFlag(pieceToSave));
     if (selectedPiece.isConfigItem &&
@@ -79,7 +80,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     final applicableSolutions = shouldResolve
         ? <Map<String, PlacementParams>>[]
         : _combineSolutions(state.solutions, pieces);
-    final nextState = state.copyWith(
+    final nextState = _withoutDrawnGroup(state).copyWith(
       pieces: pieces,
       moveHistory: [...state.moveHistory.take(state.moveIndex), move],
       moveIndex: state.moveIndex + 1,
@@ -204,6 +205,18 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     );
   }
 
+  (PuzzlePieceUI, MovePiece?) _snapToFreeSpot(final PuzzlePieceUI transformed) {
+    final grid = state.gridConfig;
+    final snapped = transformed.copyWith(position: _moveHistoryService.snappedPosition(transformed, grid));
+    final free = _movementHandler.nearestFreeGridPosition(
+      piece: snapped,
+      pieces: _obstacles(state.pieces),
+      gridConfig: grid,
+      boardConfig: state.boardConfig,
+    );
+    return _moveHistoryService.maybeSnap(selectedPiece: transformed, grid: grid, to: free ?? snapped.position);
+  }
+
   (PuzzlePieceUI, MovePiece?) _keepInTray(final PuzzlePieceUI piece) => piece.placeZone == PlaceZone.board
       ? _moveHistoryService.keepInTray(selectedPiece: piece, tray: state.boardConfig)
       : (piece, null);
@@ -216,9 +229,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     );
     final shouldSnap =
         piece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
-    final (pieceToSave, snapMove) = shouldSnap
-        ? _moveHistoryService.maybeSnap(selectedPiece: selectedPiece, grid: state.gridConfig)
-        : _keepInTray(selectedPiece);
+    final (pieceToSave, snapMove) = shouldSnap ? _snapToFreeSpot(selectedPiece) : _keepInTray(selectedPiece);
     final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
     final tentativePieces = _updatePieceInList(_withHintFlag(pieceToSave));
     if (selectedPiece.isConfigItem &&
@@ -240,7 +251,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     final applicableSolutions = shouldResolve
         ? <Map<String, PlacementParams>>[]
         : _combineSolutions(state.solutions, pieces);
-    final nextState = state.copyWith(
+    final nextState = _withoutDrawnGroup(state).copyWith(
       pieces: pieces,
       moveHistory: [...state.moveHistory.take(state.moveIndex), move],
       moveIndex: state.moveIndex + 1,
@@ -291,7 +302,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       flippedTo: targetPiece.isFlipped,
     );
     final grid = state.gridConfig;
-    final nextState = state.copyWith(
+    final nextState = _withoutDrawnGroup(state).copyWith(
       pieces: pieces,
       applicableSolutions: applicableSolutions,
       hintedCells: {
@@ -313,6 +324,10 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
       piece.placeZone != PlaceZone.grid || !_canTouch(piece) ? null : piece.id;
 
   FutureOr<void> _undoMove(final _Undo event, final Emitter<PuzzleState> emit) {
+    if (state.drawnGroup != null) {
+      emit(_withoutDrawnGroup(state));
+      return Future<void>.value();
+    }
     if (state.moveHistory.isNotEmpty && state.moveIndex > 0) {
       final prevState = state;
       final idx = state.moveIndex - 1;
@@ -357,7 +372,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     final pieces = _updatePieceInList(_withHintFlag(selectedPiece));
     final shouldResolve = selectedPiece.isConfigItem && _settings.requireSolutions;
     final applicableSolutions = shouldResolve ? state.applicableSolutions : _combineSolutions(state.solutions, pieces);
-    final nextState = state.copyWith(
+    final nextState = _withoutDrawnGroup(state).copyWith(
       moveIndex: idx,
       pieces: pieces,
       selectedPieceId: _selectableId(selectedPiece),
