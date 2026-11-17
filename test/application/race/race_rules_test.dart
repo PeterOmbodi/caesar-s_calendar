@@ -54,6 +54,12 @@ void main() {
     expect(RaceRules.isOver(room, nowMs: _startAt + 150500), isTrue);
   });
 
+  test('the time to finish does not go past the time limit', () {
+    final room = _room([_player('a', durationMs: 595000), _player('b')], firstFinishAt: _startAt + 595000);
+    expect(RaceRules.graceEndsAtMs(room), _startAt + 655000);
+    expect(RaceRules.endsAtMs(room), _startAt + 600000);
+  });
+
   test('the first finisher is the fastest one', () {
     expect(RaceRules.firstFinisher(_room([_player('a'), _player('b')])), isNull);
     final room = _room([_player('a', durationMs: 90000), _player('b', durationMs: 85000), _player('c')]);

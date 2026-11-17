@@ -242,14 +242,14 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
     final chrome = ChromeTheme.of(context);
     final besideTray = ScreenSpec.of(context).toolbar == ToolbarPlacement.bottomBar;
     final isLocked = !_isStarted || _isMyRaceDone || _isOver;
-    final graceEndsAt = _isOver ? null : RaceRules.graceEndsAtMs(room);
+    final graceEndsAt = _isOver || RaceRules.graceEndsAtMs(room) == null ? null : RaceRules.endsAtMs(room);
     final firstFinisher = _isMyRaceDone || graceEndsAt == null ? null : RaceRules.firstFinisher(room);
     final standings = RaceStandings(
       players: room.players,
       myUid: widget.myUid,
       isStarted: _isStarted,
       totalPieces: _bloc.state.pieces.where((final p) => !p.isConfigItem).length,
-      graceEndsAtMs: _isMyRaceDone || _isOver ? null : RaceRules.graceEndsAtMs(room),
+      graceEndsAtMs: _isMyRaceDone || _isOver ? null : graceEndsAt,
       now: _cubit.serverNow,
       solverLevel: widget.solverLevel,
     );
