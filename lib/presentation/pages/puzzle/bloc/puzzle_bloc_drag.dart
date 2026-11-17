@@ -38,7 +38,13 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     if (cell != null && drawnGroup != null) {
       final updatedGroup = drawnGroup.contains(cell)
           ? _drawnGroupService.remove(group: drawnGroup, cell: cell)
-          : _drawnGroupService.extend(group: drawnGroup, cell: cell, grid: state.gridConfig, pieces: state.pieces);
+          : _drawnGroupService.extend(
+              group: drawnGroup,
+              cell: cell,
+              grid: state.gridConfig,
+              pieces: state.pieces,
+              reserved: _dateCells(),
+            );
       if (updatedGroup != drawnGroup) {
         emit(
           state.copyWith(
@@ -52,6 +58,10 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         );
         return Future<void>.value();
       }
+    }
+
+    if (_cancelsDrawing(cell)) {
+      emit(_withoutDrawnGroup(state));
     }
 
     final pointerPiece = state.pointerPiece;
@@ -113,7 +123,12 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       return Future<void>.value();
     }
 
-    final newGroup = _drawnGroupService.start(cell: cell, grid: state.gridConfig, pieces: state.pieces);
+    final newGroup = _drawnGroupService.start(
+      cell: cell,
+      grid: state.gridConfig,
+      pieces: state.pieces,
+      reserved: _dateCells(),
+    );
     if (newGroup != null) {
       emit(
         state.copyWith(
@@ -140,6 +155,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         cell: cell,
         grid: state.gridConfig,
         pieces: state.pieces,
+        reserved: _dateCells(),
       );
       emit(
         state.copyWith(drawnGroup: updatedGroup, drawnGroupCommitStatus: _resolveDrawnGroupCommitStatus(updatedGroup)),
@@ -281,16 +297,32 @@ extension PuzzleBlocDragPart on PuzzleBloc {
   }
 
   FutureOr<void> _clearDrawnGroup(final _ClearDrawnGroup event, final Emitter<PuzzleState> emit) {
-    emit(
-      state.copyWith(
-        drawnGroup: null,
-        drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall,
-        isDrawingGroup: false,
-        pointerPiece: null,
-        isDragging: false,
-      ),
-    );
+    emit(_withoutDrawnGroup(state).copyWith(pointerPiece: null, isDragging: false));
   }
+
+  PuzzleState _withoutDrawnGroup(final PuzzleState from) => from.drawnGroup == null
+      ? from
+      : from.copyWith(drawnGroup: null, drawnGroupCommitStatus: DrawnGroupCommitStatus.tooSmall, isDrawingGroup: false);
+
+  // A tap on a free cell that does not touch the drawing is a near miss, so it keeps the drawing.
+  bool _cancelsDrawing(final Cell? cell) {
+    final drawnGroup = state.drawnGroup;
+    if (drawnGroup == null) {
+      return false;
+    }
+    if (cell == null) {
+      return true;
+    }
+    return !drawnGroup.contains(cell) &&
+        !_drawnGroupService.isFreeCell(
+          cell: cell,
+          grid: state.gridConfig,
+          pieces: state.pieces,
+          reserved: _dateCells(),
+        );
+  }
+
+  Set<Cell> _dateCells() => dateCells(grid: state.gridConfig, pieces: state.pieces, date: state.selectedDate);
 
   /// The piece a pointer at [position] would pick up.
   String? pieceIdAt(final Offset position) => _findPieceAtPosition(position)?.id;

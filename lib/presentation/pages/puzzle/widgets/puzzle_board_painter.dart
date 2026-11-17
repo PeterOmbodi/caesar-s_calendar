@@ -5,6 +5,7 @@ import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/cell_outline.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
+import 'package:caesar_puzzle/presentation/utils/calendar_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
@@ -133,28 +134,10 @@ class PuzzleBoardPainter extends CustomPainter {
 
   void _drawTargetsAndLabels(final Canvas canvas) {
     final colors = AppColors.current.game;
-    final forbiddenCells = pieces
-        .where((final e) => e.isConfigItem)
-        .expand((final e) => e.cells(grid.origin, grid.cellSize))
-        .toSet();
-
-    final labels = <({Rect rect, String text, bool isTarget, bool isMonth})>[];
-    var cellIndex = 0;
-    for (var row = 0; row < grid.rows && cellIndex <= 42; row++) {
-      for (var column = 0; column < grid.columns && cellIndex <= 42; column++) {
-        final cell = Cell(row, column);
-        if (forbiddenCells.contains(cell)) {
-          continue;
-        }
-        labels.add((
-          rect: _cellRect(cell),
-          text: _labelText(cellIndex),
-          isTarget: _isTarget(cellIndex),
-          isMonth: cellIndex < 12,
-        ));
-        cellIndex++;
-      }
-    }
+    final labels = [
+      for (final (cellIndex, cell) in calendarCells(grid: grid, pieces: pieces).indexed)
+        (rect: _cellRect(cell), text: _labelText(cellIndex), isTarget: _isTarget(cellIndex), isMonth: cellIndex < 12),
+    ];
 
     final targetFill = Paint()..color = colors.target;
     final targetStroke = Paint()

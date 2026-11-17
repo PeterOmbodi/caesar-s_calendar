@@ -20,6 +20,7 @@ import 'package:caesar_puzzle/presentation/models/drawn_group.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
+import 'package:caesar_puzzle/presentation/utils/calendar_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
@@ -178,6 +179,17 @@ Future<void> _dragOver(final PuzzleBloc bloc, final String id, final List<Cell> 
   await _drain();
 }
 
+// A fixed date keeps the month and day cells, which cannot be drawn, away from the cells the tests draw.
+Future<void> _readyToDraw(final PuzzleBloc bloc) async {
+  bloc.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
+  await Future<void>.delayed(const Duration(milliseconds: 250));
+  bloc.add(PuzzleEvent.setPuzzleDate(DateTime(2026, 12, 31)));
+  await Future<void>.delayed(const Duration(milliseconds: 250));
+}
+
+List<Cell> _dateCells(final PuzzleBloc bloc) =>
+    dateCells(grid: bloc.state.gridConfig, pieces: bloc.state.pieces, date: bloc.state.selectedDate).toList();
+
 Future<void> _drawCells(final PuzzleBloc bloc, final List<Cell> cells) async {
   bloc.add(PuzzleEvent.onPanStart(_cellCenter(bloc, cells.first.row, cells.first.col)));
   await _drain();
@@ -312,8 +324,7 @@ void main() {
   });
 
   test('pan from free grid cell creates and extends drawn group', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(1, 1)]);
 
@@ -322,8 +333,7 @@ void main() {
   });
 
   test('tap adds an orthogonally adjacent free cell to drawn group', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
     await _drawCells(bloc!, [Cell(0, 0)]);
 
     bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 0, 1)));
@@ -333,8 +343,7 @@ void main() {
   });
 
   test('tap ignores diagonal and non-adjacent cells', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
     await _drawCells(bloc!, [Cell(0, 0)]);
 
     bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 1, 1)));
@@ -345,9 +354,8 @@ void main() {
     expect(bloc!.state.drawnGroup?.cellSet, {Cell(0, 0)});
   });
 
-  test('tap ignores an occupied cell adjacent to drawn group', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+  test('tap on an occupied cell cancels the drawn group', () async {
+    await _readyToDraw(bloc!);
 
     final square = bloc!.state.boardPieces.firstWhere((final piece) => piece.id == 'Square');
     final gridPosition = bloc!.state.gridConfig.cellTopLeft(Cell(0, 0));
@@ -363,12 +371,11 @@ void main() {
     bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 2, 0)));
     await _drain();
 
-    expect(bloc!.state.drawnGroup?.cellSet, {Cell(3, 0)});
+    expect(bloc!.state.drawnGroup, isNull);
   });
 
   test('tap does not start a drawn group', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 0, 0)));
     await _drain();
@@ -377,8 +384,7 @@ void main() {
   });
 
   test('tap on a drawn cell still removes it', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
     await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1)]);
 
     bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, 0, 1)));
@@ -388,8 +394,7 @@ void main() {
   });
 
   test('drawn group status is too small before five cells', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0)]);
 
@@ -397,8 +402,7 @@ void main() {
   });
 
   test('drawn group status is committable for recognized valid shape', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)]);
 
@@ -406,8 +410,7 @@ void main() {
   });
 
   test('drawn group status is invalid for unrecognized shape with at least five cells', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1), Cell(0, 2), Cell(0, 3), Cell(0, 4)]);
 
@@ -415,8 +418,7 @@ void main() {
   });
 
   test('existing drawn group can be extended only from group cell', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     await _drawCells(bloc!, [Cell(0, 0)]);
 
@@ -440,8 +442,7 @@ void main() {
   });
 
   test('double tap on matching drawn group moves board piece to grid', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     final squareCells = [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)];
     await _drawCells(bloc!, squareCells);
@@ -457,8 +458,7 @@ void main() {
   });
 
   test('double tap on matching drawn group can move grid piece again', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     final firstCells = [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)];
     await _drawCells(bloc!, firstCells);
@@ -477,8 +477,7 @@ void main() {
   });
 
   test('drawn group commit preserves transform data for undo', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     final originalSquare = bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
     final rotatedSquareCells = [Cell(0, 0), Cell(0, 1), Cell(0, 2), Cell(1, 2), Cell(1, 1), Cell(1, 0)];
@@ -502,8 +501,7 @@ void main() {
   });
 
   test('drawn group commit marks moved piece as user item', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     final square = bloc!.state.boardPieces.firstWhere((final p) => p.id == 'Square');
     final pieces = bloc!.state.pieces.map((final p) => p.id == square.id ? p.copyWith(isUsersItem: false) : p).toList();
@@ -521,8 +519,7 @@ void main() {
   });
 
   test('tap down emitted after drawn commit does not select committed piece', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     final squareCells = [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)];
     await _drawCells(bloc!, squareCells);
@@ -539,8 +536,7 @@ void main() {
   });
 
   test('tap up then tap down after drawn commit does not select committed piece', () async {
-    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _readyToDraw(bloc!);
 
     final squareCells = [Cell(0, 0), Cell(0, 1), Cell(1, 1), Cell(1, 0), Cell(2, 0), Cell(2, 1)];
     await _drawCells(bloc!, squareCells);
@@ -554,6 +550,88 @@ void main() {
     await _drain();
 
     expect(bloc!.state.pointerPiece, isNull);
+  });
+
+  group('cancel drawing', () {
+    test('tap outside the board cancels the drawn group', () async {
+      await _readyToDraw(bloc!);
+      await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1)]);
+
+      bloc!.add(const PuzzleEvent.onTapUp(Offset(-50, -50)));
+      await _drain();
+
+      expect(bloc!.state.drawnGroup, isNull);
+    });
+
+    test('tap on a tray piece cancels the drawn group and selects the piece', () async {
+      await _readyToDraw(bloc!);
+      await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1)]);
+
+      await _tap(bloc!, _pieceAnchor(bloc!, 'Square'));
+
+      expect(bloc!.state.drawnGroup, isNull);
+      expect(bloc!.state.selectedPieceId, 'Square');
+    });
+
+    test('tap on a date cell cancels the drawn group', () async {
+      await _readyToDraw(bloc!);
+      await _drawCells(bloc!, [Cell(0, 0)]);
+      final dayCell = _dateCells(bloc!).last;
+
+      bloc!.add(PuzzleEvent.onTapUp(_cellCenter(bloc!, dayCell.row, dayCell.col)));
+      await _drain();
+
+      expect(bloc!.state.drawnGroup, isNull);
+    });
+
+    test('drawing neither starts on nor runs over a date cell', () async {
+      await _readyToDraw(bloc!);
+      final monthCell = _dateCells(bloc!).first;
+      final neighbor = Cell(monthCell.row, monthCell.col - 1);
+
+      await _drawCells(bloc!, [monthCell]);
+      expect(bloc!.state.drawnGroup, isNull);
+
+      await _drawCells(bloc!, [neighbor, monthCell]);
+      expect(bloc!.state.drawnGroup?.cellSet, {neighbor});
+    });
+
+    test('undo while drawing clears only the drawn group', () async {
+      await _readyToDraw(bloc!);
+      await _dragOver(bloc!, 'Square', [Cell(4, 0)]);
+      await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1)]);
+      expect(bloc!.state.isUndoEnabled, isTrue);
+
+      bloc!.add(const PuzzleEvent.undo());
+      await _drain();
+
+      expect(bloc!.state.drawnGroup, isNull);
+      expect(bloc!.state.moveIndex, 1);
+      expect(_piece(bloc!, 'Square').placeZone, PlaceZone.grid);
+    });
+
+    test('undo is enabled by a drawn group before any move', () async {
+      await _readyToDraw(bloc!);
+      expect(bloc!.state.isUndoEnabled, isFalse);
+
+      await _drawCells(bloc!, [Cell(0, 0)]);
+
+      expect(bloc!.state.isUndoEnabled, isTrue);
+    });
+
+    test('redo clears the drawn group', () async {
+      await _readyToDraw(bloc!);
+      await _dragOver(bloc!, 'Square', [Cell(4, 0)]);
+      bloc!.add(const PuzzleEvent.undo());
+      await _drain();
+      await _drawCells(bloc!, [Cell(0, 0), Cell(0, 1)]);
+
+      bloc!.add(const PuzzleEvent.redo());
+      await _drain();
+
+      expect(bloc!.state.drawnGroup, isNull);
+      expect(_piece(bloc!, 'Square').placeZone, PlaceZone.grid);
+    });
   });
 
   test('manual flip of hint piece marks it as user item', () async {
