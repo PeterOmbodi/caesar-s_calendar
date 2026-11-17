@@ -23,7 +23,7 @@
           ".write": "auth != null && newData.parent().child('hostUid').val() === auth.uid",
           ".validate": "newData.hasChildren(['graceSec', 'hints'])",
           "graceSec": {
-            ".validate": "newData.val() === 60"
+            ".validate": "newData.val() === 15"
           },
           "hints": {
             ".validate": "newData.val() === 0"

@@ -254,6 +254,7 @@
   "raceErrorOffline": "Nema veze. Provjeri mrežu i pokušaj ponovno.",
   "raceErrorStarted": "Utrka je već počela",
   "raceErrorUnknown": "Nešto je pošlo po zlu. Pokušaj ponovno.",
+  "raceFirstFinish": "Prvi u cilju: {name}",
   "raceGaveUp": "Odustao",
   "raceGiveUp": "Odustani",
   "raceGiveUpMessage": "Ovu utrku pobjeđuje tvoj protivnik.",

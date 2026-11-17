@@ -254,6 +254,7 @@
   "raceErrorOffline": "Ni povezave. Preveri omrežje in poskusi znova.",
   "raceErrorStarted": "Dirka se je že začela",
   "raceErrorUnknown": "Nekaj je šlo narobe. Poskusi znova.",
+  "raceFirstFinish": "Prvi v cilju: {name}",
   "raceGaveUp": "Predal se je",
   "raceGiveUp": "Predaj se",
   "raceGiveUpMessage": "To dirko dobi tvoj nasprotnik.",

@@ -254,6 +254,7 @@
   "raceErrorOffline": "Няма връзка. Провери мрежата и опитай отново.",
   "raceErrorStarted": "Състезанието вече е започнало",
   "raceErrorUnknown": "Нещо се обърка. Опитай отново.",
+  "raceFirstFinish": "Пръв финиш: {name}",
   "raceGaveUp": "Отказа се",
   "raceGiveUp": "Предавам се",
   "raceGiveUpMessage": "Съперникът ти печели това състезание.",

@@ -254,6 +254,7 @@
   "raceErrorOffline": "Nėra ryšio. Patikrink tinklą ir bandyk dar kartą.",
   "raceErrorStarted": "Lenktynės jau prasidėjo",
   "raceErrorUnknown": "Kažkas nepavyko. Bandyk dar kartą.",
+  "raceFirstFinish": "Pirmas finišavo: {name}",
   "raceGaveUp": "Pasidavė",
   "raceGiveUp": "Pasiduoti",
   "raceGiveUpMessage": "Šias lenktynes laimi tavo varžovas.",

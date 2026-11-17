@@ -254,6 +254,7 @@
   "raceErrorOffline": "Engin tenging. Athugaðu netið og reyndu aftur.",
   "raceErrorStarted": "Kapphlaupið er þegar hafið",
   "raceErrorUnknown": "Eitthvað fór úrskeiðis. Reyndu aftur.",
+  "raceFirstFinish": "Fyrst í mark: {name}",
   "raceGaveUp": "Gafst upp",
   "raceGiveUp": "Gefast upp",
   "raceGiveUpMessage": "Andstæðingurinn vinnur þetta kapphlaup.",

@@ -254,6 +254,7 @@
   "raceErrorOffline": "Ühendus puudub. Kontrolli võrku ja proovi uuesti.",
   "raceErrorStarted": "Võidujooks on juba alanud",
   "raceErrorUnknown": "Midagi läks valesti. Proovi uuesti.",
+  "raceFirstFinish": "Esimesena finišis: {name}",
   "raceGaveUp": "Loobus",
   "raceGiveUp": "Loobu",
   "raceGiveUpMessage": "Selle võidujooksu võidab sinu vastane.",

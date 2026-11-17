@@ -254,6 +254,7 @@
   "raceErrorOffline": "Nincs kapcsolat. Ellenőrizd a hálózatot, és próbáld újra.",
   "raceErrorStarted": "A verseny már elkezdődött",
   "raceErrorUnknown": "Hiba történt. Próbáld újra.",
+  "raceFirstFinish": "Elsőként célba ért: {name}",
   "raceGaveUp": "Feladta",
   "raceGiveUp": "Feladom",
   "raceGiveUpMessage": "Ezt a versenyt az ellenfeled nyeri.",

@@ -37,6 +37,7 @@ import 'package:caesar_puzzle/presentation/widgets/game_background.dart';
 import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RaceGameScreen extends StatefulWidget {
@@ -84,11 +85,17 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
 
   String? _shownBoardUid;
   var _hasRacedHere = false;
+  var _hadFirstFinish = false;
   double _headerHeight = 0;
 
   int get _nowMs => _cubit.serverNow().millisecondsSinceEpoch;
 
   bool get _isMyRaceDone => _stoppedAtMs != null;
+
+  bool get _showsResult {
+    final me = widget.room.player(widget.myUid);
+    return _isOver || (me != null && (me.hasFinished || me.gaveUp));
+  }
 
   @override
   void initState() {
@@ -132,6 +139,12 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
     } else if (_stoppedAtMs == null && ((me?.gaveUp ?? false) || _isOver)) {
       _stoppedAtMs = min(now, RaceRules.endsAtMs(room) ?? now);
     }
+    final firstFinisher = RaceRules.firstFinisher(room);
+    // Only a finish seen live: entering a room where somebody has already solved is no news.
+    if (firstFinisher != null && !_hadFirstFinish && _hasRacedHere && context.read<SettingsCubit>().state.haptics) {
+      unawaited(firstFinisher.uid == widget.myUid ? _playWinHaptic() : HapticFeedback.lightImpact());
+    }
+    _hadFirstFinish = firstFinisher != null;
     // After a restart the board here is new and empty; it must not replace the published one.
     if (_isStarted && !_isOver) {
       _hasRacedHere = true;
@@ -182,6 +195,13 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
     }
   }
 
+  static Future<void> _playWinHaptic() async {
+    for (var i = 0; i < 2; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      await HapticFeedback.heavyImpact();
+    }
+  }
+
   static int _placed(final PuzzleState state) =>
       state.pieces.where((final p) => !p.isConfigItem && p.placeZone == PlaceZone.grid).length;
 
@@ -222,12 +242,14 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
     final chrome = ChromeTheme.of(context);
     final besideTray = ScreenSpec.of(context).toolbar == ToolbarPlacement.bottomBar;
     final isLocked = !_isStarted || _isMyRaceDone || _isOver;
+    final graceEndsAt = _isOver || RaceRules.graceEndsAtMs(room) == null ? null : RaceRules.endsAtMs(room);
+    final firstFinisher = _isMyRaceDone || graceEndsAt == null ? null : RaceRules.firstFinisher(room);
     final standings = RaceStandings(
       players: room.players,
       myUid: widget.myUid,
       isStarted: _isStarted,
       totalPieces: _bloc.state.pieces.where((final p) => !p.isConfigItem).length,
-      graceEndsAtMs: _isMyRaceDone || _isOver ? null : RaceRules.graceEndsAtMs(room),
+      graceEndsAtMs: _isMyRaceDone || _isOver ? null : graceEndsAt,
       now: _cubit.serverNow,
       solverLevel: widget.solverLevel,
     );
@@ -284,11 +306,13 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
                       ),
                     ),
                     if (besideTray) _StandingsSlot(child: standings),
-                    if (_isOver)
+                    if (_showsResult)
                       _ResultSlot(
                         room: room,
                         myUid: widget.myUid,
                         nowMs: _nowMs,
+                        now: _cubit.serverNow,
+                        graceEndsAtMs: graceEndsAt,
                         myBoard: RaceBoard(_bloc.state.piecePlacements),
                         totalPieces: _bloc.state.pieces.where((final p) => !p.isConfigItem).length,
                         shownBoardUid: _shownBoardUid,
@@ -310,6 +334,8 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
                           stoppedAtMs: _stoppedAtMs,
                           now: _cubit.serverNow,
                           onLeave: () => unawaited(_onLeave()),
+                          firstFinisher: firstFinisher?.nickname,
+                          graceEndsAtMs: firstFinisher == null ? null : graceEndsAt,
                         ),
                       ),
                     ),
@@ -375,6 +401,8 @@ class _ResultSlot extends StatelessWidget {
     required this.room,
     required this.myUid,
     required this.nowMs,
+    required this.now,
+    required this.graceEndsAtMs,
     required this.myBoard,
     required this.totalPieces,
     required this.shownBoardUid,
@@ -385,6 +413,8 @@ class _ResultSlot extends StatelessWidget {
   final RaceRoom room;
   final String myUid;
   final int nowMs;
+  final DateTime Function() now;
+  final int? graceEndsAtMs;
   final RaceBoard myBoard;
   final int totalPieces;
   final String? shownBoardUid;
@@ -395,7 +425,8 @@ class _ResultSlot extends StatelessWidget {
   Widget build(final BuildContext context) {
     final standings = RaceResult.of(room, nowMs: nowMs);
     final isWinner = standings.any((final s) => s.player.uid == myUid && s.isWinner);
-    final hostCanStart = room.hostUid != myUid && (room.player(room.hostUid)?.online ?? false);
+    final hostCanStart =
+        RaceRules.isOver(room, nowMs: nowMs) && room.hostUid != myUid && (room.player(room.hostUid)?.online ?? false);
     final reserved = GameChrome.reservedInsets(context);
     return Positioned.fill(
       child: Stack(
@@ -414,6 +445,8 @@ class _ResultSlot extends StatelessWidget {
                 shownUid: shownBoardUid,
                 onShowBoard: onShowBoard,
                 solverLevel: solverLevel,
+                graceEndsAtMs: graceEndsAtMs,
+                now: now,
               ),
             ),
           ),

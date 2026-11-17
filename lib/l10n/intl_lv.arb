@@ -254,6 +254,7 @@
   "raceErrorOffline": "Nav savienojuma. Pārbaudi tīklu un mēģini vēlreiz.",
   "raceErrorStarted": "Sacīkstes jau sākušās",
   "raceErrorUnknown": "Kaut kas nogāja greizi. Mēģini vēlreiz.",
+  "raceFirstFinish": "Pirmais finišā: {name}",
   "raceGaveUp": "Padevās",
   "raceGiveUp": "Padoties",
   "raceGiveUpMessage": "Šajās sacīkstēs uzvar tavs pretinieks.",
