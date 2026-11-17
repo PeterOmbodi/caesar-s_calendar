@@ -1,13 +1,13 @@
-import 'dart:async';
-
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_rules.dart';
 import 'package:caesar_puzzle/application/race/solver_level.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_time_format.dart';
+import 'package:caesar_puzzle/presentation/pages/race/widgets/race_grace_countdown.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_player_avatar.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/laurel_wreath.dart';
 import 'package:flutter/material.dart';
 
 /// Everyone in the race, like the timing tower of a race broadcast.
@@ -42,6 +42,7 @@ class RaceStandings extends StatelessWidget {
     final chrome = ChromeTheme.of(context);
     final colors = GameColors.of(context);
     final standings = RaceRules.standings(players, nowMs: now().millisecondsSinceEpoch);
+    final firstTime = standings.firstOrNull?.durationMs;
     // Information, like the race clock, so the same flat glass; the toolbar's Liquid Glass is for controls.
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -60,6 +61,7 @@ class RaceStandings extends StatelessWidget {
             return _StandingsItem(
               player: player,
               isMe: player.uid == myUid,
+              isFirst: firstTime != null && player.durationMs == firstTime,
               isStarted: isStarted,
               totalPieces: totalPieces,
               graceEndsAtMs: player.hasFinished ? graceEndsAtMs : null,
@@ -77,6 +79,7 @@ class _StandingsItem extends StatelessWidget {
   const _StandingsItem({
     required this.player,
     required this.isMe,
+    required this.isFirst,
     required this.isStarted,
     required this.totalPieces,
     required this.graceEndsAtMs,
@@ -86,6 +89,7 @@ class _StandingsItem extends StatelessWidget {
 
   final RacePlayer player;
   final bool isMe;
+  final bool isFirst;
   final bool isStarted;
   final int totalPieces;
   final int? graceEndsAtMs;
@@ -113,6 +117,7 @@ class _StandingsItem extends StatelessWidget {
     final duration = player.durationMs;
     const figures = [FontFeature.tabularFigures()];
     final Widget mark = switch (player) {
+      _ when isFirst => LaurelBranch(color: colors.laurel, mirrored: false),
       RacePlayer(hasFinished: true) => Icon(Icons.sports_score, size: 18, color: colors.text),
       RacePlayer(gaveUp: true) => Icon(Icons.flag_outlined, size: 18, color: colors.textSecondary),
       RacePlayer(online: false) => Icon(Icons.flag, size: 18, color: colors.customConfig),
@@ -153,60 +158,7 @@ class _StandingsItem extends StatelessWidget {
               formatRaceTime(duration, tenths: true),
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: colors.text, fontFeatures: figures),
             ),
-          if (graceEndsAt != null) _GraceCountdown(endsAtMs: graceEndsAt, now: now),
-        ],
-      ),
-    );
-  }
-}
-
-class _GraceCountdown extends StatefulWidget {
-  const _GraceCountdown({required this.endsAtMs, required this.now});
-
-  final int endsAtMs;
-  final DateTime Function() now;
-
-  @override
-  State<_GraceCountdown> createState() => _GraceCountdownState();
-}
-
-class _GraceCountdownState extends State<_GraceCountdown> {
-  late final Timer _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer.periodic(const Duration(milliseconds: 250), (_) => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(final BuildContext context) {
-    final colors = GameColors.of(context);
-    final left = widget.endsAtMs - widget.now().millisecondsSinceEpoch;
-    final seconds = left <= 0 ? 0 : (left / 1000).ceil();
-    return Semantics(
-      label: S.current.raceGraceSemantics(seconds),
-      excludeSemantics: true,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.timer_outlined, size: 16, color: colors.bad),
-          const SizedBox(width: 4),
-          Text(
-            '$seconds',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: colors.bad,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
+          if (graceEndsAt != null) RaceGraceCountdown(endsAtMs: graceEndsAt, now: now),
         ],
       ),
     );

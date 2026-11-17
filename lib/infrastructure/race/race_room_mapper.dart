@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
+import 'package:caesar_puzzle/application/race/race_rules.dart';
 import 'package:caesar_puzzle/core/models/placement.dart';
 
 /// Reads a `rooms/{code}` node. Players' per-round fields left from an earlier round read as untouched.
@@ -25,7 +26,7 @@ abstract final class RaceRoomMapper {
       hostUid: hostUid,
       status: RaceRoomStatus.values.asNameMap()[room['status']] ?? RaceRoomStatus.lobby,
       maxPlayers: _int(room['maxPlayers']) ?? 2,
-      graceSec: _int(settings?['graceSec']) ?? 60,
+      graceSec: _int(settings?['graceSec']) ?? RaceRules.graceSec,
       hints: _int(settings?['hints']) ?? 0,
       round: round,
       players: players,

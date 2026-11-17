@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.dart';
@@ -17,6 +18,8 @@ class RaceHeader extends StatelessWidget {
     required this.stoppedAtMs,
     required this.now,
     required this.onLeave,
+    this.firstFinisher,
+    this.graceEndsAtMs,
   });
 
   static const double _sideWidth = 64;
@@ -31,6 +34,8 @@ class RaceHeader extends StatelessWidget {
   /// Server clock.
   final DateTime Function() now;
   final VoidCallback onLeave;
+  final String? firstFinisher;
+  final int? graceEndsAtMs;
 
   @override
   Widget build(final BuildContext context) => Padding(
@@ -54,7 +59,15 @@ class RaceHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: PuzzleHeaderTexts(
               title: isStarted ? intl.DateFormat.MMMMd().format(date) : S.current.raceTitle,
-              subtitle: [TextSpan(text: S.current.raceNoHints)],
+              subtitle: [
+                if (firstFinisher case final name?)
+                  TextSpan(
+                    text: S.current.raceFirstFinish(name),
+                    style: TextStyle(fontWeight: FontWeight.w600, color: GameColors.of(context).bad),
+                  )
+                else
+                  TextSpan(text: S.current.raceNoHints),
+              ],
               goal: isStarted ? PuzzleHeader.goalSpans(context, date) : [TextSpan(text: S.current.raceLightsHint)],
             ),
           ),
@@ -62,7 +75,9 @@ class RaceHeader extends StatelessWidget {
         SizedBox(
           width: _sideWidth,
           height: GlassCircleButton.defaultSize,
-          child: isStarted ? _RaceClock(startAtMs: startAtMs, stoppedAtMs: stoppedAtMs, now: now) : null,
+          child: isStarted
+              ? _RaceClock(startAtMs: startAtMs, stoppedAtMs: stoppedAtMs, graceEndsAtMs: graceEndsAtMs, now: now)
+              : null,
         ),
       ],
     ),
@@ -70,10 +85,16 @@ class RaceHeader extends StatelessWidget {
 }
 
 class _RaceClock extends StatefulWidget {
-  const _RaceClock({required this.startAtMs, required this.stoppedAtMs, required this.now});
+  const _RaceClock({
+    required this.startAtMs,
+    required this.stoppedAtMs,
+    required this.graceEndsAtMs,
+    required this.now,
+  });
 
   final int startAtMs;
   final int? stoppedAtMs;
+  final int? graceEndsAtMs;
   final DateTime Function() now;
 
   @override
@@ -102,7 +123,11 @@ class _RaceClockState extends State<_RaceClock> {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final elapsed = (widget.stoppedAtMs ?? widget.now().millisecondsSinceEpoch) - widget.startAtMs;
+    final nowMs = widget.now().millisecondsSinceEpoch;
+    final graceEndsAt = widget.stoppedAtMs == null ? widget.graceEndsAtMs : null;
+    final elapsed = (widget.stoppedAtMs ?? nowMs) - widget.startAtMs;
+    // Rounded up, so that it shows 0:00 only when the time is out.
+    final secondsLeft = graceEndsAt == null ? 0 : max(0, (graceEndsAt - nowMs + 999) ~/ 1000);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.glass,
@@ -111,11 +136,12 @@ class _RaceClockState extends State<_RaceClock> {
       ),
       child: Center(
         child: Text(
-          formatRaceTime(elapsed),
+          formatRaceTime(graceEndsAt == null ? elapsed : secondsLeft * 1000),
+          semanticsLabel: graceEndsAt == null ? null : S.current.raceGraceSemantics(secondsLeft),
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w700,
-            color: colors.text,
+            color: graceEndsAt == null ? colors.text : colors.bad,
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),

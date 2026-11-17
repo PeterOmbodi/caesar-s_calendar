@@ -254,6 +254,7 @@
   "raceErrorOffline": "Ingen anslutning. Kontrollera nätverket och försök igen.",
   "raceErrorStarted": "Kapplöpningen har redan börjat",
   "raceErrorUnknown": "Något gick fel. Försök igen.",
+  "raceFirstFinish": "Först i mål: {name}",
   "raceGaveUp": "Gav upp",
   "raceGiveUp": "Ge upp",
   "raceGiveUpMessage": "Din motståndare vinner den här kapplöpningen.",

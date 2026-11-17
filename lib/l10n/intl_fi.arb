@@ -254,6 +254,7 @@
   "raceErrorOffline": "Ei yhteyttä. Tarkista verkko ja yritä uudelleen.",
   "raceErrorStarted": "Kilpa on jo alkanut",
   "raceErrorUnknown": "Jokin meni pieleen. Yritä uudelleen.",
+  "raceFirstFinish": "Ensimmäisenä maalissa: {name}",
   "raceGaveUp": "Luovutti",
   "raceGiveUp": "Luovuta",
   "raceGiveUpMessage": "Vastustajasi voittaa tämän kilvan.",

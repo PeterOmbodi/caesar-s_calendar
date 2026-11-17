@@ -54,6 +54,12 @@ void main() {
     expect(RaceRules.isOver(room, nowMs: _startAt + 150500), isTrue);
   });
 
+  test('the first finisher is the fastest one', () {
+    expect(RaceRules.firstFinisher(_room([_player('a'), _player('b')])), isNull);
+    final room = _room([_player('a', durationMs: 90000), _player('b', durationMs: 85000), _player('c')]);
+    expect(RaceRules.firstFinisher(room)?.uid, 'b');
+  });
+
   test('without firstFinishAt the time to finish counts from the solve', () {
     final room = _room([_player('a', durationMs: 90000), _player('b')]);
     expect(RaceRules.graceEndsAtMs(room), _startAt + 150000);

@@ -254,6 +254,7 @@
   "raceErrorOffline": "Geen verbinding. Controleer het netwerk en probeer het opnieuw.",
   "raceErrorStarted": "De race is al begonnen",
   "raceErrorUnknown": "Er ging iets mis. Probeer het opnieuw.",
+  "raceFirstFinish": "Als eerste binnen: {name}",
   "raceGaveUp": "Opgegeven",
   "raceGiveUp": "Opgeven",
   "raceGiveUpMessage": "Je tegenstander wint deze race.",

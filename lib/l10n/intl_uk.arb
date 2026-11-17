@@ -254,6 +254,7 @@
   "raceErrorOffline": "Немає з’єднання. Перевір мережу та спробуй ще раз.",
   "raceErrorStarted": "Гонка вже почалася",
   "raceErrorUnknown": "Щось пішло не так. Спробуй ще раз.",
+  "raceFirstFinish": "Перший фініш: {name}",
   "raceGaveUp": "Здався",
   "raceGiveUp": "Здатися",
   "raceGiveUpMessage": "Суперник виграє цю гонку.",

@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/application/race/solver_level.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_time_format.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_board_preview.dart';
+import 'package:caesar_puzzle/presentation/pages/race/widgets/race_grace_countdown.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_player_avatar.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/laurel_wreath.dart';
@@ -24,6 +25,8 @@ class RaceResultSheet extends StatefulWidget {
     required this.shownUid,
     required this.onShowBoard,
     required this.solverLevel,
+    required this.graceEndsAtMs,
+    required this.now,
     this.note,
   });
 
@@ -47,6 +50,9 @@ class RaceResultSheet extends StatefulWidget {
   /// Null in a race between people.
   final SolverLevel? solverLevel;
 
+  final int? graceEndsAtMs;
+  final DateTime Function() now;
+
   final String? note;
 
   @override
@@ -69,8 +75,9 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
   RaceBoard? _publishedBoard(final RacePlayer player) => RaceRules.boardOf(player, startAtMs: widget.startAtMs);
 
   // An online player publishes the board in a moment.
-  bool _hasBoard(final RacePlayer player) =>
-      player.uid == widget.myUid || _publishedBoard(player) != null || player.online;
+  bool _hasBoard(final RaceStanding standing) =>
+      standing.outcome != RaceOutcome.racing &&
+      (standing.player.uid == widget.myUid || _publishedBoard(standing.player) != null || standing.player.online);
 
   RaceStanding? get _me => widget.standings.firstWhereOrNull((final s) => s.player.uid == widget.myUid);
 
@@ -153,9 +160,12 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
                                   key: const ValueKey<String?>(null),
                                   standings: widget.standings,
                                   myUid: widget.myUid,
+                                  totalPieces: widget.totalPieces,
+                                  graceEndsAtMs: widget.graceEndsAtMs,
+                                  now: widget.now,
                                   solverLevel: widget.solverLevel,
-                                  onShowBoard: (final player) =>
-                                      _hasBoard(player) ? () => widget.onShowBoard(player.uid) : null,
+                                  onShowBoard: (final standing) =>
+                                      _hasBoard(standing) ? () => widget.onShowBoard(standing.player.uid) : null,
                                 )
                               : _BoardPage(
                                   key: ValueKey<String?>(shown.player.uid),
@@ -183,6 +193,7 @@ String _outcomeText(final RaceOutcome outcome) => switch (outcome) {
   RaceOutcome.gaveUp => S.current.raceGaveUp,
   RaceOutcome.out => S.current.raceOut,
   RaceOutcome.finished || RaceOutcome.notFinished => S.current.raceResultNotFinished,
+  RaceOutcome.racing => '',
 };
 
 /// Slides the new page in from the right when opening a board, from the left when going back.
@@ -223,16 +234,22 @@ class _ResultTable extends StatelessWidget {
     super.key,
     required this.standings,
     required this.myUid,
+    required this.totalPieces,
+    required this.graceEndsAtMs,
+    required this.now,
     required this.solverLevel,
     required this.onShowBoard,
   });
 
   final List<RaceStanding> standings;
   final String myUid;
+  final int totalPieces;
+  final int? graceEndsAtMs;
+  final DateTime Function() now;
   final SolverLevel? solverLevel;
 
   /// Null for a player without a board.
-  final VoidCallback? Function(RacePlayer player) onShowBoard;
+  final VoidCallback? Function(RaceStanding standing) onShowBoard;
 
   @override
   Widget build(final BuildContext context) => Padding(
@@ -243,8 +260,11 @@ class _ResultTable extends StatelessWidget {
           _ResultRow(
             standing: standing,
             isMe: standing.player.uid == myUid,
+            totalPieces: totalPieces,
+            graceEndsAtMs: standing.outcome == RaceOutcome.racing ? graceEndsAtMs : null,
+            now: now,
             solverLevel: solverLevel,
-            onTap: onShowBoard(standing.player),
+            onTap: onShowBoard(standing),
           ),
       ],
     ),
@@ -347,10 +367,21 @@ class _BoardPage extends StatelessWidget {
 }
 
 class _ResultRow extends StatelessWidget {
-  const _ResultRow({required this.standing, required this.isMe, required this.solverLevel, required this.onTap});
+  const _ResultRow({
+    required this.standing,
+    required this.isMe,
+    required this.totalPieces,
+    required this.graceEndsAtMs,
+    required this.now,
+    required this.solverLevel,
+    required this.onTap,
+  });
 
   final RaceStanding standing;
   final bool isMe;
+  final int totalPieces;
+  final int? graceEndsAtMs;
+  final DateTime Function() now;
   final SolverLevel? solverLevel;
 
   final VoidCallback? onTap;
@@ -362,9 +393,12 @@ class _ResultRow extends StatelessWidget {
     final time = player.durationMs;
     final gap = standing.gapMs;
     const figures = [FontFeature.tabularFigures()];
-    final result = time == null
-        ? (standing.isWinner ? '' : _outcomeText(standing.outcome))
-        : formatRaceTime(time, tenths: true);
+    final graceEndsAt = graceEndsAtMs;
+    final result = switch (standing) {
+      _ when time != null => formatRaceTime(time, tenths: true),
+      RaceStanding(outcome: RaceOutcome.racing) => S.current.raceProgress(player.placed, totalPieces),
+      _ => standing.isWinner ? '' : _outcomeText(standing.outcome),
+    };
     final gapText = gap == null || gap == 0 ? null : formatRaceGap(gap);
     return Semantics(
       label: [?standing.place?.toString(), player.nickname, if (result.isNotEmpty) result, ?gapText].join(', '),
@@ -420,6 +454,7 @@ class _ResultRow extends StatelessWidget {
                         gapText,
                         style: TextStyle(fontSize: 13, color: colors.textSecondary, fontFeatures: figures),
                       ),
+                    if (graceEndsAt != null) RaceGraceCountdown(endsAtMs: graceEndsAt, now: now),
                   ],
                 ),
                 // The same width with or without the arrow keeps the times aligned.

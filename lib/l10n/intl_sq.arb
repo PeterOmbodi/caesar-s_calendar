@@ -254,6 +254,7 @@
   "raceErrorOffline": "Nuk ka lidhje. Kontrollo rrjetin dhe provo përsëri.",
   "raceErrorStarted": "Gara ka nisur tashmë",
   "raceErrorUnknown": "Diçka shkoi keq. Provo përsëri.",
+  "raceFirstFinish": "I pari në finish: {name}",
   "raceGaveUp": "U dorëzua",
   "raceGiveUp": "Dorëzohu",
   "raceGiveUpMessage": "Këtë garë e fiton kundërshtari yt.",

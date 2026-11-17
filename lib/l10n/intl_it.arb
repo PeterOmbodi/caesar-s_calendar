@@ -254,6 +254,7 @@
   "raceErrorOffline": "Nessuna connessione. Controlla la rete e riprova.",
   "raceErrorStarted": "La gara è già iniziata",
   "raceErrorUnknown": "Qualcosa è andato storto. Riprova.",
+  "raceFirstFinish": "Primo al traguardo: {name}",
   "raceGaveUp": "Si è arreso",
   "raceGiveUp": "Arrenditi",
   "raceGiveUpMessage": "Il tuo avversario vince questa gara.",

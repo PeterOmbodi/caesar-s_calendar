@@ -57,8 +57,15 @@ void main() {
     ]);
   });
 
+  test('the first finisher wins at once, the others are still racing', () {
+    expect(_result([_player('a'), _player('b', durationMs: 61100)], nowMs: _startAt + 62000), [
+      ('b', RaceOutcome.finished, 1, 0),
+      ('a', RaceOutcome.racing, null, null),
+    ]);
+  });
+
   test('a finisher wins over one who did not finish in time', () {
-    expect(_result([_player('a'), _player('b', durationMs: 61100)]), [
+    expect(_result([_player('a'), _player('b', durationMs: 61100)], nowMs: _startAt + 61100 + 60000), [
       ('b', RaceOutcome.finished, 1, 0),
       ('a', RaceOutcome.notFinished, null, null),
     ]);

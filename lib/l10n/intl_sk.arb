@@ -254,6 +254,7 @@
   "raceErrorOffline": "Žiadne pripojenie. Skontroluj sieť a skús to znova.",
   "raceErrorStarted": "Preteky sa už začali",
   "raceErrorUnknown": "Niečo sa pokazilo. Skús to znova.",
+  "raceFirstFinish": "Prvý v cieli: {name}",
   "raceGaveUp": "Vzdal sa",
   "raceGiveUp": "Vzdať sa",
   "raceGiveUpMessage": "Tieto preteky vyhrá tvoj súper.",

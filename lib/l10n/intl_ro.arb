@@ -254,6 +254,7 @@
   "raceErrorOffline": "Nicio conexiune. Verifică rețeaua și încearcă din nou.",
   "raceErrorStarted": "Cursa a început deja",
   "raceErrorUnknown": "Ceva n-a mers bine. Încearcă din nou.",
+  "raceFirstFinish": "Primul la finiș: {name}",
   "raceGaveUp": "A renunțat",
   "raceGiveUp": "Renunță",
   "raceGiveUpMessage": "Adversarul tău câștigă această cursă.",

@@ -3,12 +3,13 @@ import 'dart:math';
 import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
+import 'package:collection/collection.dart';
 
 abstract final class RaceRules {
   static const Duration timeLimit = Duration(minutes: 10);
 
-  /// Time to finish after the first solve in a duel; the room keeps its own value.
-  static const int graceSec = 60;
+  /// Time for the others to finish after the first solve; the room keeps its own value.
+  static const int graceSec = 15;
   static const Duration reconnectTime = Duration(seconds: 30);
 
   /// Offline for longer than [reconnectTime] in the middle of the race, by [nowMs].
@@ -40,6 +41,9 @@ abstract final class RaceRules {
     }
     return publishedAt >= startAtMs ? board : null;
   }
+
+  static RacePlayer? firstFinisher(final RaceRoom room) =>
+      room.players.where((final p) => p.hasFinished).sortedBy((final p) => p.durationMs!).firstOrNull;
 
   static bool isRacing(final RacePlayer player, {required final int nowMs}) =>
       !player.hasFinished && !hasGivenUp(player, nowMs: nowMs) && !isOut(player, nowMs: nowMs);

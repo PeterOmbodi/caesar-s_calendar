@@ -1,3 +1,8 @@
+## 1.14.2+50
+- in a race the first to solve sees the win at once, with a short vibration; the others get 15 seconds to finish instead of 60
+- while the others still race, the result shows their progress and the seconds left; the header names the first finisher and the race clock counts down
+- the fastest finisher has a laurel in the standings
+
 ## 1.14.1+49
 - a piece dropped where it does not fit lands on the last free spot it passed, instead of going back
 - a piece taken from the board and dropped outside the board and the tray goes to the tray

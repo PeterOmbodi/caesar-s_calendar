@@ -254,6 +254,7 @@
   "raceErrorOffline": "Нема врска. Проверете ја мрежата и обидете се повторно.",
   "raceErrorStarted": "Трката веќе започна",
   "raceErrorUnknown": "Нешто тргна наопаку. Обидете се повторно.",
+  "raceFirstFinish": "Прв на целта: {name}",
   "raceGaveUp": "Се предаде",
   "raceGiveUp": "Се предавам",
   "raceGiveUpMessage": "Вашиот противник ја добива оваа трка.",
