@@ -55,9 +55,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     );
     final shouldSnap =
         selectedPiece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
-    final (pieceToSave, snapMove) = shouldSnap
-        ? _moveHistoryService.maybeSnap(selectedPiece: flippedPiece, grid: state.gridConfig)
-        : _keepInTray(flippedPiece);
+    final (pieceToSave, snapMove) = shouldSnap ? _snapToFreeSpot(flippedPiece) : _keepInTray(flippedPiece);
     final move = FlipPiece(flippedPiece.id, snapMove, isFlipped: flippedPiece.isFlipped);
     final tentativePieces = _updatePieceInList(_withHintFlag(pieceToSave));
     if (selectedPiece.isConfigItem &&
@@ -204,6 +202,18 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     );
   }
 
+  (PuzzlePieceUI, MovePiece?) _snapToFreeSpot(final PuzzlePieceUI transformed) {
+    final grid = state.gridConfig;
+    final snapped = transformed.copyWith(position: _moveHistoryService.snappedPosition(transformed, grid));
+    final free = _movementHandler.nearestFreeGridPosition(
+      piece: snapped,
+      pieces: _obstacles(state.pieces),
+      gridConfig: grid,
+      boardConfig: state.boardConfig,
+    );
+    return _moveHistoryService.maybeSnap(selectedPiece: transformed, grid: grid, to: free ?? snapped.position);
+  }
+
   (PuzzlePieceUI, MovePiece?) _keepInTray(final PuzzlePieceUI piece) => piece.placeZone == PlaceZone.board
       ? _moveHistoryService.keepInTray(selectedPiece: piece, tray: state.boardConfig)
       : (piece, null);
@@ -216,9 +226,7 @@ extension PuzzleBlocPiecesActionsPart on PuzzleBloc {
     );
     final shouldSnap =
         piece.placeZone == PlaceZone.grid && (_settings.snapToGridOnTransform || selectedPiece.isConfigItem);
-    final (pieceToSave, snapMove) = shouldSnap
-        ? _moveHistoryService.maybeSnap(selectedPiece: selectedPiece, grid: state.gridConfig)
-        : _keepInTray(selectedPiece);
+    final (pieceToSave, snapMove) = shouldSnap ? _snapToFreeSpot(selectedPiece) : _keepInTray(selectedPiece);
     final move = RotatePiece(selectedPiece.id, snapMove, rotation: selectedPiece.rotation);
     final tentativePieces = _updatePieceInList(_withHintFlag(pieceToSave));
     if (selectedPiece.isConfigItem &&

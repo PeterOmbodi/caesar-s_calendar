@@ -93,6 +93,9 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
   @override
   void initState() {
     super.initState();
+    if (context.read<SettingsCubit>().state.sounds) {
+      unawaited(_sounds.warmUp());
+    }
     var previous = _bloc.state;
     _subscription = _bloc.stream.listen((final next) {
       _onPuzzle(previous, next);

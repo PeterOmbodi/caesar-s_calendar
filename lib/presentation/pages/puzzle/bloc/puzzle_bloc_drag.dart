@@ -71,6 +71,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
 
   FutureOr<void> _onPanStart(final _OnPanStart event, final Emitter<PuzzleState> emit) {
     _selectedOnTapDownId = null;
+    _lastFreeGridPosition = null;
     final piece = _findPieceAtPosition(event.localPosition) ?? state.pointerPiece;
     if (piece != null && _canTouch(piece)) {
       final lifted = state.shown(piece).rescaledAround(event.localPosition, isLifted: true);
@@ -166,21 +167,25 @@ extension PuzzleBlocDragPart on PuzzleBloc {
       switch (currentZone) {
         case PlaceZone.grid:
           final previewPosition = state.gridConfig.snapToGrid(newPosition);
+          final previewCollision = _movementHandler.checkCollision(
+            piece: piece,
+            newPosition: previewPosition,
+            zone: currentZone!,
+            preventOverlap: _settings.preventOverlap || piece.isConfigItem,
+            pieces: _obstacles(pieces),
+            gridConfig: state.gridConfig,
+            boardConfig: state.boardConfig,
+          );
+          if (!previewCollision) {
+            _lastFreeGridPosition = previewPosition;
+          }
           emit(
             state.copyWith(
               pieces: pieces,
               pointerPiece: piece,
               showPreview: true,
               previewPosition: previewPosition,
-              previewCollision: _movementHandler.checkCollision(
-                piece: piece,
-                newPosition: previewPosition,
-                zone: currentZone!,
-                preventOverlap: _settings.preventOverlap || piece.isConfigItem,
-                pieces: _obstacles(pieces),
-                gridConfig: state.gridConfig,
-                boardConfig: state.boardConfig,
-              ),
+              previewCollision: previewCollision,
             ),
           );
         case PlaceZone.board:
@@ -199,6 +204,8 @@ extension PuzzleBlocDragPart on PuzzleBloc {
     if (state.pointerPiece != null) {
       final prevState = state;
       final selectedPiece = state.pointerPiece!;
+      final fallbackGridPosition = _lastFreeGridPosition;
+      _lastFreeGridPosition = null;
       final dropResult = _movementHandler.computeDropResult(
         selectedPiece: selectedPiece,
         pieceStartPosition: state.pieceStartPosition!,
@@ -209,6 +216,7 @@ extension PuzzleBlocDragPart on PuzzleBloc {
         preventOverlap: _settings.preventOverlap || selectedPiece.isConfigItem,
         anchor: state.dragStartOffset == null ? null : selectedPiece.position + state.dragStartOffset!,
         trayArea: state.trayArea,
+        fallbackGridPosition: fallbackGridPosition,
       );
 
       if (dropResult.accepted && (!selectedPiece.isConfigItem || dropResult.zone == PlaceZone.grid)) {

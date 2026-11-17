@@ -144,6 +144,37 @@ class PuzzlePieceMovementService {
     return false;
   }
 
+  /// The closest grid position, at most [maxShift] cells away, where [piece] covers only free cells.
+  Offset? nearestFreeGridPosition({
+    required final PuzzlePieceUI piece,
+    required final Iterable<PuzzlePieceUI> pieces,
+    required final PuzzleGridEntity gridConfig,
+    required final PuzzleBoardEntity boardConfig,
+    final int maxShift = 2,
+  }) {
+    final shifts = [
+      for (var dy = -maxShift; dy <= maxShift; dy++)
+        for (var dx = -maxShift; dx <= maxShift; dx++) (dx: dx, dy: dy),
+    ]..sort((final a, final b) => (a.dx * a.dx + a.dy * a.dy).compareTo(b.dx * b.dx + b.dy * b.dy));
+    final cellSize = gridConfig.cellSize;
+    for (final shift in shifts) {
+      final position = piece.position + Offset(shift.dx * cellSize, shift.dy * cellSize);
+      final isFree = !checkCollision(
+        piece: piece,
+        newPosition: position,
+        zone: PlaceZone.grid,
+        preventOverlap: true,
+        pieces: pieces,
+        gridConfig: gridConfig,
+        boardConfig: boardConfig,
+      );
+      if (isFree) {
+        return position;
+      }
+    }
+    return null;
+  }
+
   PuzzleDropResult computeDropResult({
     required final PuzzlePieceUI selectedPiece,
     required final Offset pieceStartPosition,
@@ -154,32 +185,40 @@ class PuzzlePieceMovementService {
     required final bool preventOverlap,
     final Offset? anchor,
     final Rect trayArea = Rect.zero,
+    final Offset? fallbackGridPosition,
   }) {
-    final newZone = getDropZone(
+    final dropZone = getDropZone(
       piecePosition: selectedPiece.position,
       finger: anchor,
       trayArea: trayArea,
       grid: gridConfig,
       board: boardConfig,
     );
-    if (newZone == null) {
+    if (dropZone == null && dragStartZone != PlaceZone.grid) {
       return const PuzzleDropResult.rejected();
     }
+    // A board piece dropped off both areas leaves the board for the tray.
+    final newZone = dropZone ?? PlaceZone.board;
 
     late Offset snappedPosition;
     var collisionDetected = false;
     switch (newZone) {
       case PlaceZone.grid:
-        snappedPosition = gridConfig.snapToGrid(selectedPiece.position);
-        collisionDetected = checkCollision(
+        bool collidesAt(final Offset position) => checkCollision(
           piece: selectedPiece,
-          newPosition: snappedPosition,
+          newPosition: position,
           zone: newZone,
           preventOverlap: preventOverlap,
           pieces: pieces,
           gridConfig: gridConfig,
           boardConfig: boardConfig,
         );
+        snappedPosition = gridConfig.snapToGrid(selectedPiece.position);
+        collisionDetected = collidesAt(snappedPosition);
+        if (collisionDetected && fallbackGridPosition != null && !collidesAt(fallbackGridPosition)) {
+          snappedPosition = fallbackGridPosition;
+          collisionDetected = false;
+        }
       case PlaceZone.board:
         final trayPiece = selectedPiece.rescaledAround(
           anchor ?? selectedPiece.position,

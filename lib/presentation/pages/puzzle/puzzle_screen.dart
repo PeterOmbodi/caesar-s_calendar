@@ -88,6 +88,9 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     );
     _layoutsCubit = BoardLayoutsCubit(getIt<BoardLayoutRepository>());
     final settings = context.read<SettingsCubit>();
+    if (settings.state.sounds) {
+      unawaited(_sounds.warmUp());
+    }
     var previous = _puzzleBloc.state;
     _feedbackSubscription = _puzzleBloc.stream.listen((final next) {
       final haptic = hapticFor(previous, next);

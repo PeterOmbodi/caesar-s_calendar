@@ -121,6 +121,8 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   double _lastTrayStartInset = 0;
   // Piece that the current tap down selected; such a tap must not rotate or flip it.
   String? _selectedOnTapDownId;
+  // Where the dragged piece last fitted on the grid; a drop over a blocked spot lands there.
+  Offset? _lastFreeGridPosition;
   PuzzleSessionDifficulty? _currentSessionDifficulty;
   int? _suppressTapAfterDrawnCommitAtMs;
   // A late tap of the flipping double tap must not select the piece the flip uncovered.

@@ -28,8 +28,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
 
 class _FakeSettingsQuery implements SettingsQuery {
+  _FakeSettingsQuery({this.preventOverlap = false, this.snapToGridOnTransform = false});
+
   @override
-  bool get preventOverlap => false;
+  final bool preventOverlap;
 
   @override
   bool get requireSolutions => false;
@@ -41,7 +43,7 @@ class _FakeSettingsQuery implements SettingsQuery {
   bool get separateMoveColors => false;
 
   @override
-  bool get snapToGridOnTransform => false;
+  final bool snapToGridOnTransform;
 }
 
 class _FakeSolverService implements PuzzleSolverService {
@@ -160,6 +162,20 @@ Offset _pieceAnchor(final PuzzleBloc bloc, final String id) {
 Offset _cellCenter(final PuzzleBloc bloc, final int row, final int col) {
   final grid = bloc.state.gridConfig;
   return grid.cellTopLeft(Cell(row, col)) + Offset(grid.cellSize / 2, grid.cellSize / 2);
+}
+
+Future<void> _dragOver(final PuzzleBloc bloc, final String id, final List<Cell> cells) async {
+  bloc.add(PuzzleEvent.onPanStart(_pieceAnchor(bloc, id)));
+  await _drain();
+  final offset = bloc.state.dragStartOffset!;
+  var pointer = Offset.zero;
+  for (final cell in cells) {
+    pointer = bloc.state.gridConfig.cellTopLeft(cell) + offset;
+    bloc.add(PuzzleEvent.onPanUpdate(pointer));
+    await _drain();
+  }
+  bloc.add(PuzzleEvent.onPanEnd(pointer));
+  await _drain();
 }
 
 Future<void> _drawCells(final PuzzleBloc bloc, final List<Cell> cells) async {
@@ -669,6 +685,92 @@ void main() {
     final restoredSquare = bloc!.state.pieces.firstWhere((final piece) => piece.id == 'Square');
     expect(restoredSquare.placeZone, PlaceZone.grid);
     expect(restoredSquare.position, bloc!.state.gridConfig.cellTopLeft(Cell(2, 2)));
+  });
+
+  group('placement assist', () {
+    PuzzleBloc? assisted;
+
+    Future<PuzzleBloc> ready({required final bool preventOverlap}) async {
+      final created = PuzzleBloc(
+        settings: _FakeSettingsQuery(preventOverlap: preventOverlap, snapToGridOnTransform: true),
+        solvePuzzleUseCase: SolvePuzzleUseCase(_FakeSolverService()),
+        sessionRecorder: PuzzleHistoryUseCase(_FakePuzzleHistoryRepository()),
+      );
+      assisted = created;
+      created.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      return created;
+    }
+
+    tearDown(() async {
+      await assisted?.close();
+      assisted = null;
+    });
+
+    test('drop over a taken spot lands on the last free spot of the drag', () async {
+      final b = await ready(preventOverlap: true);
+      await _dragOver(b, 'Square', [Cell(2, 2)]);
+
+      b.add(PuzzleEvent.onPanStart(_pieceAnchor(b, 'P-Shape')));
+      await _drain();
+      final offset = b.state.dragStartOffset!;
+      b.add(PuzzleEvent.onPanUpdate(b.state.gridConfig.cellTopLeft(Cell(2, 4)) + offset));
+      await _drain();
+      expect(b.state.previewCollision, isFalse);
+      final pointer = b.state.gridConfig.cellTopLeft(Cell(3, 3)) + offset;
+      b.add(PuzzleEvent.onPanUpdate(pointer));
+      await _drain();
+      expect(b.state.previewCollision, isTrue);
+      b.add(PuzzleEvent.onPanEnd(pointer));
+      await _drain();
+
+      final placed = _piece(b, 'P-Shape');
+      expect(placed.placeZone, PlaceZone.grid);
+      expect(placed.position, b.state.gridConfig.cellTopLeft(Cell(2, 4)));
+    });
+
+    test('rotation moves the piece off the cells another piece covers, undo brings it back', () async {
+      final b = await ready(preventOverlap: false);
+      await _dragOver(b, 'Square', [Cell(2, 2)]);
+      await _dragOver(b, 'P-Shape', [Cell(2, 2)]);
+      final dropped = _piece(b, 'P-Shape');
+
+      b.add(const PuzzleEvent.selectPiece('P-Shape'));
+      await _drain();
+      b.add(const PuzzleEvent.rotateSelected());
+      await _drain();
+
+      final grid = b.state.gridConfig;
+      final rotatedCells = _piece(b, 'P-Shape').cells(grid.origin, grid.cellSize);
+      final squareCells = _piece(b, 'Square').cells(grid.origin, grid.cellSize);
+      expect(rotatedCells.intersection(squareCells), isEmpty);
+
+      b.add(const PuzzleEvent.undo());
+      await _drain();
+      final restored = _piece(b, 'P-Shape');
+      expect(restored.position, dropped.position);
+      expect(restored.rotation, dropped.rotation);
+    });
+  });
+
+  test('a board piece dropped outside grid and tray goes to the tray', () async {
+    bloc!.add(const PuzzleEvent.setViewSize(Size(1200, 800), maxCell: ScreenSpec.expandedMaxCell));
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await _dragOver(bloc!, 'Square', [Cell(2, 2)]);
+    expect(_piece(bloc!, 'Square').placeZone, PlaceZone.grid);
+
+    bloc!.add(PuzzleEvent.onPanStart(_pieceAnchor(bloc!, 'Square')));
+    await _drain();
+    final local = const Offset(-500, -500) + bloc!.state.dragStartOffset!;
+    bloc!.add(PuzzleEvent.onPanUpdate(local));
+    await _drain();
+    bloc!.add(PuzzleEvent.onPanEnd(local));
+    await _drain();
+
+    expect(_piece(bloc!, 'Square').placeZone, PlaceZone.board);
+    final move = bloc!.state.moveHistory.last as MovePiece;
+    expect(move.from.zone, PlaceZone.grid);
+    expect(move.to.zone, PlaceZone.board);
   });
 
   group('piece selection gestures', () {
