@@ -144,7 +144,6 @@ class PuzzlePieceMovementService {
     return false;
   }
 
-  /// The closest grid position, at most [maxShift] cells away, where [piece] covers only free cells.
   Offset? nearestFreeGridPosition({
     required final PuzzlePieceUI piece,
     required final Iterable<PuzzlePieceUI> pieces,
@@ -197,7 +196,7 @@ class PuzzlePieceMovementService {
     if (dropZone == null && dragStartZone != PlaceZone.grid) {
       return const PuzzleDropResult.rejected();
     }
-    // A board piece dropped off both areas leaves the board for the tray.
+    // A grid piece dropped off both areas goes to the tray; a tray piece stays where it was.
     final newZone = dropZone ?? PlaceZone.board;
 
     late Offset snappedPosition;

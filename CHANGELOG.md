@@ -1,3 +1,12 @@
+## 1.14.1+49
+- a piece dropped where it does not fit lands on the last free spot it passed, instead of going back
+- a piece taken from the board and dropped outside the board and the tray goes to the tray
+- with Snap to Grid on, a piece turned or flipped on the board moves to the nearest free cells instead of covering other pieces
+- cancel a drawing by tapping outside it, on a block, a date cell or a piece; Undo clears the drawing first
+- drawing no longer goes over the cells of today's date
+- fix a drawing staying on the board after redo, a hint, a turn or a flip
+- fix the move sound missing on Android, mostly on the first move
+
 ## 1.14.0+48
 - add Race: a duel with a friend on a random date, joined by a room code, a link or a QR code; five start lights, live standings and a result with the final boards of all players
 - race the solver on your device without an account or network, at three levels: Recruit, Legionary and Centurion; solving first ends the race at once
