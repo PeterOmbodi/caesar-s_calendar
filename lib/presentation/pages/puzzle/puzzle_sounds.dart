@@ -37,7 +37,9 @@ class PuzzleSounds {
       final pool = await _createPool();
       final stop = await pool.start();
       // Low latency players never complete, so the pool gets them back on stop.
-      unawaited(Future<void>.delayed(_stopAfter, stop));
+      if (_mode == PlayerMode.lowLatency) {
+        unawaited(Future<void>.delayed(_stopAfter, stop));
+      }
     } on Object catch (error) {
       _pool = null;
       debugPrint('Move sound failed: $error');
