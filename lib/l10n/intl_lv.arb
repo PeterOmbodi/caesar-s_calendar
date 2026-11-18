@@ -249,6 +249,7 @@
   "raceCreateHint": "Saņemsi kodu, ko nosūtīt pretiniekam",
   "raceErrorBadCode": "Kodā ir 5 burti un cipari",
   "raceErrorDate": "Sacīkstes šajā ierīcē nevarēja sākties. Izveido jaunu spēli.",
+  "raceErrorElsewhere": "Tu jau esi šajā istabā citā ierīcē. Aizver to tur vai mēģini vēlreiz pēc minūtes.",
   "raceErrorFull": "Istaba ir pilna",
   "raceErrorNoRoom": "Istabas ar šo kodu nav",
   "raceErrorOffline": "Nav savienojuma. Pārbaudi tīklu un mēģini vēlreiz.",

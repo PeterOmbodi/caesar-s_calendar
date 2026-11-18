@@ -249,6 +249,7 @@
   "raceCreateHint": "Je krijgt een code om naar je tegenstander te sturen",
   "raceErrorBadCode": "De code heeft 5 letters en cijfers",
   "raceErrorDate": "De race kon op dit apparaat niet starten. Maak een nieuw spel.",
+  "raceErrorElsewhere": "Je zit al in deze kamer op een ander apparaat. Sluit hem daar of probeer het over een minuut opnieuw.",
   "raceErrorFull": "De kamer is vol",
   "raceErrorNoRoom": "Geen kamer met deze code",
   "raceErrorOffline": "Geen verbinding. Controleer het netwerk en probeer het opnieuw.",

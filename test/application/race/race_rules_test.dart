@@ -66,6 +66,13 @@ void main() {
     expect(RaceRules.firstFinisher(room)?.uid, 'b');
   });
 
+  test('another device is one that wrote a different id; without an id nobody can tell', () {
+    const player = RacePlayer(uid: 'a', nickname: 'a', colorIndex: 0, joinedAt: 0, device: 'phone');
+    expect(RaceRules.isOnOtherDevice(player, deviceId: 'phone'), isFalse);
+    expect(RaceRules.isOnOtherDevice(player, deviceId: 'tablet'), isTrue);
+    expect(RaceRules.isOnOtherDevice(_player('a'), deviceId: 'tablet'), isFalse);
+  });
+
   test('without firstFinishAt the time to finish counts from the solve', () {
     final room = _room([_player('a', durationMs: 90000), _player('b')]);
     expect(RaceRules.graceEndsAtMs(room), _startAt + 150000);

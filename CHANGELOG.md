@@ -2,6 +2,8 @@
 - in a race the first to solve sees the win at once, with a short vibration; the others get 15 seconds to finish instead of 60
 - while the others still race, the result shows their progress and the seconds left; the header names the first finisher and the race clock counts down
 - the fastest finisher has a laurel in the standings
+- the same account cannot be in a room from two devices at once; a second device is told to close the room on the first one
+- two players with the same profile colour get different colours in a race
 
 ## 1.14.1+49
 - a piece dropped where it does not fit lands on the last free spot it passed, instead of going back

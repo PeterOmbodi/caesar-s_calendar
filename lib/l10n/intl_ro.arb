@@ -249,6 +249,7 @@
   "raceCreateHint": "Primești un cod pe care îl trimiți adversarului",
   "raceErrorBadCode": "Codul are 5 litere și cifre",
   "raceErrorDate": "Cursa nu a putut porni pe acest dispozitiv. Creează un joc nou.",
+  "raceErrorElsewhere": "Ești deja în această cameră pe alt dispozitiv. Închide-o acolo sau încearcă din nou peste un minut.",
   "raceErrorFull": "Camera este plină",
   "raceErrorNoRoom": "Nu există nicio cameră cu acest cod",
   "raceErrorOffline": "Nicio conexiune. Verifică rețeaua și încearcă din nou.",

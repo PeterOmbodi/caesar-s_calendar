@@ -249,6 +249,7 @@
   "raceCreateHint": "Dostaneš kód, který pošleš soupeři",
   "raceErrorBadCode": "Kód má 5 písmen a číslic",
   "raceErrorDate": "Závod se na tomto zařízení nepodařilo spustit. Vytvoř novou hru.",
+  "raceErrorElsewhere": "V této místnosti už jsi na jiném zařízení. Zavři ji tam nebo to zkus za minutu.",
   "raceErrorFull": "Místnost je plná",
   "raceErrorNoRoom": "Místnost s tímto kódem neexistuje",
   "raceErrorOffline": "Žádné připojení. Zkontroluj síť a zkus to znovu.",

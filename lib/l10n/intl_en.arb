@@ -249,6 +249,7 @@
   "raceCreateHint": "You get a code to send to your opponent",
   "raceErrorBadCode": "The code has 5 letters and digits",
   "raceErrorDate": "The race could not start on this device. Create a new game.",
+  "raceErrorElsewhere": "You're already in this room on another device. Close it there or try again in a minute.",
   "raceErrorFull": "The room is full",
   "raceErrorNoRoom": "No room with this code",
   "raceErrorOffline": "No connection. Check the network and try again.",

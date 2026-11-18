@@ -249,6 +249,7 @@
   "raceCreateHint": "Du får en kod att skicka till din motståndare",
   "raceErrorBadCode": "Koden har 5 bokstäver och siffror",
   "raceErrorDate": "Kapplöpningen kunde inte starta på den här enheten. Skapa ett nytt spel.",
+  "raceErrorElsewhere": "Du är redan i det här rummet på en annan enhet. Stäng det där eller försök igen om en minut.",
   "raceErrorFull": "Rummet är fullt",
   "raceErrorNoRoom": "Inget rum med den här koden",
   "raceErrorOffline": "Ingen anslutning. Kontrollera nätverket och försök igen.",

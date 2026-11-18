@@ -249,6 +249,7 @@
   "raceCreateHint": "Riceverai un codice da inviare all’avversario",
   "raceErrorBadCode": "Il codice ha 5 lettere e cifre",
   "raceErrorDate": "La gara non è partita su questo dispositivo. Crea una nuova partita.",
+  "raceErrorElsewhere": "Sei già in questa stanza su un altro dispositivo. Chiudila lì o riprova tra un minuto.",
   "raceErrorFull": "La stanza è piena",
   "raceErrorNoRoom": "Nessuna stanza con questo codice",
   "raceErrorOffline": "Nessuna connessione. Controlla la rete e riprova.",

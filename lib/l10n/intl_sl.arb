@@ -249,6 +249,7 @@
   "raceCreateHint": "Dobil boš kodo, ki jo pošlješ nasprotniku",
   "raceErrorBadCode": "Koda ima 5 črk in številk",
   "raceErrorDate": "Dirke na tej napravi ni bilo mogoče začeti. Ustvari novo igro.",
+  "raceErrorElsewhere": "V tej sobi si že na drugi napravi. Zapri jo tam ali poskusi znova čez minuto.",
   "raceErrorFull": "Soba je polna",
   "raceErrorNoRoom": "Sobe s to kodo ni",
   "raceErrorOffline": "Ni povezave. Preveri omrežje in poskusi znova.",

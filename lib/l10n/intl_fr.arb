@@ -249,6 +249,7 @@
   "raceCreateHint": "Vous recevrez un code à envoyer à votre adversaire",
   "raceErrorBadCode": "Le code compte 5 lettres et chiffres",
   "raceErrorDate": "La course n’a pas pu démarrer sur cet appareil. Créez une nouvelle partie.",
+  "raceErrorElsewhere": "Vous êtes déjà dans cette salle sur un autre appareil. Fermez-la là-bas ou réessayez dans une minute.",
   "raceErrorFull": "La salle est pleine",
   "raceErrorNoRoom": "Aucune salle avec ce code",
   "raceErrorOffline": "Pas de connexion. Vérifiez le réseau et réessayez.",

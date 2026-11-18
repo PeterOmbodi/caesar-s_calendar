@@ -14,6 +14,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @LazySingleton(as: RaceRoomRepository)
 class RaceRoomRepositoryImpl implements RaceRoomRepository {
@@ -24,10 +25,15 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
   static const _connectWait = Duration(seconds: 3);
   static const _staleAfter = Duration(hours: 2);
   static const _createAttempts = 5;
+  static const _deviceIdKey = 'raceDeviceId';
+  static const _deviceIdLength = 16;
+  static const _deviceIdChars = 'abcdefghijklmnopqrstuvwxyz0123456789';
 
   final FirebaseDatabase _database;
   final AuthService _auth;
   final Random _random = Random.secure();
+  String? _deviceId;
+  String? _takenOverCode;
 
   int _serverOffsetMs = 0;
   // Both listeners live as long as the repository: re-listening to the same `.info` path after a cancel proved
@@ -77,7 +83,10 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
       throw const RaceRoomException(RaceRoomFailure.noRoom);
     }
     final player = _player(code, uid);
-    if (room.player(uid) != null) {
+    if (room.player(uid) case final me?) {
+      if (me.online && RaceRules.isOnOtherDevice(me, deviceId: _requireDeviceId())) {
+        throw const RaceRoomException(RaceRoomFailure.elsewhere);
+      }
       await _comeBack(code, uid, room);
     } else {
       if (room.status != RaceRoomStatus.lobby) {
@@ -138,6 +147,9 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
   Stream<RaceRoom?> watchRoom(final String code) => _room(code).onValue
       .map((final event) {
         final room = RaceRoomMapper.fromValue(code, event.snapshot.value);
+        if (_isTakenOver(code, room)) {
+          throw const RaceRoomException(RaceRoomFailure.elsewhere);
+        }
         _followStatus(code, room);
         return room;
       })
@@ -255,6 +267,43 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
 
   String _requireUid() => uid ?? (throw const RaceRoomException(RaceRoomFailure.signInRequired));
 
+  String _requireDeviceId() => _deviceId ?? (throw const RaceRoomException(RaceRoomFailure.unknown));
+
+  Future<void> _loadDeviceId() async {
+    if (_deviceId != null) {
+      return;
+    }
+    final preferences = await SharedPreferences.getInstance();
+    final stored = preferences.getString(_deviceIdKey);
+    if (stored != null) {
+      _deviceId = stored;
+      return;
+    }
+    final created = String.fromCharCodes([
+      for (var i = 0; i < _deviceIdLength; i++) _deviceIdChars.codeUnitAt(_random.nextInt(_deviceIdChars.length)),
+    ]);
+    await preferences.setString(_deviceIdKey, created);
+    _deviceId = created;
+  }
+
+  /// Once another device holds the place, this one stays out of the room until it enters again.
+  bool _isTakenOver(final String code, final RaceRoom? room) {
+    if (code == _takenOverCode) {
+      return true;
+    }
+    final me = room?.player(uid ?? '');
+    if (code != _presenceCode || me == null || !RaceRules.isOnOtherDevice(me, deviceId: _requireDeviceId())) {
+      return false;
+    }
+    _takenOverCode = code;
+    _presenceCode = null;
+    // Handlers left from this device would close the room or free the place under the other one.
+    for (final ref in [_player(code, me.uid), _room(code)]) {
+      unawaited(ref.onDisconnect().cancel().catchError((final Object _) {}));
+    }
+    return true;
+  }
+
   Future<RaceRoom?> _read(final String code) async =>
       RaceRoomMapper.fromValue(code, (await _guard(_room(code).get())).value);
 
@@ -268,6 +317,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
     'colorIndex': profile.colorIndex,
     'joinedAt': ServerValue.timestamp,
     'online': true,
+    'device': _requireDeviceId(),
   };
 
   // False when another host took the code first.
@@ -295,6 +345,8 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
     try {
       // A leave still in flight would disconnect this entry halfway.
       await _leaving?.catchError((final Object _) {});
+      _takenOverCode = null;
+      await _loadDeviceId();
       await _connect();
       return await enter();
     } on RaceRoomException {
@@ -394,8 +446,13 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
       return;
     }
     try {
+      final room = await _read(code);
+      // The other device already holds the place; coming back here would take it over behind its back.
+      if (_isTakenOver(code, room)) {
+        return;
+      }
       await _registerDisconnect();
-      await _comeBack(code, uid, await _read(code));
+      await _comeBack(code, uid, room);
     } on RaceRoomException {
       // The next reconnect tries again.
     }
@@ -413,6 +470,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
     await _guard(
       _player(code, uid).update({
         'online': true,
+        'device': _requireDeviceId(),
         if (isOut) 'outAt': lastSeen + RaceRules.reconnectTime.inMilliseconds,
       }),
     );

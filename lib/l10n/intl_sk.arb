@@ -249,6 +249,7 @@
   "raceCreateHint": "Dostaneš kód, ktorý pošleš súperovi",
   "raceErrorBadCode": "Kód má 5 písmen a číslic",
   "raceErrorDate": "Preteky sa na tomto zariadení nepodarilo spustiť. Vytvor novú hru.",
+  "raceErrorElsewhere": "V tejto miestnosti už si na inom zariadení. Zavri ju tam alebo to skús o minútu.",
   "raceErrorFull": "Miestnosť je plná",
   "raceErrorNoRoom": "Miestnosť s týmto kódom neexistuje",
   "raceErrorOffline": "Žiadne pripojenie. Skontroluj sieť a skús to znova.",

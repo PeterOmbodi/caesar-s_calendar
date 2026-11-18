@@ -249,6 +249,7 @@
   "raceCreateHint": "Merr një kod për t'ia dërguar kundërshtarit",
   "raceErrorBadCode": "Kodi ka 5 shkronja dhe shifra",
   "raceErrorDate": "Gara nuk mundi të nisë në këtë pajisje. Krijo një lojë të re.",
+  "raceErrorElsewhere": "Je tashmë në këtë dhomë në një pajisje tjetër. Mbylle atje ose provo sërish pas një minute.",
   "raceErrorFull": "Dhoma është plot",
   "raceErrorNoRoom": "Nuk ka dhomë me këtë kod",
   "raceErrorOffline": "Nuk ka lidhje. Kontrollo rrjetin dhe provo përsëri.",

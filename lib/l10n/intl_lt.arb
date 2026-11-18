@@ -249,6 +249,7 @@
   "raceCreateHint": "Gausi kodą, kurį nusiųsi varžovui",
   "raceErrorBadCode": "Kodą sudaro 5 raidės ir skaitmenys",
   "raceErrorDate": "Lenktynių šiame įrenginyje nepavyko pradėti. Sukurk naują žaidimą.",
+  "raceErrorElsewhere": "Jau esi šiame kambaryje kitame įrenginyje. Uždaryk jį ten arba bandyk dar kartą po minutės.",
   "raceErrorFull": "Kambarys pilnas",
   "raceErrorNoRoom": "Kambario su šiuo kodu nėra",
   "raceErrorOffline": "Nėra ryšio. Patikrink tinklą ir bandyk dar kartą.",

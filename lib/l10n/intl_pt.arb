@@ -249,6 +249,7 @@
   "raceCreateHint": "Recebe um código para enviar ao adversário",
   "raceErrorBadCode": "O código tem 5 letras e algarismos",
   "raceErrorDate": "Não foi possível iniciar a corrida neste dispositivo. Crie um novo jogo.",
+  "raceErrorElsewhere": "Já está nesta sala noutro dispositivo. Feche-a lá ou tente novamente daqui a um minuto.",
   "raceErrorFull": "A sala está cheia",
   "raceErrorNoRoom": "Não há nenhuma sala com este código",
   "raceErrorOffline": "Sem ligação. Verifique a rede e tente novamente.",

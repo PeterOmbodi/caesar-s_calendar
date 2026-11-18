@@ -249,6 +249,7 @@
   "raceCreateHint": "Dostaniesz kod do wysłania przeciwnikowi",
   "raceErrorBadCode": "Kod ma 5 liter i cyfr",
   "raceErrorDate": "Nie udało się rozpocząć wyścigu na tym urządzeniu. Utwórz nową grę.",
+  "raceErrorElsewhere": "Jesteś już w tym pokoju na innym urządzeniu. Zamknij go tam albo spróbuj ponownie za minutę.",
   "raceErrorFull": "Pokój jest pełny",
   "raceErrorNoRoom": "Nie ma pokoju z tym kodem",
   "raceErrorOffline": "Brak połączenia. Sprawdź sieć i spróbuj ponownie.",

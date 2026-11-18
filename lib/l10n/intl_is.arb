@@ -249,6 +249,7 @@
   "raceCreateHint": "Þú færð kóða til að senda andstæðingnum",
   "raceErrorBadCode": "Kóðinn er 5 stafir og tölur",
   "raceErrorDate": "Ekki tókst að hefja kapphlaupið í þessu tæki. Búðu til nýjan leik.",
+  "raceErrorElsewhere": "Þú ert þegar í þessu herbergi í öðru tæki. Lokaðu því þar eða reyndu aftur eftir mínútu.",
   "raceErrorFull": "Herbergið er fullt",
   "raceErrorNoRoom": "Ekkert herbergi með þessum kóða",
   "raceErrorOffline": "Engin tenging. Athugaðu netið og reyndu aftur.",

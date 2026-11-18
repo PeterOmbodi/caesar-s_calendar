@@ -45,6 +45,9 @@ abstract final class RaceRules {
   static RacePlayer? firstFinisher(final RaceRoom room) =>
       room.players.where((final p) => p.hasFinished).sortedBy((final p) => p.durationMs!).firstOrNull;
 
+  static bool isOnOtherDevice(final RacePlayer player, {required final String deviceId}) =>
+      player.device != null && player.device != deviceId;
+
   static bool isRacing(final RacePlayer player, {required final int nowMs}) =>
       !player.hasFinished && !hasGivenUp(player, nowMs: nowMs) && !isOut(player, nowMs: nowMs);
 

@@ -249,6 +249,7 @@
   "raceCreateHint": "Saat koodin, jonka lähetät vastustajalle",
   "raceErrorBadCode": "Koodissa on 5 kirjainta ja numeroa",
   "raceErrorDate": "Kilpa ei voinut alkaa tällä laitteella. Luo uusi peli.",
+  "raceErrorElsewhere": "Olet jo tässä huoneessa toisella laitteella. Sulje se siellä tai yritä uudelleen minuutin päästä.",
   "raceErrorFull": "Huone on täynnä",
   "raceErrorNoRoom": "Tällä koodilla ei ole huonetta",
   "raceErrorOffline": "Ei yhteyttä. Tarkista verkko ja yritä uudelleen.",

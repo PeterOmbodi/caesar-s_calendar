@@ -249,6 +249,7 @@
   "raceCreateHint": "Recibirás un código para enviar a tu rival",
   "raceErrorBadCode": "El código tiene 5 letras y cifras",
   "raceErrorDate": "La carrera no pudo empezar en este dispositivo. Crea una partida nueva.",
+  "raceErrorElsewhere": "Ya estás en esta sala en otro dispositivo. Ciérrala allí o vuelve a intentarlo en un minuto.",
   "raceErrorFull": "La sala está llena",
   "raceErrorNoRoom": "No hay ninguna sala con este código",
   "raceErrorOffline": "Sin conexión. Comprueba la red e inténtalo de nuevo.",

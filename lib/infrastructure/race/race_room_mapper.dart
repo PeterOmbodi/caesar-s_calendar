@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
 import 'package:caesar_puzzle/application/race/race_board.dart';
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/application/race/race_room.dart';
@@ -17,10 +18,16 @@ abstract final class RaceRoomMapper {
     final puzzle = _map(room['puzzle']);
     final month = _int(puzzle?['month']);
     final day = _int(puzzle?['day']);
-    final players = [
+    final entries = [
       for (final MapEntry(key: uid, value: player) in (_map(room['players']) ?? const {}).entries)
-        if (_map(player) case final data?) _player(uid, data, round),
+        if (_map(player) case final data?) (uid: uid, data: data),
     ]..sort(_byJoining);
+    // Profile colours come from the uid and can match; the one who came later takes the next free colour.
+    final taken = <int>{};
+    final players = [
+      for (final (:uid, :data) in entries)
+        _player(uid, data, round, colorIndex: _freeColor(_int(data['colorIndex']) ?? 0, taken)),
+    ];
     return RaceRoom(
       code: code,
       hostUid: hostUid,
@@ -37,12 +44,27 @@ abstract final class RaceRoomMapper {
     );
   }
 
-  static RacePlayer _player(final String uid, final Map<String, Object?> data, final int round) {
+  static int _freeColor(final int preferred, final Set<int> taken) {
+    for (var step = 0; step < NicknameGenerator.colorCount; step++) {
+      final color = (preferred + step) % NicknameGenerator.colorCount;
+      if (taken.add(color)) {
+        return color;
+      }
+    }
+    return preferred;
+  }
+
+  static RacePlayer _player(
+    final String uid,
+    final Map<String, Object?> data,
+    final int round, {
+    required final int colorIndex,
+  }) {
     final isCurrent = _int(data['round']) == round;
     return RacePlayer(
       uid: uid,
       nickname: data['nickname'] as String? ?? '',
-      colorIndex: _int(data['colorIndex']) ?? 0,
+      colorIndex: colorIndex,
       joinedAt: _int(data['joinedAt']) ?? 0,
       online: data['online'] != false,
       lastSeen: _int(data['lastSeen']),
@@ -54,6 +76,7 @@ abstract final class RaceRoomMapper {
       gaveUpAt: isCurrent ? _int(data['gaveUpAt']) : null,
       outAt: isCurrent ? _int(data['outAt']) : null,
       board: isCurrent ? boardFromValue(data['board']) : null,
+      device: data['device'] as String?,
     );
   }
 
@@ -89,8 +112,11 @@ abstract final class RaceRoomMapper {
     return RaceBoard(pieces, publishedAtMs: at);
   }
 
-  static int _byJoining(final RacePlayer a, final RacePlayer b) {
-    final byTime = a.joinedAt.compareTo(b.joinedAt);
+  static int _byJoining(
+    final ({String uid, Map<String, Object?> data}) a,
+    final ({String uid, Map<String, Object?> data}) b,
+  ) {
+    final byTime = (_int(a.data['joinedAt']) ?? 0).compareTo(_int(b.data['joinedAt']) ?? 0);
     return byTime != 0 ? byTime : a.uid.compareTo(b.uid);
   }
 

@@ -77,6 +77,9 @@
             "online": {
               ".validate": "newData.isBoolean()"
             },
+            "device": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 64"
+            },
             "lastSeen": {
               ".validate": "newData.isNumber() && newData.val() <= now"
             },

@@ -249,6 +249,7 @@
   "raceCreateHint": "Kapsz egy kódot, amelyet elküldesz az ellenfelednek",
   "raceErrorBadCode": "A kód 5 betűből és számjegyből áll",
   "raceErrorDate": "A verseny nem tudott elindulni ezen az eszközön. Hozz létre új játékot.",
+  "raceErrorElsewhere": "Már bent vagy ebben a szobában egy másik eszközön. Zárd be ott, vagy próbáld újra egy perc múlva.",
   "raceErrorFull": "A szoba megtelt",
   "raceErrorNoRoom": "Nincs szoba ezzel a kóddal",
   "raceErrorOffline": "Nincs kapcsolat. Ellenőrizd a hálózatot, és próbáld újra.",

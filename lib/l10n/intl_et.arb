@@ -249,6 +249,7 @@
   "raceCreateHint": "Saad koodi, mille saadad vastasele",
   "raceErrorBadCode": "Koodis on 5 tähte ja numbrit",
   "raceErrorDate": "Võidujooks ei saanud selles seadmes alata. Loo uus mäng.",
+  "raceErrorElsewhere": "Oled selles toas juba teises seadmes. Sulge see seal või proovi minuti pärast uuesti.",
   "raceErrorFull": "Tuba on täis",
   "raceErrorNoRoom": "Selle koodiga tuba pole",
   "raceErrorOffline": "Ühendus puudub. Kontrolli võrku ja proovi uuesti.",

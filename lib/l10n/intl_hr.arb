@@ -249,6 +249,7 @@
   "raceCreateHint": "Dobit ćeš kôd koji šalješ protivniku",
   "raceErrorBadCode": "Kôd ima 5 slova i znamenki",
   "raceErrorDate": "Utrka se nije mogla pokrenuti na ovom uređaju. Stvori novu igru.",
+  "raceErrorElsewhere": "Već si u ovoj sobi na drugom uređaju. Zatvori je tamo ili pokušaj ponovno za minutu.",
   "raceErrorFull": "Soba je puna",
   "raceErrorNoRoom": "Nema sobe s tim kôdom",
   "raceErrorOffline": "Nema veze. Provjeri mrežu i pokušaj ponovno.",

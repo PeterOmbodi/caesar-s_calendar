@@ -249,6 +249,7 @@
   "raceCreateHint": "Du bekommst einen Code für deinen Gegner",
   "raceErrorBadCode": "Der Code hat 5 Buchstaben und Ziffern",
   "raceErrorDate": "Das Rennen konnte auf diesem Gerät nicht starten. Erstelle ein neues Spiel.",
+  "raceErrorElsewhere": "Du bist schon auf einem anderen Gerät in diesem Raum. Schließe ihn dort oder versuche es in einer Minute erneut.",
   "raceErrorFull": "Der Raum ist voll",
   "raceErrorNoRoom": "Kein Raum mit diesem Code",
   "raceErrorOffline": "Keine Verbindung. Prüfe das Netzwerk und versuche es erneut.",
