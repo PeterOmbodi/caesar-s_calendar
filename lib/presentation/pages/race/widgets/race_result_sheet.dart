@@ -10,6 +10,7 @@ import 'package:caesar_puzzle/presentation/pages/race/widgets/race_grace_countdo
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_player_avatar.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/laurel_wreath.dart';
+import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
@@ -277,7 +278,7 @@ class _ResultTable extends StatelessWidget {
   );
 }
 
-class _BoardPage extends StatelessWidget {
+class _BoardPage extends StatefulWidget {
   const _BoardPage({
     super.key,
     required this.standing,
@@ -287,8 +288,6 @@ class _BoardPage extends StatelessWidget {
     required this.onBack,
   });
 
-  static const double _backSwipeVelocity = 300;
-
   final RaceStanding standing;
 
   /// Null until the player's board arrives.
@@ -297,79 +296,104 @@ class _BoardPage extends StatelessWidget {
   final SolverLevel? solverLevel;
   final VoidCallback onBack;
 
+  @override
+  State<_BoardPage> createState() => _BoardPageState();
+}
+
+class _BoardPageState extends State<_BoardPage> {
+  static const double _backSwipeVelocity = 300;
+  static const double _gap = 8;
+  static const double _bottomPadding = 16;
+
+  double _headerHeight = 0;
+
   String get _result {
-    final time = standing.player.durationMs;
-    final board = this.board;
+    final time = widget.standing.player.durationMs;
+    final board = widget.board;
     return [
-      if (time != null) formatRaceTime(time, tenths: true) else if (!standing.isWinner) _outcomeText(standing.outcome),
-      if (time == null && board != null) S.current.raceProgress(board.pieces.length, totalPieces),
+      if (time != null)
+        formatRaceTime(time, tenths: true)
+      else if (!widget.standing.isWinner)
+        _outcomeText(widget.standing.outcome),
+      if (time == null && board != null) S.current.raceProgress(board.pieces.length, widget.totalPieces),
     ].join(' · ');
   }
 
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final player = standing.player;
-    final board = this.board;
-    return GestureDetector(
-      onHorizontalDragEnd: (final details) {
-        if ((details.primaryVelocity ?? 0) > _backSwipeVelocity) {
-          onBack();
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 0, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
+    final player = widget.standing.player;
+    final board = widget.board;
+    return LayoutBuilder(
+      builder: (final context, final constraints) {
+        // The board takes what the measured header leaves; the page scrolls only when even that is too little.
+        final boardHeight = (constraints.maxHeight - _headerHeight - _gap - _bottomPadding).clamp(
+          0.0,
+          RaceResultSheet._boardMaxHeight,
+        );
+        return GestureDetector(
+          onHorizontalDragEnd: (final details) {
+            if ((details.primaryVelocity ?? 0) > _backSwipeVelocity) {
+              widget.onBack();
+            }
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(8, 0, 20, _bottomPadding),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  onPressed: onBack,
-                  icon: Icon(Icons.chevron_left, color: colors.icon),
-                ),
-                RacePlayerAvatar(player: player, radius: 15, solverLevel: solverLevel),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                MeasureSize(
+                  onChange: (final size) {
+                    if (mounted && size.height != _headerHeight) {
+                      setState(() => _headerHeight = size.height);
+                    }
+                  },
+                  child: Row(
                     children: [
-                      Text(
-                        player.nickname,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.text),
+                      IconButton(
+                        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                        onPressed: widget.onBack,
+                        icon: Icon(Icons.chevron_left, color: colors.icon),
                       ),
-                      if (_result.isNotEmpty)
-                        Text(
-                          _result,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: colors.textSecondary,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
+                      RacePlayerAvatar(player: player, radius: 15, solverLevel: widget.solverLevel),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              player.nickname,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.text),
+                            ),
+                            if (_result.isNotEmpty)
+                              Text(
+                                _result,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: colors.textSecondary,
+                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                ),
+                              ),
+                          ],
                         ),
+                      ),
                     ],
                   ),
                 ),
+                const SizedBox(height: _gap),
+                SizedBox(
+                  height: boardHeight,
+                  child: board == null
+                      ? const Center(child: CircularProgressIndicator.adaptive())
+                      : RaceBoardPreview(board: board),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-            Flexible(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: RaceResultSheet._boardMaxHeight),
-                child: board == null
-                    ? const SizedBox(
-                        height: RaceResultSheet._boardMaxHeight,
-                        child: Center(child: CircularProgressIndicator.adaptive()),
-                      )
-                    : RaceBoardPreview(board: board),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
