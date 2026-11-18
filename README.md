@@ -54,6 +54,13 @@ https://github.com/user-attachments/assets/d15a24e8-19d0-4503-9e96-90d2472d0844
 - Statistics by week, month, and year: solve rate, streaks, hints, time played
 - Achievements with calendar progress, milestones, and a shareable image
 - Optional Google or Apple sign-in to sync sessions across Android, iOS, and the web
+- Optional leaderboards for the daily puzzle: today's time, points by week, month, and year, and streaks, under a generated nickname
+
+**Race**
+- Race a friend on the same random date in real time: share a room code, a link, or a QR code, then wait for the five start lights
+- Live standings, a 10-minute limit, and 15 seconds for the others after the first finish; the winner sees the result at once
+- Race a bot on the device at three levels, from Recruit to Centurion, with no account or network
+- Races do not count for records, streaks, or achievements
 
 **Platforms**
 - Native look on each platform: Liquid Glass and Cupertino on iOS, Material 3 with predictive back on Android, a desktop layout in desktop browsers
@@ -64,14 +71,14 @@ https://github.com/user-attachments/assets/d15a24e8-19d0-4503-9e96-90d2472d0844
 
 ## How to Play
 
-Place all pieces so that exactly two cells stay free: the month and the day of the selected date. Pick another date in `History`, and another board layout with the layouts button in the header.
+Place all pieces so that exactly two cells stay free: the month and the day of the selected date. Pick another date in `History`, and another board layout in `More` → `Board layouts`.
 
 ### Touch
 
 1. Drag a piece from the tray onto the board.
 2. Or draw it: drag across free cells, tap neighbouring cells to add or remove them, then double tap the group to place the matching piece. The group is grey while it is too small, green when a piece fits, and red when no piece matches.
 3. Tap a piece to select it, tap again to rotate, double tap to flip. The toolbar has `Rotate` and `Flip` too.
-4. Use the toolbar for `History`, `Hint`, `Undo`, and `Redo`; `More` has `All solutions`, `How to Play`, and `Start over`. Wide screens show these actions in a side panel.
+4. Use the toolbar for `History`, `Hint`, `Undo`, and `Redo`; `More` has `All solutions`, `Board layouts`, `How to Play`, and `Start over`. Wide screens show these actions in a side panel.
 
 ### Mouse and keyboard
 
@@ -89,7 +96,15 @@ Shortcuts use ⌘ on Apple platforms and Ctrl elsewhere. With a keyboard connect
 | Previous / next solution | `←` / `→` |
 | Close solutions | `Esc` |
 | Start over | `⌘⌫` |
+| Board layouts | `L` |
 | Layout editor: save / cancel / reset | `⌘S` / `Esc` / `⌘⌫` |
+
+### Race
+
+1. Tap the Roman head in the header.
+2. To race a friend, sign in with Apple or Google, then `Create a game` and send the code, the link, or the QR code; your friend enters the code or opens the link. Both tap `I'm ready`, and the host starts.
+3. To race a bot, tap `Race a bot` and pick a level; no account is needed.
+4. Go when the lights go out. The cross in the header gives up during the race and leaves once it is over.
 
 ## Development
 
@@ -128,7 +143,7 @@ flutter build web --release --wasm
 dart compile js web/drift_worker.dart -o web/drift_worker.js
 ```
 
-Every push to `master` runs analysis and tests and deploys the web build to GitHub Pages.
+Every pull request runs analysis (`.github/workflows/analyze.yml`). Every push to `master` runs analysis and tests and deploys the web build to GitHub Pages (`.github/workflows/deploy.yml`); the web App Check key comes from the repository variable `FIREBASE_APPCHECK_WEB_SITE_KEY`.
 
 ### Desktop
 
@@ -138,6 +153,13 @@ Windows, macOS, and Linux targets build with `flutter run -d windows|macos|linux
 
 - `hydrated_bloc` keeps settings and the active game; Drift stores history and sessions.
 - Guests play locally. Google or Apple sign-in syncs sessions through Firebase Auth and Firestore, keyed by the user's `uid`. See [docs/account_sync_model.md](docs/account_sync_model.md).
+- Leaderboards live in Firestore; race rooms live in the Realtime Database under `rooms/{code}`. The security rules are in [firestore.rules](firestore.rules) and [database.rules.json](database.rules.json):
+
+```bash
+firebase deploy --only firestore:rules,database
+```
+
+- Room links open the app through Universal Links and App Links on `peterombodi.github.io` (`/caesar-s_calendar/?race=CODE`).
 
 ### Project structure
 
@@ -157,7 +179,7 @@ The puzzle is solved as an exact-cover problem: `lib/domain/algorithms/exact_cov
 
 ### Tech stack
 
-Flutter · BLoC / Cubit · Hydrated BLoC · Drift · Freezed · Injectable / GetIt · Firebase · Intl / ARB · liquid_glass_widgets
+Flutter · BLoC / Cubit · Hydrated BLoC · Drift · Freezed · Injectable / GetIt · Firebase (Auth, Firestore, Realtime Database, App Check) · Intl / ARB · liquid_glass_widgets · flutter_svg
 
 ## License
 
