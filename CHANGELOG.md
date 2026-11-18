@@ -7,6 +7,7 @@
 - the winner's avatar wears a laurel wreath in the standings and in the result
 - one layout rule for the game and the race screens: in small windows the header no longer covers the board, and the race standings stand beside the board or the tray without covering them
 - after a race the Leave button is gone: the cross in the header leaves; the host keeps Race again
+- the race against the solver is now called Race a bot
 
 ## 1.14.2+50
 - in a race the first to solve sees the win at once, with a short vibration; the others get 15 seconds to finish instead of 60

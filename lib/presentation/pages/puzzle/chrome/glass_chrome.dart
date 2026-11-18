@@ -62,7 +62,10 @@ class GlassChrome extends GameChrome {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     spacing: sideRailGap,
-                    children: [Flexible(child: accessory), ?rail],
+                    children: [
+                      Flexible(child: accessory),
+                      ?rail,
+                    ],
                   ),
                 ),
         ),
@@ -102,17 +105,17 @@ class GlassChrome extends GameChrome {
       final rail = actions.isEmpty
           ? null
           : GlassSurface(
-        borderRadius: radius,
-        child: SizedBox(
-          width: isWide ? wideRailWidth : chrome.barHeight,
-          child: Padding(
-            padding: isWide ? const EdgeInsets.all(8) : const EdgeInsets.symmetric(vertical: 8),
-            child: layout == _SlotLayout.iconOnly
-                ? Wrap(alignment: WrapAlignment.center, runSpacing: 2, children: slots)
-                : Column(mainAxisSize: MainAxisSize.min, spacing: 2, children: slots),
-          ),
-        ),
-      );
+              borderRadius: radius,
+              child: SizedBox(
+                width: isWide ? wideRailWidth : chrome.barHeight,
+                child: Padding(
+                  padding: isWide ? const EdgeInsets.all(8) : const EdgeInsets.symmetric(vertical: 8),
+                  child: layout == _SlotLayout.iconOnly
+                      ? Wrap(alignment: WrapAlignment.center, runSpacing: 2, children: slots)
+                      : Column(mainAxisSize: MainAxisSize.min, spacing: 2, children: slots),
+                ),
+              ),
+            );
       return Align(
         alignment: Alignment.centerRight,
         child: Padding(
@@ -126,7 +129,10 @@ class GlassChrome extends GameChrome {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     spacing: 12,
-                    children: [Flexible(child: accessory), ?rail],
+                    children: [
+                      Flexible(child: accessory),
+                      ?rail,
+                    ],
                   ),
                 ),
         ),
