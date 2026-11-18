@@ -14,6 +14,7 @@ abstract class GameChrome extends StatelessWidget {
     required this.spec,
     required this.onInvoke,
     this.accessory,
+    this.wideRail = false,
   });
 
   /// Only the glass chrome exists for now; Material and web chrome will plug in here.
@@ -23,7 +24,15 @@ abstract class GameChrome extends StatelessWidget {
     required final ScreenSpec spec,
     required final GameActionCallback onInvoke,
     final Widget? accessory,
-  }) => GlassChrome(key: key, actions: actions, spec: spec, onInvoke: onInvoke, accessory: accessory);
+    final bool wideRail = false,
+  }) => GlassChrome(
+    key: key,
+    actions: actions,
+    spec: spec,
+    onInvoke: onInvoke,
+    accessory: accessory,
+    wideRail: wideRail,
+  );
 
   final List<GameAction> actions;
   final ScreenSpec spec;
@@ -32,6 +41,10 @@ abstract class GameChrome extends StatelessWidget {
   /// Fills the rest of a side rail's column; a bottom bar has no room for it.
   final Widget? accessory;
 
+  /// A side rail as wide as the race standings above it, with buttons in two columns.
+  final bool wideRail;
+
   /// Space the chrome takes along the edges of the game area; the board is laid out in the rest.
-  static EdgeInsets reservedInsets(final BuildContext context) => GlassChrome.reservedInsets(context);
+  static EdgeInsets reservedInsets(final BuildContext context, {final bool wideRail = false}) =>
+      GlassChrome.reservedInsets(context, wideRail: wideRail);
 }

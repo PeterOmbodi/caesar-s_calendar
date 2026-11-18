@@ -260,6 +260,7 @@ class PuzzleToolbar extends StatelessWidget {
             spec: ScreenSpec.of(context),
             onInvoke: (final action, final anchor) => _invoke(context, state, action, anchor),
             accessory: accessory,
+            wideRail: race != null,
           ),
         ),
       );

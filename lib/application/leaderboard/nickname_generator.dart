@@ -28,6 +28,52 @@ class NicknameGenerator {
     return '$adjective $animal $number';
   }
 
+  /// For a narrow table: "Fleet Moose 77" → "FM77"; a name gives three capitals of its first word, "Peter O." → "PET".
+  static String shortName(final String nickname) {
+    final words = _words(nickname);
+    if (words.isEmpty) {
+      return '?';
+    }
+    if (_isGenerated(words)) {
+      return '${words[0][0]}${words[1][0]}${words[2]}';
+    }
+    return String.fromCharCodes(words.first.runes.take(3)).toUpperCase();
+  }
+
+  /// [shortName] of each, told apart where they match: a name gets its last initial, then a number.
+  static List<String> shortNames(final List<String> nicknames) {
+    final codes = [for (final nickname in nicknames) shortName(nickname)];
+    final withInitials = [
+      for (var i = 0; i < codes.length; i++)
+        codes.where((final code) => code == codes[i]).length > 1 ? codes[i] + _lastInitial(nicknames[i]) : codes[i],
+    ];
+    final seen = <String, int>{};
+    return [
+      for (final code in withInitials)
+        switch (seen.update(code, (final count) => count + 1, ifAbsent: () => 1)) {
+          1 => code,
+          final count => '$code$count',
+        },
+    ];
+  }
+
+  static List<String> _words(final String value) =>
+      value.trim().split(RegExp(r'\s+')).where((final word) => word.isNotEmpty).toList();
+
+  static bool _isGenerated(final List<String> words) =>
+      words.length == 3 &&
+      _adjectives.contains(words[0]) &&
+      _animals.contains(words[1]) &&
+      RegExp(r'^\d{2}$').hasMatch(words[2]);
+
+  static String _lastInitial(final String nickname) {
+    final words = _words(nickname);
+    if (words.length < 2 || _isGenerated(words)) {
+      return '';
+    }
+    return String.fromCharCodes(words.last.runes.take(1)).toUpperCase();
+  }
+
   static String _truncate(final String value, final int length) {
     final runes = value.runes.toList();
     return runes.length <= length ? value : String.fromCharCodes(runes.take(length));

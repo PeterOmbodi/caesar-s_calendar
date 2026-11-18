@@ -44,6 +44,24 @@ void main() {
     });
   });
 
+  group('short name', () {
+    test('a generated nickname gives its initials and number', () {
+      expect(NicknameGenerator.shortName('Fleet Moose 77'), 'FM77');
+    });
+
+    test('a name gives three capitals of its first word', () {
+      expect(NicknameGenerator.shortName('Peter O.'), 'PET');
+      expect(NicknameGenerator.shortName('Олена'), 'ОЛЕ');
+      expect(NicknameGenerator.shortName('Al'), 'AL');
+    });
+
+    test('matching codes in a room get the last initial, then a number', () {
+      expect(NicknameGenerator.shortNames(['Peter O.', 'Peter K.', 'Nimble Robin 83']), ['PETO', 'PETK', 'NR83']);
+      expect(NicknameGenerator.shortNames(['Peter O.', 'Peter O.']), ['PETO', 'PETO2']);
+      expect(NicknameGenerator.shortNames(['Peter', 'Peter']), ['PET', 'PET2']);
+    });
+  });
+
   test('color index is stable and in range', () {
     final indexes = [for (var i = 0; i < 100; i++) NicknameGenerator.colorIndex('user$i')];
     expect(indexes.every((final i) => i >= 0 && i < NicknameGenerator.colorCount), isTrue);

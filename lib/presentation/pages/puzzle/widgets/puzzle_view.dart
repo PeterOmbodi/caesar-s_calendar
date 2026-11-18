@@ -17,7 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PuzzleView extends StatelessWidget {
-  const PuzzleView({super.key, this.headerHeight = 0, this.trayStartInset = 0});
+  const PuzzleView({super.key, this.headerHeight = 0, this.trayStartInset = 0, this.wideRail = false});
 
   static const double statusGap = LayoutService.statusLineGap;
 
@@ -25,6 +25,9 @@ class PuzzleView extends StatelessWidget {
 
   /// See [PuzzleEvent.setViewSize].
   final double trayStartInset;
+
+  /// See [GameChrome.wideRail].
+  final bool wideRail;
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
@@ -38,7 +41,7 @@ class PuzzleView extends StatelessWidget {
             (headerBesideBoard
                 ? EdgeInsets.zero
                 : EdgeInsets.only(top: headerHeight, bottom: statusGap + PuzzleStatusLine.height)) +
-            GameChrome.reservedInsets(context);
+            GameChrome.reservedInsets(context, wideRail: wideRail);
         bloc.add(
           PuzzleEvent.setViewSize(
             constraints.biggest,

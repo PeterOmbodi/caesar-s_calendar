@@ -273,6 +273,7 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
                       child: AbsorbPointer(
                         absorbing: isLocked,
                         child: PuzzleView(
+                          wideRail: true,
                           headerHeight: _headerHeight,
                           trayStartInset: besideTray ? chrome.barHeight + GlassChrome.edgeMargin : 0,
                         ),
@@ -362,7 +363,7 @@ class _HeaderSlot extends StatelessWidget {
     builder: (final context, final trayLeft) {
       final spec = ScreenSpec.of(context);
       final beside = spec.window == WindowClass.compact && spec.isLandscape;
-      final reserved = GameChrome.reservedInsets(context);
+      final reserved = GameChrome.reservedInsets(context, wideRail: true);
       return Positioned(
         left: beside ? trayLeft - 16 : reserved.left,
         top: 0,
@@ -427,29 +428,43 @@ class _ResultSlot extends StatelessWidget {
     final isWinner = standings.any((final s) => s.player.uid == myUid && s.isWinner);
     final hostCanStart =
         RaceRules.isOver(room, nowMs: nowMs) && room.hostUid != myUid && (room.player(room.hostUid)?.online ?? false);
-    final reserved = GameChrome.reservedInsets(context);
+    final reserved = GameChrome.reservedInsets(context, wideRail: true);
+    final spec = ScreenSpec.of(context);
+    final sheet = RaceResultSheet(
+      standings: standings,
+      myUid: myUid,
+      note: hostCanStart ? S.current.raceNewRaceByHost : null,
+      myBoard: myBoard,
+      startAtMs: room.startAt,
+      totalPieces: totalPieces,
+      shownUid: shownBoardUid,
+      onShowBoard: onShowBoard,
+      solverLevel: solverLevel,
+      graceEndsAtMs: graceEndsAtMs,
+      now: now,
+    );
     return Positioned.fill(
       child: Stack(
         children: [
-          Padding(
-            padding: reserved + const EdgeInsets.all(16),
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: RaceResultSheet(
-                standings: standings,
-                myUid: myUid,
-                note: hostCanStart ? S.current.raceNewRaceByHost : null,
-                myBoard: myBoard,
-                startAtMs: room.startAt,
-                totalPieces: totalPieces,
-                shownUid: shownBoardUid,
-                onShowBoard: onShowBoard,
-                solverLevel: solverLevel,
-                graceEndsAtMs: graceEndsAtMs,
-                now: now,
-              ),
+          // A phone in landscape: in place of the tray, so that the header and the board stay in sight.
+          if (spec.window == WindowClass.compact && spec.isLandscape)
+            BlocSelector<PuzzleBloc, PuzzleState, Rect>(
+              selector: (final state) => state.trayArea,
+              builder: (final context, final tray) => tray.isEmpty
+                  ? const SizedBox.shrink()
+                  : Positioned.fromRect(
+                      rect: tray,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Align(alignment: Alignment.bottomCenter, child: sheet),
+                      ),
+                    ),
+            )
+          else
+            Padding(
+              padding: reserved + const EdgeInsets.all(16),
+              child: Align(alignment: Alignment.bottomCenter, child: sheet),
             ),
-          ),
           if (isWinner && !MediaQuery.disableAnimationsOf(context))
             const IgnorePointer(
               child: Align(alignment: Alignment.topCenter, child: ConfettiView()),
