@@ -1,9 +1,9 @@
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
+import 'package:caesar_puzzle/presentation/layout/game_layout_plan.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/animated_pieces_overlay.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/piece_paint_helper.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/pointer_controls.dart';
@@ -17,17 +17,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PuzzleView extends StatelessWidget {
-  const PuzzleView({super.key, this.headerHeight = 0, this.trayStartInset = 0, this.wideRail = false});
+  const PuzzleView({super.key, required this.plan});
 
   static const double statusGap = LayoutService.statusLineGap;
 
-  final double headerHeight;
-
-  /// See [PuzzleEvent.setViewSize].
-  final double trayStartInset;
-
-  /// See [GameChrome.wideRail].
-  final bool wideRail;
+  final GameLayoutPlan plan;
 
   @override
   Widget build(final BuildContext context) => BlocBuilder<PuzzleBloc, PuzzleState>(
@@ -35,29 +29,22 @@ class PuzzleView extends StatelessWidget {
       builder: (final context, final constraints) {
         final bloc = context.read<PuzzleBloc>();
         final spec = ScreenSpec.of(context);
-        // A phone in landscape gives the board the full height; header and status line sit beside it.
-        final headerBesideBoard = spec.window == WindowClass.compact && spec.isLandscape;
-        final contentInsets =
-            (headerBesideBoard
-                ? EdgeInsets.zero
-                : EdgeInsets.only(top: headerHeight, bottom: statusGap + PuzzleStatusLine.height)) +
-            GameChrome.reservedInsets(context, wideRail: wideRail);
         bloc.add(
           PuzzleEvent.setViewSize(
             constraints.biggest,
             maxCell: spec.maxCell,
             trayScale: spec.trayScale,
-            contentInsets: contentInsets,
-            trayTopInset: headerBesideBoard ? headerHeight : 0,
-            trayStartInset: trayStartInset,
+            contentInsets: plan.contentInsets,
+            trayTopInset: plan.trayTopInset,
+            trayStartInset: plan.trayStartInset,
+            isLandscape: plan.isLandscape,
           ),
         );
         final settings = context.watch<SettingsCubit>().state;
         final borderColorMode = settings.separateMoveColors;
         final grid = state.gridConfig.getBounds;
         final tray = state.boardConfig.getBounds;
-        final contentRect = contentInsets.deflateRect(Offset.zero & constraints.biggest);
-        final isPortrait = contentRect.height > contentRect.width;
+        final isPortrait = !plan.isLandscape;
         final (statusLeft, statusWidth) = switch ((isPortrait, spec.window)) {
           (true, _) => (grid.left, grid.width),
           (false, WindowClass.compact) => (

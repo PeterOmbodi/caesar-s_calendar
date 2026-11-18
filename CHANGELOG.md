@@ -5,6 +5,7 @@
 - the race standings show nicknames where there is room: above the menu on a tablet or the web, and as short codes (FM77, PET) in a wider side column on a phone in landscape, where the race buttons are icons in two columns
 - on a phone in landscape the race result takes the place of the tray, below the header, and its board fits the screen
 - the winner's avatar wears a laurel wreath in the standings and in the result
+- one layout rule for the game and the race screens: in small windows the header no longer covers the board, and the race standings stand beside the board or the tray without covering them
 
 ## 1.14.2+50
 - in a race the first to solve sees the win at once, with a short vibration; the others get 15 seconds to finish instead of 60

@@ -8,7 +8,8 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
         _lastTrayScale != event.trayScale ||
         _lastContentInsets != event.contentInsets ||
         _lastTrayTopInset != event.trayTopInset ||
-        _lastTrayStartInset != event.trayStartInset;
+        _lastTrayStartInset != event.trayStartInset ||
+        _lastIsLandscape != event.isLandscape;
     final content = event.contentInsets.deflateSize(event.viewSize);
     // A transient size with no room for the board would produce negative cells.
     if (hasChanged && content.shortestSide > LayoutService.defaultPadding * 2) {
@@ -18,6 +19,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
       _lastContentInsets = event.contentInsets;
       _lastTrayTopInset = event.trayTopInset;
       _lastTrayStartInset = event.trayStartInset;
+      _lastIsLandscape = event.isLandscape;
       add(PuzzleEvent.configure());
     }
   }
@@ -37,6 +39,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
             fillAvailableTray: fillAvailableTray,
             trayTopInset: _lastTrayTopInset,
             trayStartInset: _lastTrayStartInset,
+            isLandscape: _lastIsLandscape,
             configurationPieces: configurationPieces,
           )
         : _layoutService.rebuildLayout(
@@ -49,6 +52,7 @@ extension PuzzleBlocLayoutPart on PuzzleBloc {
             fillAvailableTray: fillAvailableTray,
             trayTopInset: _lastTrayTopInset,
             trayStartInset: _lastTrayStartInset,
+            isLandscape: _lastIsLandscape,
           );
     final newState = state.copyWith(
       gridConfig: layout.gridConfig,

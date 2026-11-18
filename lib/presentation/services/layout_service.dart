@@ -49,9 +49,11 @@ class LayoutService {
     final bool fillAvailableTray = false,
     final double trayTopInset = 0,
     final double trayStartInset = 0,
+    final bool? isLandscape,
     final Iterable<PuzzlePieceUI> configurationPieces = const [],
   }) {
-    final gCellSize = _calcCellSize(contentRect.size, maxCell, trayScale);
+    final isPortrait = _isPortrait(contentRect.size, isLandscape);
+    final gCellSize = _calcCellSize(contentRect.size, maxCell, trayScale, isPortrait);
     final (:gridConfig, :boardConfig) = _buildConfigs(
       contentRect,
       gCellSize,
@@ -59,6 +61,7 @@ class LayoutService {
       fillAvailableTray,
       trayTopInset,
       trayStartInset,
+      isPortrait,
     );
     final centerPoint = Offset(gCellSize * gridCenterOffset, gCellSize * gridCenterOffset);
     final trayCell = boardConfig.cellSize;
@@ -93,7 +96,7 @@ class LayoutService {
     return LayoutConfig(
       gridConfig: gridConfig,
       boardConfig: boardConfig,
-      trayArea: _trayArea(contentRect, gridConfig, trayTopInset, trayStartInset),
+      trayArea: _trayArea(contentRect, gridConfig, trayTopInset, trayStartInset, isPortrait),
       pieces: [
         for (final p in [...gridPieces, ...boardPieces]) p.copyWith(trayScale: trayCell / gCellSize),
       ],
@@ -110,8 +113,10 @@ class LayoutService {
     final bool fillAvailableTray = false,
     final double trayTopInset = 0,
     final double trayStartInset = 0,
+    final bool? isLandscape,
   }) {
-    final gCellSize = _calcCellSize(contentRect.size, maxCell, trayScale);
+    final isPortrait = _isPortrait(contentRect.size, isLandscape);
+    final gCellSize = _calcCellSize(contentRect.size, maxCell, trayScale, isPortrait);
     final (:gridConfig, :boardConfig) = _buildConfigs(
       contentRect,
       gCellSize,
@@ -119,6 +124,7 @@ class LayoutService {
       fillAvailableTray,
       trayTopInset,
       trayStartInset,
+      isPortrait,
     );
     final centerPoint = Offset(gCellSize * gridCenterOffset, gCellSize * gridCenterOffset);
 
@@ -147,13 +153,15 @@ class LayoutService {
     return LayoutConfig(
       gridConfig: gridConfig,
       boardConfig: boardConfig,
-      trayArea: _trayArea(contentRect, gridConfig, trayTopInset, trayStartInset),
+      trayArea: _trayArea(contentRect, gridConfig, trayTopInset, trayStartInset, isPortrait),
       pieces: rebuilt.toList(),
     );
   }
 
-  double _calcCellSize(final Size viewSize, final double maxCell, final double tray) {
-    final isPortrait = viewSize.height > viewSize.width;
+  static bool _isPortrait(final Size content, final bool? isLandscape) =>
+      isLandscape == null ? content.height > content.width : !isLandscape;
+
+  double _calcCellSize(final Size viewSize, final double maxCell, final double tray, final bool isPortrait) {
     final horizontalInsets = horizontalContentPadding * 2;
     final availableWidth = viewSize.width - defaultPadding - horizontalInsets;
     final mainAxisCellSize = isPortrait
@@ -177,10 +185,11 @@ class LayoutService {
     final PuzzleGridEntity grid,
     final double trayTopInset,
     final double trayStartInset,
+    final bool isPortrait,
   ) {
     final board = grid.getBounds;
     final right = contentRect.right - horizontalContentPadding;
-    return contentRect.height > contentRect.width
+    return isPortrait
         ? Rect.fromLTRB(
             contentRect.left + horizontalContentPadding + trayStartInset,
             board.bottom + horizontalContentPadding,
@@ -202,10 +211,10 @@ class LayoutService {
     final bool fillAvailableTray,
     final double trayTopInset,
     final double trayStartInset,
+    final bool isPortrait,
   ) {
     final viewSize = contentRect.size;
     final gridSize = Size(gridColumns * gridCellSize, gridRows * gridCellSize);
-    final isPortrait = viewSize.height > viewSize.width;
     final availableTrayWidth =
         viewSize.width -
         horizontalContentPadding * 2 -
