@@ -136,7 +136,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
       if (_inLobby) {
         await _guard(_isHost ? _room(code).remove() : player.remove());
       } else {
-        await _guard(player.update({'online': false, 'lastSeen': ServerValue.timestamp}));
+        await _guard(player.update(_mine({'online': false, 'lastSeen': ServerValue.timestamp})));
       }
     } finally {
       await _disconnect();
@@ -164,18 +164,20 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
 
   @override
   Future<void> setReady(final String code, {required final bool ready, required final int round}) => _guard(
-    _player(code, _requireUid()).update({
-      'ready': ready,
-      'round': round,
-      'nonce': ready ? _random.nextInt(0x7FFFFFFF) : null,
-      'placed': 0,
-      'durationMs': null,
-      'finishedAt': null,
-      'gaveUp': null,
-      'gaveUpAt': null,
-      'outAt': null,
-      'board': null,
-    }),
+    _player(code, _requireUid()).update(
+      _mine({
+        'ready': ready,
+        'round': round,
+        'nonce': ready ? _random.nextInt(0x7FFFFFFF) : null,
+        'placed': 0,
+        'durationMs': null,
+        'finishedAt': null,
+        'gaveUp': null,
+        'gaveUpAt': null,
+        'outAt': null,
+        'board': null,
+      }),
+    ),
   );
 
   @override
@@ -208,12 +210,12 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
 
   @override
   Future<void> reportProgress(final String code, final int placed) =>
-      _guard(_player(code, _requireUid()).update({'placed': placed}));
+      _guard(_player(code, _requireUid()).update(_mine({'placed': placed})));
 
   @override
   Future<void> finish(final String code, {required final int durationMs}) async {
     await _guard(
-      _player(code, _requireUid()).update({'durationMs': durationMs, 'finishedAt': ServerValue.timestamp}),
+      _player(code, _requireUid()).update(_mine({'durationMs': durationMs, 'finishedAt': ServerValue.timestamp})),
     );
     await _guard(
       _room(code)
@@ -227,7 +229,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
 
   @override
   Future<void> giveUp(final String code) => _guard(
-    _player(code, _requireUid()).update({'gaveUp': true, 'gaveUpAt': ServerValue.timestamp}),
+    _player(code, _requireUid()).update(_mine({'gaveUp': true, 'gaveUpAt': ServerValue.timestamp})),
   );
 
   @override
@@ -235,7 +237,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
     _player(
       code,
       _requireUid(),
-    ).update({'board': RaceRoomMapper.boardToValue(board, publishedAt: ServerValue.timestamp)}),
+    ).update(_mine({'board': RaceRoomMapper.boardToValue(board, publishedAt: ServerValue.timestamp)})),
   );
 
   @override
@@ -268,6 +270,9 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
   String _requireUid() => uid ?? (throw const RaceRoomException(RaceRoomFailure.signInRequired));
 
   String _requireDeviceId() => _deviceId ?? (throw const RaceRoomException(RaceRoomFailure.unknown));
+
+  // The rules turn down a write from a device that has lost the place, also one queued while it was offline.
+  Map<String, Object?> _mine(final Map<String, Object?> fields) => {...fields, 'device': _requireDeviceId()};
 
   Future<void> _loadDeviceId() async {
     if (_deviceId != null) {
@@ -421,7 +426,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
     await _guard(
       _inLobby
           ? player.onDisconnect().remove()
-          : player.onDisconnect().update({'online': false, 'lastSeen': ServerValue.timestamp}),
+          : player.onDisconnect().update(_mine({'online': false, 'lastSeen': ServerValue.timestamp})),
     );
     if (_inLobby && _isHost) {
       await _guard(_room(code).onDisconnect().remove());
