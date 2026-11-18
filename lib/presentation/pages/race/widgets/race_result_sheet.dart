@@ -305,6 +305,9 @@ class _BoardPageState extends State<_BoardPage> {
   static const double _gap = 8;
   static const double _bottomPadding = 16;
 
+  /// Below this the board is not readable; a shorter screen scrolls the page instead.
+  static const double _boardMinHeight = 120;
+
   double _headerHeight = 0;
 
   String get _result {
@@ -326,9 +329,9 @@ class _BoardPageState extends State<_BoardPage> {
     final board = widget.board;
     return LayoutBuilder(
       builder: (final context, final constraints) {
-        // The board takes what the measured header leaves; the page scrolls only when even that is too little.
+        // The board takes what the measured header leaves.
         final boardHeight = (constraints.maxHeight - _headerHeight - _gap - _bottomPadding).clamp(
-          0.0,
+          _boardMinHeight,
           RaceResultSheet._boardMaxHeight,
         );
         return GestureDetector(
