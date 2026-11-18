@@ -199,6 +199,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
           'startAt': startAt.millisecondsSinceEpoch,
           'firstFinishAt': null,
           'createdAt': ServerValue.timestamp,
+          ..._hostDevice(),
         }),
       );
     } on RaceRoomException {
@@ -250,6 +251,7 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
         'startAt': null,
         'firstFinishAt': null,
         'createdAt': ServerValue.timestamp,
+        ..._hostDevice(),
       }),
     );
     _inLobby = true;
@@ -273,6 +275,9 @@ class RaceRoomRepositoryImpl implements RaceRoomRepository {
 
   // The rules turn down a write from a device that has lost the place, also one queued while it was offline.
   Map<String, Object?> _mine(final Map<String, Object?> fields) => {...fields, 'device': _requireDeviceId()};
+
+  // In the same atomic update: a host's command from a device that has lost the place fails as a whole.
+  Map<String, Object?> _hostDevice() => {'players/${_requireUid()}/device': _requireDeviceId()};
 
   Future<void> _loadDeviceId() async {
     if (_deviceId != null) {
