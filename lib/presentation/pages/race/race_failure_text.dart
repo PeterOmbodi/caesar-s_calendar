@@ -8,6 +8,7 @@ extension RaceRoomFailureText on RaceRoomFailure {
     RaceRoomFailure.noRoom => S.current.raceErrorNoRoom,
     RaceRoomFailure.full => S.current.raceErrorFull,
     RaceRoomFailure.started => S.current.raceErrorStarted,
+    RaceRoomFailure.elsewhere => S.current.raceErrorElsewhere,
     RaceRoomFailure.date => S.current.raceErrorDate,
     RaceRoomFailure.unknown => S.current.raceErrorUnknown,
   };

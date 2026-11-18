@@ -14,6 +14,8 @@ sealed class PuzzleEvent with _$PuzzleEvent {
 
     /// Width the tray leaves free at its start for chrome beside it.
     @Default(0) final double trayStartInset,
+
+    final bool? isLandscape,
   }) = _SetViewSize;
 
   const factory PuzzleEvent.reset() = _Reset;

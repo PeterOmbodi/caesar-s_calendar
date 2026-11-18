@@ -84,7 +84,36 @@ class _LaurelBranchPainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.mirrored != mirrored || oldDelegate.grow != grow;
 }
 
-/// Two branches around [child]: the emblem of the race. They grow once, after the page has slid in.
+/// Two branches around [child], open at the top.
+class LaurelWreath extends StatelessWidget {
+  const LaurelWreath({super.key, required this.size, required this.color, required this.child, this.grow = 1});
+
+  /// The part of [size] the child takes inside the branches.
+  static const double childShare = 0.62;
+
+  final double size;
+  final Color color;
+
+  /// From 0 to 1 while the branches grow.
+  final double grow;
+  final Widget child;
+
+  @override
+  Widget build(final BuildContext context) => CustomPaint(
+    painter: _WreathPainter(color: color, grow: grow),
+    child: SizedBox.square(
+      dimension: size,
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.only(top: size * 0.04),
+          child: child,
+        ),
+      ),
+    ),
+  );
+}
+
+/// The emblem of the race. The branches grow once, after the page has slid in.
 class LaurelWreathHero extends StatefulWidget {
   const LaurelWreathHero({super.key, required this.size, required this.color, required this.child});
 
@@ -134,19 +163,13 @@ class _LaurelWreathHeroState extends State<LaurelWreathHero> with SingleTickerPr
   @override
   Widget build(final BuildContext context) => AnimatedBuilder(
     animation: _grow,
-    builder: (final context, final child) => CustomPaint(
-      painter: _WreathPainter(color: widget.color, grow: Curves.easeOutCubic.transform(_grow.value)),
-      child: child,
+    builder: (final context, final child) => LaurelWreath(
+      size: widget.size,
+      color: widget.color,
+      grow: Curves.easeOutCubic.transform(_grow.value),
+      child: child!,
     ),
-    child: SizedBox.square(
-      dimension: widget.size,
-      child: Center(
-        child: Padding(
-          padding: EdgeInsets.only(top: widget.size * 0.04),
-          child: widget.child,
-        ),
-      ),
-    ),
+    child: widget.child,
   );
 }
 

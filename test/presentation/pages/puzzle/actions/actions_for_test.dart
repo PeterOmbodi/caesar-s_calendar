@@ -243,11 +243,11 @@ void main() {
       expect(actions.every((final a) => !a.enabled), isTrue);
     });
 
-    test('once the race is over the host can start a new race, everybody can leave', () {
+    test('once the race is over only the host has an action: a new race', () {
       final host = actionsFor(_state(), _hard, mode: PuzzleMode.race, racePhase: RacePhase.over, isRaceHost: true);
       final guest = actionsFor(_state(), _hard, mode: PuzzleMode.race, racePhase: RacePhase.over);
-      expect(_ids(host, ActionSlot.primary), [GameActionId.newRace, GameActionId.leaveRace]);
-      expect(_ids(guest, ActionSlot.primary), [GameActionId.leaveRace]);
+      expect(_ids(host, ActionSlot.primary), [GameActionId.newRace]);
+      expect(guest, isEmpty);
     });
   });
 }

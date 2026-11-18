@@ -8,6 +8,7 @@ import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:caesar_puzzle/presentation/widgets/key_cap.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 class GlassChrome extends GameChrome {
@@ -17,6 +18,7 @@ class GlassChrome extends GameChrome {
     required super.spec,
     required super.onInvoke,
     super.accessory,
+    super.wideRail,
   });
 
   static const double edgeMargin = 16;
@@ -26,11 +28,13 @@ class GlassChrome extends GameChrome {
   static const double sideRailMargin = 24;
   static const double sideRailWidth = 226;
   static const double sideRailGap = 20;
+  static const double wideRailWidth = 128;
+  static const _gridOrder = [GameActionId.rotate, GameActionId.flip, GameActionId.undo, GameActionId.redo];
 
-  static EdgeInsets reservedInsets(final BuildContext context) {
+  static EdgeInsets reservedInsets(final BuildContext context, {final bool wideRail = false}) {
     final extent = ChromeTheme.of(context).barHeight + edgeMargin;
     return switch (ScreenSpec.of(context).toolbar) {
-      ToolbarPlacement.compactRail => EdgeInsets.only(right: extent),
+      ToolbarPlacement.compactRail => EdgeInsets.only(right: wideRail ? wideRailWidth + edgeMargin : extent),
       ToolbarPlacement.labeledRail => const EdgeInsets.only(left: sideRailMargin + sideRailWidth + sideRailGap),
       ToolbarPlacement.bottomBar => EdgeInsets.only(bottom: extent),
     };
@@ -41,46 +45,77 @@ class GlassChrome extends GameChrome {
   @override
   Widget build(final BuildContext context) {
     final accessory = this.accessory;
+    if (actions.isEmpty && accessory == null) {
+      return const SizedBox.shrink();
+    }
     if (spec.toolbar == ToolbarPlacement.labeledRail) {
+      final rail = actions.isEmpty ? null : _LabeledRail(actions: actions, onInvoke: onInvoke);
       return Align(
         alignment: Alignment.topLeft,
         child: Padding(
           padding: const EdgeInsets.all(sideRailMargin),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: sideRailGap,
-            children: [
-              _LabeledRail(actions: actions, onInvoke: onInvoke),
-              if (accessory != null) Flexible(child: accessory),
-            ],
-          ),
+          // The accessory on top and the rail at the bottom of the screen.
+          child: accessory == null
+              ? rail
+              : SizedBox(
+                  width: sideRailWidth,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: sideRailGap,
+                    children: [
+                      Flexible(child: accessory),
+                      ?rail,
+                    ],
+                  ),
+                ),
         ),
       );
     }
     final chrome = ChromeTheme.of(context);
+    final isWide = _isRail && wideRail;
+    final primary = actions.where((final a) => a.slot == ActionSlot.primary).toList();
+    // A pair of actions has room for labels; more go in two columns as icons.
+    final layout = !isWide
+        ? _SlotLayout.stacked
+        : primary.length <= 2
+        ? _SlotLayout.inline
+        : _SlotLayout.iconOnly;
+    if (layout == _SlotLayout.iconOnly) {
+      // In two columns the pairs share a row: turning above, undo and redo below, nearer the thumb.
+      primary.sortBy<num>((final a) {
+        final rank = _gridOrder.indexOf(a.id);
+        return rank < 0 ? _gridOrder.length : rank;
+      });
+    }
     final overflow = actions.where((final a) => a.slot == ActionSlot.overflow).toList();
     final slots = <Widget>[
-      for (final action in actions.where((final a) => a.slot == ActionSlot.primary))
+      for (final action in primary)
         Builder(
-          builder: (final slotContext) =>
-              _ActionSlot(action: action, onPressed: () => onInvoke(action, _globalRect(slotContext))),
+          builder: (final slotContext) => _ActionSlot(
+            action: action,
+            layout: layout,
+            onPressed: () => onInvoke(action, _globalRect(slotContext)),
+          ),
         ),
       if (overflow.isNotEmpty) _MoreSlot(items: overflow, isRail: _isRail, onInvoke: onInvoke),
     ];
     final radius = BorderRadius.circular(chrome.barRadius);
 
     if (_isRail) {
-      final rail = GlassSurface(
-        borderRadius: radius,
-        child: SizedBox(
-          width: chrome.barHeight,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(mainAxisSize: MainAxisSize.min, spacing: 2, children: slots),
-          ),
-        ),
-      );
+      final rail = actions.isEmpty
+          ? null
+          : GlassSurface(
+              borderRadius: radius,
+              child: SizedBox(
+                width: isWide ? wideRailWidth : chrome.barHeight,
+                child: Padding(
+                  padding: isWide ? const EdgeInsets.all(8) : const EdgeInsets.symmetric(vertical: 8),
+                  child: layout == _SlotLayout.iconOnly
+                      ? Wrap(alignment: WrapAlignment.center, runSpacing: 2, children: slots)
+                      : Column(mainAxisSize: MainAxisSize.min, spacing: 2, children: slots),
+                ),
+              ),
+            );
       return Align(
         alignment: Alignment.centerRight,
         child: Padding(
@@ -89,12 +124,16 @@ class GlassChrome extends GameChrome {
               : const EdgeInsets.fromLTRB(0, 8, edgeMargin, edgeMargin),
           child: accessory == null
               ? rail
-              : Column(
-                  spacing: 12,
-                  children: [
-                    Expanded(child: accessory),
-                    rail,
-                  ],
+              : SizedBox(
+                  width: isWide ? wideRailWidth : chrome.barHeight,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: 12,
+                    children: [
+                      Flexible(child: accessory),
+                      ?rail,
+                    ],
+                  ),
                 ),
         ),
       );
@@ -127,11 +166,14 @@ class GlassChrome extends GameChrome {
   }
 }
 
+enum _SlotLayout { stacked, iconOnly, inline }
+
 class _ActionSlot extends StatelessWidget {
-  const _ActionSlot({required this.action, required this.onPressed});
+  const _ActionSlot({required this.action, required this.onPressed, this.layout = _SlotLayout.stacked});
 
   final GameAction action;
   final VoidCallback onPressed;
+  final _SlotLayout layout;
 
   @override
   Widget build(final BuildContext context) {
@@ -168,6 +210,7 @@ class _ActionSlot extends StatelessWidget {
       enabled: action.enabled,
       active: action.active,
       busy: action.busy,
+      layout: layout,
       onPressed: onPressed,
     );
   }
@@ -182,6 +225,7 @@ class _SlotButton extends StatelessWidget {
     this.enabled = true,
     this.active = false,
     this.busy = false,
+    this.layout = _SlotLayout.stacked,
   });
 
   final IconData icon;
@@ -191,6 +235,9 @@ class _SlotButton extends StatelessWidget {
   final bool enabled;
   final bool active;
   final bool busy;
+  final _SlotLayout layout;
+
+  static const double _wideSlotHeight = 48;
 
   @override
   Widget build(final BuildContext context) {
@@ -201,6 +248,15 @@ class _SlotButton extends StatelessWidget {
         ? colors.onActive
         : colors.icon;
     const radius = BorderRadius.all(Radius.circular(GlassChrome.slotHeight / 2));
+    final glyph = busy
+        ? SizedBox.square(
+            dimension: 24,
+            child: Padding(
+              padding: const EdgeInsets.all(3),
+              child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
+            ),
+          )
+        : Icon(icon, size: 24, color: foreground);
     final button = Tooltip(
       message: tooltip,
       child: Material(
@@ -209,37 +265,58 @@ class _SlotButton extends StatelessWidget {
         child: InkWell(
           borderRadius: radius,
           onTap: enabled ? onPressed : null,
-          child: SizedBox(
-            width: GlassChrome.slotWidth,
-            height: GlassChrome.slotHeight,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: 2,
-              children: [
-                if (busy)
-                  SizedBox.square(
-                    dimension: 24,
-                    child: Padding(
-                      padding: const EdgeInsets.all(3),
-                      child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
-                    ),
-                  )
-                else
-                  Icon(icon, size: 24, color: foreground),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      style: TextStyle(fontSize: 11, height: 13 / 11, fontWeight: FontWeight.w500, color: foreground),
+          child: switch (layout) {
+            _SlotLayout.stacked => SizedBox(
+              width: GlassChrome.slotWidth,
+              height: GlassChrome.slotHeight,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 2,
+                children: [
+                  glyph,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        style: TextStyle(fontSize: 11, height: 13 / 11, fontWeight: FontWeight.w500, color: foreground),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            _SlotLayout.iconOnly => SizedBox(
+              width: (GlassChrome.wideRailWidth - 16) / 2,
+              height: _wideSlotHeight,
+              child: Center(child: glyph),
+            ),
+            _SlotLayout.inline => SizedBox(
+              width: double.infinity,
+              height: _wideSlotHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    glyph,
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: foreground),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          },
         ),
       ),
     );

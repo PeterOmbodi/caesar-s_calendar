@@ -51,13 +51,11 @@ class RaceToolbarControls {
     required this.phase,
     required this.isHost,
     required this.onNewRace,
-    required this.onLeave,
   });
 
   final RacePhase phase;
   final bool isHost;
   final VoidCallback onNewRace;
-  final VoidCallback onLeave;
 }
 
 class PuzzleToolbar extends StatelessWidget {
@@ -180,8 +178,6 @@ class PuzzleToolbar extends StatelessWidget {
         break;
       case GameActionId.newRace:
         race?.onNewRace();
-      case GameActionId.leaveRace:
-        race?.onLeave();
       case GameActionId.closeSolutions:
       case GameActionId.restart:
         puzzleBloc.add(PuzzleEvent.reset());
@@ -260,6 +256,7 @@ class PuzzleToolbar extends StatelessWidget {
             spec: ScreenSpec.of(context),
             onInvoke: (final action, final anchor) => _invoke(context, state, action, anchor),
             accessory: accessory,
+            wideRail: race != null,
           ),
         ),
       );

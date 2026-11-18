@@ -13,7 +13,6 @@ List<GameAction> actionsFor(
     if (racePhase == RacePhase.over) {
       return [
         if (isRaceHost) const GameAction(GameActionId.newRace, slot: ActionSlot.primary),
-        const GameAction(GameActionId.leaveRace, slot: ActionSlot.primary),
       ];
     }
     final isRacing = racePhase == RacePhase.racing;

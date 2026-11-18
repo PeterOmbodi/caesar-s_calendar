@@ -13,10 +13,10 @@ import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
+import 'package:caesar_puzzle/presentation/layout/game_layout_plan.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/glass_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_haptics.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
@@ -240,7 +240,7 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
   Widget build(final BuildContext context) {
     final room = widget.room;
     final chrome = ChromeTheme.of(context);
-    final besideTray = ScreenSpec.of(context).toolbar == ToolbarPlacement.bottomBar;
+    final hasStandingsColumn = ScreenSpec.of(context).toolbar == ToolbarPlacement.bottomBar;
     final isLocked = !_isStarted || _isMyRaceDone || _isOver;
     final graceEndsAt = _isOver || RaceRules.graceEndsAtMs(room) == null ? null : RaceRules.endsAtMs(room);
     final firstFinisher = _isMyRaceDone || graceEndsAt == null ? null : RaceRules.firstFinisher(room);
@@ -267,79 +267,89 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
             child: MaxWidth(
               maxWidth: PuzzleScreen.maxGameWidth,
               child: SafeArea(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: AbsorbPointer(
-                        absorbing: isLocked,
-                        child: PuzzleView(
-                          headerHeight: _headerHeight,
-                          trayStartInset: besideTray ? chrome.barHeight + GlassChrome.edgeMargin : 0,
-                        ),
-                      ),
-                    ),
-                    if (!_isStarted)
-                      Positioned.fill(
-                        child: CountdownOverlay(
-                          startAtMs: widget.startAtMs,
-                          pauseMs: RaceLights.pauseMs(room.seed),
-                          now: _cubit.serverNow,
-                          haptics: context.select<SettingsCubit, bool>((final c) => c.state.haptics),
-                        ),
-                      ),
-                    Positioned.fill(
-                      child: MediaQuery.withClampedTextScaling(
-                        maxScaleFactor: _maxChromeTextScale,
-                        child: PuzzleToolbar(
-                          race: RaceToolbarControls(
-                            phase: _isOver
-                                ? RacePhase.over
-                                : isLocked
-                                ? RacePhase.waiting
-                                : RacePhase.racing,
-                            isHost: room.hostUid == widget.myUid,
-                            onNewRace: () => unawaited(_cubit.rematch()),
-                            onLeave: () => Navigator.of(context).pop(),
+                child: LayoutBuilder(
+                  builder: (final context, final constraints) {
+                    final plan = GameLayoutPlan.of(
+                      context,
+                      constraints.biggest,
+                      headerHeight: _headerHeight,
+                      wideRail: true,
+                      sidePanelWidth: hasStandingsColumn ? chrome.barHeight + GlassChrome.edgeMargin : 0,
+                    );
+                    return Stack(
+                      children: [
+                        Positioned.fill(
+                          child: AbsorbPointer(
+                            absorbing: isLocked,
+                            child: PuzzleView(plan: plan),
                           ),
-                          accessory: besideTray ? null : standings,
                         ),
-                      ),
-                    ),
-                    if (besideTray) _StandingsSlot(child: standings),
-                    if (_showsResult)
-                      _ResultSlot(
-                        room: room,
-                        myUid: widget.myUid,
-                        nowMs: _nowMs,
-                        now: _cubit.serverNow,
-                        graceEndsAtMs: graceEndsAt,
-                        myBoard: RaceBoard(_bloc.state.piecePlacements),
-                        totalPieces: _bloc.state.pieces.where((final p) => !p.isConfigItem).length,
-                        shownBoardUid: _shownBoardUid,
-                        onShowBoard: (final uid) => setState(() => _shownBoardUid = uid),
-                        solverLevel: widget.solverLevel,
-                      ),
-                    _HeaderSlot(
-                      onHeight: (final height) {
-                        if (mounted && height != _headerHeight) {
-                          setState(() => _headerHeight = height);
-                        }
-                      },
-                      child: MediaQuery.withClampedTextScaling(
-                        maxScaleFactor: _maxChromeTextScale,
-                        child: RaceHeader(
-                          date: widget.date,
-                          isStarted: _isStarted,
-                          startAtMs: widget.startAtMs,
-                          stoppedAtMs: _stoppedAtMs,
-                          now: _cubit.serverNow,
-                          onLeave: () => unawaited(_onLeave()),
-                          firstFinisher: firstFinisher?.nickname,
-                          graceEndsAtMs: firstFinisher == null ? null : graceEndsAt,
+                        if (!_isStarted)
+                          Positioned.fill(
+                            child: CountdownOverlay(
+                              startAtMs: widget.startAtMs,
+                              pauseMs: RaceLights.pauseMs(room.seed),
+                              now: _cubit.serverNow,
+                              haptics: context.select<SettingsCubit, bool>((final c) => c.state.haptics),
+                            ),
+                          ),
+                        Positioned.fill(
+                          child: MediaQuery.withClampedTextScaling(
+                            maxScaleFactor: _maxChromeTextScale,
+                            child: PuzzleToolbar(
+                              race: RaceToolbarControls(
+                                phase: _isOver
+                                    ? RacePhase.over
+                                    : isLocked
+                                    ? RacePhase.waiting
+                                    : RacePhase.racing,
+                                isHost: room.hostUid == widget.myUid,
+                                onNewRace: () => unawaited(_cubit.rematch()),
+                              ),
+                              accessory: hasStandingsColumn ? null : standings,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
+                        if (hasStandingsColumn) _StandingsSlot(plan: plan, child: standings),
+                        if (_showsResult)
+                          _ResultSlot(
+                            plan: plan,
+                            hasControls: !_isOver || room.hostUid == widget.myUid,
+                            room: room,
+                            myUid: widget.myUid,
+                            nowMs: _nowMs,
+                            now: _cubit.serverNow,
+                            graceEndsAtMs: graceEndsAt,
+                            myBoard: RaceBoard(_bloc.state.piecePlacements),
+                            totalPieces: _bloc.state.pieces.where((final p) => !p.isConfigItem).length,
+                            shownBoardUid: _shownBoardUid,
+                            onShowBoard: (final uid) => setState(() => _shownBoardUid = uid),
+                            solverLevel: widget.solverLevel,
+                          ),
+                        _HeaderSlot(
+                          plan: plan,
+                          onHeight: (final height) {
+                            if (mounted && height != _headerHeight) {
+                              setState(() => _headerHeight = height);
+                            }
+                          },
+                          child: MediaQuery.withClampedTextScaling(
+                            maxScaleFactor: _maxChromeTextScale,
+                            child: RaceHeader(
+                              date: widget.date,
+                              isStarted: _isStarted,
+                              startAtMs: widget.startAtMs,
+                              stoppedAtMs: _stoppedAtMs,
+                              now: _cubit.serverNow,
+                              onLeave: () => unawaited(_onLeave()),
+                              firstFinisher: firstFinisher?.nickname,
+                              graceEndsAtMs: firstFinisher == null ? null : graceEndsAt,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -351,8 +361,9 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
 }
 
 class _HeaderSlot extends StatelessWidget {
-  const _HeaderSlot({required this.onHeight, required this.child});
+  const _HeaderSlot({required this.plan, required this.onHeight, required this.child});
 
+  final GameLayoutPlan plan;
   final ValueChanged<double> onHeight;
   final Widget child;
 
@@ -360,9 +371,8 @@ class _HeaderSlot extends StatelessWidget {
   Widget build(final BuildContext context) => BlocSelector<PuzzleBloc, PuzzleState, double>(
     selector: (final state) => state.boardConfig.getBounds.left,
     builder: (final context, final trayLeft) {
-      final spec = ScreenSpec.of(context);
-      final beside = spec.window == WindowClass.compact && spec.isLandscape;
-      final reserved = GameChrome.reservedInsets(context);
+      final beside = plan.isHeaderBesideBoard;
+      final reserved = plan.reserved;
       return Positioned(
         left: beside ? trayLeft - 16 : reserved.left,
         top: 0,
@@ -373,24 +383,24 @@ class _HeaderSlot extends StatelessWidget {
   );
 }
 
-/// Left of the tray, in the room [PuzzleView.trayStartInset] leaves, down to the bottom bar.
 class _StandingsSlot extends StatelessWidget {
-  const _StandingsSlot({required this.child});
+  const _StandingsSlot({required this.plan, required this.child});
 
+  final GameLayoutPlan plan;
   final Widget child;
 
   @override
   Widget build(final BuildContext context) => BlocSelector<PuzzleBloc, PuzzleState, double>(
-    selector: (final state) => state.boardConfig.getBounds.top,
-    builder: (final context, final trayTop) {
+    selector: (final state) => (plan.isLandscape ? state.gridConfig : state.boardConfig).getBounds.top,
+    builder: (final context, final top) {
       final chrome = ChromeTheme.of(context);
       return Positioned(
         left: GlassChrome.edgeMargin,
-        top: trayTop,
+        top: top,
         bottom: GlassChrome.edgeMargin + chrome.barHeight + 8,
         width: chrome.barHeight,
         // Nothing to stand beside until the board is laid out.
-        child: trayTop > 0 ? child : const SizedBox.shrink(),
+        child: top > 0 ? child : const SizedBox.shrink(),
       );
     },
   );
@@ -398,6 +408,8 @@ class _StandingsSlot extends StatelessWidget {
 
 class _ResultSlot extends StatelessWidget {
   const _ResultSlot({
+    required this.plan,
+    required this.hasControls,
     required this.room,
     required this.myUid,
     required this.nowMs,
@@ -410,6 +422,10 @@ class _ResultSlot extends StatelessWidget {
     required this.solverLevel,
   });
 
+  final GameLayoutPlan plan;
+
+  /// A guest has no controls once the race is over, so the bottom bar's room is free.
+  final bool hasControls;
   final RaceRoom room;
   final String myUid;
   final int nowMs;
@@ -427,29 +443,41 @@ class _ResultSlot extends StatelessWidget {
     final isWinner = standings.any((final s) => s.player.uid == myUid && s.isWinner);
     final hostCanStart =
         RaceRules.isOver(room, nowMs: nowMs) && room.hostUid != myUid && (room.player(room.hostUid)?.online ?? false);
-    final reserved = GameChrome.reservedInsets(context);
+    final sheet = RaceResultSheet(
+      standings: standings,
+      myUid: myUid,
+      note: hostCanStart ? S.current.raceNewRaceByHost : null,
+      myBoard: myBoard,
+      startAtMs: room.startAt,
+      totalPieces: totalPieces,
+      shownUid: shownBoardUid,
+      onShowBoard: onShowBoard,
+      solverLevel: solverLevel,
+      graceEndsAtMs: graceEndsAtMs,
+      now: now,
+    );
     return Positioned.fill(
       child: Stack(
         children: [
-          Padding(
-            padding: reserved + const EdgeInsets.all(16),
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: RaceResultSheet(
-                standings: standings,
-                myUid: myUid,
-                note: hostCanStart ? S.current.raceNewRaceByHost : null,
-                myBoard: myBoard,
-                startAtMs: room.startAt,
-                totalPieces: totalPieces,
-                shownUid: shownBoardUid,
-                onShowBoard: onShowBoard,
-                solverLevel: solverLevel,
-                graceEndsAtMs: graceEndsAtMs,
-                now: now,
-              ),
+          // A phone in landscape: in place of the tray, so that the header and the board stay in sight.
+          if (plan.isHeaderBesideBoard)
+            BlocSelector<PuzzleBloc, PuzzleState, Rect>(
+              selector: (final state) => state.trayArea,
+              builder: (final context, final tray) => tray.isEmpty
+                  ? const SizedBox.shrink()
+                  : Positioned.fromRect(
+                      rect: tray,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Align(alignment: Alignment.bottomCenter, child: sheet),
+                      ),
+                    ),
+            )
+          else
+            Padding(
+              padding: (hasControls ? plan.reserved : plan.reserved.copyWith(bottom: 0)) + const EdgeInsets.all(16),
+              child: Align(alignment: Alignment.bottomCenter, child: sheet),
             ),
-          ),
           if (isWinner && !MediaQuery.disableAnimationsOf(context))
             const IgnorePointer(
               child: Align(alignment: Alignment.topCenter, child: ConfettiView()),

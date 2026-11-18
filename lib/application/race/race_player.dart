@@ -16,6 +16,7 @@ class RacePlayer {
     this.gaveUpAt,
     this.outAt,
     this.board,
+    this.device,
   });
 
   final String uid;
@@ -45,6 +46,9 @@ class RacePlayer {
 
   final RaceBoard? board;
 
+  /// The device the player is in the room from; null from a client that did not write it.
+  final String? device;
+
   bool get hasFinished => durationMs != null;
 
   @override
@@ -64,7 +68,8 @@ class RacePlayer {
           other.gaveUp == gaveUp &&
           other.gaveUpAt == gaveUpAt &&
           other.outAt == outAt &&
-          other.board == board;
+          other.board == board &&
+          other.device == device;
 
   @override
   int get hashCode => Object.hash(
@@ -82,5 +87,6 @@ class RacePlayer {
     gaveUpAt,
     outAt,
     board,
+    device,
   );
 }

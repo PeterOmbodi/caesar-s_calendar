@@ -120,6 +120,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   EdgeInsets _lastContentInsets = EdgeInsets.zero;
   double _lastTrayTopInset = 0;
   double _lastTrayStartInset = 0;
+  bool? _lastIsLandscape;
   // Piece that the current tap down selected; such a tap must not rotate or flip it.
   String? _selectedOnTapDownId;
   // Where the dragged piece last fitted on the grid; a drop over a blocked spot lands there.

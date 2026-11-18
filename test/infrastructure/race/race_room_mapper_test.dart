@@ -113,6 +113,33 @@ void main() {
     expect(room.isFull, isTrue);
   });
 
+  test('a later player with a taken colour gets the next free one', () {
+    final room = RaceRoomMapper.fromValue(
+      'K7M4P',
+      _room(
+        players: {
+          'host': _player(extra: {'colorIndex': 7}),
+          'guest': _player(joinedAt: 2000, extra: {'colorIndex': 7}),
+          'third': _player(joinedAt: 3000, extra: {'colorIndex': 0}),
+        },
+      ),
+    )!;
+    expect(room.players.map((final p) => p.colorIndex), [7, 0, 1]);
+  });
+
+  test('reads the device the player is in from', () {
+    final room = RaceRoomMapper.fromValue(
+      'K7M4P',
+      _room(
+        players: {
+          'host': _player(extra: {'device': 'a1b2'}),
+          'guest': _player(joinedAt: 2000),
+        },
+      ),
+    )!;
+    expect((room.player('host')!.device, room.player('guest')!.device), ('a1b2', null));
+  });
+
   test('fields of an earlier round read as untouched', () {
     final room = RaceRoomMapper.fromValue(
       'K7M4P',

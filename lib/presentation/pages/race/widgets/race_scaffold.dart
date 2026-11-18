@@ -5,17 +5,18 @@ import 'package:flutter/material.dart';
 
 /// Page frame of the race lobby and room: the platform's navigation bar and content of limited width.
 class RaceScaffold extends StatelessWidget {
-  const RaceScaffold({super.key, required this.title, required this.child});
+  const RaceScaffold({super.key, required this.title, required this.child, this.trailing});
 
   static const double maxContentWidth = 480;
 
   final String title;
   final Widget child;
+  final Widget? trailing;
 
   @override
   Widget build(final BuildContext context) => Scaffold(
     backgroundColor: GameColors.of(context).background,
-    appBar: _RaceAppBar(title: title),
+    appBar: _RaceAppBar(title: title, trailing: trailing),
     body: SafeArea(
       top: false,
       child: Center(
@@ -29,17 +30,25 @@ class RaceScaffold extends StatelessWidget {
 }
 
 class _RaceAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _RaceAppBar({required this.title});
+  const _RaceAppBar({required this.title, required this.trailing});
 
   final String title;
+  final Widget? trailing;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(final BuildContext context) {
+    final trailing = this.trailing;
     if (ScreenSpec.of(context).family != ChromeFamily.glass) {
-      return AppBar(leading: const BackButton(), title: Text(title));
+      return AppBar(
+        leading: const BackButton(),
+        title: Text(title),
+        actions: [
+          if (trailing != null) Padding(padding: const EdgeInsetsDirectional.only(end: 16), child: trailing),
+        ],
+      );
     }
     return CupertinoNavigationBar(
       backgroundColor: GameColors.of(context).background,
@@ -52,6 +61,7 @@ class _RaceAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Icon(CupertinoIcons.back, semanticLabel: MaterialLocalizations.of(context).backButtonTooltip),
       ),
       middle: Text(title),
+      trailing: trailing,
     );
   }
 }

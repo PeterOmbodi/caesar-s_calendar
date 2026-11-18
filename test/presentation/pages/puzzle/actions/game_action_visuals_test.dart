@@ -9,7 +9,6 @@ void main() {
     GameActionId.solutionCounter,
     GameActionId.howToPlay,
     GameActionId.newRace,
-    GameActionId.leaveRace,
   };
 
   for (final apple in [true, false]) {

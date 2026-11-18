@@ -8,8 +8,8 @@ import 'package:caesar_puzzle/core/services/timer_service.dart';
 import 'package:caesar_puzzle/domain/services/calendar_cells.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/injection.dart';
+import 'package:caesar_puzzle/presentation/layout/game_layout_plan.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
-import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_haptics.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_settings_panel_controller.dart';
@@ -173,94 +173,102 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   },
                 ),
               ],
-              child: Stack(
-                children: [
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    left: gameplayInsets.left,
-                    top: 0,
-                    right: gameplayInsets.right,
-                    bottom: 0,
-                    child: PuzzleView(key: _boardKey, headerHeight: _headerHeight),
-                  ),
-                  BlocSelector<PuzzleBloc, PuzzleState, double>(
-                    selector: (final state) => state.boardConfig.getBounds.left,
-                    builder: (final context, final trayLeft) {
-                      // Phone landscape: the header sits beside the board, above the tray.
-                      final spec = ScreenSpec.of(context);
-                      final beside = spec.window == WindowClass.compact && spec.isLandscape;
-                      final reserved = GameChrome.reservedInsets(context);
-                      // No animation on phones: a squeezed header wraps and reports a huge height.
-                      return AnimatedPositioned(
-                        duration: spec.window == WindowClass.compact
-                            ? Duration.zero
-                            : const Duration(milliseconds: 220),
+              child: LayoutBuilder(
+                builder: (final context, final constraints) {
+                  final plan = GameLayoutPlan.of(
+                    context,
+                    Size(constraints.maxWidth - gameplayInsets.left - gameplayInsets.right, constraints.maxHeight),
+                    headerHeight: _headerHeight,
+                  );
+                  return Stack(
+                    children: [
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 220),
                         curve: Curves.easeOutCubic,
-                        left: gameplayInsets.left + (beside ? trayLeft - 16 : reserved.left),
+                        left: gameplayInsets.left,
                         top: 0,
-                        right: gameplayInsets.right + (beside ? reserved.right : 0),
-                        child: MeasureSize(
-                          onChange: (final size) {
-                            if (mounted && size.height != _headerHeight) {
-                              setState(() => _headerHeight = size.height);
-                            }
-                          },
-                          child: Builder(
-                            builder: (final headerContext) => MediaQuery.withClampedTextScaling(
-                              maxScaleFactor: _maxChromeTextScale,
-                              child: PuzzleHeader(
-                                raceButtonKey: _raceButtonKey,
-                                onRacePressed: () {
-                                  if (!_puzzleBloc.state.isEditingLayout) {
-                                    unawaited(_openRace());
-                                  }
-                                },
-                                onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
+                        right: gameplayInsets.right,
+                        bottom: 0,
+                        child: PuzzleView(key: _boardKey, plan: plan),
+                      ),
+                      BlocSelector<PuzzleBloc, PuzzleState, double>(
+                        selector: (final state) => state.boardConfig.getBounds.left,
+                        builder: (final context, final trayLeft) {
+                          final spec = ScreenSpec.of(context);
+                          final beside = plan.isHeaderBesideBoard;
+                          final reserved = plan.reserved;
+                          // No animation on phones: a squeezed header wraps and reports a huge height.
+                          return AnimatedPositioned(
+                            duration: spec.window == WindowClass.compact
+                                ? Duration.zero
+                                : const Duration(milliseconds: 220),
+                            curve: Curves.easeOutCubic,
+                            left: gameplayInsets.left + (beside ? trayLeft - 16 : reserved.left),
+                            top: 0,
+                            right: gameplayInsets.right + (beside ? reserved.right : 0),
+                            child: MeasureSize(
+                              onChange: (final size) {
+                                if (mounted && size.height != _headerHeight) {
+                                  setState(() => _headerHeight = size.height);
+                                }
+                              },
+                              child: Builder(
+                                builder: (final headerContext) => MediaQuery.withClampedTextScaling(
+                                  maxScaleFactor: _maxChromeTextScale,
+                                  child: PuzzleHeader(
+                                    raceButtonKey: _raceButtonKey,
+                                    onRacePressed: () {
+                                      if (!_puzzleBloc.state.isEditingLayout) {
+                                        unawaited(_openRace());
+                                      }
+                                    },
+                                    onSettingsPressed: () => _openSettings(headerContext, settingsDocked),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
+                          );
+                        },
+                      ),
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: BlocBuilder<PuzzleBloc, PuzzleState>(
+                          buildWhen: (final ps, final cs) =>
+                              !cs.isRestoredSolvedSession &&
+                              (ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser ||
+                                  ps.status == GameStatus.solvedByUser && ps.status != cs.status),
+                          builder: (final BuildContext context, final PuzzleState state) =>
+                              !state.isRestoredSolvedSession &&
+                                  state.status == GameStatus.solvedByUser &&
+                                  !MediaQuery.disableAnimationsOf(context)
+                              ? const ConfettiView()
+                              : SizedBox.shrink(),
                         ),
-                      );
-                    },
-                  ),
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: BlocBuilder<PuzzleBloc, PuzzleState>(
-                      buildWhen: (final ps, final cs) =>
-                          !cs.isRestoredSolvedSession &&
-                          (ps.status == GameStatus.playing && cs.status == GameStatus.solvedByUser ||
-                              ps.status == GameStatus.solvedByUser && ps.status != cs.status),
-                      builder: (final BuildContext context, final PuzzleState state) =>
-                          !state.isRestoredSolvedSession &&
-                              state.status == GameStatus.solvedByUser &&
-                              !MediaQuery.disableAnimationsOf(context)
-                          ? const ConfettiView()
-                          : SizedBox.shrink(),
-                    ),
-                  ),
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    left: gameplayInsets.left,
-                    top: 0,
-                    right: gameplayInsets.right,
-                    bottom: 0,
-                    child: MediaQuery.withClampedTextScaling(
-                      maxScaleFactor: _maxChromeTextScale,
-                      child: const PuzzleToolbar(),
-                    ),
-                  ),
-                  if (settingsDocked)
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOutCubic,
-                      right: _settingsPanelController.isInlinePanelVisible ? 0 : -PuzzleScreen.sidePanelWidth,
-                      top: 0,
-                      bottom: 0,
-                      child: const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
-                    ),
-                ],
+                      ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                        left: gameplayInsets.left,
+                        top: 0,
+                        right: gameplayInsets.right,
+                        bottom: 0,
+                        child: MediaQuery.withClampedTextScaling(
+                          maxScaleFactor: _maxChromeTextScale,
+                          child: const PuzzleToolbar(),
+                        ),
+                      ),
+                      if (settingsDocked)
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                          right: _settingsPanelController.isInlinePanelVisible ? 0 : -PuzzleScreen.sidePanelWidth,
+                          top: 0,
+                          bottom: 0,
+                          child: const SizedBox(width: PuzzleScreen.sidePanelWidth, child: SettingsPanel()),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
           ),

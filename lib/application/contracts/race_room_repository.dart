@@ -8,6 +8,9 @@ enum RaceRoomFailure {
   full,
   started,
 
+  /// The same account is in the room from another device.
+  elsewhere,
+
   /// The date this client draws from the room differs from the host's.
   date,
   unknown,
