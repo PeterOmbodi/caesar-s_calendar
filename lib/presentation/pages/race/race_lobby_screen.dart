@@ -40,18 +40,64 @@ class _RaceLobbyScreenState extends State<RaceLobbyScreen> {
   late final TextEditingController _code = TextEditingController(text: widget.initialCode);
   StreamSubscription<String>? _linkSubscription;
   String? _error;
+  final _scroll = ScrollController();
+  var _isEmblemShown = true;
+  double _tail = 0;
 
   @override
   void initState() {
     super.initState();
     _linkSubscription = widget.linkCodes?.listen(_onLinkCode);
+    _scroll.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     unawaited(_linkSubscription?.cancel());
     _code.dispose();
+    _scroll.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    final isShown = _scroll.offset < _EmblemHeader.extent / 2;
+    if (isShown != _isEmblemShown) {
+      setState(() => _isEmblemShown = isShown);
+    }
+  }
+
+  // The emblem is left whole or gone, never half folded.
+  bool _onScrollEnd(final ScrollEndNotification notification) {
+    final offset = notification.metrics.pixels;
+    if (offset <= 0 || offset >= _EmblemHeader.extent) {
+      return false;
+    }
+    // Unfolding with the keyboard open would push the focused field under it.
+    final isTyping = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final target = offset < _EmblemHeader.extent / 2 && !isTyping ? 0.0 : _EmblemHeader.extent;
+    final duration = MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 200);
+    unawaited(
+      Future.microtask(() {
+        if (_scroll.hasClients) {
+          unawaited(_scroll.animateTo(target, duration: duration, curve: Curves.easeOut));
+        }
+      }),
+    );
+    return false;
+  }
+
+  // A page that scrolls at all scrolls far enough to fold the emblem away.
+  bool _onMetrics(final ScrollMetricsNotification notification) {
+    final scrollable = notification.metrics.maxScrollExtent - _tail;
+    final tail = scrollable > 0 && scrollable < _EmblemHeader.extent ? _EmblemHeader.extent - scrollable : 0.0;
+    if (tail != _tail) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() => _tail = tail);
+        }
+      });
+    }
+    return false;
   }
 
   // A link must not pull the player out of a room or a race.
@@ -122,90 +168,154 @@ class _RaceLobbyScreenState extends State<RaceLobbyScreen> {
     final isSignedIn = context.select<AuthCubit, bool>((final cubit) => cubit.state.user != null);
     return RaceScaffold(
       title: S.current.raceLobbyTitle,
-      child: LayoutBuilder(
-        builder: (final context, final constraints) {
-          // A phone in landscape: a full-size emblem that does not scroll would take half the screen.
-          final emblem = constraints.maxHeight < 560 ? 96.0 : 140.0;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(height: emblem < 140 ? 8 : 16),
-              Center(
-                child: LaurelWreathHero(
-                  size: emblem,
-                  color: colors.laurel,
-                  child: Hero(
-                    tag: raceHeadHeroTag,
-                    // The colour of the race button's head: the same cached picture, so the first flight does not blink.
-                    child: RomanHeadIcon(rank: RomanRank.centurion, color: colors.icon, size: emblem * 0.62),
-                  ),
-                ),
+      trailing: _TitleEmblem(isShown: !_isEmblemShown),
+      child: NotificationListener<ScrollMetricsNotification>(
+        onNotification: _onMetrics,
+        child: NotificationListener<ScrollEndNotification>(
+          onNotification: _onScrollEnd,
+          child: CustomScrollView(
+            controller: _scroll,
+            slivers: [
+              SliverPersistentHeader(
+                delegate: _EmblemHeader(laurel: colors.laurel, head: colors.icon, isShown: _isEmblemShown),
               ),
-              SizedBox(height: emblem < 140 ? 8 : 16),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (final context, final scroll) => SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minHeight: scroll.maxHeight),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              S.current.raceLobbyHeadline,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 32,
-                                height: 38 / 32,
-                                fontWeight: FontWeight.w700,
-                                color: colors.text,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              S.current.raceLobbyBody,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 16, height: 23 / 16, color: colors.textSecondary),
-                            ),
-                            const SizedBox(height: 40),
-                            if (isSignedIn)
-                              _EntryForm(
-                                code: _code,
-                                error: _error,
-                                onCreate: () => _openRoom(null),
-                                onJoin: _join,
-                              )
-                            else
-                              const _SignInGate(),
-                            const _OrDivider(),
-                            RaceSecondaryButton(
-                              label: S.current.raceVsSolver,
-                              onPressed: () => unawaited(_raceSolver()),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              S.current.raceVsSolverHint,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
-                            ),
-                            const RaceStoreLinks(),
-                            const Spacer(),
-                            const SizedBox(height: 24),
-                            Text(
-                              S.current.raceNoEffectNote,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
-                            ),
-                          ],
-                        ),
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      S.current.raceLobbyHeadline,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 32,
+                        height: 38 / 32,
+                        fontWeight: FontWeight.w700,
+                        color: colors.text,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    Text(
+                      S.current.raceLobbyBody,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, height: 23 / 16, color: colors.textSecondary),
+                    ),
+                    const SizedBox(height: 40),
+                    if (isSignedIn)
+                      _EntryForm(
+                        code: _code,
+                        error: _error,
+                        onCreate: () => _openRoom(null),
+                        onJoin: _join,
+                      )
+                    else
+                      const _SignInGate(),
+                    const _OrDivider(),
+                    RaceSecondaryButton(
+                      label: S.current.raceVsSolver,
+                      onPressed: () => unawaited(_raceSolver()),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      S.current.raceVsSolverHint,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
+                    ),
+                    const RaceStoreLinks(),
+                    const Spacer(),
+                    const SizedBox(height: 24),
+                    Text(
+                      S.current.raceNoEffectNote,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.textSecondary),
+                    ),
+                    SizedBox(height: _tail),
+                  ],
                 ),
               ),
             ],
-          );
-        },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Shrinks away as the page scrolls, so that a short screen with the keyboard open still reaches the code field.
+class _EmblemHeader extends SliverPersistentHeaderDelegate {
+  const _EmblemHeader({required this.laurel, required this.head, required this.isShown});
+
+  static const double _size = 140;
+  static const double _gap = 16;
+  static const double extent = _size + _gap * 2;
+
+  final Color laurel;
+  final Color head;
+  final bool isShown;
+
+  @override
+  double get maxExtent => extent;
+
+  @override
+  double get minExtent => 0;
+
+  @override
+  Widget build(final BuildContext context, final double shrinkOffset, final bool overlapsContent) {
+    final shown = (1 - shrinkOffset / maxExtent).clamp(0.0, 1.0);
+    return AnimatedOpacity(
+      opacity: isShown ? 1 : 0,
+      duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 200),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: _gap * shown),
+        child: FittedBox(
+          child: LaurelWreathHero(
+            size: _size,
+            color: laurel,
+            // A folded emblem has nothing to fly from.
+            child: HeroMode(
+              enabled: isShown,
+              child: Hero(
+                tag: raceHeadHeroTag,
+                // The colour of the race button's head: the same cached picture, so the first flight does not blink.
+                child: RomanHeadIcon(rank: RomanRank.centurion, color: head, size: _size * 0.62),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(final _EmblemHeader oldDelegate) =>
+      oldDelegate.laurel != laurel || oldDelegate.head != head || oldDelegate.isShown != isShown;
+}
+
+class _TitleEmblem extends StatelessWidget {
+  const _TitleEmblem({required this.isShown});
+
+  static const double _size = 32;
+
+  final bool isShown;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    return ExcludeSemantics(
+      child: AnimatedSwitcher(
+        duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 200),
+        transitionBuilder: (final child, final animation) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(scale: animation, child: child),
+        ),
+        child: isShown
+            ? LaurelWreathHero(
+                key: const ValueKey(true),
+                size: _size,
+                color: colors.laurel,
+                child: RomanHeadIcon(rank: RomanRank.centurion, color: colors.icon, size: _size * 0.62),
+              )
+            : const SizedBox.shrink(key: ValueKey(false)),
       ),
     );
   }
