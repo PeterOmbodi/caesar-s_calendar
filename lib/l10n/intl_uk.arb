@@ -268,7 +268,6 @@
   "raceJoin": "Увійти в гру",
   "raceJoinLabel": "Код від суперника",
   "raceKeepRacing": "Продовжити гонку",
-  "raceLeave": "Вийти",
   "raceLeaveTooltip": "Вийти з гонки",
   "raceLightsHint": "Старт, коли вогні згаснуть",
   "raceLightsSemantics": "Стартові вогні: горять {count} з 5",

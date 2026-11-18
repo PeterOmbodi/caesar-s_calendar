@@ -268,7 +268,6 @@
   "raceJoin": "Влез в играта",
   "raceJoinLabel": "Код от съперника",
   "raceKeepRacing": "Продължавам",
-  "raceLeave": "Излез",
   "raceLeaveTooltip": "Напусни състезанието",
   "raceLightsHint": "Тръгваш, когато светлините угаснат",
   "raceLightsSemantics": "Стартови светлини: светят {count} от 5",

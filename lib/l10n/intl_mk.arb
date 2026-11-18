@@ -268,7 +268,6 @@
   "raceJoin": "Приклучи се",
   "raceJoinLabel": "Код од противникот",
   "raceKeepRacing": "Продолжи ја трката",
-  "raceLeave": "Излези",
   "raceLeaveTooltip": "Напушти ја трката",
   "raceLightsHint": "Тргнете кога ќе згаснат светлата",
   "raceLightsSemantics": "Стартни светла: светат {count} од 5",

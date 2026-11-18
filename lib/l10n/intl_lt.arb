@@ -268,7 +268,6 @@
   "raceJoin": "Prisijungti prie žaidimo",
   "raceJoinLabel": "Varžovo kodas",
   "raceKeepRacing": "Tęsti lenktynes",
-  "raceLeave": "Išeiti",
   "raceLeaveTooltip": "Palikti lenktynes",
   "raceLightsHint": "Pirmyn, kai užgęs šviesos",
   "raceLightsSemantics": "Starto šviesos: dega {count} iš 5",

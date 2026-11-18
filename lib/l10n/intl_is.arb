@@ -268,7 +268,6 @@
   "raceJoin": "Taka þátt í leik",
   "raceJoinLabel": "Kóði frá andstæðingi",
   "raceKeepRacing": "Halda áfram",
-  "raceLeave": "Hætta",
   "raceLeaveTooltip": "Yfirgefa kapphlaupið",
   "raceLightsHint": "Af stað þegar ljósin slokkna",
   "raceLightsSemantics": "Ræsiljós: {count} af 5 kveikt",

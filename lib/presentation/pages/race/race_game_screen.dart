@@ -309,7 +309,6 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
                                     : RacePhase.racing,
                                 isHost: room.hostUid == widget.myUid,
                                 onNewRace: () => unawaited(_cubit.rematch()),
-                                onLeave: () => Navigator.of(context).pop(),
                               ),
                               accessory: hasStandingsColumn ? null : standings,
                             ),
@@ -319,6 +318,7 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
                         if (_showsResult)
                           _ResultSlot(
                             plan: plan,
+                            hasControls: !_isOver || room.hostUid == widget.myUid,
                             room: room,
                             myUid: widget.myUid,
                             nowMs: _nowMs,
@@ -414,6 +414,7 @@ class _StandingsSlot extends StatelessWidget {
 class _ResultSlot extends StatelessWidget {
   const _ResultSlot({
     required this.plan,
+    required this.hasControls,
     required this.room,
     required this.myUid,
     required this.nowMs,
@@ -427,6 +428,9 @@ class _ResultSlot extends StatelessWidget {
   });
 
   final GameLayoutPlan plan;
+
+  /// A guest has no controls once the race is over, so the bottom bar's room is free.
+  final bool hasControls;
   final RaceRoom room;
   final String myUid;
   final int nowMs;
@@ -476,7 +480,7 @@ class _ResultSlot extends StatelessWidget {
             )
           else
             Padding(
-              padding: plan.reserved + const EdgeInsets.all(16),
+              padding: (hasControls ? plan.reserved : plan.reserved.copyWith(bottom: 0)) + const EdgeInsets.all(16),
               child: Align(alignment: Alignment.bottomCenter, child: sheet),
             ),
           if (isWinner && !MediaQuery.disableAnimationsOf(context))

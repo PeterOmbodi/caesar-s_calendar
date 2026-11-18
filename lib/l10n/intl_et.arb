@@ -268,7 +268,6 @@
   "raceJoin": "Liitu mänguga",
   "raceJoinLabel": "Vastase kood",
   "raceKeepRacing": "Jätka võidujooksu",
-  "raceLeave": "Lahku",
   "raceLeaveTooltip": "Lahku võidujooksust",
   "raceLightsHint": "Mine, kui tuled kustuvad",
   "raceLightsSemantics": "Stardituled: põleb {count} viiest",

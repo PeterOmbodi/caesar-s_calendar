@@ -18,7 +18,6 @@ enum GameActionId {
   resetLayout,
   saveLayout,
   newRace,
-  leaveRace,
   layouts,
 }
 

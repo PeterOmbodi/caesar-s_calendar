@@ -268,7 +268,6 @@
   "raceJoin": "Deelnemen",
   "raceJoinLabel": "Code van je tegenstander",
   "raceKeepRacing": "Doorracen",
-  "raceLeave": "Verlaten",
   "raceLeaveTooltip": "Race verlaten",
   "raceLightsHint": "Gaan als de lichten uitgaan",
   "raceLightsSemantics": "Startlichten: {count} van 5 aan",

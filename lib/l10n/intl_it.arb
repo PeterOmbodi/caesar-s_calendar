@@ -268,7 +268,6 @@
   "raceJoin": "Entra nella partita",
   "raceJoinLabel": "Codice dell’avversario",
   "raceKeepRacing": "Continua la gara",
-  "raceLeave": "Esci",
   "raceLeaveTooltip": "Lascia la gara",
   "raceLightsHint": "Parti quando le luci si spengono",
   "raceLightsSemantics": "Semaforo di partenza: {count} su 5 accese",

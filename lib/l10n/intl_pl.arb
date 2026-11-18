@@ -268,7 +268,6 @@
   "raceJoin": "Dołącz do gry",
   "raceJoinLabel": "Kod od przeciwnika",
   "raceKeepRacing": "Ścigaj się dalej",
-  "raceLeave": "Wyjdź",
   "raceLeaveTooltip": "Opuść wyścig",
   "raceLightsHint": "Ruszaj, gdy zgasną światła",
   "raceLightsSemantics": "Światła startowe: świeci {count} z 5",

@@ -45,8 +45,11 @@ class GlassChrome extends GameChrome {
   @override
   Widget build(final BuildContext context) {
     final accessory = this.accessory;
+    if (actions.isEmpty && accessory == null) {
+      return const SizedBox.shrink();
+    }
     if (spec.toolbar == ToolbarPlacement.labeledRail) {
-      final rail = _LabeledRail(actions: actions, onInvoke: onInvoke);
+      final rail = actions.isEmpty ? null : _LabeledRail(actions: actions, onInvoke: onInvoke);
       return Align(
         alignment: Alignment.topLeft,
         child: Padding(
@@ -59,10 +62,7 @@ class GlassChrome extends GameChrome {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     spacing: sideRailGap,
-                    children: [
-                      Flexible(child: accessory),
-                      rail,
-                    ],
+                    children: [Flexible(child: accessory), ?rail],
                   ),
                 ),
         ),
@@ -99,7 +99,9 @@ class GlassChrome extends GameChrome {
     final radius = BorderRadius.circular(chrome.barRadius);
 
     if (_isRail) {
-      final rail = GlassSurface(
+      final rail = actions.isEmpty
+          ? null
+          : GlassSurface(
         borderRadius: radius,
         child: SizedBox(
           width: isWide ? wideRailWidth : chrome.barHeight,
@@ -124,10 +126,7 @@ class GlassChrome extends GameChrome {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     spacing: 12,
-                    children: [
-                      Flexible(child: accessory),
-                      rail,
-                    ],
+                    children: [Flexible(child: accessory), ?rail],
                   ),
                 ),
         ),

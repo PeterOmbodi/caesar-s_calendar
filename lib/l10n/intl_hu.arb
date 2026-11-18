@@ -268,7 +268,6 @@
   "raceJoin": "Csatlakozás",
   "raceJoinLabel": "Az ellenfeled kódja",
   "raceKeepRacing": "Folytatom",
-  "raceLeave": "Kilépés",
   "raceLeaveTooltip": "Kilépés a versenyből",
   "raceLightsHint": "Indulj, amikor a lámpák kialszanak",
   "raceLightsSemantics": "Rajtlámpák: {count}/5 világít",

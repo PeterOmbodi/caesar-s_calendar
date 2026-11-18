@@ -268,7 +268,6 @@
   "raceJoin": "Rejoindre la partie",
   "raceJoinLabel": "Code de votre adversaire",
   "raceKeepRacing": "Continuer la course",
-  "raceLeave": "Quitter",
   "raceLeaveTooltip": "Quitter la course",
   "raceLightsHint": "Partez quand les feux s’éteignent",
   "raceLightsSemantics": "Feux de départ : {count} sur 5 allumés",

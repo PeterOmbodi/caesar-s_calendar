@@ -6,6 +6,7 @@
 - on a phone in landscape the race result takes the place of the tray, below the header, and its board fits the screen
 - the winner's avatar wears a laurel wreath in the standings and in the result
 - one layout rule for the game and the race screens: in small windows the header no longer covers the board, and the race standings stand beside the board or the tray without covering them
+- after a race the Leave button is gone: the cross in the header leaves; the host keeps Race again
 
 ## 1.14.2+50
 - in a race the first to solve sees the win at once, with a short vibration; the others get 15 seconds to finish instead of 60

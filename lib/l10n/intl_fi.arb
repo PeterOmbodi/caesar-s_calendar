@@ -268,7 +268,6 @@
   "raceJoin": "Liity peliin",
   "raceJoinLabel": "Vastustajan koodi",
   "raceKeepRacing": "Jatka kisaa",
-  "raceLeave": "Poistu",
   "raceLeaveTooltip": "Poistu kilvasta",
   "raceLightsHint": "Lähde, kun valot sammuvat",
   "raceLightsSemantics": "Lähtövalot: {count}/5 palaa",

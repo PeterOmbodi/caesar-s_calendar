@@ -268,7 +268,6 @@
   "raceJoin": "Bli med i spillet",
   "raceJoinLabel": "Kode fra motstanderen",
   "raceKeepRacing": "Fortsett kappløpet",
-  "raceLeave": "Forlat",
   "raceLeaveTooltip": "Forlat kappløpet",
   "raceLightsHint": "Kjør når lysene slukker",
   "raceLightsSemantics": "Startlys: {count} av 5 lyser",

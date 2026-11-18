@@ -268,7 +268,6 @@
   "raceJoin": "Pridruži se igri",
   "raceJoinLabel": "Kôd od protivnika",
   "raceKeepRacing": "Nastavi utrku",
-  "raceLeave": "Izađi",
   "raceLeaveTooltip": "Napusti utrku",
   "raceLightsHint": "Kreni kad se svjetla ugase",
   "raceLightsSemantics": "Startna svjetla: upaljeno {count} od 5",

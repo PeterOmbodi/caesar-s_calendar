@@ -268,7 +268,6 @@
   "raceJoin": "Pripojiť sa k hre",
   "raceJoinLabel": "Kód od súpera",
   "raceKeepRacing": "Pretekať ďalej",
-  "raceLeave": "Odísť",
   "raceLeaveTooltip": "Opustiť preteky",
   "raceLightsHint": "Vyraz, keď svetlá zhasnú",
   "raceLightsSemantics": "Štartovacie svetlá: svieti {count} z 5",

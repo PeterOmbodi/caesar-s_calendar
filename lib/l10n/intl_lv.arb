@@ -268,7 +268,6 @@
   "raceJoin": "Pievienoties spēlei",
   "raceJoinLabel": "Pretinieka kods",
   "raceKeepRacing": "Turpināt sacīkstes",
-  "raceLeave": "Iziet",
   "raceLeaveTooltip": "Pamest sacīkstes",
   "raceLightsHint": "Aiziet, kad gaismas nodziest",
   "raceLightsSemantics": "Starta gaismas: deg {count} no 5",

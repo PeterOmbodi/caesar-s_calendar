@@ -268,7 +268,6 @@
   "raceJoin": "Join the game",
   "raceJoinLabel": "Code from your opponent",
   "raceKeepRacing": "Keep racing",
-  "raceLeave": "Leave",
   "raceLeaveTooltip": "Leave the race",
   "raceLightsHint": "Go when the lights go out",
   "raceLightsSemantics": "Start lights: {count} of 5 are on",

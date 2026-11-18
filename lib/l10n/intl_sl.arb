@@ -268,7 +268,6 @@
   "raceJoin": "Pridruži se igri",
   "raceJoinLabel": "Koda nasprotnika",
   "raceKeepRacing": "Nadaljuj dirko",
-  "raceLeave": "Zapusti",
   "raceLeaveTooltip": "Zapusti dirko",
   "raceLightsHint": "Štartaj, ko luči ugasnejo",
   "raceLightsSemantics": "Startne luči: sveti {count} od 5",

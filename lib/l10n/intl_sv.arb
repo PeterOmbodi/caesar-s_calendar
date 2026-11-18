@@ -268,7 +268,6 @@
   "raceJoin": "Gå med i spelet",
   "raceJoinLabel": "Kod från din motståndare",
   "raceKeepRacing": "Fortsätt tävla",
-  "raceLeave": "Lämna",
   "raceLeaveTooltip": "Lämna kapplöpningen",
   "raceLightsHint": "Kör när lamporna slocknar",
   "raceLightsSemantics": "Startljus: {count} av 5 tända",
