@@ -75,11 +75,16 @@ class _RaceLobbyScreenState extends State<RaceLobbyScreen> {
     // Unfolding with the keyboard open would push the focused field under it.
     final isTyping = MediaQuery.viewInsetsOf(context).bottom > 0;
     final target = offset < _EmblemHeader.extent / 2 && !isTyping ? 0.0 : _EmblemHeader.extent;
-    final duration = MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 200);
+    final isAnimated = !MediaQuery.disableAnimationsOf(context);
     unawaited(
       Future.microtask(() {
-        if (_scroll.hasClients) {
-          unawaited(_scroll.animateTo(target, duration: duration, curve: Curves.easeOut));
+        if (!_scroll.hasClients) {
+          return;
+        }
+        if (isAnimated) {
+          unawaited(_scroll.animateTo(target, duration: const Duration(milliseconds: 200), curve: Curves.easeOut));
+        } else {
+          _scroll.jumpTo(target);
         }
       }),
     );

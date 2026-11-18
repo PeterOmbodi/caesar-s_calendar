@@ -216,19 +216,28 @@ class _WideStandingsItem extends StatelessWidget {
                   ),
                 ),
                 if (duration != null)
-                  Row(
+                  // In a narrow column the countdown goes under the time.
+                  Wrap(
                     spacing: 8,
+                    runSpacing: 2,
                     children: [
-                      Text(
-                        formatRaceTime(duration, tenths: true),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: colors.text,
-                          fontFeatures: const [FontFeature.tabularFigures()],
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          formatRaceTime(duration, tenths: true),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: colors.text,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
                         ),
                       ),
-                      if (graceEndsAt != null) RaceGraceCountdown(endsAtMs: graceEndsAt, now: item.now),
+                      if (graceEndsAt != null)
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: RaceGraceCountdown(endsAtMs: graceEndsAt, now: item.now),
+                        ),
                     ],
                   ),
               ],
