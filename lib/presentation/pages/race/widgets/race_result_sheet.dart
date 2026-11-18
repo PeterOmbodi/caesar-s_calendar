@@ -32,10 +32,6 @@ class RaceResultSheet extends StatefulWidget {
 
   static const double maxWidth = 480;
   static const double _boardMaxHeight = 280;
-  static const double _boardMinHeight = 120;
-
-  /// The sheet's title and the board page's header, above the board.
-  static const double _aboveBoard = 150;
 
   final List<RaceStanding> standings;
   final String myUid;
@@ -106,106 +102,94 @@ class _RaceResultSheetState extends State<RaceResultSheet> {
     final colors = GameColors.of(context);
     final shown = widget.standings.firstWhereOrNull((final s) => s.player.uid == widget.shownUid);
     final titleStyle = TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: colors.text);
-    return LayoutBuilder(
-      builder: (final context, final constraints) {
-        final boardHeight = (constraints.maxHeight - RaceResultSheet._aboveBoard).clamp(
-          RaceResultSheet._boardMinHeight,
-          RaceResultSheet._boardMaxHeight,
-        );
-        return ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: RaceResultSheet.maxWidth),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: colors.board,
-              border: Border.all(color: colors.boardBorder),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 24, offset: Offset(0, 8))],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              // Ink is drawn on the nearest Material; it must lie above the sheet's colour.
-              child: Material(
-                type: MaterialType.transparency,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 12, child: CustomPaint(painter: _CheckeredPainter())),
-                    Semantics(
-                      button: true,
-                      label: _isExpanded ? S.current.raceResultsHide : S.current.raceResultsShow,
-                      child: InkWell(
-                        onTap: () => setState(() => _isExpanded = !_isExpanded),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (_isSoleWinner)
-                                      _LaurelTitle(title: _title, style: titleStyle, color: colors.laurel)
-                                    else
-                                      Text(_title, style: titleStyle),
-                                    if (widget.note case final note?)
-                                      Text(note, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
-                                  ],
-                                ),
-                              ),
-                              Icon(_isExpanded ? Icons.expand_more : Icons.expand_less, color: colors.icon),
-                            ],
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: RaceResultSheet.maxWidth),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.board,
+          border: Border.all(color: colors.boardBorder),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 24, offset: Offset(0, 8))],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          // Ink is drawn on the nearest Material; it must lie above the sheet's colour.
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 12, child: CustomPaint(painter: _CheckeredPainter())),
+                Semantics(
+                  button: true,
+                  label: _isExpanded ? S.current.raceResultsHide : S.current.raceResultsShow,
+                  child: InkWell(
+                    onTap: () => setState(() => _isExpanded = !_isExpanded),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (_isSoleWinner)
+                                  _LaurelTitle(title: _title, style: titleStyle, color: colors.laurel)
+                                else
+                                  Text(_title, style: titleStyle),
+                                if (widget.note case final note?)
+                                  Text(note, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+                              ],
+                            ),
                           ),
-                        ),
+                          Icon(_isExpanded ? Icons.expand_more : Icons.expand_less, color: colors.icon),
+                        ],
                       ),
                     ),
-                    // A screen too short for the board still reaches all of it.
-                    Flexible(
-                      child: SingleChildScrollView(
-                        child: AnimatedSize(
-                          duration: MediaQuery.disableAnimationsOf(context)
-                              ? Duration.zero
-                              : const Duration(milliseconds: 200),
-                          alignment: Alignment.topCenter,
-                          child: _isExpanded
-                              ? _SlidingPages(
-                                  isOpening: _isOpening,
-                                  child: shown == null
-                                      ? _ResultTable(
-                                          key: const ValueKey<String?>(null),
-                                          standings: widget.standings,
-                                          myUid: widget.myUid,
-                                          totalPieces: widget.totalPieces,
-                                          graceEndsAtMs: widget.graceEndsAtMs,
-                                          now: widget.now,
-                                          solverLevel: widget.solverLevel,
-                                          onShowBoard: (final standing) => _hasBoard(standing)
-                                              ? () => widget.onShowBoard(standing.player.uid)
-                                              : null,
-                                        )
-                                      : _BoardPage(
-                                          key: ValueKey<String?>(shown.player.uid),
-                                          standing: shown,
-                                          board: shown.player.uid == widget.myUid
-                                              ? _publishedBoard(shown.player) ?? widget.myBoard
-                                              : _publishedBoard(shown.player),
-                                          totalPieces: widget.totalPieces,
-                                          boardHeight: boardHeight,
-                                          solverLevel: widget.solverLevel,
-                                          onBack: () => widget.onShowBoard(null),
-                                        ),
-                                )
-                              : const SizedBox(width: double.infinity),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                // The pages share what is left of the screen's height: the board shrinks, the table scrolls.
+                Flexible(
+                  child: AnimatedSize(
+                    duration: MediaQuery.disableAnimationsOf(context)
+                        ? Duration.zero
+                        : const Duration(milliseconds: 200),
+                    alignment: Alignment.topCenter,
+                    child: _isExpanded
+                        ? _SlidingPages(
+                            isOpening: _isOpening,
+                            child: shown == null
+                                ? _ResultTable(
+                                    key: const ValueKey<String?>(null),
+                                    standings: widget.standings,
+                                    myUid: widget.myUid,
+                                    totalPieces: widget.totalPieces,
+                                    graceEndsAtMs: widget.graceEndsAtMs,
+                                    now: widget.now,
+                                    solverLevel: widget.solverLevel,
+                                    onShowBoard: (final standing) =>
+                                        _hasBoard(standing) ? () => widget.onShowBoard(standing.player.uid) : null,
+                                  )
+                                : _BoardPage(
+                                    key: ValueKey<String?>(shown.player.uid),
+                                    standing: shown,
+                                    board: shown.player.uid == widget.myUid
+                                        ? _publishedBoard(shown.player) ?? widget.myBoard
+                                        : _publishedBoard(shown.player),
+                                    totalPieces: widget.totalPieces,
+                                    solverLevel: widget.solverLevel,
+                                    onBack: () => widget.onShowBoard(null),
+                                  ),
+                          )
+                        : const SizedBox(width: double.infinity),
+                  ),
+                ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
@@ -273,7 +257,7 @@ class _ResultTable extends StatelessWidget {
   final VoidCallback? Function(RaceStanding standing) onShowBoard;
 
   @override
-  Widget build(final BuildContext context) => Padding(
+  Widget build(final BuildContext context) => SingleChildScrollView(
     padding: const EdgeInsets.only(bottom: 8),
     child: Column(
       children: [
@@ -299,7 +283,6 @@ class _BoardPage extends StatelessWidget {
     required this.standing,
     required this.board,
     required this.totalPieces,
-    required this.boardHeight,
     required this.solverLevel,
     required this.onBack,
   });
@@ -311,7 +294,6 @@ class _BoardPage extends StatelessWidget {
   /// Null until the player's board arrives.
   final RaceBoard? board;
   final int totalPieces;
-  final double boardHeight;
   final SolverLevel? solverLevel;
   final VoidCallback onBack;
 
@@ -374,14 +356,16 @@ class _BoardPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: boardHeight),
-              child: board == null
-                  ? SizedBox(
-                      height: boardHeight,
-                      child: Center(child: CircularProgressIndicator.adaptive()),
-                    )
-                  : RaceBoardPreview(board: board),
+            Flexible(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: RaceResultSheet._boardMaxHeight),
+                child: board == null
+                    ? const SizedBox(
+                        height: RaceResultSheet._boardMaxHeight,
+                        child: Center(child: CircularProgressIndicator.adaptive()),
+                      )
+                    : RaceBoardPreview(board: board),
+              ),
             ),
           ],
         ),
@@ -403,7 +387,7 @@ class _ResultRow extends StatelessWidget {
   });
 
   static const double _avatarRadius = 15;
-  static const double _avatarSlot = _avatarRadius * 2 / 0.62;
+  static const double _avatarSlot = _avatarRadius * 2 / LaurelWreath.childShare;
 
   final RaceStanding standing;
   final bool isMe;

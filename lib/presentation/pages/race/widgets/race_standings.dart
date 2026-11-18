@@ -254,7 +254,7 @@ class _StandingsAvatar extends StatelessWidget {
   const _StandingsAvatar({required this.item, this.slot});
 
   static const double _radius = 13;
-  static const double _wreath = _radius * 2 / 0.62;
+  static const double _wreath = _radius * 2 / LaurelWreath.childShare;
   static const double fullSlot = _wreath;
   static const double shortSlot = 30;
 

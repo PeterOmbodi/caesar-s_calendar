@@ -92,9 +92,6 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
 
   bool get _isMyRaceDone => _stoppedAtMs != null;
 
-  // The handedness setting will choose the side.
-  bool get _isStandingsOnLeft => true;
-
   bool get _showsResult {
     final me = widget.room.player(widget.myUid);
     return _isOver || (me != null && (me.hasFinished || me.gaveUp));
@@ -278,7 +275,6 @@ class _RaceGameScreenState extends State<RaceGameScreen> {
                       headerHeight: _headerHeight,
                       wideRail: true,
                       sidePanelWidth: hasStandingsColumn ? chrome.barHeight + GlassChrome.edgeMargin : 0,
-                      sidePanelOnLeft: _isStandingsOnLeft,
                     );
                     return Stack(
                       children: [
@@ -399,8 +395,7 @@ class _StandingsSlot extends StatelessWidget {
     builder: (final context, final top) {
       final chrome = ChromeTheme.of(context);
       return Positioned(
-        left: plan.sidePanelOnLeft ? GlassChrome.edgeMargin : null,
-        right: plan.sidePanelOnLeft ? null : GlassChrome.edgeMargin,
+        left: GlassChrome.edgeMargin,
         top: top,
         bottom: GlassChrome.edgeMargin + chrome.barHeight + 8,
         width: chrome.barHeight,

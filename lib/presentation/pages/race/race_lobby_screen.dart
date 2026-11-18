@@ -282,7 +282,7 @@ class _EmblemHeader extends SliverPersistentHeaderDelegate {
               child: Hero(
                 tag: raceHeadHeroTag,
                 // The colour of the race button's head: the same cached picture, so the first flight does not blink.
-                child: RomanHeadIcon(rank: RomanRank.centurion, color: head, size: _size * 0.62),
+                child: RomanHeadIcon(rank: RomanRank.centurion, color: head, size: _size * LaurelWreath.childShare),
               ),
             ),
           ),
@@ -318,7 +318,11 @@ class _TitleEmblem extends StatelessWidget {
                 key: const ValueKey(true),
                 size: _size,
                 color: colors.laurel,
-                child: RomanHeadIcon(rank: RomanRank.centurion, color: colors.icon, size: _size * 0.62),
+                child: RomanHeadIcon(
+                  rank: RomanRank.centurion,
+                  color: colors.icon,
+                  size: _size * LaurelWreath.childShare,
+                ),
               )
             : const SizedBox.shrink(key: ValueKey(false)),
       ),

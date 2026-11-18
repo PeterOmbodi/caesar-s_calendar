@@ -12,7 +12,6 @@ class GameLayoutPlan {
     required this.trayTopInset,
     required this.trayStartInset,
     required this.reserved,
-    required this.sidePanelOnLeft,
   });
 
   factory GameLayoutPlan.of(
@@ -21,7 +20,6 @@ class GameLayoutPlan {
     final double headerHeight = 0,
     final bool wideRail = false,
     final double sidePanelWidth = 0,
-    final bool sidePanelOnLeft = true,
   }) {
     final spec = ScreenSpec.of(context);
     final reserved = GameChrome.reservedInsets(context, wideRail: wideRail);
@@ -36,11 +34,7 @@ class GameLayoutPlan {
         spec.window == WindowClass.compact && spec.isLandscape && isLandscapeWith(EdgeInsets.zero);
     final headerInsets = isHeaderBesideBoard ? EdgeInsets.zero : aboveAndBelow;
     final isLandscape = isLandscapeWith(headerInsets);
-    final sidePanelInsets = !isLandscape || sidePanelWidth == 0
-        ? EdgeInsets.zero
-        : sidePanelOnLeft
-        ? EdgeInsets.only(left: sidePanelWidth)
-        : EdgeInsets.only(right: sidePanelWidth);
+    final sidePanelInsets = isLandscape ? EdgeInsets.only(left: sidePanelWidth) : EdgeInsets.zero;
     return GameLayoutPlan._(
       isHeaderBesideBoard: isHeaderBesideBoard,
       isLandscape: isLandscape,
@@ -48,7 +42,6 @@ class GameLayoutPlan {
       trayTopInset: isHeaderBesideBoard ? headerHeight : 0,
       trayStartInset: isLandscape ? 0 : sidePanelWidth,
       reserved: reserved,
-      sidePanelOnLeft: sidePanelOnLeft,
     );
   }
 
@@ -63,8 +56,6 @@ class GameLayoutPlan {
 
   final EdgeInsets reserved;
 
-  final bool sidePanelOnLeft;
-
   @override
   bool operator ==(final Object other) =>
       identical(this, other) ||
@@ -74,8 +65,7 @@ class GameLayoutPlan {
           other.contentInsets == contentInsets &&
           other.trayTopInset == trayTopInset &&
           other.trayStartInset == trayStartInset &&
-          other.reserved == reserved &&
-          other.sidePanelOnLeft == sidePanelOnLeft;
+          other.reserved == reserved;
 
   @override
   int get hashCode => Object.hash(
@@ -85,6 +75,5 @@ class GameLayoutPlan {
     trayTopInset,
     trayStartInset,
     reserved,
-    sidePanelOnLeft,
   );
 }

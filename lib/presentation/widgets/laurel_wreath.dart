@@ -84,9 +84,12 @@ class _LaurelBranchPainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.mirrored != mirrored || oldDelegate.grow != grow;
 }
 
-/// Two branches around [child], open at the top; [child] takes 0.62 of [size], as the head in the race emblem.
+/// Two branches around [child], open at the top.
 class LaurelWreath extends StatelessWidget {
   const LaurelWreath({super.key, required this.size, required this.color, required this.child, this.grow = 1});
+
+  /// The part of [size] the child takes inside the branches.
+  static const double childShare = 0.62;
 
   final double size;
   final Color color;
