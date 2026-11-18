@@ -8,6 +8,7 @@ import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:caesar_puzzle/presentation/widgets/key_cap.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 class GlassChrome extends GameChrome {
@@ -28,6 +29,7 @@ class GlassChrome extends GameChrome {
   static const double sideRailWidth = 226;
   static const double sideRailGap = 20;
   static const double wideRailWidth = 128;
+  static const _gridOrder = [GameActionId.rotate, GameActionId.flip, GameActionId.undo, GameActionId.redo];
 
   static EdgeInsets reservedInsets(final BuildContext context, {final bool wideRail = false}) {
     final extent = ChromeTheme.of(context).barHeight + edgeMargin;
@@ -75,6 +77,13 @@ class GlassChrome extends GameChrome {
         : primary.length <= 2
         ? _SlotLayout.inline
         : _SlotLayout.iconOnly;
+    if (layout == _SlotLayout.iconOnly) {
+      // In two columns the pairs share a row: turning above, undo and redo below, nearer the thumb.
+      primary.sortBy<num>((final a) {
+        final rank = _gridOrder.indexOf(a.id);
+        return rank < 0 ? _gridOrder.length : rank;
+      });
+    }
     final overflow = actions.where((final a) => a.slot == ActionSlot.overflow).toList();
     final slots = <Widget>[
       for (final action in primary)
