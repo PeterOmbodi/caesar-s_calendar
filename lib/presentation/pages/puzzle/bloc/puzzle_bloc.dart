@@ -53,14 +53,11 @@ enum PuzzleMode { daily, race }
 
 class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
   PuzzleBloc({
-    required final SettingsQuery settings,
-    required final SolvePuzzleUseCase solvePuzzleUseCase,
-    required final SessionRecorder sessionRecorder,
+    required this._settings,
+    required this._solvePuzzleUseCase,
+    required this._sessionRecorder,
     this.mode = PuzzleMode.daily,
-  }) : _settings = settings,
-       _solvePuzzleUseCase = solvePuzzleUseCase,
-       _sessionRecorder = sessionRecorder,
-       super(PuzzleState.initial()) {
+  }) : super(PuzzleState.initial()) {
     _lifecycleService = LifecycleService(_onLifecycleChanged);
 
     on<_SetViewSize>((final event, final emit) => _onViewSize(event, emit));

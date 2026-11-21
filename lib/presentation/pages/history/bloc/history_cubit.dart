@@ -86,9 +86,7 @@ class HistoryState {
 }
 
 class HistoryCubit extends Cubit<HistoryState> {
-  HistoryCubit({required final PuzzleHistoryUseCase historyUseCase})
-    : _historyUseCase = historyUseCase,
-      super(HistoryState.initial(DateTime.now()));
+  HistoryCubit({required this._historyUseCase}) : super(HistoryState.initial(DateTime.now()));
 
   static final DateTime _calendarRangeStart = DateTime(2020);
   static final DateTime _calendarRangeEnd = DateTime(2100, 12, 31);
