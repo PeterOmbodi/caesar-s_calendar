@@ -27,5 +27,5 @@ jobs:
       - run: flutter pub get --enforce-lockfile
       - run: dart pub get --directory packages/exact_cover_dlx
       - run: dart run intl_utils:generate
-      - run: dart run build_runner build -d
+      - run: dart run build_runner build
       - run: flutter analyze
