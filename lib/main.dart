@@ -7,6 +7,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.da
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
+import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:caesar_puzzle/presentation/widgets/system_bars.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -42,11 +43,13 @@ Future<void> main() async {
     await BrowserContextMenu.disableContextMenu();
   }
   runApp(
-    Builder(
-      builder: (final context) {
-        FlutterNativeSplash.remove();
-        return const MyApp();
-      },
+    GlassBrightnessScope(
+      child: Builder(
+        builder: (final context) {
+          FlutterNativeSplash.remove();
+          return const MyApp();
+        },
+      ),
     ),
   );
 }

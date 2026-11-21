@@ -77,3 +77,15 @@ class LiquidGlassPanel extends StatelessWidget {
     child: child,
   );
 }
+
+/// liquid_glass_widgets reads the app brightness from the SDK CupertinoTheme, which a material_ui MaterialApp
+/// no longer provides, so without the resolver glass follows the system theme instead of the app theme.
+class GlassBrightnessScope extends StatelessWidget {
+  const GlassBrightnessScope({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      LiquidGlassWidgets.wrap(brightnessResolver: Theme.maybeBrightnessOf, child: child);
+}
