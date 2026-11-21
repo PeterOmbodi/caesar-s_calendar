@@ -1,7 +1,7 @@
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/glass_chrome.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// [anchor] is the pressed control in global coordinates.
 typedef GameActionCallback = void Function(GameAction action, Rect anchor);

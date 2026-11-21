@@ -36,9 +36,9 @@ import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/game_background.dart';
 import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 class RaceGameScreen extends StatefulWidget {
   const RaceGameScreen({

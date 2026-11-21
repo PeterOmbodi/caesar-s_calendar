@@ -1,7 +1,7 @@
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/domain/entities/puzzle_grid_entity.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 extension PuzzleGridX on PuzzleGridEntity {
   Cell? cellAt(final Offset position) {

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:caesar_puzzle/application/race/race_lights.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/widgets/game_background.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CountdownOverlay extends StatefulWidget {
   const CountdownOverlay({

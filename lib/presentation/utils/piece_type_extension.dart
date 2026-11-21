@@ -1,6 +1,6 @@
 import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 extension PieceTypeExtension on PieceType {
   Color get colorForType => isConfigType ? AppColors.current.game.blockedCell : AppColors.current.game.piece(this);

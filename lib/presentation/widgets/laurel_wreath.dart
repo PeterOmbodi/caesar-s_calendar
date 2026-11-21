@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class LaurelBranch extends StatelessWidget {
   const LaurelBranch({super.key, required this.color, required this.mirrored, this.grow = 1});

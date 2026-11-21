@@ -1,5 +1,5 @@
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 abstract class ThemeColors {
   GameColors get game;

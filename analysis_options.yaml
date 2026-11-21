@@ -28,6 +28,10 @@ analyzer:
     - "**/config.dart"
     - "**/redesign/images.dart"
     - "**/bundle_types.dart"
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
   errors:
     missing_required_param: error

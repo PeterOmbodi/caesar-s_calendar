@@ -1,8 +1,8 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/actions/game_action.dart';
+import 'package:caesar_puzzle/presentation/widgets/adaptive_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<bool> confirmAssist(
   final BuildContext context, {
@@ -22,9 +22,9 @@ Future<bool> confirmAssist(
 
 Future<void> showDeadEndNotice(final BuildContext context) => showAdaptiveDialog<void>(
   context: context,
-  builder: (final context) => PlatformAlertDialog(
+  builder: (final context) => AlertDialog.adaptive(
     title: Text(S.current.searchCompletedDialogTitle),
     content: Text(S.current.solutionsNotFoundDialogMessage),
-    actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
+    actions: [AdaptiveDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
   ),
 );

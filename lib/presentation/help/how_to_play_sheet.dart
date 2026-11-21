@@ -8,7 +8,7 @@ import 'package:caesar_puzzle/presentation/services/keyboard_presence.dart';
 import 'package:caesar_puzzle/presentation/widgets/game_sheet.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:caesar_puzzle/presentation/widgets/key_cap.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<void> showHowToPlaySheet(final BuildContext context) =>
     showGameSheet(context, title: S.current.howToPlayTitle, builder: (_) => const _HowToPlayBody());

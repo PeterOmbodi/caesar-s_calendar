@@ -35,19 +35,19 @@ import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart' show kDoubleTapSlop, kDoubleTapTimeout;
-import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:material_ui/material_ui.dart';
 
 part 'puzzle_bloc.freezed.dart';
+part 'puzzle_bloc_drag.dart';
+part 'puzzle_bloc_layout.dart';
+part 'puzzle_bloc_pieces_actions.dart';
+part 'puzzle_bloc_session.dart';
+part 'puzzle_bloc_solutions.dart';
 part 'puzzle_event.dart';
 part 'puzzle_history_input_extension.dart';
 part 'puzzle_state.dart';
 part 'puzzle_state_placements.dart';
-part 'puzzle_bloc_layout.dart';
-part 'puzzle_bloc_drag.dart';
-part 'puzzle_bloc_pieces_actions.dart';
-part 'puzzle_bloc_solutions.dart';
-part 'puzzle_bloc_session.dart';
 
 enum PuzzleMode { daily, race }
 

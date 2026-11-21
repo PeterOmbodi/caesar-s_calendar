@@ -12,7 +12,7 @@ import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/laurel_wreath.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Folds down to its title so that the final board can be seen.
 class RaceResultSheet extends StatefulWidget {

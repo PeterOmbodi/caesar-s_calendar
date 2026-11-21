@@ -4,7 +4,7 @@ import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/core/models/place_zone.dart';
 import 'package:caesar_puzzle/core/models/position.dart';
 import 'package:caesar_puzzle/presentation/models/puzzle_piece_ui.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Extension for PuzzlePiece to add the [relativeCells] getter.
 /// This computes the grid cells (relative to the shape's top-left in its default orientation)

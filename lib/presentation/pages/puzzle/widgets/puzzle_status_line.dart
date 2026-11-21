@@ -8,7 +8,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/status/status_text.dart'
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class PuzzleStatusLine extends StatelessWidget {
   const PuzzleStatusLine({

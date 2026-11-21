@@ -1,7 +1,7 @@
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Mouse affordances: grab cursors over pieces, right click flips, the wheel rotates.
 class PointerControls extends StatefulWidget {

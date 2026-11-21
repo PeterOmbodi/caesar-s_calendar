@@ -1,7 +1,7 @@
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 extension SolutionIndicatorDifficultyX on SolutionIndicator {
   PuzzleSessionDifficulty get sessionDifficulty {

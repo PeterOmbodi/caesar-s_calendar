@@ -1,6 +1,6 @@
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The head that flies from the race button to the emblem of the race lobby.
 const Object raceHeadHeroTag = 'raceHead';

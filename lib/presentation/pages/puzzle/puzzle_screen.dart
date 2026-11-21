@@ -30,14 +30,14 @@ import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/widgets/adaptive_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
 import 'package:caesar_puzzle/presentation/widgets/game_background.dart';
 import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
 import 'package:caesar_puzzle/presentation/widgets/measure_size.dart';
 import 'package:flutter/gestures.dart' show kDoubleTapTimeout;
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'bloc/puzzle_bloc.dart';
 
@@ -316,7 +316,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     final usedHints = state.gridPieces.where((final e) => !e.isUsersItem).length;
     await showAdaptiveDialog(
       context: context,
-      builder: (final context) => PlatformAlertDialog(
+      builder: (final context) => AlertDialog.adaptive(
         title: Text(S.of(context).solvedAlertTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -331,7 +331,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
             Text('${S.current.hintUsed}: $usedHints'),
           ],
         ),
-        actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
+        actions: [AdaptiveDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.of(context).ok))],
       ),
     );
   }

@@ -6,8 +6,8 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/widgets/puzzle_header.da
 import 'package:caesar_puzzle/presentation/pages/race/race_time_format.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_circle_button.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:material_ui/material_ui.dart';
 
 class RaceHeader extends StatelessWidget {
   const RaceHeader({

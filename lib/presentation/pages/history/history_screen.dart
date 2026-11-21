@@ -7,8 +7,8 @@ import 'package:caesar_puzzle/presentation/pages/history/widgets/history_app_bar
 import 'package:caesar_puzzle/presentation/pages/history/widgets/history_content_layout.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/puzzle_day_picker.dart';
 import 'package:caesar_puzzle/presentation/widgets/max_width.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key, this.initialDate, this.boardBlocked});

@@ -2,10 +2,9 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/history_app_bar.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   tearDown(() => ChromeFamily.debugOverride = null);
@@ -17,12 +16,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: AppThemeData.light.copyWith(platform: TargetPlatform.iOS),
-          localizationsDelegates: const [
-            S.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
+          localizationsDelegates: [S.delegate, ...GlobalMaterialLocalizations.delegates],
           supportedLocales: S.delegate.supportedLocales,
           home: Scaffold(appBar: HistoryAppBar(onPickDate: () => pickerPressed = true)),
         ),

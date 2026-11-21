@@ -4,7 +4,7 @@ import 'package:caesar_puzzle/presentation/pages/race/solver_level_name.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/roman_head_icon.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A person shows the initials of the nickname; the solver shows the head of its level.
 class RacePlayerAvatar extends StatelessWidget {

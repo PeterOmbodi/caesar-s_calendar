@@ -3,7 +3,7 @@ import 'package:caesar_puzzle/application/race/solver_level.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/help/how_to_play_content.dart';
 import 'package:caesar_puzzle/presentation/pages/race/solver_level_name.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 HelpSection raceRulesSection() => HelpSection(
   title: S.current.raceTitle,

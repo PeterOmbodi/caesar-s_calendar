@@ -3,7 +3,7 @@ import 'package:caesar_puzzle/presentation/pages/history/models/session_summary.
 import 'package:caesar_puzzle/presentation/pages/leaderboard/bloc/leaderboard_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class LeaderboardRowView extends StatelessWidget {
   const LeaderboardRowView({super.key, required this.row});

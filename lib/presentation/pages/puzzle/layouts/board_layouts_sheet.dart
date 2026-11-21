@@ -8,11 +8,11 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/layouts/board_layouts_cu
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
+import 'package:caesar_puzzle/presentation/widgets/adaptive_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<void> showBoardLayoutsSheet(final BuildContext context) {
   final spec = ScreenSpec.of(context);
@@ -520,11 +520,11 @@ class _NameDialogState extends State<_NameDialog> {
   }
 
   @override
-  Widget build(final BuildContext context) => PlatformAlertDialog(
+  Widget build(final BuildContext context) => AlertDialog.adaptive(
     title: Text(widget.title),
     content: Padding(
       padding: const EdgeInsets.only(top: 8),
-      child: PlatformTextField(
+      child: AdaptiveTextField(
         controller: _controller,
         autofocus: true,
         hintText: S.current.layoutsNameHint,
@@ -533,10 +533,10 @@ class _NameDialogState extends State<_NameDialog> {
       ),
     ),
     actions: [
-      PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.layoutsCancel)),
+      AdaptiveDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.layoutsCancel)),
       ValueListenableBuilder<TextEditingValue>(
         valueListenable: _controller,
-        builder: (final context, final value, _) => PlatformDialogAction(
+        builder: (final context, final value, _) => AdaptiveDialogAction(
           onPressed: value.text.trim().isEmpty ? null : _submit,
           child: Text(S.current.layoutsSave),
         ),
