@@ -4,6 +4,7 @@ import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/puzzle_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
+import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:caesar_puzzle/presentation/theme/colors.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
@@ -69,13 +70,13 @@ class MyApp extends StatelessWidget {
       builder: (final context, final settings) => MaterialApp(
         debugShowCheckedModeBanner: false,
         onGenerateTitle: (final context) => S.of(context).appTitle,
-        theme: AppThemeData.light,
-        darkTheme: AppThemeData.dark,
+        theme: AppThemeData.of(AppPalette.classic, Brightness.light),
+        darkTheme: AppThemeData.of(AppPalette.classic, Brightness.dark),
         themeMode: settings.theme.toThemeMode(),
         locale: settings.locale,
         builder: (final context, final child) {
           final theme = Theme.of(context);
-          AppColors.update(theme.brightness);
+          AppColors.update(GameColors.of(context), theme.brightness);
           final app = SystemBars(child: child!);
           if (ScreenSpec.of(context).family != ChromeFamily.glass) return app;
           return Theme(

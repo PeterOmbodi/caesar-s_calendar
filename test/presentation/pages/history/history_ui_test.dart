@@ -10,6 +10,7 @@ import 'package:caesar_puzzle/presentation/pages/history/widgets/history_app_bar
 import 'package:caesar_puzzle/presentation/pages/history/widgets/history_content_layout.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/history_overview.dart';
 import 'package:caesar_puzzle/presentation/pages/history/widgets/puzzle_day_picker.dart';
+import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -86,7 +87,10 @@ class _HistoryTestHarnessState extends State<_HistoryTestHarness> {
 }
 
 Widget app(final Widget child, {final bool dark = false}) => MaterialApp(
-  theme: (dark ? AppThemeData.dark : AppThemeData.light).copyWith(platform: TargetPlatform.iOS),
+  theme: AppThemeData.of(
+    AppPalette.classic,
+    dark ? Brightness.dark : Brightness.light,
+  ).copyWith(platform: TargetPlatform.iOS),
   localizationsDelegates: [S.delegate, ...GlobalMaterialLocalizations.delegates],
   supportedLocales: S.delegate.supportedLocales,
   locale: const Locale('en'),
