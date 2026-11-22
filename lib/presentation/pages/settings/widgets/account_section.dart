@@ -314,7 +314,6 @@ class _SignedIn extends StatelessWidget {
             InsetRow(
               icon: Icons.logout,
               title: S.current.accountSignOut,
-              titleColor: colors.accent,
               onTap: auth.isLoading ? null : cubit.signOut,
             ),
             InsetRow(

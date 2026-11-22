@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:caesar_puzzle/presentation/widgets/system_bars.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/foundation.dart';
@@ -23,9 +24,19 @@ class AppThemeData {
       primary: game.active,
       onPrimary: game.onActive,
       tertiary: game.accent,
+      secondaryContainer: Color.lerp(game.board, game.active, brightness == Brightness.dark ? 0.3 : 0.16),
+      onSecondaryContainer: game.text,
       surface: game.background,
       onSurface: game.text,
       onSurfaceVariant: game.textSecondary,
+      surfaceTint: Colors.transparent,
+      surfaceContainerLowest: game.board,
+      surfaceContainerLow: game.board,
+      surfaceContainer: Color.lerp(game.board, game.blockedCell, 0.5),
+      surfaceContainerHigh: game.blockedCell,
+      surfaceContainerHighest: game.gridLine,
+      outline: Color.lerp(game.boardBorder, game.textSecondary, 0.5),
+      outlineVariant: game.gridLine,
       error: game.bad,
     );
     return ThemeData(
@@ -39,6 +50,26 @@ class AppThemeData {
         surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemBars.styleFor(brightness),
       ),
+      cardTheme: CardThemeData(
+        color: game.board,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(InsetSection.radius)),
+          side: BorderSide(color: game.gridLine),
+        ),
+      ),
+      dividerTheme: DividerThemeData(color: game.gridLine),
+      switchTheme: SwitchThemeData(
+        thumbIcon: WidgetStateProperty.resolveWith(
+          (final states) => states.contains(WidgetState.selected)
+              ? Icon(Icons.check, color: game.active)
+              : const Icon(Icons.close),
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(backgroundColor: game.background, dragHandleColor: game.boardBorder),
+      drawerTheme: DrawerThemeData(backgroundColor: game.background),
+      dialogTheme: DialogThemeData(backgroundColor: game.board),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),

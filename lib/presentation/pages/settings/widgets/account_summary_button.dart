@@ -31,11 +31,9 @@ class AccountSummaryButton extends StatelessWidget {
     final photoUrl = AccountDisplay.bestPhotoUrl(user);
     final (:title, :subtitle) = textFor(auth);
 
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-      borderRadius: BorderRadius.circular(12),
+    return Card(
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
         onTap: onPressed,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

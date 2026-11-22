@@ -22,17 +22,7 @@ class InsetSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (header != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Semantics(
-              header: true,
-              child: Text(
-                header,
-                style: TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w600, color: colors.text),
-              ),
-            ),
-          ),
+        if (header != null) InsetHeader(header),
         ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(radius)),
           child: ColoredBox(
@@ -61,6 +51,25 @@ class InsetSection extends StatelessWidget {
   }
 }
 
+/// The heading above a group of rows; also used above controls that sit outside an [InsetSection].
+class InsetHeader extends StatelessWidget {
+  const InsetHeader(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(final BuildContext context) {
+    final theme = Theme.of(context);
+    final style = ScreenSpec.of(context).family == ChromeFamily.glass
+        ? TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w600, color: GameColors.of(context).text)
+        : theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Semantics(header: true, child: Text(text, style: style)),
+    );
+  }
+}
+
 class _MaterialInsetSection extends StatelessWidget {
   const _MaterialInsetSection({required this.header, required this.footer, required this.children});
 
@@ -76,16 +85,8 @@ class _MaterialInsetSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (header != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Semantics(
-              header: true,
-              child: Text(header, style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary)),
-            ),
-          ),
-        Card.filled(
-          margin: EdgeInsets.zero,
+        if (header != null) InsetHeader(header),
+        Card(
           clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

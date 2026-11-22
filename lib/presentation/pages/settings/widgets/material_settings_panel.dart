@@ -10,10 +10,13 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/app_check_stat
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+
+const double _sectionGap = 24;
 
 /// Settings as a Material 3 list.
 class MaterialSettingsPanel extends StatelessWidget {
@@ -28,41 +31,37 @@ class MaterialSettingsPanel extends StatelessWidget {
       child: SafeArea(
         child: BlocBuilder<SettingsCubit, SettingsState>(
           builder: (final context, final state) => ListView(
-            padding: const EdgeInsets.only(bottom: 24),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+                padding: const EdgeInsets.fromLTRB(8, 20, 8, 16),
                 child: Semantics(header: true, child: Text(S.current.settings, style: theme.textTheme.headlineSmall)),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: BlocBuilder<AuthCubit, AuthState>(
-                  buildWhen: (final p, final n) =>
-                      p.isAvailable != n.isAvailable || p.user?.uid != n.user?.uid || p.isLoading != n.isLoading,
-                  builder: (final context, final auth) => AccountSummaryButton(
-                    auth: auth,
-                    onPressed: () => showAccountSectionSheet(context, closeDrawerFirst: true),
-                  ),
+              BlocBuilder<AuthCubit, AuthState>(
+                buildWhen: (final p, final n) =>
+                    p.isAvailable != n.isAvailable || p.user?.uid != n.user?.uid || p.isLoading != n.isLoading,
+                builder: (final context, final auth) => AccountSummaryButton(
+                  auth: auth,
+                  onPressed: () => showAccountSectionSheet(context, closeDrawerFirst: true),
                 ),
               ),
-              _Header(S.current.theme),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SegmentedButton<AppTheme>(
-                  segments: [
-                    ButtonSegment(value: AppTheme.system, label: Text(S.current.system)),
-                    ButtonSegment(value: AppTheme.light, label: Text(S.current.light)),
-                    ButtonSegment(value: AppTheme.dark, label: Text(S.current.dark)),
-                  ],
-                  selected: {state.theme},
-                  onSelectionChanged: (final selected) => cubit.setTheme(selected.first),
-                ),
+              const SizedBox(height: _sectionGap),
+              InsetHeader(S.current.theme),
+              SegmentedButton<AppTheme>(
+                segments: [
+                  ButtonSegment(value: AppTheme.system, label: Text(S.current.system)),
+                  ButtonSegment(value: AppTheme.light, label: Text(S.current.light)),
+                  ButtonSegment(value: AppTheme.dark, label: Text(S.current.dark)),
+                ],
+                selected: {state.theme},
+                onSelectionChanged: (final selected) => cubit.setTheme(selected.first),
               ),
-              _Header(S.current.solvability),
+              const SizedBox(height: _sectionGap),
               RadioGroup<SolutionIndicator>(
                 groupValue: state.solutionIndicator,
                 onChanged: cubit.setSolutionIndicator,
-                child: Column(
+                child: InsetSection(
+                  header: S.current.solvability,
                   children: [
                     for (final MapEntry(key: indicator, value: subtitle) in {
                       SolutionIndicator.none: S.current.solutionIndicatorHiddenSubtitle,
@@ -78,78 +77,101 @@ class MaterialSettingsPanel extends StatelessWidget {
                   ],
                 ),
               ),
-              _Header(S.current.additional),
-              SwitchListTile(
-                title: Text(S.current.timerToggleTitle),
-                subtitle: Text(S.current.timerToggleSubtitle),
-                value: state.showTimer,
-                onChanged: cubit.toggleShowTimer,
-              ),
+              const SizedBox(height: _sectionGap),
               ValueListenableBuilder(
                 valueListenable: HapticsSupport.instance.available,
-                builder: (final context, final available, _) => available
-                    ? SwitchListTile(
+                builder: (final context, final hapticsAvailable, _) => InsetSection(
+                  header: S.current.additional,
+                  children: [
+                    SwitchListTile(
+                      title: Text(S.current.timerToggleTitle),
+                      subtitle: Text(S.current.timerToggleSubtitle),
+                      value: state.showTimer,
+                      onChanged: cubit.toggleShowTimer,
+                    ),
+                    if (hapticsAvailable)
+                      SwitchListTile(
                         title: Text(S.current.hapticsTitle),
                         subtitle: Text(S.current.hapticsSubtitle),
                         value: state.haptics,
                         onChanged: cubit.toggleHaptics,
-                      )
-                    : const SizedBox.shrink(),
+                      ),
+                    SwitchListTile(
+                      title: Text(S.current.soundsTitle),
+                      subtitle: Text(S.current.soundsSubtitle),
+                      value: state.sounds,
+                      onChanged: cubit.toggleSounds,
+                    ),
+                  ],
+                ),
               ),
-              SwitchListTile(
-                title: Text(S.current.soundsTitle),
-                subtitle: Text(S.current.soundsSubtitle),
-                value: state.sounds,
-                onChanged: cubit.toggleSounds,
+              const SizedBox(height: _sectionGap),
+              InsetSection(
+                header: S.current.general,
+                children: [
+                  SwitchListTile(
+                    title: Text(S.current.preventOverlapping),
+                    subtitle: Text(S.current.preventOverlappingDescription),
+                    value: state.preventOverlap,
+                    onChanged: cubit.togglePreventOverlap,
+                  ),
+                  SwitchListTile(
+                    title: Text(S.current.snapToGrid),
+                    subtitle: Text(S.current.snapToGridDescription),
+                    value: state.snapToGridOnTransform,
+                    onChanged: cubit.toggleSnapToGrid,
+                  ),
+                  SwitchListTile(
+                    title: Text(S.current.borderConfig),
+                    subtitle: Text(S.current.borderConfigDescription),
+                    value: state.separateMoveColors,
+                    onChanged: cubit.toggleSeparateColors,
+                  ),
+                ],
               ),
-              _Header(S.current.general),
-              SwitchListTile(
-                title: Text(S.current.preventOverlapping),
-                subtitle: Text(S.current.preventOverlappingDescription),
-                value: state.preventOverlap,
-                onChanged: cubit.togglePreventOverlap,
-              ),
-              SwitchListTile(
-                title: Text(S.current.snapToGrid),
-                subtitle: Text(S.current.snapToGridDescription),
-                value: state.snapToGridOnTransform,
-                onChanged: cubit.toggleSnapToGrid,
-              ),
-              SwitchListTile(
-                title: Text(S.current.borderConfig),
-                subtitle: Text(S.current.borderConfigDescription),
-                value: state.separateMoveColors,
-                onChanged: cubit.toggleSeparateColors,
-              ),
-              const Divider(height: 32),
-              ListTile(
-                leading: const Icon(Icons.language),
-                title: Text(languageSectionTitle(Localizations.localeOf(context))),
-                subtitle: Text(_languageName(state.localeCode)),
-                onTap: () => _pickLanguage(context, state.localeCode),
+              const SizedBox(height: _sectionGap),
+              InsetSection(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.language),
+                    title: Text(languageSectionTitle(Localizations.localeOf(context))),
+                    subtitle: Text(_languageName(state.localeCode)),
+                    onTap: () => _pickLanguage(context, state.localeCode),
+                  ),
+                ],
               ),
               if (webStoreLinks() case final links when links.isNotEmpty) ...[
-                _Header(S.current.storeGetApp),
-                for (final link in links)
-                  ListTile(
-                    leading: Icon(link.icon),
-                    title: Text(link.title),
-                    subtitle: link.subtitle == null ? null : Text(link.subtitle!),
-                    trailing: link.url == null ? null : const Icon(Icons.open_in_new),
-                    enabled: link.url != null,
-                    onTap: () => openStoreLink(link),
-                  ),
+                const SizedBox(height: _sectionGap),
+                InsetSection(
+                  header: S.current.storeGetApp,
+                  children: [
+                    for (final link in links)
+                      ListTile(
+                        leading: Icon(link.icon),
+                        title: Text(link.title),
+                        subtitle: link.subtitle == null ? null : Text(link.subtitle!),
+                        trailing: link.url == null ? null : const Icon(Icons.open_in_new),
+                        enabled: link.url != null,
+                        onTap: () => openStoreLink(link),
+                      ),
+                  ],
+                ),
               ],
               if (kDebugMode) ...[
-                ListTile(
-                  leading: const Icon(Icons.restart_alt),
-                  title: const Text('Reset help for today'),
-                  onTap: () => _resetTodayHelp(context),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.verified_user_outlined),
-                  title: const Text('App Check'),
-                  onTap: () => showAppCheckStatus(context),
+                const SizedBox(height: _sectionGap),
+                InsetSection(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.restart_alt),
+                      title: const Text('Reset help for today'),
+                      onTap: () => _resetTodayHelp(context),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.verified_user_outlined),
+                      title: const Text('App Check'),
+                      onTap: () => showAppCheckStatus(context),
+                    ),
+                  ],
                 ),
               ],
               FutureBuilder(
@@ -157,7 +179,7 @@ class MaterialSettingsPanel extends StatelessWidget {
                 builder: (final context, final snapshot) => snapshot.hasData
                     ? AppCheckSecretTap(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                           child: Text(
                             'Version ${snapshot.data!.version}+${snapshot.data!.buildNumber}',
                             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
@@ -185,24 +207,6 @@ class MaterialSettingsPanel extends StatelessWidget {
     if (picked != null) {
       cubit.setLocaleCode(picked.code);
     }
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header(this.text);
-
-  final String text;
-
-  @override
-  Widget build(final BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Semantics(
-        header: true,
-        child: Text(text, style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary)),
-      ),
-    );
   }
 }
 
