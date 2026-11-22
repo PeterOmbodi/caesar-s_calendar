@@ -15,13 +15,11 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 class AuthService {
   AuthService({
     required final FirebaseAuth firebaseAuth,
-    required final FirebaseFirestore firestore,
+    required this._firestore,
     required final GoogleSignIn googleSignIn,
-    required final LeaderboardRepository leaderboards,
+    required this._leaderboards,
   }) : _auth = firebaseAuth,
-       _firestore = firestore,
-       _google = googleSignIn,
-       _leaderboards = leaderboards;
+       _google = googleSignIn;
 
   static const _googleWebClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
   static const _webPopupSignInTimeout = Duration(minutes: 2);

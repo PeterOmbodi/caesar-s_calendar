@@ -2,7 +2,7 @@ import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/help/how_to_play_content.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 HelpSection recordsRulesSection({final bool titled = true}) {
   final medium = PuzzleSessionDifficulty.medium.label;

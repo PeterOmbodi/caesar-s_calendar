@@ -5,8 +5,8 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/services/move_history_service.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   const layoutService = LayoutService();

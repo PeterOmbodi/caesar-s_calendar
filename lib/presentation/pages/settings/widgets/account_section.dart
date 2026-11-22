@@ -12,9 +12,9 @@ import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const _webVersionUri = 'https://peterombodi.github.io/caesar-s_calendar/';

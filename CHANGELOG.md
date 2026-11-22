@@ -1,3 +1,7 @@
+## 1.14.4+52
+- built with Flutter 3.50
+- dialogs are built on the app's own adaptive components instead of a discontinued third-party package
+
 ## 1.14.3+51
 - the same account cannot be in a room from two devices at once; a second device is told to close the room on the first one
 - two players with the same profile colour get different colours in a race

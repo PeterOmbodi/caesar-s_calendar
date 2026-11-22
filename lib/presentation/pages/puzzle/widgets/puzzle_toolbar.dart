@@ -19,8 +19,8 @@ import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/coach_mark.dart';
 import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 enum _BottomControlIntro { history, allSolutions, hint }
 

@@ -13,8 +13,8 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.da
 import 'package:caesar_puzzle/presentation/services/layout_service.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 class PuzzleView extends StatelessWidget {
   const PuzzleView({super.key, required this.plan});

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:caesar_puzzle/presentation/widgets/adaptive_dialog.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ConfirmDialog extends StatelessWidget {
   const ConfirmDialog({
@@ -42,14 +42,15 @@ class ConfirmDialog extends StatelessWidget {
       false;
 
   @override
-  Widget build(final BuildContext context) => PlatformAlertDialog(
+  Widget build(final BuildContext context) => AlertDialog.adaptive(
     title: Text(title),
     content: Text(message),
     actions: [
-      PlatformDialogAction(onPressed: () => Navigator.of(context).pop(false), child: Text(cancelLabel)),
-      PlatformDialogAction(
+      AdaptiveDialogAction(onPressed: () => Navigator.of(context).pop(false), child: Text(cancelLabel)),
+      AdaptiveDialogAction(
         onPressed: () => Navigator.of(context).pop(true),
-        cupertino: (_, _) => CupertinoDialogActionData(isDefaultAction: isDefault, isDestructiveAction: destructive),
+        isDefault: isDefault,
+        destructive: destructive,
         child: Text(confirmLabel),
       ),
     ],

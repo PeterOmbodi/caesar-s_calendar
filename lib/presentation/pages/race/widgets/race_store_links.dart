@@ -1,5 +1,5 @@
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Web only: a visitor who came by a room link may prefer the app.
 class RaceStoreLinks extends StatelessWidget {

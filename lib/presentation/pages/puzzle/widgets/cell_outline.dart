@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:caesar_puzzle/core/models/cell.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 typedef _Point = ({int x, int y});
 

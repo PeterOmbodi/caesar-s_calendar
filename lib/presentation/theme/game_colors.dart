@@ -1,5 +1,5 @@
 import 'package:caesar_puzzle/core/models/piece_type.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 // Values come from the game screen mockup: dark theme from concept A2, light theme from B2.
 @immutable

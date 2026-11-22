@@ -12,9 +12,9 @@ import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_circle_button.dart';
 import 'package:caesar_puzzle/presentation/widgets/roman_head_icon.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:material_ui/material_ui.dart';
 
 typedef _HeaderType = ({TextStyle title, TextStyle subtitle, TextStyle goal, double goalGap});
 

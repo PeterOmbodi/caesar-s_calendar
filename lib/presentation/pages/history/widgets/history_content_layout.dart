@@ -7,8 +7,8 @@ import 'package:caesar_puzzle/presentation/pages/history/widgets/session_list.da
 import 'package:caesar_puzzle/presentation/pages/history/widgets/statistics_tab.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/app_segmented_control.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 class HistoryContentLayout extends StatelessWidget {
   const HistoryContentLayout({

@@ -2,9 +2,8 @@ import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_standings.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   final now = DateTime.fromMillisecondsSinceEpoch(10000000);
@@ -15,12 +14,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppThemeData.light,
-        localizationsDelegates: const [
-          S.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
+        localizationsDelegates: [S.delegate, ...GlobalMaterialLocalizations.delegates],
         supportedLocales: S.delegate.supportedLocales,
         home: Scaffold(
           body: Align(

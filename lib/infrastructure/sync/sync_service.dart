@@ -17,12 +17,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 @lazySingleton
 class SyncService {
   SyncService({
-    required final AppDatabase db,
-    required final FirebaseFirestore firestore,
-    required final AuthService auth,
-  }) : _db = db,
-       _firestore = firestore,
-       _auth = auth;
+    required this._db,
+    required this._firestore,
+    required this._auth,
+  });
 
   final AppDatabase _db;
   final FirebaseFirestore _firestore;

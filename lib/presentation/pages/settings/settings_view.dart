@@ -1,7 +1,7 @@
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/cupertino_settings_panel.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/material_settings_panel.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class SettingsPanel extends StatelessWidget {
   const SettingsPanel({super.key});

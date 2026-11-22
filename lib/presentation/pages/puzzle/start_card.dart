@@ -12,7 +12,7 @@ import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:caesar_puzzle/presentation/widgets/spotlight_painter.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// [dateCells] is re-read on [boardChanges] and on resize.
 Future<SolutionIndicator> showStartCard(

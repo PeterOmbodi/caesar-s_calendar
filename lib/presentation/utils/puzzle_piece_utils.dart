@@ -1,5 +1,5 @@
 import 'package:caesar_puzzle/core/models/piece_type.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 Path generatePathForType(final PieceType type, final double cellSize) {
   switch (type) {

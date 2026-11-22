@@ -1,7 +1,7 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/infrastructure/firebase/firebase_bootstrap.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:caesar_puzzle/presentation/widgets/adaptive_dialog.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<void> showAppCheckStatus(final BuildContext context) =>
     showAdaptiveDialog<void>(context: context, builder: (_) => const _AppCheckStatusDialog());
@@ -17,14 +17,14 @@ class _AppCheckStatusDialogState extends State<_AppCheckStatusDialog> {
   final Future<String> _status = FirebaseBootstrap.appCheckStatus();
 
   @override
-  Widget build(final BuildContext context) => PlatformAlertDialog(
+  Widget build(final BuildContext context) => AlertDialog.adaptive(
     title: const Text('App Check'),
     content: FutureBuilder(
       future: _status,
       builder: (final context, final snapshot) =>
           snapshot.hasData ? SelectableText(snapshot.data!) : const Center(child: CircularProgressIndicator.adaptive()),
     ),
-    actions: [PlatformDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
+    actions: [AdaptiveDialogAction(onPressed: () => Navigator.of(context).pop(), child: Text(S.current.ok))],
   );
 }
 

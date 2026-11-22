@@ -1,5 +1,5 @@
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Keyboard shortcut badge, e.g. ⌘Z.
 class KeyCap extends StatelessWidget {

@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 part 'settings_cubit.freezed.dart';
 part 'settings_cubit.g.dart';

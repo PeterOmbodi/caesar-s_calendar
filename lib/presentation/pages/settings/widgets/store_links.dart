@@ -1,6 +1,6 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 typedef StoreLink = ({String title, String? subtitle, IconData icon, Uri? url});

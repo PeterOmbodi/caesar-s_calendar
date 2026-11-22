@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/application/models/puzzle_piece_snapshot.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_data.dart';
 import 'package:caesar_puzzle/application/models/puzzle_session_status.dart';
+import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
 import 'package:caesar_puzzle/application/puzzle_history_use_case.dart';
 import 'package:caesar_puzzle/application/solve_puzzle_use_case.dart';
 import 'package:caesar_puzzle/core/models/cell.dart';
@@ -24,9 +25,8 @@ import 'package:caesar_puzzle/presentation/utils/calendar_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_entity_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_grid_extension.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_piece_extension.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:caesar_puzzle/application/models/solved_solution_record.dart';
+import 'package:material_ui/material_ui.dart';
 
 class _FakeSettingsQuery implements SettingsQuery {
   _FakeSettingsQuery({this.preventOverlap = false, this.snapToGridOnTransform = false});

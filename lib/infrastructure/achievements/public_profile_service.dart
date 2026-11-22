@@ -65,12 +65,10 @@ class _PlayerState {
 @lazySingleton
 class PublicProfileService {
   PublicProfileService({
-    required final AuthService auth,
-    required final LeaderboardRepository leaderboards,
-    required final LeaderboardPublisher publisher,
-  }) : _auth = auth,
-       _leaderboards = leaderboards,
-       _publisher = publisher;
+    required this._auth,
+    required this._leaderboards,
+    required this._publisher,
+  });
 
   final AuthService _auth;
   final LeaderboardRepository _leaderboards;

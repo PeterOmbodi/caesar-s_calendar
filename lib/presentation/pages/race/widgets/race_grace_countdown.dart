@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class RaceGraceCountdown extends StatefulWidget {
   const RaceGraceCountdown({super.key, required this.endsAtMs, required this.now});

@@ -21,8 +21,8 @@ import 'package:caesar_puzzle/presentation/pages/race/widgets/room_code_card.dar
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Pops with a message when the room could not be entered or is gone.
 class RaceRoomScreen extends StatefulWidget {

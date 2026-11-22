@@ -2,7 +2,7 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_circle_button.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A sheet on a phone in portrait, a centered panel elsewhere. Sized to its content.
 Future<T?> showGameSheet<T>(

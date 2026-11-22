@@ -28,6 +28,10 @@ analyzer:
     - "**/config.dart"
     - "**/redesign/images.dart"
     - "**/bundle_types.dart"
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
   errors:
     missing_required_param: error
@@ -42,7 +46,6 @@ linter:
     prefer_final_fields: true
     prefer_final_locals: true
     prefer_final_in_for_each: true
-    prefer_final_parameters: true
     cancel_subscriptions: true
     avoid_types_as_parameter_names: true
     empty_statements: true

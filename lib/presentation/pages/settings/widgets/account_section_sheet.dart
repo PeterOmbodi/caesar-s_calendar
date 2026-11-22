@@ -3,8 +3,8 @@ import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section.dart';
 import 'package:caesar_puzzle/presentation/widgets/game_sheet.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<void> showAccountSectionSheet(
   final BuildContext context, {

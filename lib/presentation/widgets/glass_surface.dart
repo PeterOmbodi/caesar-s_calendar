@@ -4,8 +4,8 @@ import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:material_ui/material_ui.dart';
 
 class GlassSurface extends StatelessWidget {
   const GlassSurface({super.key, required this.borderRadius, required this.child, this.color, this.allowLiquid = true});
@@ -76,4 +76,16 @@ class LiquidGlassPanel extends StatelessWidget {
     ),
     child: child,
   );
+}
+
+/// liquid_glass_widgets reads the app brightness from the SDK CupertinoTheme, which a material_ui MaterialApp
+/// no longer provides, so without the resolver glass follows the system theme instead of the app theme.
+class GlassBrightnessScope extends StatelessWidget {
+  const GlassBrightnessScope({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      LiquidGlassWidgets.wrap(brightnessResolver: Theme.maybeBrightnessOf, child: child);
 }

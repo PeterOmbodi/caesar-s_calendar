@@ -9,7 +9,7 @@ import 'package:caesar_puzzle/presentation/pages/race/widgets/race_player_avatar
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/laurel_wreath.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Everyone in the race, like the timing tower of a race broadcast.
 class RaceStandings extends StatelessWidget {
