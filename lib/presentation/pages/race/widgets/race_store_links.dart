@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Web only: a visitor who came by a room link may prefer the app.
@@ -18,7 +19,12 @@ class RaceStoreLinks extends StatelessWidget {
         spacing: 8,
         children: [
           for (final link in links)
-            TextButton.icon(onPressed: () => openStoreLink(link), icon: Icon(link.icon), label: Text(link.title)),
+            AppButton(
+              label: link.title,
+              onPressed: () => openStoreLink(link),
+              variant: AppButtonVariant.text,
+              icon: link.icon,
+            ),
         ],
       ),
     );

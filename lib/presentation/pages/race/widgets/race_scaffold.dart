@@ -1,5 +1,6 @@
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_bar_icon_button.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -54,11 +55,11 @@ class _RaceAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: GameColors.of(context).background,
       brightness: Theme.of(context).brightness,
       border: null,
-      leading: CupertinoButton(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
+      leading: AppBarIconButton(
+        icon: Icons.arrow_back,
+        cupertinoIcon: CupertinoIcons.back,
+        label: MaterialLocalizations.of(context).backButtonTooltip,
         onPressed: () => Navigator.of(context).maybePop(),
-        child: Icon(CupertinoIcons.back, semanticLabel: MaterialLocalizations.of(context).backButtonTooltip),
       ),
       middle: Text(title),
       trailing: trailing,

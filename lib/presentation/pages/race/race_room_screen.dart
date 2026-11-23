@@ -14,12 +14,12 @@ import 'package:caesar_puzzle/presentation/pages/race/race_failure_text.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_game_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/race/solver_level_name.dart';
 import 'package:caesar_puzzle/presentation/pages/race/solver_pieces.dart';
-import 'package:caesar_puzzle/presentation/pages/race/widgets/race_buttons.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_scaffold.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_store_links.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/room_code_card.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
@@ -282,13 +282,26 @@ class _LobbyFooter extends StatelessWidget {
           SizedBox(height: gap),
         ],
         if (!me.ready)
-          RacePrimaryButton(label: S.current.raceImReady, onPressed: isBusy ? null : () => cubit.setReady(ready: true))
+          AppButton(
+            size: AppButtonSize.large,
+            expand: true,
+            label: S.current.raceImReady,
+            onPressed: isBusy ? null : () => cubit.setReady(ready: true),
+          )
         else ...[
           if (isHost) ...[
-            RacePrimaryButton(label: S.current.raceStart, onPressed: room.canStart && !isBusy ? cubit.start : null),
+            AppButton(
+              size: AppButtonSize.large,
+              expand: true,
+              label: S.current.raceStart,
+              onPressed: room.canStart && !isBusy ? cubit.start : null,
+            ),
             SizedBox(height: gap),
           ],
-          RaceSecondaryButton(
+          AppButton(
+            variant: AppButtonVariant.outlined,
+            size: AppButtonSize.large,
+            expand: true,
             label: S.current.raceCancelReady,
             onPressed: isBusy ? null : () => cubit.setReady(ready: false),
           ),

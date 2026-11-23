@@ -9,14 +9,14 @@ import 'package:caesar_puzzle/presentation/auth/bloc/auth_cubit.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/race/race_room_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/race/solver_level_name.dart';
-import 'package:caesar_puzzle/presentation/pages/race/widgets/race_buttons.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_scaffold.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_store_links.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_text_field.dart';
 import 'package:caesar_puzzle/presentation/widgets/laurel_wreath.dart';
 import 'package:caesar_puzzle/presentation/widgets/roman_head_icon.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -216,7 +216,10 @@ class _RaceLobbyScreenState extends State<RaceLobbyScreen> {
                     else
                       const _SignInGate(),
                     const _OrDivider(),
-                    RaceSecondaryButton(
+                    AppButton(
+                      variant: AppButtonVariant.outlined,
+                      size: AppButtonSize.large,
+                      expand: true,
                       label: S.current.raceVsSolver,
                       onPressed: () => unawaited(_raceSolver()),
                     ),
@@ -345,13 +348,19 @@ class _EntryForm extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        RacePrimaryButton(label: S.current.raceCreate, onPressed: onCreate),
+        AppButton(size: AppButtonSize.large, expand: true, label: S.current.raceCreate, onPressed: onCreate),
         const SizedBox(height: 12),
         Text(S.current.raceCreateHint, textAlign: TextAlign.center, style: hint),
         const _OrDivider(),
         _CodeField(controller: code, error: error, onSubmitted: onJoin),
         const SizedBox(height: 12),
-        RaceSecondaryButton(label: S.current.raceJoin, onPressed: onJoin),
+        AppButton(
+          variant: AppButtonVariant.outlined,
+          size: AppButtonSize.large,
+          expand: true,
+          label: S.current.raceJoin,
+          onPressed: onJoin,
+        ),
       ],
     );
   }
@@ -390,69 +399,19 @@ class _CodeField extends StatelessWidget {
   final VoidCallback onSubmitted;
 
   @override
-  Widget build(final BuildContext context) {
-    final colors = GameColors.of(context);
-    final error = this.error;
-    final style = TextStyle(fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: 12, color: colors.text);
-    final formatters = [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]'))];
-    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
-      return TextField(
-        controller: controller,
-        maxLength: RaceRoomCode.length,
-        textAlign: TextAlign.center,
-        textCapitalization: TextCapitalization.characters,
-        autocorrect: false,
-        enableSuggestions: false,
-        inputFormatters: formatters,
-        onSubmitted: (_) => onSubmitted(),
-        style: style,
-        decoration: InputDecoration(
-          labelText: S.current.raceJoinLabel,
-          floatingLabelBehavior: FloatingLabelBehavior.always,
-          counterText: '',
-          errorText: error,
-          errorMaxLines: 3,
-          border: const OutlineInputBorder(),
-        ),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: Text(
-            S.current.raceJoinLabel,
-            style: TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w600, color: colors.text),
-          ),
-        ),
-        CupertinoTextField(
-          controller: controller,
-          maxLength: RaceRoomCode.length,
-          textAlign: TextAlign.center,
-          textCapitalization: TextCapitalization.characters,
-          autocorrect: false,
-          enableSuggestions: false,
-          inputFormatters: formatters,
-          onSubmitted: (_) => onSubmitted(),
-          style: style,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: colors.board,
-            borderRadius: const BorderRadius.all(Radius.circular(InsetSection.radius)),
-          ),
-        ),
-        if (error != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Text(
-              error,
-              style: TextStyle(fontSize: 13, height: 18 / 13, color: colors.bad),
-            ),
-          ),
-      ],
-    );
-  }
+  Widget build(final BuildContext context) => AppTextField(
+    controller: controller,
+    label: S.current.raceJoinLabel,
+    errorText: error,
+    maxLength: RaceRoomCode.length,
+    textAlign: TextAlign.center,
+    textCapitalization: TextCapitalization.characters,
+    autocorrect: false,
+    enableSuggestions: false,
+    inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]'))],
+    onSubmitted: (_) => onSubmitted(),
+    style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: 12, color: GameColors.of(context).text),
+  );
 }
 
 class _SignInGate extends StatelessWidget {
@@ -468,7 +427,9 @@ class _SignInGate extends StatelessWidget {
         style: TextStyle(fontSize: 15, height: 20 / 15, color: GameColors.of(context).textSecondary),
       ),
       const SizedBox(height: 16),
-      RacePrimaryButton(
+      AppButton(
+        size: AppButtonSize.large,
+        expand: true,
         label: S.current.leaderboardSignIn,
         onPressed: () => unawaited(showAccountSectionSheet(context)),
       ),
