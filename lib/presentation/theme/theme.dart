@@ -1,5 +1,6 @@
 import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
+import 'package:caesar_puzzle/presentation/theme/controls_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:caesar_puzzle/presentation/widgets/system_bars.dart';
@@ -39,7 +40,7 @@ class AppThemeData {
       outlineVariant: game.gridLine,
       error: game.bad,
     );
-    return ThemeData(
+    final base = ThemeData(
       platform: _platform,
       useMaterial3: true,
       colorScheme: scheme,
@@ -62,9 +63,8 @@ class AppThemeData {
       dividerTheme: DividerThemeData(color: game.gridLine),
       switchTheme: SwitchThemeData(
         thumbIcon: WidgetStateProperty.resolveWith(
-          (final states) => states.contains(WidgetState.selected)
-              ? Icon(Icons.check, color: game.active)
-              : const Icon(Icons.close),
+          (final states) =>
+              states.contains(WidgetState.selected) ? Icon(Icons.check, color: game.active) : const Icon(Icons.close),
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(backgroundColor: game.background, dragHandleColor: game.boardBorder),
@@ -80,6 +80,48 @@ class AppThemeData {
         },
       ),
       extensions: [game, ChromeTheme.glass],
+    );
+    final isDark = brightness == Brightness.dark;
+    final activeText = Color.lerp(game.active, isDark ? Colors.white : Colors.black, isDark ? 0.35 : 0.3)!;
+    final buttonLabel = base.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600);
+    final buttonSize = Size(64, ControlsTheme.material.regularHeight);
+    const buttonShape = StadiumBorder();
+    final fieldRadius = BorderRadius.all(Radius.circular(ControlsTheme.material.fieldRadius));
+    OutlineInputBorder fieldBorder(final Color color, {final double width = 1}) => OutlineInputBorder(
+      borderRadius: fieldRadius,
+      borderSide: BorderSide(color: color, width: width),
+    );
+    return base.copyWith(
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(minimumSize: buttonSize, shape: buttonShape, textStyle: buttonLabel),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: buttonSize,
+          shape: buttonShape,
+          textStyle: buttonLabel,
+          foregroundColor: activeText,
+          side: BorderSide(color: scheme.outline),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: buttonSize,
+          shape: buttonShape,
+          textStyle: buttonLabel,
+          foregroundColor: activeText,
+        ),
+      ),
+      tabBarTheme: TabBarThemeData(labelColor: activeText, indicatorColor: game.active),
+      inputDecorationTheme: InputDecorationThemeData(
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        border: fieldBorder(scheme.outline),
+        enabledBorder: fieldBorder(scheme.outline),
+        focusedBorder: fieldBorder(game.active, width: 2),
+        errorBorder: fieldBorder(game.bad),
+        focusedErrorBorder: fieldBorder(game.bad, width: 2),
+      ),
+      snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
     );
   }
 }

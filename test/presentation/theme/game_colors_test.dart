@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:caesar_puzzle/core/models/piece_type.dart';
 import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
@@ -54,6 +56,38 @@ void main() {
       final thumbIcon = AppThemeData.of(AppPalette.classic, brightness).switchTheme.thumbIcon!;
       expect(thumbIcon.resolve({WidgetState.selected})?.color, AppPalette.classic.colors(brightness).active);
     }
+  });
+
+  test('buttons are stadiums at least 40 high', () {
+    final theme = AppThemeData.of(AppPalette.classic, Brightness.light);
+    for (final style in [
+      theme.filledButtonTheme.style!,
+      theme.outlinedButtonTheme.style!,
+      theme.textButtonTheme.style!,
+    ]) {
+      expect(style.shape!.resolve({}), isA<StadiumBorder>());
+      expect(style.minimumSize!.resolve({})!.height, 40);
+    }
+  });
+
+  test('text button labels contrast with the background', () {
+    double contrast(final Color a, final Color b) {
+      final la = a.computeLuminance();
+      final lb = b.computeLuminance();
+      return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+    }
+
+    for (final brightness in Brightness.values) {
+      final theme = AppThemeData.of(AppPalette.classic, brightness);
+      final label = theme.textButtonTheme.style!.foregroundColor!.resolve({})!;
+      expect(contrast(label, theme.colorScheme.surface), greaterThanOrEqualTo(4.5));
+    }
+  });
+
+  test('text fields have a rounded outline', () {
+    final border = AppThemeData.of(AppPalette.classic, Brightness.light).inputDecorationTheme.border;
+    expect(border, isA<OutlineInputBorder>());
+    expect((border! as OutlineInputBorder).borderRadius, const BorderRadius.all(Radius.circular(12)));
   });
 
   test('app themes are cached per palette and brightness', () {
