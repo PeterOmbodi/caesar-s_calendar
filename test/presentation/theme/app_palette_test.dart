@@ -1,5 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -69,5 +73,62 @@ void main() {
     expect(light.background, GameColors.light.background);
     expect(light.board, GameColors.light.board);
     expect(light.blockedCell, GameColors.light.blockedCell);
+  });
+
+  test('presets have distinct ids and start with classic', () {
+    final ids = AppPalette.presets.map((final p) => p.id).toList();
+    expect(ids.first, AppPaletteId.classic);
+    expect(ids.toSet(), hasLength(ids.length));
+    expect(ids, isNot(contains(AppPaletteId.system)));
+  });
+
+  test('system colours fall back to classic where the platform has none', () {
+    expect(AppPalette.resolve(AppPaletteId.system, AppPalette.presets), same(AppPalette.classic));
+  });
+
+  test('fromSeed takes the accent group from the seeded Material scheme', () {
+    const seed = Color(0xFF3366CC);
+    final palette = AppPalette.fromSeed(id: AppPaletteId.system, seed: seed);
+    for (final brightness in Brightness.values) {
+      final scheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
+      final colors = palette.colors(brightness);
+      expect(colors.active, scheme.primary);
+      expect(colors.onActive, scheme.onPrimary);
+      expect(colors.accent, scheme.tertiary);
+      expect(colors.targetLine, scheme.tertiary);
+    }
+  });
+
+  test('a saved palette the app does not know loads as classic', () {
+    expect(SettingsState.fromJson({'palette': 'neon'}).palette, AppPaletteId.classic);
+  });
+
+  group('contrast', () {
+    double contrast(final Color a, final Color b) {
+      final la = a.computeLuminance();
+      final lb = b.computeLuminance();
+      return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+    }
+
+    for (final palette in AppPalette.presets) {
+      for (final brightness in Brightness.values) {
+        test('${palette.id.name} ${brightness.name}', () {
+          final theme = AppThemeData.of(palette, brightness);
+          final colors = palette.colors(brightness);
+          final readable = theme.textButtonTheme.style!.foregroundColor!.resolve({})!;
+          // Classic light keeps the game's original teal.
+          if (!(palette.id == AppPaletteId.classic && brightness == Brightness.light)) {
+            expect(contrast(colors.onActive, colors.active), greaterThanOrEqualTo(4.5), reason: 'button label');
+          }
+          expect(contrast(readable, colors.background), greaterThanOrEqualTo(4.5), reason: 'text button');
+          expect(
+            contrast(theme.colorScheme.onSecondaryContainer, theme.colorScheme.secondaryContainer),
+            greaterThanOrEqualTo(4.5),
+            reason: 'selected segment',
+          );
+          expect(contrast(colors.accent, colors.target), greaterThanOrEqualTo(3), reason: 'goal digits');
+        });
+      }
+    }
   });
 }

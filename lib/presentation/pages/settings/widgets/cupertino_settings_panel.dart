@@ -8,6 +8,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_displa
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summary_button.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/app_check_status.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/palette_swatches.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
@@ -66,6 +67,10 @@ class CupertinoSettingsPanel extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                    _InsetGroup(
+                      header: Text(S.current.colorScheme),
+                      children: const [Padding(padding: EdgeInsets.all(12), child: PaletteSwatches())],
                     ),
                     _InsetGroup(
                       header: Text(S.current.solvability),

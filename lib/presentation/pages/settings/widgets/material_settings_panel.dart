@@ -7,6 +7,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_dif
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summary_button.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/app_check_status.dart';
+import 'package:caesar_puzzle/presentation/pages/settings/widgets/palette_swatches.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
@@ -57,6 +58,9 @@ class MaterialSettingsPanel extends StatelessWidget {
                 },
                 onChanged: cubit.setTheme,
               ),
+              const SizedBox(height: _sectionGap),
+              InsetHeader(S.current.colorScheme),
+              const PaletteSwatches(),
               const SizedBox(height: _sectionGap),
               RadioGroup<SolutionIndicator>(
                 groupValue: state.solutionIndicator,
