@@ -3,12 +3,11 @@ import 'dart:math' as math;
 import 'package:caesar_puzzle/application/puzzle_config_json.dart';
 import 'package:caesar_puzzle/core/models/cell.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
-import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/puzzle/bloc/puzzle_bloc.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
-import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -123,7 +122,6 @@ class _PuzzleDayPickerState extends State<PuzzleDayPicker> {
                   _Action(
                     label: material.okButtonLabel,
                     onPressed: () => Navigator.of(context).pop(DateTime(2024, _month, _day)),
-                    primary: true,
                   ),
                 ],
               ),
@@ -183,29 +181,14 @@ class _PuzzleDayPickerState extends State<PuzzleDayPicker> {
 }
 
 class _Action extends StatelessWidget {
-  const _Action({required this.label, required this.onPressed, this.primary = false});
+  const _Action({required this.label, required this.onPressed});
 
   final String label;
   final VoidCallback onPressed;
-  final bool primary;
 
   @override
-  Widget build(final BuildContext context) {
-    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
-      return TextButton(onPressed: onPressed, child: Text(label));
-    }
-    return CupertinoButton(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      onPressed: onPressed,
-      child: Text(
-        label,
-        style: TextStyle(
-          color: GameColors.of(context).accent,
-          fontWeight: primary ? FontWeight.w600 : FontWeight.w400,
-        ),
-      ),
-    );
-  }
+  Widget build(final BuildContext context) =>
+      AppButton(label: label, onPressed: onPressed, variant: AppButtonVariant.text);
 }
 
 class _DateCell extends StatelessWidget {

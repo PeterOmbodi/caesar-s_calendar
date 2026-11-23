@@ -21,6 +21,8 @@ class AppSegmentedControl<T extends Object> extends StatelessWidget {
         ],
         selected: {value},
         onSelectionChanged: (final selected) => onChanged(selected.first),
+        showSelectedIcon: false,
+        expandedInsets: EdgeInsets.zero,
       );
     }
     if (!GlassSurface.isLiquid(context)) {

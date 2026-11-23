@@ -16,6 +16,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_displa
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_bar_icon_button.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
@@ -142,18 +143,20 @@ class _AppBar extends StatelessWidget {
     final onShare = this.onShare;
     final isGlass = ScreenSpec.of(context).family == ChromeFamily.glass;
     final actions = [
-      _BarButton(
-        icon: isGlass ? CupertinoIcons.info_circle : Icons.info_outline,
+      AppBarIconButton(
+        icon: Icons.info_outline,
+        cupertinoIcon: CupertinoIcons.info_circle,
         label: S.current.achievementsTitle,
-        isGlass: isGlass,
-        onPressed: (final context) => unawaited(showAchievementsRulesSheet(context)),
+        onPressed: () => unawaited(showAchievementsRulesSheet(context)),
       ),
       if (onShare != null)
-        _BarButton(
-          icon: Icons.adaptive.share,
-          label: S.current.achievementsShare,
-          isGlass: isGlass,
-          onPressed: onShare,
+        Builder(
+          builder: (final context) => AppBarIconButton(
+            icon: Icons.adaptive.share,
+            cupertinoIcon: Icons.adaptive.share,
+            label: S.current.achievementsShare,
+            onPressed: () => onShare(context),
+          ),
         ),
     ];
     if (isGlass) {
@@ -167,25 +170,6 @@ class _AppBar extends StatelessWidget {
     }
     return SliverAppBar.large(title: title, backgroundColor: colors.background, actions: actions);
   }
-}
-
-class _BarButton extends StatelessWidget {
-  const _BarButton({required this.icon, required this.label, required this.isGlass, required this.onPressed});
-
-  final IconData icon;
-  final String label;
-  final bool isGlass;
-  final ValueChanged<BuildContext> onPressed;
-
-  @override
-  Widget build(final BuildContext context) => isGlass
-      ? CupertinoButton(
-          padding: EdgeInsets.zero,
-          minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
-          onPressed: () => onPressed(context),
-          child: Icon(icon, semanticLabel: label),
-        )
-      : IconButton(tooltip: label, icon: Icon(icon), onPressed: () => onPressed(context));
 }
 
 class _Header extends StatelessWidget {

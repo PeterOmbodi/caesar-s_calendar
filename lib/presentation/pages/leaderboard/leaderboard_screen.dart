@@ -17,6 +17,8 @@ import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_dif
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_bar_icon_button.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_segmented_control.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -147,7 +149,7 @@ class _Gate extends StatelessWidget {
             const SizedBox(height: 16),
             Align(
               alignment: AlignmentDirectional.centerStart,
-              child: FilledButton(onPressed: onPressed, child: Text(action)),
+              child: AppButton(label: action, onPressed: onPressed),
             ),
           ],
         ),
@@ -170,9 +172,10 @@ class _LeaderboardAppBar extends StatelessWidget implements PreferredSizeWidget 
         leading: const BackButton(),
         title: title,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            tooltip: S.current.helpRecordsTitle,
+          AppBarIconButton(
+            icon: Icons.info_outline,
+            cupertinoIcon: CupertinoIcons.info_circle,
+            label: S.current.helpRecordsTitle,
             onPressed: () => unawaited(showRecordsRulesSheet(context)),
           ),
         ],
@@ -182,18 +185,18 @@ class _LeaderboardAppBar extends StatelessWidget implements PreferredSizeWidget 
       backgroundColor: GameColors.of(context).background,
       brightness: Theme.of(context).brightness,
       border: null,
-      leading: CupertinoButton(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
+      leading: AppBarIconButton(
+        icon: Icons.arrow_back,
+        cupertinoIcon: CupertinoIcons.back,
+        label: MaterialLocalizations.of(context).backButtonTooltip,
         onPressed: () => Navigator.of(context).maybePop(),
-        child: Icon(CupertinoIcons.back, semanticLabel: MaterialLocalizations.of(context).backButtonTooltip),
       ),
       middle: title,
-      trailing: CupertinoButton(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
+      trailing: AppBarIconButton(
+        icon: Icons.info_outline,
+        cupertinoIcon: CupertinoIcons.info_circle,
+        label: S.current.helpRecordsTitle,
         onPressed: () => unawaited(showRecordsRulesSheet(context)),
-        child: Icon(CupertinoIcons.info_circle, semanticLabel: S.current.helpRecordsTitle),
       ),
     );
   }
@@ -354,9 +357,10 @@ class _Body extends StatelessWidget {
           const SizedBox(height: 24),
           _Note(S.current.leaderboardLoadFailed),
           const SizedBox(height: 8),
-          TextButton(
+          AppButton(
+            label: S.current.leaderboardRetry,
             onPressed: () => unawaited(context.read<LeaderboardCubit>().load()),
-            child: Text(S.current.leaderboardRetry),
+            variant: AppButtonVariant.text,
           ),
         ],
       );
