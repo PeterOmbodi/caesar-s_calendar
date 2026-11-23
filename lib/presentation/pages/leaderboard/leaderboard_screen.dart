@@ -17,7 +17,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_dif
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_section_sheet.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
-import 'package:caesar_puzzle/presentation/widgets/app_segmented_control.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_segmented_control.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

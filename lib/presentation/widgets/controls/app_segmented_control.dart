@@ -1,7 +1,9 @@
+import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AppSegmentedControl<T extends Object> extends StatelessWidget {
   const AppSegmentedControl({super.key, required this.segments, required this.value, required this.onChanged});
@@ -12,6 +14,15 @@ class AppSegmentedControl<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
+    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
+      return SegmentedButton<T>(
+        segments: [
+          for (final MapEntry(:key, value: label) in segments.entries) ButtonSegment(value: key, label: Text(label)),
+        ],
+        selected: {value},
+        onSelectionChanged: (final selected) => onChanged(selected.first),
+      );
+    }
     if (!GlassSurface.isLiquid(context)) {
       return CupertinoSlidingSegmentedControl<T>(
         groupValue: value,

@@ -11,8 +11,8 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/app_check_stat
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
-import 'package:caesar_puzzle/presentation/widgets/app_segmented_control.dart';
-import 'package:caesar_puzzle/presentation/widgets/app_switch.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_segmented_control.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_switch.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
