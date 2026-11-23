@@ -10,9 +10,11 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_summar
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/app_check_status.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_segmented_control.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_switch.dart';
+import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,8 +28,9 @@ class CupertinoSettingsPanel extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final cubit = context.read<SettingsCubit>();
-    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
-    final background = CupertinoColors.systemGroupedBackground.resolveFrom(context);
+    final colors = GameColors.of(context);
+    final secondary = colors.textSecondary;
+    final background = colors.background;
     return Material(
       color: background,
       child: SafeArea(
@@ -47,7 +50,7 @@ class CupertinoSettingsPanel extends StatelessWidget {
                 sliver: SliverList.list(
                   children: [
                     const _AccountSection(),
-                    CupertinoListSection.insetGrouped(
+                    _InsetGroup(
                       header: Text(S.current.theme),
                       children: [
                         Padding(
@@ -64,7 +67,7 @@ class CupertinoSettingsPanel extends StatelessWidget {
                         ),
                       ],
                     ),
-                    CupertinoListSection.insetGrouped(
+                    _InsetGroup(
                       header: Text(S.current.solvability),
                       children: [
                         for (final MapEntry(key: indicator, value: subtitle) in {
@@ -82,7 +85,7 @@ class CupertinoSettingsPanel extends StatelessWidget {
                     ),
                     ValueListenableBuilder(
                       valueListenable: HapticsSupport.instance.available,
-                      builder: (final context, final hapticsAvailable, _) => CupertinoListSection.insetGrouped(
+                      builder: (final context, final hapticsAvailable, _) => _InsetGroup(
                         header: Text(S.current.additional),
                         children: [
                           _SwitchRow(
@@ -107,7 +110,7 @@ class CupertinoSettingsPanel extends StatelessWidget {
                         ],
                       ),
                     ),
-                    CupertinoListSection.insetGrouped(
+                    _InsetGroup(
                       header: Text(S.current.general),
                       children: [
                         _SwitchRow(
@@ -130,7 +133,7 @@ class CupertinoSettingsPanel extends StatelessWidget {
                         ),
                       ],
                     ),
-                    CupertinoListSection.insetGrouped(
+                    _InsetGroup(
                       children: [
                         CupertinoListTile.notched(
                           title: Text(languageSectionTitle(Localizations.localeOf(context))),
@@ -141,7 +144,7 @@ class CupertinoSettingsPanel extends StatelessWidget {
                       ],
                     ),
                     if (webStoreLinks() case final links when links.isNotEmpty)
-                      CupertinoListSection.insetGrouped(
+                      _InsetGroup(
                         header: Text(S.current.storeGetApp),
                         children: [
                           for (final link in links)
@@ -155,7 +158,7 @@ class CupertinoSettingsPanel extends StatelessWidget {
                         ],
                       ),
                     if (kDebugMode)
-                      CupertinoListSection.insetGrouped(
+                      _InsetGroup(
                         header: const Text('Debug'),
                         children: [
                           CupertinoListTile(
@@ -220,7 +223,7 @@ class _AccountSection extends StatelessWidget {
       final user = auth.user;
       final displayName = AccountDisplay.bestDisplayName(user);
       final (:title, :subtitle) = AccountSummaryButton.textFor(auth);
-      return CupertinoListSection.insetGrouped(
+      return _InsetGroup(
         children: [
           CupertinoListTile(
             leadingSize: 40,
@@ -239,6 +242,29 @@ class _AccountSection extends StatelessWidget {
       );
     },
   );
+}
+
+/// An inset grouped section in the game palette instead of the system grouped colours.
+class _InsetGroup extends StatelessWidget {
+  const _InsetGroup({required this.children, this.header});
+
+  final List<Widget> children;
+  final Widget? header;
+
+  @override
+  Widget build(final BuildContext context) {
+    final colors = GameColors.of(context);
+    return CupertinoListSection.insetGrouped(
+      header: header,
+      backgroundColor: Colors.transparent,
+      separatorColor: colors.gridLine,
+      decoration: BoxDecoration(
+        color: colors.board,
+        borderRadius: const BorderRadius.all(Radius.circular(InsetSection.radius)),
+      ),
+      children: children,
+    );
+  }
 }
 
 class _Row extends StatelessWidget {
@@ -284,7 +310,7 @@ class _CheckMark extends StatelessWidget {
   @override
   Widget build(final BuildContext context) => Visibility.maintain(
     visible: visible,
-    child: Icon(CupertinoIcons.check_mark, size: 20, color: CupertinoTheme.of(context).primaryColor),
+    child: Icon(CupertinoIcons.check_mark, size: 20, color: GameColors.of(context).active),
   );
 }
 
@@ -300,14 +326,14 @@ class _LanguagePicker extends StatelessWidget {
     return Container(
       height: MediaQuery.sizeOf(context).height * 0.7,
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+        color: GameColors.of(context).background,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: SafeArea(
         top: false,
         child: ListView(
           children: [
-            CupertinoListSection.insetGrouped(
+            _InsetGroup(
               children: [
                 for (final code in codes)
                   CupertinoListTile(

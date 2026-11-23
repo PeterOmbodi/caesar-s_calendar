@@ -30,37 +30,3 @@ class AdaptiveDialogAction extends StatelessWidget {
         )
       : TextButton(onPressed: onPressed, child: child);
 }
-
-class AdaptiveTextField extends StatelessWidget {
-  const AdaptiveTextField({
-    super.key,
-    this.controller,
-    this.autofocus = false,
-    this.hintText,
-    this.textCapitalization = TextCapitalization.none,
-    this.onSubmitted,
-  });
-
-  final TextEditingController? controller;
-  final bool autofocus;
-  final String? hintText;
-  final TextCapitalization textCapitalization;
-  final ValueChanged<String>? onSubmitted;
-
-  @override
-  Widget build(final BuildContext context) => _isCupertino(context)
-      ? CupertinoTextField(
-          controller: controller,
-          autofocus: autofocus,
-          placeholder: hintText,
-          textCapitalization: textCapitalization,
-          onSubmitted: onSubmitted,
-        )
-      : TextField(
-          controller: controller,
-          autofocus: autofocus,
-          decoration: InputDecoration(hintText: hintText),
-          textCapitalization: textCapitalization,
-          onSubmitted: onSubmitted,
-        );
-}

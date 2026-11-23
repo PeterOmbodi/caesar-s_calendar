@@ -113,7 +113,7 @@ void main() {
   });
 
   group('AppSegmentedControl', () {
-    testWidgets('is a SegmentedButton on Material and reports the picked segment', (final tester) async {
+    testWidgets('is the app selector on Material and reports the picked segment', (final tester) async {
       int? picked;
       await tester.pumpWidget(
         _app(
@@ -121,7 +121,8 @@ void main() {
           AppSegmentedControl<int>(segments: const {1: 'A', 2: 'B'}, value: 1, onChanged: (final v) => picked = v),
         ),
       );
-      expect(find.byType(SegmentedButton<int>), findsOneWidget);
+      expect(find.byType(SegmentedButton<int>), findsNothing);
+      expect(find.text('A'), findsOneWidget);
 
       await tester.tap(find.text('B'));
       expect(picked, 2);

@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -22,7 +23,7 @@ class AppBarIconButton extends StatelessWidget {
           padding: EdgeInsets.zero,
           minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
           onPressed: onPressed,
-          child: Icon(cupertinoIcon, semanticLabel: label),
+          child: Icon(cupertinoIcon, semanticLabel: label, color: GameColors.of(context).icon),
         )
       : IconButton(tooltip: label, icon: Icon(icon), onPressed: onPressed);
 }

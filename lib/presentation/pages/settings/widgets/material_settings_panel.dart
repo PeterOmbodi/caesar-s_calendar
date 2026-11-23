@@ -10,6 +10,7 @@ import 'package:caesar_puzzle/presentation/pages/settings/widgets/app_check_stat
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/store_links.dart';
 import 'package:caesar_puzzle/presentation/services/haptics_support.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_segmented_control.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,14 +48,14 @@ class MaterialSettingsPanel extends StatelessWidget {
               ),
               const SizedBox(height: _sectionGap),
               InsetHeader(S.current.theme),
-              SegmentedButton<AppTheme>(
-                segments: [
-                  ButtonSegment(value: AppTheme.system, label: Text(S.current.system)),
-                  ButtonSegment(value: AppTheme.light, label: Text(S.current.light)),
-                  ButtonSegment(value: AppTheme.dark, label: Text(S.current.dark)),
-                ],
-                selected: {state.theme},
-                onSelectionChanged: (final selected) => cubit.setTheme(selected.first),
+              AppSegmentedControl<AppTheme>(
+                value: state.theme,
+                segments: {
+                  AppTheme.system: S.current.system,
+                  AppTheme.light: S.current.light,
+                  AppTheme.dark: S.current.dark,
+                },
+                onChanged: cubit.setTheme,
               ),
               const SizedBox(height: _sectionGap),
               RadioGroup<SolutionIndicator>(

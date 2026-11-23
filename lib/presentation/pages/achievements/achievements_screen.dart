@@ -161,6 +161,12 @@ class _AppBar extends StatelessWidget {
     ];
     if (isGlass) {
       return CupertinoSliverNavigationBar(
+        leading: AppBarIconButton(
+          icon: Icons.arrow_back,
+          cupertinoIcon: CupertinoIcons.back,
+          label: MaterialLocalizations.of(context).backButtonTooltip,
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
         largeTitle: title,
         trailing: Row(mainAxisSize: MainAxisSize.min, children: actions),
         backgroundColor: colors.background,

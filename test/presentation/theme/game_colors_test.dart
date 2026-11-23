@@ -5,6 +5,7 @@ import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -88,6 +89,27 @@ void main() {
     final border = AppThemeData.of(AppPalette.classic, Brightness.light).inputDecorationTheme.border;
     expect(border, isA<OutlineInputBorder>());
     expect((border! as OutlineInputBorder).borderRadius, const BorderRadius.all(Radius.circular(12)));
+  });
+
+  testWidgets('chip labels are drawn in the selection colours', (final tester) async {
+    final theme = AppThemeData.of(AppPalette.classic, Brightness.light);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: theme,
+        home: Scaffold(
+          body: Row(
+            children: [
+              ChoiceChip(label: const Text('On'), selected: true, onSelected: (_) {}),
+              ChoiceChip(label: const Text('Off'), selected: false, onSelected: (_) {}),
+            ],
+          ),
+        ),
+      ),
+    );
+    Color? colorOf(final String text) => tester.renderObject<RenderParagraph>(find.text(text)).text.style?.color;
+
+    expect(colorOf('On'), theme.colorScheme.onSecondaryContainer);
+    expect(colorOf('Off'), GameColors.light.textSecondary);
   });
 
   test('app themes are cached per palette and brightness', () {

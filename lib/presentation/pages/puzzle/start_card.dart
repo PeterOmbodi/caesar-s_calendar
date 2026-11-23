@@ -8,6 +8,8 @@ import 'package:caesar_puzzle/presentation/pages/settings/bloc/settings_cubit.da
 import 'package:caesar_puzzle/presentation/pages/settings/solution_indicator_difficulty_x.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/puzzle_session_difficulty_x.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_segmented_control.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:caesar_puzzle/presentation/widgets/spotlight_painter.dart';
@@ -142,22 +144,16 @@ class _StartCardState extends State<_StartCard> with WidgetsBindingObserver {
                       padding: const EdgeInsets.fromLTRB(8, 4, 16, 16),
                       child: Row(
                         children: [
-                          TextButton(
+                          AppButton(
+                            label: S.current.howToPlayTitle,
                             onPressed: () => showHowToPlaySheet(context),
-                            style: TextButton.styleFrom(foregroundColor: colors.accent),
-                            child: Text(S.current.howToPlayTitle),
+                            variant: AppButtonVariant.text,
                           ),
                           const Spacer(),
-                          FilledButton(
+                          AppButton(
+                            label: S.current.startPlay,
                             onPressed: () => Navigator.of(context).pop(_level),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: colors.active,
-                              foregroundColor: colors.onActive,
-                              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 13),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                            ),
-                            child: Text(S.current.startPlay),
+                            size: AppButtonSize.large,
                           ),
                         ],
                       ),
@@ -224,47 +220,10 @@ class _CompactLevels extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          DecoratedBox(
-            decoration: BoxDecoration(color: colors.board, borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(3),
-              child: Row(
-                children: [
-                  for (final level in SolutionIndicator.values)
-                    Expanded(
-                      child: Semantics(
-                        button: true,
-                        selected: level == selected,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => onSelect(level),
-                          child: AnimatedContainer(
-                            duration: MediaQuery.disableAnimationsOf(context)
-                                ? Duration.zero
-                                : const Duration(milliseconds: 180),
-                            height: 36,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: level == selected ? colors.active : Colors.transparent,
-                              borderRadius: BorderRadius.circular(9),
-                            ),
-                            child: Text(
-                              level.sessionDifficulty.label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: level == selected ? colors.onActive : colors.text,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+          AppSegmentedControl<SolutionIndicator>(
+            value: selected,
+            onChanged: onSelect,
+            segments: {for (final level in SolutionIndicator.values) level: level.sessionDifficulty.label},
           ),
           const SizedBox(height: 8),
           // The longest description sets the height.

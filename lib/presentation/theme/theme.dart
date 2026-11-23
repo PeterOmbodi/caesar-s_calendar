@@ -21,12 +21,14 @@ class AppThemeData {
       : null;
 
   static ThemeData _build(final GameColors game, final Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    final activeText = Color.lerp(game.active, isDark ? Colors.white : Colors.black, isDark ? 0.35 : 0.3)!;
     final scheme = ColorScheme.fromSeed(seedColor: game.active, brightness: brightness).copyWith(
       primary: game.active,
       onPrimary: game.onActive,
       tertiary: game.accent,
-      secondaryContainer: Color.lerp(game.board, game.active, brightness == Brightness.dark ? 0.3 : 0.16),
-      onSecondaryContainer: game.text,
+      secondaryContainer: Color.lerp(game.board, game.active, isDark ? 0.3 : 0.16),
+      onSecondaryContainer: activeText,
       surface: game.background,
       onSurface: game.text,
       onSurfaceVariant: game.textSecondary,
@@ -81,8 +83,6 @@ class AppThemeData {
       ),
       extensions: [game, ChromeTheme.glass],
     );
-    final isDark = brightness == Brightness.dark;
-    final activeText = Color.lerp(game.active, isDark ? Colors.white : Colors.black, isDark ? 0.35 : 0.3)!;
     final buttonLabel = base.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600);
     final buttonSize = Size(64, ControlsTheme.material.regularHeight);
     const buttonShape = StadiumBorder();
@@ -113,6 +113,27 @@ class AppThemeData {
         ),
       ),
       tabBarTheme: TabBarThemeData(labelColor: activeText, indicatorColor: game.active),
+      chipTheme: ChipThemeData(
+        backgroundColor: game.board,
+        selectedColor: scheme.secondaryContainer,
+        showCheckmark: false,
+        labelStyle: (base.textTheme.labelLarge ?? const TextStyle()).copyWith(
+          fontWeight: FontWeight.w600,
+          color: WidgetStateColor.resolveWith(
+            (final states) => states.contains(WidgetState.disabled)
+                ? game.textSecondary.withValues(alpha: 0.38)
+                : states.contains(WidgetState.selected)
+                ? activeText
+                : game.textSecondary,
+          ),
+        ),
+        side: WidgetStateBorderSide.resolveWith(
+          (final states) => states.contains(WidgetState.selected) ? BorderSide.none : BorderSide(color: game.gridLine),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(ControlsTheme.material.selectionRadius)),
+        ),
+      ),
       inputDecorationTheme: InputDecorationThemeData(
         floatingLabelBehavior: FloatingLabelBehavior.always,
         border: fieldBorder(scheme.outline),
