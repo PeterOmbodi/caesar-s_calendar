@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:caesar_puzzle/presentation/widgets/spotlight_painter.dart';
 import 'package:material_ui/material_ui.dart';
@@ -127,18 +128,15 @@ class _CoachMarkOverlay extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           if (canCancel)
-                            TextButton(
+                            AppButton(
+                              label: S.current.onboardingClose,
                               onPressed: () => onClose(false),
-                              style: TextButton.styleFrom(foregroundColor: colors.textSecondary),
-                              child: Text(S.current.onboardingClose),
+                              variant: AppButtonVariant.text,
                             ),
-                          TextButton(
+                          AppButton(
+                            label: actionLabel,
                             onPressed: () => onClose(true),
-                            style: TextButton.styleFrom(
-                              foregroundColor: colors.accent,
-                              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                            ),
-                            child: Text(actionLabel),
+                            variant: AppButtonVariant.text,
                           ),
                         ],
                       ),
