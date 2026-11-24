@@ -11,6 +11,7 @@ import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/widgets/adaptive_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_menu_button.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_text_field.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -315,6 +316,8 @@ class _LayoutRow extends StatelessWidget {
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     final layout = entry.layout;
+    final onRename = this.onRename;
+    final onDelete = this.onDelete;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -354,16 +357,22 @@ class _LayoutRow extends StatelessWidget {
                   ],
                 ),
               ),
-              if (isCurrent) Icon(Icons.check, size: 22, color: colors.accent),
+              if (isCurrent) Icon(Icons.check, size: 22, color: colors.active),
               if (onRename != null && onDelete != null)
-                PopupMenuButton<VoidCallback>(
-                  icon: Icon(Icons.more_horiz, size: 22, color: colors.textSecondary),
-                  onSelected: (final action) => action(),
-                  itemBuilder: (_) => [
-                    PopupMenuItem<VoidCallback>(value: onRename, child: Text(S.current.layoutsRename)),
-                    PopupMenuItem<VoidCallback>(
-                      value: onDelete,
-                      child: Text(S.current.layoutsDelete, style: TextStyle(color: colors.bad)),
+                AppMenuButton(
+                  items: [
+                    AppMenuItem(
+                      label: S.current.layoutsRename,
+                      icon: Icons.edit_outlined,
+                      cupertinoIcon: CupertinoIcons.pencil,
+                      onSelected: onRename,
+                    ),
+                    AppMenuItem(
+                      label: S.current.layoutsDelete,
+                      icon: Icons.delete_outline,
+                      cupertinoIcon: CupertinoIcons.delete,
+                      onSelected: onDelete,
+                      destructive: true,
                     ),
                   ],
                 ),

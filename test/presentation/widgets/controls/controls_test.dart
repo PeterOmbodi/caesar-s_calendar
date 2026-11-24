@@ -2,6 +2,7 @@ import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_bar_icon_button.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_menu_button.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_segmented_control.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_text_field.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -126,6 +127,51 @@ void main() {
 
       await tester.tap(find.text('B'));
       expect(picked, 2);
+    });
+  });
+
+  group('AppMenuButton', () {
+    List<AppMenuItem> items(final List<String> log) => [
+      AppMenuItem(
+        label: 'Rename',
+        icon: Icons.edit,
+        cupertinoIcon: CupertinoIcons.pencil,
+        onSelected: () => log.add('r'),
+      ),
+      AppMenuItem(
+        label: 'Delete',
+        icon: Icons.delete,
+        cupertinoIcon: CupertinoIcons.delete,
+        onSelected: () => log.add('d'),
+        destructive: true,
+      ),
+    ];
+
+    testWidgets('is a popup menu on Material', (final tester) async {
+      final log = <String>[];
+      await tester.pumpWidget(_app(TargetPlatform.android, AppMenuButton(items: items(log))));
+      expect(find.byType(PopupMenuButton<AppMenuItem>), findsOneWidget);
+
+      await tester.tap(find.byType(PopupMenuButton<AppMenuItem>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      expect(log, ['d']);
+    });
+
+    testWidgets('opens a glass menu on iOS and runs the picked item', (final tester) async {
+      final log = <String>[];
+      await tester.pumpWidget(_app(TargetPlatform.iOS, AppMenuButton(items: items(log))));
+      expect(find.byType(PopupMenuButton<AppMenuItem>), findsNothing);
+
+      await tester.tap(find.byIcon(CupertinoIcons.ellipsis));
+      await tester.pumpAndSettle();
+      expect(find.text('Rename'), findsOneWidget);
+
+      await tester.tap(find.text('Rename'));
+      await tester.pumpAndSettle();
+      expect(log, ['r']);
+      expect(find.text('Rename'), findsNothing);
     });
   });
 }

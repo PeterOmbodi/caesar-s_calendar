@@ -143,6 +143,15 @@ class AppThemeData {
         focusedErrorBorder: fieldBorder(game.bad, width: 2),
       ),
       snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
+      popupMenuTheme: PopupMenuThemeData(
+        color: game.board,
+        surfaceTintColor: Colors.transparent,
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          side: BorderSide(color: game.gridLine),
+        ),
+      ),
     );
   }
 }

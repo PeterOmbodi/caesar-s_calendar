@@ -11,6 +11,9 @@ import 'package:caesar_puzzle/presentation/widgets/key_cap.dart';
 import 'package:collection/collection.dart';
 import 'package:material_ui/material_ui.dart';
 
+/// Keeps a filled action's label legible on the fill while it is disabled.
+const double _disabledOnActiveAlpha = 0.55;
+
 class GlassChrome extends GameChrome {
   const GlassChrome({
     super.key,
@@ -242,11 +245,11 @@ class _SlotButton extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final foreground = !enabled
-        ? colors.iconDisabled
-        : active
-        ? colors.onActive
-        : colors.icon;
+    final foreground = active
+        ? colors.onActive.withValues(alpha: enabled ? 1 : _disabledOnActiveAlpha)
+        : enabled
+        ? colors.icon
+        : colors.iconDisabled;
     const radius = BorderRadius.all(Radius.circular(GlassChrome.slotHeight / 2));
     final glyph = busy
         ? SizedBox.square(
@@ -549,11 +552,11 @@ class _RailRow extends StatelessWidget {
     final colors = GameColors.of(context);
     final isCounter = action.id == GameActionId.solutionCounter;
     void onPressed() => onInvoke(action, _globalRect(context));
-    final foreground = !action.enabled
-        ? colors.iconDisabled
-        : action.active
-        ? colors.onActive
-        : colors.icon;
+    final foreground = action.active
+        ? colors.onActive.withValues(alpha: action.enabled ? 1 : _disabledOnActiveAlpha)
+        : action.enabled
+        ? colors.icon
+        : colors.iconDisabled;
     final meta = isCounter
         ? '${action.count} / ${action.total}'
         : action.count != null
