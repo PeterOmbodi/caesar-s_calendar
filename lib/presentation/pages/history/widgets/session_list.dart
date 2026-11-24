@@ -4,6 +4,7 @@ import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/history/models/session_summary.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -33,7 +34,14 @@ class SessionList extends StatelessWidget {
       primary: false,
       padding: EdgeInsets.fromLTRB(16, glass ? 0 : 8, 16, 24),
       children: [
-        if (glass) _CupertinoStartButton(onPressed: start) else _MaterialStartButton(onPressed: start),
+        AppButton(
+          label: S.current.historyStartPuzzleForDay,
+          onPressed: start,
+          size: AppButtonSize.large,
+          icon: Icons.play_arrow_rounded,
+          cupertinoIcon: CupertinoIcons.play_fill,
+          expand: true,
+        ),
         const SizedBox(height: 8),
         if (summaries.isEmpty)
           _EmptySessions(glass: glass)
@@ -44,42 +52,6 @@ class SessionList extends StatelessWidget {
       ],
     );
   }
-}
-
-class _MaterialStartButton extends StatelessWidget {
-  const _MaterialStartButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(final BuildContext context) => FilledButton.icon(
-    onPressed: onPressed,
-    icon: const Icon(Icons.play_arrow_rounded),
-    label: Text(S.current.historyStartPuzzleForDay),
-  );
-}
-
-class _CupertinoStartButton extends StatelessWidget {
-  const _CupertinoStartButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(final BuildContext context) => Align(
-    alignment: Alignment.centerLeft,
-    child: CupertinoButton(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      onPressed: onPressed,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(CupertinoIcons.play_fill, size: 14),
-          const SizedBox(width: 6),
-          Flexible(child: Text(S.current.historyStartPuzzleForDay, style: const TextStyle(fontSize: 14))),
-        ],
-      ),
-    ),
-  );
 }
 
 class _EmptySessions extends StatelessWidget {

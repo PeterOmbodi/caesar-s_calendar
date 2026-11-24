@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   audioplayers_windows
+  dynamic_color
   firebase_core
   cloud_firestore
   firebase_app_check

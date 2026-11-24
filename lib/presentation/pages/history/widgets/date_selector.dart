@@ -2,7 +2,6 @@ import 'dart:ui' show PointerDeviceKind;
 
 import 'package:caesar_puzzle/application/models/calendar_day_stats.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
-import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/month_label.dart';
 import 'package:collection/collection.dart';
@@ -385,7 +384,6 @@ class _HeatmapDayCell extends StatelessWidget {
       return SizedBox(width: size, height: size);
     }
 
-    final glass = ScreenSpec.of(context).family == ChromeFamily.glass;
     return InkWell(
       borderRadius: BorderRadius.circular(3),
       onTap: () => onTap(day!),
@@ -393,7 +391,7 @@ class _HeatmapDayCell extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: glass ? appleColor(_resolveLevel(), GameColors.of(context)) : _fillColor(),
+          color: colorFor(_resolveLevel(), GameColors.of(context)),
           borderRadius: BorderRadius.circular(3),
           border: Border.all(
             color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
@@ -404,12 +402,7 @@ class _HeatmapDayCell extends StatelessWidget {
     );
   }
 
-  Color _fillColor() {
-    final level = _resolveLevel();
-    return colorForLevel(level, colorScheme);
-  }
-
-  static Color appleColor(final _HeatLevel level, final GameColors colors) =>
+  static Color colorFor(final _HeatLevel level, final GameColors colors) =>
       level == _HeatLevel.empty ? colors.gridLine : Color.lerp(colors.board, colors.active, .25 + level.index * .15)!;
 
   _HeatLevel _resolveLevel() {
@@ -432,32 +425,6 @@ class _HeatmapDayCell extends StatelessWidget {
     }
     return _HeatLevel.empty;
   }
-
-  static Color colorForLevel(final _HeatLevel level, final ColorScheme colorScheme) {
-    final empty = colorScheme.brightness == Brightness.dark
-        ? const Color(0xFF2D333B)
-        : colorScheme.surfaceContainerHigh;
-    const inProgress = Color(0xFF0E4429);
-    const inProgressMany = Color(0xFF006D32);
-    const inProgressSolved = Color(0xFF26A641);
-    const solvedMany = Color(0xFF39D353);
-    const solvedHigh = Color(0xFF56D364);
-
-    switch (level) {
-      case _HeatLevel.empty:
-        return empty;
-      case _HeatLevel.inProgress:
-        return inProgress;
-      case _HeatLevel.inProgressMany:
-        return inProgressMany;
-      case _HeatLevel.inProgressSolved:
-        return inProgressSolved;
-      case _HeatLevel.solvedMany:
-        return solvedMany;
-      case _HeatLevel.solvedHigh:
-        return solvedHigh;
-    }
-  }
 }
 
 enum _HeatLevel { empty, inProgress, inProgressMany, inProgressSolved, solvedMany, solvedHigh }
@@ -469,7 +436,6 @@ class HeatmapLegend extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-    final glass = ScreenSpec.of(context).family == ChromeFamily.glass;
     final levels = <_HeatLevel>[
       _HeatLevel.inProgress,
       _HeatLevel.inProgressMany,
@@ -489,9 +455,7 @@ class HeatmapLegend extends StatelessWidget {
         for (var i = 0; i < levels.length; i++) ...[
           _LegendSquare(
             size: large ? 12 : 10,
-            color: glass
-                ? _HeatmapDayCell.appleColor(levels[i], GameColors.of(context))
-                : _HeatmapDayCell.colorForLevel(levels[i], Theme.of(context).colorScheme),
+            color: _HeatmapDayCell.colorFor(levels[i], GameColors.of(context)),
           ),
           if (i < levels.length - 1) const SizedBox(width: 3),
         ],

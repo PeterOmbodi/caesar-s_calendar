@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:material_ui/material_ui.dart';
@@ -20,6 +21,7 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     emit(state.copyWith(theme: theme));
   }
 
+  void setPalette(final AppPaletteId palette) => emit(state.copyWith(palette: palette));
   void setLocaleCode(final String? localeCode) => emit(state.copyWith(localeCode: localeCode));
   void togglePreventOverlap(final bool v) => emit(state.copyWith(preventOverlap: v));
   void toggleSnapToGrid(final bool v) => emit(state.copyWith(snapToGridOnTransform: v));

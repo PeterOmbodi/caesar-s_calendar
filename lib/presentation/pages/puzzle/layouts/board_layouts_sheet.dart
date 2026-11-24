@@ -10,7 +10,11 @@ import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/utils/board_layout_cells.dart';
 import 'package:caesar_puzzle/presentation/widgets/adaptive_dialog.dart';
 import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_menu_button.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_text_field.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -157,14 +161,12 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
                           ),
                         ),
                       ),
-                      TextButton.icon(
+                      AppButton(
+                        label: S.current.layoutsNew,
                         onPressed: canEdit ? () => _startEdit(null) : null,
-                        icon: const Icon(Icons.add, size: 20),
-                        label: Text(S.current.layoutsNew),
-                        style: TextButton.styleFrom(
-                          foregroundColor: colors.accent,
-                          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                        ),
+                        variant: AppButtonVariant.text,
+                        icon: Icons.add,
+                        cupertinoIcon: CupertinoIcons.add,
                       ),
                     ],
                   ),
@@ -202,16 +204,11 @@ class _BoardLayoutsPanelState extends State<_BoardLayoutsPanel> {
                 Divider(height: 1, color: colors.gridLine),
                 const _PieceSetRow(),
                 const SizedBox(height: 6),
-                FilledButton(
+                AppButton(
+                  label: S.current.layoutsEditCurrent,
                   onPressed: canEdit ? () => _startEdit(current?.layout) : null,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: colors.active,
-                    foregroundColor: colors.onActive,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  child: Text(S.current.layoutsEditCurrent),
+                  size: AppButtonSize.large,
+                  expand: true,
                 ),
               ],
             ),
@@ -319,6 +316,8 @@ class _LayoutRow extends StatelessWidget {
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     final layout = entry.layout;
+    final onRename = this.onRename;
+    final onDelete = this.onDelete;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -358,16 +357,22 @@ class _LayoutRow extends StatelessWidget {
                   ],
                 ),
               ),
-              if (isCurrent) Icon(Icons.check, size: 22, color: colors.accent),
+              if (isCurrent) Icon(Icons.check, size: 22, color: colors.active),
               if (onRename != null && onDelete != null)
-                PopupMenuButton<VoidCallback>(
-                  icon: Icon(Icons.more_horiz, size: 22, color: colors.textSecondary),
-                  onSelected: (final action) => action(),
-                  itemBuilder: (_) => [
-                    PopupMenuItem<VoidCallback>(value: onRename, child: Text(S.current.layoutsRename)),
-                    PopupMenuItem<VoidCallback>(
-                      value: onDelete,
-                      child: Text(S.current.layoutsDelete, style: TextStyle(color: colors.bad)),
+                AppMenuButton(
+                  items: [
+                    AppMenuItem(
+                      label: S.current.layoutsRename,
+                      icon: Icons.edit_outlined,
+                      cupertinoIcon: CupertinoIcons.pencil,
+                      onSelected: onRename,
+                    ),
+                    AppMenuItem(
+                      label: S.current.layoutsDelete,
+                      icon: Icons.delete_outline,
+                      cupertinoIcon: CupertinoIcons.delete,
+                      onSelected: onDelete,
+                      destructive: true,
                     ),
                   ],
                 ),
@@ -524,10 +529,10 @@ class _NameDialogState extends State<_NameDialog> {
     title: Text(widget.title),
     content: Padding(
       padding: const EdgeInsets.only(top: 8),
-      child: AdaptiveTextField(
+      child: AppTextField(
         controller: _controller,
         autofocus: true,
-        hintText: S.current.layoutsNameHint,
+        hint: S.current.layoutsNameHint,
         textCapitalization: TextCapitalization.sentences,
         onSubmitted: (_) => _submit(),
       ),

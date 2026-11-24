@@ -2,6 +2,7 @@ import 'package:caesar_puzzle/application/race/race_room_code.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
@@ -84,20 +85,11 @@ class _ShareButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
-  Widget build(final BuildContext context) {
-    final label = Text(S.current.raceShare);
-    if (ScreenSpec.of(context).family != ChromeFamily.glass) {
-      return FilledButton.tonalIcon(onPressed: onPressed, icon: const Icon(Icons.share), label: label);
-    }
-    return CupertinoButton.tinted(
-      onPressed: onPressed,
-      color: GameColors.of(context).active,
-      sizeStyle: CupertinoButtonSize.medium,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 6,
-        children: [const Icon(CupertinoIcons.share, size: 18), label],
-      ),
-    );
-  }
+  Widget build(final BuildContext context) => AppButton(
+    label: S.current.raceShare,
+    onPressed: onPressed,
+    variant: AppButtonVariant.outlined,
+    icon: Icons.share,
+    cupertinoIcon: CupertinoIcons.share,
+  );
 }

@@ -5,7 +5,8 @@ import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/history/bloc/history_cubit.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:caesar_puzzle/presentation/widgets/app_segmented_control.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_segmented_control.dart';
+import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
@@ -51,12 +52,7 @@ class StatisticsTab extends StatelessWidget {
               style: TextStyle(fontSize: glass ? 13 : 12, color: GameColors.of(context).textSecondary),
             ),
           ),
-          if (state.isPeriodStatsLoading)
-            const Center(child: CircularProgressIndicator.adaptive())
-          else if (glass)
-            _GlassCardTheme(child: tile)
-          else
-            tile,
+          if (state.isPeriodStatsLoading) const Center(child: CircularProgressIndicator.adaptive()) else tile,
         ],
       );
     },
@@ -91,15 +87,26 @@ class _MaterialFilters extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      _LabeledChipRow(
-        label: S.current.historyStatsSessionsFromLabel,
-        child: _YearScopeChips(selected: yearScope, onSelected: onYearScope),
+      InsetHeader(S.current.historyStatsPeriodLabel),
+      AppSegmentedControl<StatsPeriod>(
+        value: period,
+        onChanged: onPeriod,
+        segments: {
+          StatsPeriod.week: S.current.historyPeriodWeek,
+          StatsPeriod.month: S.current.historyPeriodMonth,
+          StatsPeriod.year: S.current.historyPeriodYear,
+        },
       ),
-      const SizedBox(height: 12),
-      _LabeledChipRow(
-        label: S.current.historyStatsPeriodLabel,
-        child: _PeriodChips(selected: period, onSelected: onPeriod),
+      const SizedBox(height: 8),
+      AppSegmentedControl<StatsYearScope>(
+        value: yearScope,
+        onChanged: onYearScope,
+        segments: {
+          StatsYearScope.currentYear: S.current.historyYearScopeCurrent,
+          StatsYearScope.allYears: S.current.historyYearScopeAll,
+        },
       ),
     ],
   );
@@ -128,17 +135,6 @@ class _CupertinoFilters extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(S.current.historyStatsSessionsFromLabel, style: labelStyle),
-          const SizedBox(height: 8),
-          AppSegmentedControl<StatsYearScope>(
-            value: yearScope,
-            onChanged: onYearScope,
-            segments: {
-              StatsYearScope.currentYear: S.current.historyYearScopeCurrent,
-              StatsYearScope.allYears: S.current.historyYearScopeAll,
-            },
-          ),
-          const SizedBox(height: 16),
           Text(S.current.historyStatsPeriodLabel, style: labelStyle),
           const SizedBox(height: 8),
           AppSegmentedControl<StatsPeriod>(
@@ -150,113 +146,19 @@ class _CupertinoFilters extends StatelessWidget {
               StatsPeriod.year: S.current.historyPeriodYear,
             },
           ),
+          const SizedBox(height: 8),
+          AppSegmentedControl<StatsYearScope>(
+            value: yearScope,
+            onChanged: onYearScope,
+            segments: {
+              StatsYearScope.currentYear: S.current.historyYearScopeCurrent,
+              StatsYearScope.allYears: S.current.historyYearScopeAll,
+            },
+          ),
         ],
       ),
     );
   }
-}
-
-class _GlassCardTheme extends StatelessWidget {
-  const _GlassCardTheme({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(final BuildContext context) {
-    final colors = GameColors.of(context);
-    final theme = Theme.of(context);
-    return Theme(
-      data: theme.copyWith(
-        cardTheme: CardThemeData(
-          color: colors.board,
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        ),
-        colorScheme: theme.colorScheme.copyWith(
-          primary: colors.active,
-          surfaceContainerHigh: colors.gridLine,
-          onSurface: colors.text,
-        ),
-        textTheme: theme.textTheme.apply(bodyColor: colors.text, displayColor: colors.text),
-      ),
-      child: child,
-    );
-  }
-}
-
-class _LabeledChipRow extends StatelessWidget {
-  const _LabeledChipRow({required this.label, required this.child});
-
-  final String label;
-  final Widget child;
-
-  @override
-  Widget build(final BuildContext context) => Row(
-    children: [
-      Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-      ),
-      const SizedBox(width: 12),
-      Expanded(child: child),
-    ],
-  );
-}
-
-class _PeriodChips extends StatelessWidget {
-  const _PeriodChips({required this.selected, required this.onSelected});
-
-  final StatsPeriod selected;
-  final ValueChanged<StatsPeriod> onSelected;
-
-  @override
-  Widget build(final BuildContext context) => Wrap(
-    alignment: WrapAlignment.end,
-    spacing: 8,
-    children: [
-      ChoiceChip(
-        label: Text(S.current.historyPeriodWeek),
-        selected: selected == StatsPeriod.week,
-        onSelected: (_) => onSelected(StatsPeriod.week),
-      ),
-      ChoiceChip(
-        label: Text(S.current.historyPeriodMonth),
-        selected: selected == StatsPeriod.month,
-        onSelected: (_) => onSelected(StatsPeriod.month),
-      ),
-      ChoiceChip(
-        label: Text(S.current.historyPeriodYear),
-        selected: selected == StatsPeriod.year,
-        onSelected: (_) => onSelected(StatsPeriod.year),
-      ),
-    ],
-  );
-}
-
-class _YearScopeChips extends StatelessWidget {
-  const _YearScopeChips({required this.selected, required this.onSelected});
-
-  final StatsYearScope selected;
-  final ValueChanged<StatsYearScope> onSelected;
-
-  @override
-  Widget build(final BuildContext context) => Wrap(
-    alignment: WrapAlignment.end,
-    spacing: 8,
-    children: [
-      ChoiceChip(
-        label: Text(S.current.historyYearScopeCurrent),
-        selected: selected == StatsYearScope.currentYear,
-        onSelected: (_) => onSelected(StatsYearScope.currentYear),
-      ),
-      ChoiceChip(
-        label: Text(S.current.historyYearScopeAll),
-        selected: selected == StatsYearScope.allYears,
-        onSelected: (_) => onSelected(StatsYearScope.allYears),
-      ),
-    ],
-  );
 }
 
 class _StatTile extends StatelessWidget {

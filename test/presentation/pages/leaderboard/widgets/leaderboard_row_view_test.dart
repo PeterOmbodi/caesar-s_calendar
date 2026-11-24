@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/bloc/leaderboard_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/widgets/leaderboard_row_view.dart';
+import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -8,7 +9,7 @@ import 'package:material_ui/material_ui.dart';
 void main() {
   Future<void> pumpRow(final WidgetTester tester, final LeaderboardRow row) => tester.pumpWidget(
     MaterialApp(
-      theme: AppThemeData.light,
+      theme: AppThemeData.of(AppPalette.classic, Brightness.light),
       localizationsDelegates: [S.delegate, ...GlobalMaterialLocalizations.delegates],
       supportedLocales: S.delegate.supportedLocales,
       home: Scaffold(body: LeaderboardRowView(row: row)),

@@ -7,8 +7,8 @@ import 'package:caesar_puzzle/presentation/pages/leaderboard/leaderboard_screen.
 import 'package:caesar_puzzle/presentation/pages/settings/bloc/public_profile_cubit.dart';
 import 'package:caesar_puzzle/presentation/pages/settings/widgets/account_display.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:caesar_puzzle/presentation/widgets/app_switch.dart';
 import 'package:caesar_puzzle/presentation/widgets/confirm_dialog.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_switch.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -314,7 +314,6 @@ class _SignedIn extends StatelessWidget {
             InsetRow(
               icon: Icons.logout,
               title: S.current.accountSignOut,
-              titleColor: colors.accent,
               onTap: auth.isLoading ? null : cubit.signOut,
             ),
             InsetRow(

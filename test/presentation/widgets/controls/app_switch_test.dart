@@ -1,4 +1,4 @@
-import 'package:caesar_puzzle/presentation/widgets/app_switch.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_switch.dart';
 import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';

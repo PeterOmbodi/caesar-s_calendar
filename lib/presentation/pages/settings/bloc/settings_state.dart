@@ -6,6 +6,7 @@ enum AppTheme { system, light, dark }
 abstract class SettingsState with _$SettingsState {
   const factory SettingsState({
     @Default(AppTheme.system) final AppTheme theme,
+    @JsonKey(unknownEnumValue: AppPaletteId.classic) @Default(AppPaletteId.classic) final AppPaletteId palette,
     final String? localeCode,
     @Default(true) final bool preventOverlap,
     @Default(true) final bool separateMoveColors,

@@ -1,6 +1,7 @@
 import 'package:caesar_puzzle/application/race/race_player.dart';
 import 'package:caesar_puzzle/generated/l10n.dart';
 import 'package:caesar_puzzle/presentation/pages/race/widgets/race_standings.dart';
+import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -13,7 +14,7 @@ void main() {
     addTearDown(() => tester.pumpWidget(const SizedBox()));
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppThemeData.light,
+        theme: AppThemeData.of(AppPalette.classic, Brightness.light),
         localizationsDelegates: [S.delegate, ...GlobalMaterialLocalizations.delegates],
         supportedLocales: S.delegate.supportedLocales,
         home: Scaffold(

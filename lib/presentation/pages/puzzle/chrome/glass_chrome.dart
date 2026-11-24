@@ -6,10 +6,14 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart'
 import 'package:caesar_puzzle/presentation/services/keyboard_presence.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/glass_menu.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:caesar_puzzle/presentation/widgets/key_cap.dart';
 import 'package:collection/collection.dart';
 import 'package:material_ui/material_ui.dart';
+
+/// Keeps a filled action's label legible on the fill while it is disabled.
+const double _disabledOnActiveAlpha = 0.55;
 
 class GlassChrome extends GameChrome {
   const GlassChrome({
@@ -242,11 +246,11 @@ class _SlotButton extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    final foreground = !enabled
-        ? colors.iconDisabled
-        : active
-        ? colors.onActive
-        : colors.icon;
+    final foreground = active
+        ? colors.onActive.withValues(alpha: enabled ? 1 : _disabledOnActiveAlpha)
+        : enabled
+        ? colors.icon
+        : colors.iconDisabled;
     const radius = BorderRadius.all(Radius.circular(GlassChrome.slotHeight / 2));
     final glyph = busy
         ? SizedBox.square(
@@ -400,54 +404,26 @@ class _MoreMenu extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    const radius = BorderRadius.all(Radius.circular(22));
-    return GlassSurface(
-      borderRadius: radius,
-      color: colors.menu,
-      child: Material(
-        type: MaterialType.transparency,
-        child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final item in items)
-                InkWell(
-                  borderRadius: const BorderRadius.all(Radius.circular(14)),
-                  onTap: item.enabled ? () => onPick(item) : null,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-                    child: Row(
-                      spacing: 12,
-                      children: [
-                        Icon(item.id.icon, size: 22, color: item.enabled ? colors.icon : colors.iconDisabled),
-                        Expanded(
-                          child: Text(
-                            item.id.label,
-                            style: TextStyle(
-                              fontSize: 16,
-                              height: 21 / 16,
-                              color: item.enabled ? colors.text : colors.iconDisabled,
-                            ),
-                          ),
-                        ),
-                        if (item.count != null)
-                          Text(
-                            '${item.count}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: colors.textSecondary,
-                              fontFeatures: const [FontFeature.tabularFigures()],
-                            ),
-                          ),
-                      ],
+    return GlassMenuPanel(
+      children: [
+        for (final item in items)
+          GlassMenuRow(
+            icon: item.id.icon,
+            label: item.id.label,
+            enabled: item.enabled,
+            onTap: () => onPick(item),
+            trailing: item.count == null
+                ? null
+                : Text(
+                    '${item.count}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colors.textSecondary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
-                ),
-            ],
           ),
-        ),
-      ),
+      ],
     );
   }
 }
@@ -549,11 +525,11 @@ class _RailRow extends StatelessWidget {
     final colors = GameColors.of(context);
     final isCounter = action.id == GameActionId.solutionCounter;
     void onPressed() => onInvoke(action, _globalRect(context));
-    final foreground = !action.enabled
-        ? colors.iconDisabled
-        : action.active
-        ? colors.onActive
-        : colors.icon;
+    final foreground = action.active
+        ? colors.onActive.withValues(alpha: action.enabled ? 1 : _disabledOnActiveAlpha)
+        : action.enabled
+        ? colors.icon
+        : colors.iconDisabled;
     final meta = isCounter
         ? '${action.count} / ${action.total}'
         : action.count != null

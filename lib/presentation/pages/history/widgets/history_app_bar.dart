@@ -3,6 +3,7 @@ import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/pages/achievements/achievements_screen.dart';
 import 'package:caesar_puzzle/presentation/pages/leaderboard/leaderboard_screen.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/controls/app_bar_icon_button.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -33,34 +34,14 @@ class _GlassHistoryAppBar extends StatelessWidget implements PreferredSizeWidget
   Widget build(final BuildContext context) => CupertinoNavigationBar(
     backgroundColor: GameColors.of(context).background,
     brightness: Theme.of(context).brightness,
-    leading: _CupertinoHistoryNavigationButton(
-      semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-      icon: CupertinoIcons.back,
+    leading: AppBarIconButton(
+      icon: Icons.arrow_back,
+      cupertinoIcon: CupertinoIcons.back,
+      label: MaterialLocalizations.of(context).backButtonTooltip,
       onPressed: () => Navigator.of(context).maybePop(),
     ),
     middle: Text(S.current.historyTitle),
-    trailing: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _CupertinoHistoryNavigationButton(
-          semanticLabel: S.current.leaderboardTitle,
-          icon: Icons.leaderboard_outlined,
-          onPressed: () =>
-              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
-        ),
-        _CupertinoHistoryNavigationButton(
-          semanticLabel: S.current.achievementsTitle,
-          icon: Icons.emoji_events_outlined,
-          onPressed: () =>
-              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AchievementsScreen())),
-        ),
-        _CupertinoHistoryNavigationButton(
-          semanticLabel: S.current.historyPickDate,
-          icon: CupertinoIcons.calendar,
-          onPressed: onPickDate,
-        ),
-      ],
-    ),
+    trailing: _HistoryActions(onPickDate: onPickDate),
   );
 }
 
@@ -77,50 +58,38 @@ class _MaterialHistoryAppBar extends StatelessWidget implements PreferredSizeWid
     automaticallyImplyLeading: false,
     leading: const BackButton(),
     title: Text(S.current.historyTitle),
-    actions: [
-      _HistoryActionButton(
-        tooltip: S.current.leaderboardTitle,
-        icon: Icons.leaderboard_outlined,
-        onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
-      ),
-      _HistoryActionButton(
-        tooltip: S.current.achievementsTitle,
-        icon: Icons.emoji_events_outlined,
-        onPressed: () =>
-            Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AchievementsScreen())),
-      ),
-      _HistoryActionButton(
-        tooltip: S.current.historyPickDate,
-        icon: Icons.calendar_month_outlined,
-        onPressed: onPickDate,
-      ),
-    ],
+    actions: [_HistoryActions(onPickDate: onPickDate)],
   );
 }
 
-class _HistoryActionButton extends StatelessWidget {
-  const _HistoryActionButton({required this.tooltip, required this.icon, required this.onPressed});
+class _HistoryActions extends StatelessWidget {
+  const _HistoryActions({required this.onPickDate});
 
-  final String tooltip;
-  final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback onPickDate;
 
   @override
-  Widget build(final BuildContext context) => IconButton(tooltip: tooltip, icon: Icon(icon), onPressed: onPressed);
-}
-
-class _CupertinoHistoryNavigationButton extends StatelessWidget {
-  const _CupertinoHistoryNavigationButton({required this.semanticLabel, required this.icon, required this.onPressed});
-
-  final String semanticLabel;
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(final BuildContext context) => CupertinoButton(
-    padding: EdgeInsets.zero,
-    minimumSize: const Size.square(kMinInteractiveDimensionCupertino),
-    onPressed: onPressed,
-    child: Icon(icon, semanticLabel: semanticLabel),
+  Widget build(final BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      AppBarIconButton(
+        icon: Icons.leaderboard_outlined,
+        cupertinoIcon: Icons.leaderboard_outlined,
+        label: S.current.leaderboardTitle,
+        onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LeaderboardScreen())),
+      ),
+      AppBarIconButton(
+        icon: Icons.emoji_events_outlined,
+        cupertinoIcon: Icons.emoji_events_outlined,
+        label: S.current.achievementsTitle,
+        onPressed: () =>
+            Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AchievementsScreen())),
+      ),
+      AppBarIconButton(
+        icon: Icons.calendar_month_outlined,
+        cupertinoIcon: CupertinoIcons.calendar,
+        label: S.current.historyPickDate,
+        onPressed: onPickDate,
+      ),
+    ],
   );
 }
