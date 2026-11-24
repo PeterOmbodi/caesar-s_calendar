@@ -1,14 +1,33 @@
+import 'dart:math' as math;
+
 import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/controls_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:caesar_puzzle/presentation/widgets/inset_section.dart';
 import 'package:caesar_puzzle/presentation/widgets/system_bars.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 
 class AppThemeData {
+  static const double _minTextContrast = 4.5;
+
+  /// [fill] moved away from [label] until the label reads on it; the game keeps the original fill.
+  static Color _readableFill(final Color fill, final Color label) {
+    final towards = label.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+    for (var step = 0; step <= 50; step++) {
+      final candidate = Color.lerp(fill, towards, step / 50)!;
+      if (contrast(candidate, label) >= _minTextContrast) return candidate;
+    }
+    return towards;
+  }
+
+  static double contrast(final Color a, final Color b) {
+    final la = a.computeLuminance();
+    final lb = b.computeLuminance();
+    return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+  }
+
   static final _cache = <(AppPalette, Brightness), ThemeData>{};
 
   static ThemeData of(final AppPalette palette, final Brightness brightness) =>
@@ -24,7 +43,7 @@ class AppThemeData {
     final isDark = brightness == Brightness.dark;
     final activeText = Color.lerp(game.active, isDark ? Colors.white : Colors.black, isDark ? 0.35 : 0.3)!;
     final scheme = ColorScheme.fromSeed(seedColor: game.active, brightness: brightness).copyWith(
-      primary: game.active,
+      primary: _readableFill(game.active, game.onActive),
       onPrimary: game.onActive,
       tertiary: game.accent,
       secondaryContainer: Color.lerp(game.board, game.active, isDark ? 0.3 : 0.16),
@@ -58,7 +77,7 @@ class AppThemeData {
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(InsetSection.radius)),
+          borderRadius: const BorderRadius.all(Radius.circular(ControlsTheme.cardRadius)),
           side: BorderSide(color: game.gridLine),
         ),
       ),

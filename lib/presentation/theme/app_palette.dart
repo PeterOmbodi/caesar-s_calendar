@@ -23,19 +23,17 @@ class PaletteAccent {
 
 @immutable
 class AppPalette {
-  const AppPalette({required this.id, required this.light, required this.dark, this.isPremium = false});
+  const AppPalette({required this.id, required this.light, required this.dark});
 
   factory AppPalette.fromAccent({
     required final AppPaletteId id,
     required final PaletteAccent light,
     required final PaletteAccent dark,
     final double tint = 1,
-    final bool isPremium = false,
   }) => AppPalette(
     id: id,
     light: _apply(GameColors.light, light, _lightTint * tint),
     dark: _apply(GameColors.dark, dark, _darkTint * tint),
-    isPremium: isPremium,
   );
 
   /// Material You colours derived from the system [seed]; neutrals follow the same tint as the presets.
@@ -144,7 +142,6 @@ class AppPalette {
   final AppPaletteId id;
   final GameColors light;
   final GameColors dark;
-  final bool isPremium;
 
   GameColors colors(final Brightness brightness) => brightness == Brightness.dark ? dark : light;
 

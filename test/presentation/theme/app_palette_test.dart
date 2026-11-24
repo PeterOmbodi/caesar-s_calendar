@@ -116,10 +116,11 @@ void main() {
           final theme = AppThemeData.of(palette, brightness);
           final colors = palette.colors(brightness);
           final readable = theme.textButtonTheme.style!.foregroundColor!.resolve({})!;
-          // Classic light keeps the game's original teal.
-          if (!(palette.id == AppPaletteId.classic && brightness == Brightness.light)) {
-            expect(contrast(colors.onActive, colors.active), greaterThanOrEqualTo(4.5), reason: 'button label');
-          }
+          expect(
+            contrast(theme.colorScheme.onPrimary, theme.colorScheme.primary),
+            greaterThanOrEqualTo(4.5),
+            reason: 'button label',
+          );
           expect(contrast(readable, colors.background), greaterThanOrEqualTo(4.5), reason: 'text button');
           expect(
             contrast(theme.colorScheme.onSecondaryContainer, theme.colorScheme.secondaryContainer),

@@ -1,4 +1,5 @@
 import 'package:caesar_puzzle/presentation/theme/app_palette.dart';
+import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:caesar_puzzle/presentation/theme/theme.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_bar_icon_button.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_button.dart';
@@ -65,6 +66,14 @@ void main() {
       );
       final scheme = AppThemeData.of(AppPalette.classic, Brightness.light).colorScheme;
       expect(tester.renderObject<RenderParagraph>(find.text('Go')).text.style?.color, scheme.onSecondaryContainer);
+    });
+
+    testWidgets('a disabled filled button keeps a legible label on iOS', (final tester) async {
+      await tester.pumpWidget(_app(TargetPlatform.iOS, const AppButton(label: 'Go', onPressed: null)));
+      expect(
+        tester.renderObject<RenderParagraph>(find.text('Go')).text.style?.color,
+        GameColors.light.textSecondary,
+      );
     });
 
     testWidgets('expands to the full width when asked', (final tester) async {
@@ -136,6 +145,18 @@ void main() {
 
       await tester.tap(find.text('B'));
       expect(picked, 2);
+    });
+
+    testWidgets('Material segments meet the Android touch target size', (final tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _app(
+          TargetPlatform.android,
+          AppSegmentedControl<int>(segments: const {1: 'A', 2: 'B'}, value: 1, onChanged: (_) {}),
+        ),
+      );
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      handle.dispose();
     });
   });
 

@@ -1,6 +1,6 @@
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
-import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
+import 'package:caesar_puzzle/presentation/widgets/glass_menu.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -104,29 +104,16 @@ class _GlassMenu extends StatelessWidget {
   final ValueChanged<AppMenuItem> onPick;
 
   @override
-  Widget build(final BuildContext context) => GlassSurface(
-    borderRadius: const BorderRadius.all(Radius.circular(22)),
-    color: GameColors.of(context).menu,
-    child: Material(
-      type: MaterialType.transparency,
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final item in items)
-              InkWell(
-                borderRadius: const BorderRadius.all(Radius.circular(14)),
-                onTap: () => onPick(item),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-                  child: _MenuRow(item: item, icon: item.cupertinoIcon),
-                ),
-              ),
-          ],
+  Widget build(final BuildContext context) => GlassMenuPanel(
+    children: [
+      for (final item in items)
+        GlassMenuRow(
+          icon: item.cupertinoIcon,
+          label: item.label,
+          destructive: item.destructive,
+          onTap: () => onPick(item),
         ),
-      ),
-    ),
+    ],
   );
 }
 

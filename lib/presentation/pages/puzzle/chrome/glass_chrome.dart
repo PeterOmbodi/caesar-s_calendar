@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/presentation/pages/puzzle/chrome/game_chrome.dart'
 import 'package:caesar_puzzle/presentation/services/keyboard_presence.dart';
 import 'package:caesar_puzzle/presentation/theme/chrome_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
+import 'package:caesar_puzzle/presentation/widgets/glass_menu.dart';
 import 'package:caesar_puzzle/presentation/widgets/glass_surface.dart';
 import 'package:caesar_puzzle/presentation/widgets/key_cap.dart';
 import 'package:collection/collection.dart';
@@ -403,54 +404,26 @@ class _MoreMenu extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
-    const radius = BorderRadius.all(Radius.circular(22));
-    return GlassSurface(
-      borderRadius: radius,
-      color: colors.menu,
-      child: Material(
-        type: MaterialType.transparency,
-        child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final item in items)
-                InkWell(
-                  borderRadius: const BorderRadius.all(Radius.circular(14)),
-                  onTap: item.enabled ? () => onPick(item) : null,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-                    child: Row(
-                      spacing: 12,
-                      children: [
-                        Icon(item.id.icon, size: 22, color: item.enabled ? colors.icon : colors.iconDisabled),
-                        Expanded(
-                          child: Text(
-                            item.id.label,
-                            style: TextStyle(
-                              fontSize: 16,
-                              height: 21 / 16,
-                              color: item.enabled ? colors.text : colors.iconDisabled,
-                            ),
-                          ),
-                        ),
-                        if (item.count != null)
-                          Text(
-                            '${item.count}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: colors.textSecondary,
-                              fontFeatures: const [FontFeature.tabularFigures()],
-                            ),
-                          ),
-                      ],
+    return GlassMenuPanel(
+      children: [
+        for (final item in items)
+          GlassMenuRow(
+            icon: item.id.icon,
+            label: item.id.label,
+            enabled: item.enabled,
+            onTap: () => onPick(item),
+            trailing: item.count == null
+                ? null
+                : Text(
+                    '${item.count}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colors.textSecondary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
-                ),
-            ],
           ),
-        ),
-      ),
+      ],
     );
   }
 }

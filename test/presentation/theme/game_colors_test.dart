@@ -20,10 +20,17 @@ void main() {
   });
 
   test('app theme takes its primary colours from the game palette', () {
+    final scheme = AppThemeData.of(AppPalette.classic, Brightness.dark).colorScheme;
+    expect(scheme.primary, GameColors.dark.active);
+    expect(scheme.onPrimary, GameColors.dark.onActive);
+    expect(scheme.tertiary, GameColors.dark.accent);
+  });
+
+  test('primary is darkened for the UI where the game colour is too light for its label', () {
     final scheme = AppThemeData.of(AppPalette.classic, Brightness.light).colorScheme;
-    expect(scheme.primary, GameColors.light.active);
-    expect(scheme.onPrimary, GameColors.light.onActive);
-    expect(scheme.tertiary, GameColors.light.accent);
+    expect(scheme.primary, isNot(GameColors.light.active));
+    expect(scheme.primary.computeLuminance(), lessThan(GameColors.light.active.computeLuminance()));
+    expect(AppThemeData.contrast(scheme.primary, scheme.onPrimary), greaterThanOrEqualTo(4.5));
   });
 
   test('app theme takes its surfaces and outlines from the game palette', () {

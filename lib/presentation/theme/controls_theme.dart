@@ -14,6 +14,9 @@ class ControlsTheme {
   factory ControlsTheme.of(final BuildContext context) =>
       ScreenSpec.of(context).family == ChromeFamily.glass ? cupertino : material;
 
+  /// Corner of cards and grouped sections.
+  static const double cardRadius = 16;
+
   static const material = ControlsTheme(largeHeight: 48, regularHeight: 40, fieldRadius: 12, selectionRadius: 9);
   static const cupertino = ControlsTheme(largeHeight: 50, regularHeight: 44, fieldRadius: 16, selectionRadius: 9);
 

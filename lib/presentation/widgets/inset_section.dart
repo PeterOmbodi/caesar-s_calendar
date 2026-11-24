@@ -1,11 +1,12 @@
 import 'package:caesar_puzzle/presentation/layout/screen_spec.dart';
+import 'package:caesar_puzzle/presentation/theme/controls_theme.dart';
 import 'package:caesar_puzzle/presentation/theme/game_colors.dart';
 import 'package:material_ui/material_ui.dart';
 
 class InsetSection extends StatelessWidget {
   const InsetSection({super.key, required this.children, this.header, this.footer});
 
-  static const double radius = 16;
+  static const double radius = ControlsTheme.cardRadius;
 
   final List<Widget> children;
   final String? header;

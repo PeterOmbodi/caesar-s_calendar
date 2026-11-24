@@ -105,7 +105,7 @@ class _CupertinoAppButton extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
-    final active = GameColors.of(context).active;
+    final scheme = Theme.of(context).colorScheme;
     final minimumSize = Size(height, height);
     final icon = this.icon;
     final child = icon == null
@@ -121,9 +121,13 @@ class _CupertinoAppButton extends StatelessWidget {
     return switch (variant) {
       AppButtonVariant.filled => CupertinoButton.filled(
         onPressed: onPressed,
-        color: active,
+        color: scheme.primary,
+        disabledColor: scheme.surfaceContainerHighest,
         minimumSize: minimumSize,
-        child: child,
+        child: _Foreground(
+          color: onPressed == null ? GameColors.of(context).textSecondary : scheme.onPrimary,
+          child: child,
+        ),
       ),
       AppButtonVariant.outlined => _CupertinoOutlinedButton(
         onPressed: onPressed,
@@ -135,7 +139,7 @@ class _CupertinoAppButton extends StatelessWidget {
   }
 }
 
-/// A tinted fill turns murky on dark backgrounds and reads as disabled, so secondary buttons get an outline.
+/// Secondary actions use an outline on Cupertino.
 class _CupertinoOutlinedButton extends StatelessWidget {
   const _CupertinoOutlinedButton({required this.onPressed, required this.minimumSize, required this.child});
 
@@ -158,11 +162,25 @@ class _CupertinoOutlinedButton extends StatelessWidget {
         onPressed: onPressed,
         minimumSize: minimumSize,
         borderRadius: _radius,
-        child: DefaultTextStyle.merge(
-          style: TextStyle(color: foreground),
-          child: IconTheme.merge(data: IconThemeData(color: foreground), child: child),
-        ),
+        child: _Foreground(color: foreground, child: child),
       ),
     );
   }
+}
+
+/// Sets the label and icon colour inside a [CupertinoButton], which otherwise applies its own.
+class _Foreground extends StatelessWidget {
+  const _Foreground({required this.color, required this.child});
+
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(final BuildContext context) => DefaultTextStyle.merge(
+    style: TextStyle(color: color),
+    child: IconTheme.merge(
+      data: IconThemeData(color: color),
+      child: child,
+    ),
+  );
 }
