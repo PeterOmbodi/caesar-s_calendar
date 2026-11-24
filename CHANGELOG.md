@@ -1,6 +1,11 @@
 ## 1.14.4+52
 - built with Flutter 3.50
 - dialogs are built on the app's own adaptive components instead of a discontinued third-party package
+- pick a colour scheme in Settings: Classic, Purple, Bronze, Laurel or Terracotta, or System colours on Android 12 and later; the board, buttons and history map follow it
+- one look for buttons, fields, switches, selectors and menus on every screen outside the game, on Android and iOS
+- warm cards and sheets in the colours of the game board instead of the system grey
+- Settings are grouped into cards on Android, like on iOS
+- statistics filters sit under one Period heading
 
 ## 1.14.3+51
 - the same account cannot be in a room from two devices at once; a second device is told to close the room on the first one
