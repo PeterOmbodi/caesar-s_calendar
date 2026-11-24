@@ -6,6 +6,7 @@ import 'package:caesar_puzzle/presentation/widgets/controls/app_menu_button.dart
 import 'package:caesar_puzzle/presentation/widgets/controls/app_segmented_control.dart';
 import 'package:caesar_puzzle/presentation/widgets/controls/app_text_field.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -56,6 +57,14 @@ void main() {
       expect(find.byType(CupertinoButton), findsOneWidget);
       expect(_widgetOf<FilledButton>(), findsNothing);
       expect(tester.widget<CupertinoButton>(find.byType(CupertinoButton)).minimumSize, const Size(50, 50));
+    });
+
+    testWidgets('outlined is a bordered button with the readable accent on iOS', (final tester) async {
+      await tester.pumpWidget(
+        _app(TargetPlatform.iOS, AppButton(label: 'Go', onPressed: () {}, variant: AppButtonVariant.outlined)),
+      );
+      final scheme = AppThemeData.of(AppPalette.classic, Brightness.light).colorScheme;
+      expect(tester.renderObject<RenderParagraph>(find.text('Go')).text.style?.color, scheme.onSecondaryContainer);
     });
 
     testWidgets('expands to the full width when asked', (final tester) async {

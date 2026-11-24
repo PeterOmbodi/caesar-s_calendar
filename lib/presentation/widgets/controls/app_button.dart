@@ -125,13 +125,44 @@ class _CupertinoAppButton extends StatelessWidget {
         minimumSize: minimumSize,
         child: child,
       ),
-      AppButtonVariant.outlined => CupertinoButton.tinted(
+      AppButtonVariant.outlined => _CupertinoOutlinedButton(
         onPressed: onPressed,
-        color: active,
         minimumSize: minimumSize,
         child: child,
       ),
       AppButtonVariant.text => CupertinoButton(onPressed: onPressed, minimumSize: minimumSize, child: child),
     };
+  }
+}
+
+/// A tinted fill turns murky on dark backgrounds and reads as disabled, so secondary buttons get an outline.
+class _CupertinoOutlinedButton extends StatelessWidget {
+  const _CupertinoOutlinedButton({required this.onPressed, required this.minimumSize, required this.child});
+
+  static const _radius = BorderRadius.all(Radius.circular(12));
+
+  final VoidCallback? onPressed;
+  final Size minimumSize;
+  final Widget child;
+
+  @override
+  Widget build(final BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final foreground = onPressed == null ? scheme.outline : scheme.onSecondaryContainer;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: _radius,
+        border: Border.all(color: scheme.outline),
+      ),
+      child: CupertinoButton(
+        onPressed: onPressed,
+        minimumSize: minimumSize,
+        borderRadius: _radius,
+        child: DefaultTextStyle.merge(
+          style: TextStyle(color: foreground),
+          child: IconTheme.merge(data: IconThemeData(color: foreground), child: child),
+        ),
+      ),
+    );
   }
 }
