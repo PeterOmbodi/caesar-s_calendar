@@ -22,6 +22,12 @@ class AuthService {
        _google = googleSignIn;
 
   static const _googleWebClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
+
+  /// Passed explicitly on Android: release builds may strip the generated `default_web_client_id`.
+  static const _googleServerClientId = String.fromEnvironment(
+    'GOOGLE_WEB_CLIENT_ID',
+    defaultValue: '991187302399-n05fk79nvobtk8benjskjrlkrbrvdeol.apps.googleusercontent.com',
+  );
   static const _webPopupSignInTimeout = Duration(minutes: 2);
 
   final FirebaseAuth _auth;
@@ -45,6 +51,11 @@ class AuthService {
   String? get currentDisplayName => _bestDisplayName(_auth.currentUser);
   String? get currentPhotoUrl => _bestPhotoUrl(_auth.currentUser);
 
+  Future<void> _initializeGoogle() => _google.initialize(
+    clientId: _googleWebClientId.isNotEmpty ? _googleWebClientId : null,
+    serverClientId: defaultTargetPlatform == TargetPlatform.android ? _googleServerClientId : null,
+  );
+
   Future<Either<AuthFailure, UserCredential>> signInWithGoogle() async {
     if (!isAvailable) return Left(const AuthUnavailableFailure());
     if (kIsWeb) {
@@ -54,7 +65,7 @@ class AuthService {
       return Left(const AuthUnavailableFailure('Google sign-in is not supported on this platform'));
     }
     try {
-      await _google.initialize(clientId: _googleWebClientId.isNotEmpty ? _googleWebClientId : null);
+      await _initializeGoogle();
       if (!_google.supportsAuthenticate()) {
         return Left(const AuthUnavailableFailure('Google sign-in is not supported on this platform'));
       }
@@ -237,7 +248,7 @@ class AuthService {
   }
 
   Future<AuthCredential> _reauthenticateWithGoogle() async {
-    await _google.initialize(clientId: _googleWebClientId.isNotEmpty ? _googleWebClientId : null);
+    await _initializeGoogle();
     if (!_google.supportsAuthenticate()) {
       throw const AuthUnavailableFailure('Google re-authentication is not supported on this platform');
     }

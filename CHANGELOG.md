@@ -1,3 +1,6 @@
+## 1.14.5+53
+- fix Google sign-in on Android release builds
+
 ## 1.14.4+52
 - built with Flutter 3.50
 - dialogs are built on the app's own adaptive components instead of a discontinued third-party package
