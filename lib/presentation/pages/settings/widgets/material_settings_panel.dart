@@ -41,7 +41,10 @@ class MaterialSettingsPanel extends StatelessWidget {
               ),
               BlocBuilder<AuthCubit, AuthState>(
                 buildWhen: (final p, final n) =>
-                    p.isAvailable != n.isAvailable || p.user?.uid != n.user?.uid || p.isLoading != n.isLoading,
+                    p.isAvailable != n.isAvailable ||
+                    p.user?.uid != n.user?.uid ||
+                    p.user?.displayName != n.user?.displayName ||
+                    p.isLoading != n.isLoading,
                 builder: (final context, final auth) => AccountSummaryButton(
                   auth: auth,
                   onPressed: () => showAccountSectionSheet(context, closeDrawerFirst: true),

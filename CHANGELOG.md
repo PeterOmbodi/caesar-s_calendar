@@ -1,3 +1,6 @@
+## 1.14.6+54
+- keep the name shared on the first Apple sign-in; without a name, the account shows its ranking nickname instead of a question mark
+
 ## 1.14.5+53
 - fix Google sign-in on Android release builds
 

@@ -223,10 +223,13 @@ class _AccountSection extends StatelessWidget {
   @override
   Widget build(final BuildContext context) => BlocBuilder<AuthCubit, AuthState>(
     buildWhen: (final p, final n) =>
-        p.isAvailable != n.isAvailable || p.user?.uid != n.user?.uid || p.isLoading != n.isLoading,
+        p.isAvailable != n.isAvailable ||
+        p.user?.uid != n.user?.uid ||
+        p.user?.displayName != n.user?.displayName ||
+        p.isLoading != n.isLoading,
     builder: (final context, final auth) {
       final user = auth.user;
-      final displayName = AccountDisplay.bestDisplayName(user);
+      final displayName = AccountDisplay.nameOrNickname(user);
       final (:title, :subtitle) = AccountSummaryButton.textFor(auth);
       return _InsetGroup(
         children: [

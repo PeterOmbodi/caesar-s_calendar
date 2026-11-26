@@ -1,3 +1,4 @@
+import 'package:caesar_puzzle/application/leaderboard/nickname_generator.dart';
 import 'package:material_ui/material_ui.dart';
 
 class AccountDisplay {
@@ -9,6 +10,12 @@ class AccountDisplay {
       if (candidate != null && candidate.isNotEmpty) return candidate;
     }
     return null;
+  }
+
+  /// The account name, or the nickname the player has in rankings when the provider gave none.
+  static String? nameOrNickname(final dynamic user) {
+    if (user == null) return null;
+    return bestDisplayName(user) ?? NicknameGenerator.fromUid(user.uid as String);
   }
 
   static String? bestPhotoUrl(final dynamic user) {

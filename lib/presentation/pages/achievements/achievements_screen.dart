@@ -187,7 +187,7 @@ class _Header extends StatelessWidget {
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     final user = context.select<AuthCubit, dynamic>((final cubit) => cubit.state.user);
-    final name = AccountDisplay.bestDisplayName(user);
+    final name = AccountDisplay.nameOrNickname(user);
     final since = stats.firstSolvedAt;
     if (name == null && since == null) {
       return const SizedBox.shrink();

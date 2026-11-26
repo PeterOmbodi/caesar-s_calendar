@@ -116,6 +116,7 @@ class AuthService {
         'apple.com',
       ).credential(idToken: appleCredential.identityToken, accessToken: appleCredential.authorizationCode);
       final result = await _auth.signInWithCredential(oauthCredential);
+      await _saveAppleName(result.user, appleCredential);
       await _ensureUserDoc();
       return Right(result);
     } on FirebaseAuthException catch (e) {
@@ -130,6 +131,21 @@ class AuthService {
     } catch (e) {
       debugPrint('Apple sign-in failed: $e');
       return Left(AuthUnknownFailure(e.toString()));
+    }
+  }
+
+  /// Apple shares the name only on the first authorization and never puts it in the token.
+  Future<void> _saveAppleName(final User? user, final AuthorizationCredentialAppleID credential) async {
+    if (user == null || (user.displayName?.trim().isNotEmpty ?? false)) return;
+    final name = [
+      credential.givenName,
+      credential.familyName,
+    ].map((final part) => part?.trim() ?? '').where((final part) => part.isNotEmpty).join(' ');
+    if (name.isEmpty) return;
+    try {
+      await user.updateDisplayName(name);
+    } catch (e) {
+      debugPrint('Apple name not saved: $e');
     }
   }
 
