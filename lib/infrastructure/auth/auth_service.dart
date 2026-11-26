@@ -142,8 +142,11 @@ class AuthService {
       credential.familyName,
     ].map((final part) => part?.trim() ?? '').where((final part) => part.isNotEmpty).join(' ');
     if (name.isEmpty) return;
-    await user.updateDisplayName(name);
-    await user.reload();
+    try {
+      await user.updateDisplayName(name);
+    } catch (e) {
+      debugPrint('Apple name not saved: $e');
+    }
   }
 
   Future<Either<AuthFailure, UserCredential>> _signInWithAppleOnWeb() async {
