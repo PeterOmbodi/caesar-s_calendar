@@ -2,7 +2,9 @@
 
 A daily calendar puzzle for Android, iOS, and the web. Place all pieces on the board so that only today's month and day stay uncovered.
 
-[Get it on Google Play](https://play.google.com/store/apps/details?id=com.peter_ombodi.caesar_puzzle) · App Store — coming soon · [Play in the browser](https://peterombodi.github.io/caesar-s_calendar/)
+[Get it on Google Play](https://play.google.com/store/apps/details?id=com.peter_ombodi.caesar_puzzle) · [Join the iOS Beta on TestFlight](https://testflight.apple.com/join/3vV19gea) · [Play in the browser](https://peterombodi.github.io/caesar-s_calendar/)
+
+iOS beta testers are welcome! I'd love to hear your feedback.
 
 <p align="center">
   <img alt="Caesar's Calendar on Android, iPhone and the web" src="https://github.com/user-attachments/assets/eb474a46-e203-4b88-bfcb-2e8449aa058c" width="860">
