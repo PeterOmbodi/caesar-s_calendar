@@ -244,7 +244,8 @@ class _SignedIn extends StatelessWidget {
     final colors = GameColors.of(context);
     final cubit = context.read<AuthCubit>();
     final profileCubit = context.read<PublicProfileCubit>();
-    final displayName = AccountDisplay.bestDisplayName(user);
+    final realName = AccountDisplay.bestDisplayName(user);
+    final displayName = AccountDisplay.nameOrNickname(user);
     final provider = _providerLabel(user);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -277,7 +278,7 @@ class _SignedIn extends StatelessWidget {
               icon: Icons.visibility_outlined,
               title: S.current.accountLeaderboardVisibility,
               subtitle: S.current.accountLeaderboardNickname(
-                NicknameGenerator.nickname(uid: user.uid, displayName: publicProfile.showName ? displayName : null),
+                NicknameGenerator.nickname(uid: user.uid, displayName: publicProfile.showName ? realName : null),
               ),
               trailing: AppSwitch(
                 value: publicProfile.enabled,

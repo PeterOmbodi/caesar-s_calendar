@@ -16,7 +16,7 @@ class AccountSummaryButton extends StatelessWidget {
   static ({String title, String subtitle}) textFor(final AuthState auth) {
     final user = auth.user;
     if (user != null) {
-      return (title: AccountDisplay.bestDisplayName(user) ?? S.current.accountSignedInFallback, subtitle: '');
+      return (title: AccountDisplay.nameOrNickname(user) ?? S.current.accountSignedInFallback, subtitle: '');
     }
     return (
       title: auth.isLoading ? S.current.accountSigningIn : S.current.accountLocalProfile,
@@ -27,7 +27,7 @@ class AccountSummaryButton extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final user = auth.user;
-    final displayName = AccountDisplay.bestDisplayName(user);
+    final displayName = AccountDisplay.nameOrNickname(user);
     final photoUrl = AccountDisplay.bestPhotoUrl(user);
     final (:title, :subtitle) = textFor(auth);
 

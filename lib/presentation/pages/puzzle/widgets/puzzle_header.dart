@@ -207,7 +207,7 @@ class _SettingsButton extends StatelessWidget {
   Widget build(final BuildContext context) {
     final colors = GameColors.of(context);
     return BlocBuilder<AuthCubit, AuthState>(
-      buildWhen: (final p, final n) => p.user?.uid != n.user?.uid,
+      buildWhen: (final p, final n) => p.user?.uid != n.user?.uid || p.user?.displayName != n.user?.displayName,
       builder: (final context, final auth) {
         final user = auth.user;
         if (user == null) {
@@ -217,7 +217,7 @@ class _SettingsButton extends StatelessWidget {
             child: Icon(Icons.settings, size: 22, color: colors.icon),
           );
         }
-        final displayName = AccountDisplay.bestDisplayName(user);
+        final displayName = AccountDisplay.nameOrNickname(user);
         return GlassCircleButton(
           tooltip: S.current.settings,
           onPressed: onPressed,
