@@ -1,0 +1,36 @@
+name: Clean up race rooms
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Only list the rooms that would be deleted
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cleanup-rooms
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tool/cleanup_rooms.mjs
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --no-audit --no-fund firebase-admin@13
+      - run: node tool/cleanup_rooms.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_DATABASE_URL: ${{ vars.FIREBASE_DATABASE_URL }}
+          DRY_RUN: ${{ inputs.dry_run == true }}
